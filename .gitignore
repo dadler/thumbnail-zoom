@@ -1,3 +1,6 @@
 implementation/src/Makefile
 implementation/src/resources/Makefile.in
 implementation/src/chrome/Makefile.in
+firefox/src/Makefile
+firefox/src/chrome/Makefile.in
+firefox/src/resources/Makefile.in
