@@ -1,0 +1,3 @@
+implementation/src/Makefile
+implementation/src/resources/Makefile.in
+implementation/src/chrome/Makefile.in
