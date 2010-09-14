@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+ - Copyright (c) 2010 Andres Hernandez Monge
+ - All rights reserved.
+ -
+ - Redistribution and use in source and binary forms, with or without
+ - modification, are permitted provided that the following conditions
+ - are met:
+ - 1. Redistributions of source code must retain the above copyright
+ -    notice, this list of conditions and the following disclaimer.
+ - 2. Redistributions in binary form must reproduce the above copyright
+ -    notice, this list of conditions and the following disclaimer in the
+ -    documentation and/or other materials provided with the distribution.
+ - 3. Neither the name of copyright holders nor the names of its
+ -    contributors may be used to endorse or promote products derived
+ -    from this software without specific prior written permission.
+ -
+ - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ - "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ - TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ - PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL COPYRIGHT HOLDERS OR CONTRIBUTORS
+ - BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ - CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ - SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ - INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ - CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ - ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ - POSSIBILITY OF SUCH DAMAGE.
+ -->
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>{E10A6337-382E-4FE6-96DE-936ADC34DD04}</em:id>
+    <em:name>Thumbnail Zoom</em:name>
+    <em:description>Zooms thumbnail pictures from Facebook, Twitter, MySpace, Amazon, Picasa, Flickr, LinkedIn and Hi5</em:description>
+    <em:version>1.1</em:version>
+    <em:creator>Andres Hernandez Monge</em:creator>
+    <em:iconURL>chrome://imagezoom/skin/images/icon64.png</em:iconURL>
+    <em:optionsURL>chrome://imagezoom/content/options.xul</em:optionsURL>
+    <em:type>2</em:type>
+
+    <!-- Firefox -->
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>3.0</em:minVersion>
+        <em:maxVersion>4.0b6pre</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+
+  </Description>
+</RDF>

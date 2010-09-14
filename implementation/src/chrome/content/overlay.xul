@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+
+<!--
+ - Copyright (c) 2010 Andres Hernandez Monge
+ - All rights reserved.
+ -
+ - Redistribution and use in source and binary forms, with or without
+ - modification, are permitted provided that the following conditions
+ - are met:
+ - 1. Redistributions of source code must retain the above copyright
+ -    notice, this list of conditions and the following disclaimer.
+ - 2. Redistributions in binary form must reproduce the above copyright
+ -    notice, this list of conditions and the following disclaimer in the
+ -    documentation and/or other materials provided with the distribution.
+ - 3. Neither the name of copyright holders nor the names of its
+ -    contributors may be used to endorse or promote products derived
+ -    from this software without specific prior written permission.
+ -
+ - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ - "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ - TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ - PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL COPYRIGHT HOLDERS OR CONTRIBUTORS
+ - BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ - CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ - SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ - INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ - CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ - ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ - POSSIBILITY OF SUCH DAMAGE.
+ -->
+
+<?xml-stylesheet type="text/css" href="chrome://imagezoom/skin/overlay.css" ?>
+
+<!DOCTYPE overlay SYSTEM "chrome://imagezoom/locale/locale.dtd">
+
+<overlay id="imagezoom-browser-overlay"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/x-javascript"
+    src="chrome://imagezoom/content/common.js" />
+  <script type="application/x-javascript"
+    src="chrome://imagezoom/content/overlay.js" />
+  <script type="application/x-javascript"
+    src="chrome://imagezoom/content/panel.js" />
+
+  <!-- Status bar button -->
+  <statusbar id="status-bar">
+    <statusbarpanel id="imagezoom-statusbar-panel"
+      class="statusbarpanel-menu-iconic"
+      insertafter="page-report-button"
+      tooltiptext="&imagezoom.statusbar.tooltip;"
+      src="chrome://imagezoom/skin/images/icon16.png">
+      <menupopup>
+        <menuitem id="imagezoom-status-menuitem-facebook"
+          label="&imagezoom.facebook.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.FACEBOOK);" />
+        <menuitem id="imagezoom-status-menuitem-twitter"
+          label="&imagezoom.twitter.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.TWITTER);" />
+        <menuitem id="imagezoom-status-menuitem-myspace"
+          label="&imagezoom.myspace.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.MYSPACE);" />
+        <menuitem id="imagezoom-status-menuitem-linkedin"
+          label="&imagezoom.linkedin.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.LINKEDIN);" />
+        <menuitem id="imagezoom-status-menuitem-amazon"
+          label="&imagezoom.amazon.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.AMAZON);" />
+        <menuitem id="imagezoom-status-menuitem-picasa"
+          label="&imagezoom.picasa.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.PICASA);" />
+        <menuitem id="imagezoom-status-menuitem-flickr"
+          label="&imagezoom.flickr.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.FLICKR);" />
+        <menuitem id="imagezoom-status-menuitem-hi5"
+          label="&imagezoom.hi5.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.HI5);" />
+        <menuseparator />
+        <menuitem label="&imagezoom.statusbar.settings.label;"
+          oncommand="ImageZoomChrome.Overlay.openPreferences();" />
+      </menupopup>
+    </statusbarpanel>
+  </statusbar>
+
+  <!-- Panel -->
+  <window id="main-window">
+    <panel id="imagezoom-panel" noautofocus="true" noautohide="true">
+      <stack>
+        <vbox align="center" pack="center">
+          <image id="imagezoom-panel-throbber" />
+        </vbox>
+        <image id="imagezoom-panel-image"
+          onload="ImageZoomChrome.Overlay.scaleImage();" />
+      </stack>
+    </panel>
+  </window>
+
+</overlay>
