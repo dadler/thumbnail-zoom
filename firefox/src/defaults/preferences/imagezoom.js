@@ -27,14 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+// General preferences.
 pref("extensions.imagezoom.statusbar.show",  true);
 pref("extensions.imagezoom.panel.delay",     0);
 
-pref("extensions.imagezoom.twitter.enable",  true);
-pref("extensions.imagezoom.facebook.enable", true);
-pref("extensions.imagezoom.linkedin.enable", true);
-pref("extensions.imagezoom.amazon.enable",   true);
-pref("extensions.imagezoom.hi5.enable",      true);
-pref("extensions.imagezoom.picasa.enable",   true);
-pref("extensions.imagezoom.myspace.enable",  true);
-pref("extensions.imagezoom.flickr.enable",   true);
+// Site preferences.
+pref("extensions.imagezoom.hi5.enable",         true);
+pref("extensions.imagezoom.flickr.enable",      true);
+pref("extensions.imagezoom.amazon.enable",      true);
+pref("extensions.imagezoom.picasa.enable",      true);
+pref("extensions.imagezoom.twitter.enable",     true);
+pref("extensions.imagezoom.myspace.enable",     true);
+pref("extensions.imagezoom.facebook.enable",    true);
+pref("extensions.imagezoom.linkedin.enable",    true);
+pref("extensions.imagezoom.devianart.enable",   true);
+pref("extensions.imagezoom.wikipedia.enable",   true);
+pref("extensions.imagezoom.photobucket.enable", true);

@@ -59,6 +59,12 @@
         name="extensions.imagezoom.myspace.enable" type="bool"/>
       <preference id="imagezoom-options-flickr-pref"
         name="extensions.imagezoom.flickr.enable" type="bool"/>
+      <preference id="imagezoom-options-wikipedia-pref"
+        name="extensions.imagezoom.wikipedia.enable" type="bool"/>
+      <preference id="imagezoom-options-devianart-pref"
+        name="extensions.imagezoom.devianart.enable" type="bool"/>
+      <preference id="imagezoom-options-photobucket-pref"
+        name="extensions.imagezoom.photobucket.enable" type="bool"/>
     </preferences>
 
     <checkbox label="&imagezoom.options.statusbar.checkbox.label;"
@@ -85,6 +91,10 @@
             preference="imagezoom-options-myspace-pref" />
           <checkbox label="&imagezoom.linkedin.label;"
             preference="imagezoom-options-linkedin-pref" />
+          <checkbox label="&imagezoom.wikipedia.label;"
+            preference="imagezoom-options-wikipedia-pref" />
+          <checkbox label="&imagezoom.devianart.label;"
+            preference="imagezoom-options-devianart-pref" />
         </vbox>
         <vbox>
           <checkbox label="&imagezoom.amazon.label;"
@@ -95,6 +105,8 @@
             preference="imagezoom-options-flickr-pref" />
           <checkbox label="&imagezoom.hi5.label;"
             preference="imagezoom-options-hi5-pref" />
+          <checkbox label="&imagezoom.photobucket.label;"
+            preference="imagezoom-options-photobucket-pref" />
         </vbox>
       </hbox>
     </groupbox>

@@ -36,22 +36,14 @@ Cu.import("resource://imagezoom/uninstallService.js");
  */
 ImageZoomChrome.Overlay = {
   /* UI preference keys. */
-  PREF_STATUSBAR_SHOW :  ImageZoom.PrefBranch + "statusbar.show",
-  PREF_PANEL_DELAY :  ImageZoom.PrefBranch + "panel.delay",
-  /* Pages preference keys. */
-  PREF_HI5_ENABLE :      ImageZoom.PrefBranch + "hi5.enable",
-  PREF_AMAZON_ENABLE :   ImageZoom.PrefBranch + "amazon.enable",
-  PREF_PICASA_ENABLE :   ImageZoom.PrefBranch + "picasa.enable",
-  PREF_FLICKR_ENABLE :   ImageZoom.PrefBranch + "flickr.enable",
-  PREF_MYSPACE_ENABLE :  ImageZoom.PrefBranch + "myspace.enable",
-  PREF_TWITTER_ENABLE :  ImageZoom.PrefBranch + "twitter.enable",
-  PREF_FACEBOOK_ENABLE : ImageZoom.PrefBranch + "facebook.enable",
-  PREF_LINKEDIN_ENABLE : ImageZoom.PrefBranch + "linkedin.enable",
+  PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
+  PREF_STATUSBAR_SHOW : ImageZoom.PrefBranch + "statusbar.show",
 
   /* Logger for this object. */
   _logger : null,
   /* Preferences service. */
   _preferencesService : null,
+
   /* The timer. */
   _timer : null,
   /* The floating panel. */
@@ -73,19 +65,10 @@ ImageZoomChrome.Overlay = {
     this._panelImage = document.getElementById("imagezoom-panel-image");
 
     this._preferencesService.addObserver(this.PREF_STATUSBAR_SHOW, this, false);
-    this._preferencesService.addObserver(this.PREF_HI5_ENABLE, this, false);
-    this._preferencesService.addObserver(this.PREF_AMAZON_ENABLE, this, false);
-    this._preferencesService.addObserver(this.PREF_PICASA_ENABLE, this, false);
-    this._preferencesService.addObserver(this.PREF_FLICKR_ENABLE, this, false);
-    this._preferencesService.addObserver(this.PREF_TWITTER_ENABLE, this, false);
-    this._preferencesService.addObserver(this.PREF_MYSPACE_ENABLE, this, false);
-    this._preferencesService.addObserver(
-      this.PREF_FACEBOOK_ENABLE, this, false);
-    this._preferencesService.addObserver(
-      this.PREF_LINKEDIN_ENABLE, this, false);
-
-    this._addEventListeners();
+    this._addPreferenceObservers(true);
+    this._showStatusBarButton();
     this._updatePreferencesUI();
+    this._addEventListeners();
   },
 
   /**
@@ -97,80 +80,43 @@ ImageZoomChrome.Overlay = {
     this._panel = null;
     this._panelImage = null;
     this._preferencesService.removeObserver(this.PREF_STATUSBAR_SHOW, this);
-    this._preferencesService.removeObserver(this.PREF_HI5_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_AMAZON_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_PICASA_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_FLICKR_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_TWITTER_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_MYSPACE_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_FACEBOOK_ENABLE, this);
-    this._preferencesService.removeObserver(this.PREF_LINKEDIN_ENABLE, this);
+    this._addPreferenceObservers(false);
   },
 
   /**
-   * Closes the panel.
+   * Adds the preference observers.
+   * @param aValue true if adding, false when removing.
    */
-  _closePanel : function() {
-    this._logger.trace("_closePanel");
+  _addPreferenceObservers : function(aValue) {
+    this._logger.debug("_addPreferenceObservers");
 
-    this._timer.cancel();
-    if (this._panel.state != "closed") {
-      this._panel.hidePopup();
+    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
+    let preference = null;
+    let pageInfo = null;
+
+    for (let i = 0; i < pageCount; i++) {
+      pageInfo = ImageZoom.FilterService.PAGE_INFO[i];
+      preference = ImageZoom.PrefBranch + pageInfo.key + ".enable";
+
+      if (aValue) {
+        this._preferencesService.addObserver(preference, this, false);
+      } else {
+        this._preferencesService.removeObserver(preference, this);
+      }
     }
   },
 
   /**
-   * Shows the panel.
-   * @param aImageNode the image node.
-   * @param aImageSrc the image source.
+   * Updates the UI that depends on preferences.
    */
-  _showPanel : function(aImageNode, aImageSrc) {
-    this._logger.trace("_showPanel");
+  _updatePreferencesUI : function() {
+    this._logger.trace("_updatePreferencesUI");
 
-    // reset previous pic.
-    this._panelImage.removeAttribute("src");
-    this._panelImage.style.maxWidth = "";
-    this._panelImage.style.minWidth = "";
-    this._panelImage.style.maxHeight = "";
-    this._panelImage.style.minHeight = "";
-    this._closePanel();
+    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
 
-    // open new pic.
-    if (this._panel.state != "open") {
-      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+    for (let i = 0; i < pageCount; i++) {
+      this._updateStatusbarMenu(i);
     }
-    this._panelImage.src = aImageSrc;
-  },
-
-  /**
-   * Scales the image to fit the window.
-   */
-  scaleImage : function() {
-    this._logger.debug("scaleImage");
-
-    let pageWidth = content.document.documentElement.clientWidth;
-    let pageHeight = content.document.documentElement.clientHeight;
-    let imageWidth =
-      parseInt(window.getComputedStyle(this._panelImage, null).
-        getPropertyValue("width").replace("px", ""));
-    let imageHeight =
-      parseInt(window.getComputedStyle(this._panelImage, null).
-        getPropertyValue("height").replace("px", ""));
-    let scaleWidth = imageWidth;
-    let scaleHeight = imageHeight;
-
-    if (imageHeight > pageHeight) {
-      scaleHeight = pageHeight;
-      scaleWidth = parseInt(imageWidth * pageHeight / imageHeight);
-    } else if (imageWidth > pageWidth) {
-      scaleWidth = pageWidth;
-      scaleHeight = parseInt(imageHeight * pageWidth / imageWidth);
-    }
-
-    this._panelImage.style.maxWidth = scaleWidth + "px";
-    this._panelImage.style.minWidth = scaleWidth + "px";
-    this._panelImage.style.maxHeight = scaleHeight + "px";
-    this._panelImage.style.minHeight = scaleHeight + "px";
   },
 
   /**
@@ -187,23 +133,6 @@ ImageZoomChrome.Overlay = {
     gBrowser.tabContainer.addEventListener(
       "TabSelect",
       function(aEvent) { that._handleTabSelected(aEvent); }, false);
-  },
-
-  /**
-   * Updates the UI that depends on preferences.
-   */
-  _updatePreferencesUI : function() {
-    this._logger.trace("_updatePreferencesUI");
-
-    this._showStatusBarButton();
-    this._updateStatusbarMenu(ImageZoom.FilterService.HI5);
-    this._updateStatusbarMenu(ImageZoom.FilterService.AMAZON);
-    this._updateStatusbarMenu(ImageZoom.FilterService.PICASA);
-    this._updateStatusbarMenu(ImageZoom.FilterService.FLICKR);
-    this._updateStatusbarMenu(ImageZoom.FilterService.TWITTER);
-    this._updateStatusbarMenu(ImageZoom.FilterService.MYSPACE);
-    this._updateStatusbarMenu(ImageZoom.FilterService.FACEBOOK);
-    this._updateStatusbarMenu(ImageZoom.FilterService.LINKEDIN);
   },
 
   /**
@@ -227,7 +156,7 @@ ImageZoomChrome.Overlay = {
     let doc = aEvent.originalTarget;
 
     if (doc instanceof HTMLDocument) {
-      let page = ImageZoom.FilterService.getPageConstant(doc);
+      let page = ImageZoom.FilterService.getPageConstantByDoc(doc);
 
       if (-1 != page) {
         doc.addEventListener(
@@ -270,6 +199,41 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Closes the panel.
+   */
+  _closePanel : function() {
+    this._logger.trace("_closePanel");
+
+    this._timer.cancel();
+    if (this._panel.state != "closed") {
+      this._panel.hidePopup();
+    }
+  },
+
+  /**
+   * Shows the panel.
+   * @param aImageNode the image node.
+   * @param aImageSrc the image source.
+   */
+  _showPanel : function(aImageNode, aImageSrc) {
+    this._logger.trace("_showPanel");
+
+    // reset previous pic.
+    this._panelImage.removeAttribute("src");
+    this._panelImage.style.maxWidth = "";
+    this._panelImage.style.minWidth = "";
+    this._panelImage.style.maxHeight = "";
+    this._panelImage.style.minHeight = "";
+    this._closePanel();
+
+    // open new pic.
+    if (this._panel.state != "open") {
+      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+    }
+    this._panelImage.src = aImageSrc;
+  },
+
+  /**
    * Shows the zoomed image panel.
    * @param aImageSrc the image source
    * @param aImageNode the image node
@@ -303,6 +267,37 @@ ImageZoomChrome.Overlay = {
     }
 
     return hoverTime;
+  },
+
+  /**
+   * Scales the image to fit the window.
+   */
+  scaleImage : function() {
+    this._logger.debug("scaleImage");
+
+    let pageWidth = content.document.documentElement.clientWidth;
+    let pageHeight = content.document.documentElement.clientHeight;
+    let imageWidth =
+      parseInt(window.getComputedStyle(this._panelImage, null).
+        getPropertyValue("width").replace("px", ""));
+    let imageHeight =
+      parseInt(window.getComputedStyle(this._panelImage, null).
+        getPropertyValue("height").replace("px", ""));
+    let scaleWidth = imageWidth;
+    let scaleHeight = imageHeight;
+
+    if (imageHeight > pageHeight) {
+      scaleHeight = pageHeight;
+      scaleWidth = parseInt(imageWidth * pageHeight / imageHeight);
+    } else if (imageWidth > pageWidth) {
+      scaleWidth = pageWidth;
+      scaleHeight = parseInt(imageHeight * pageWidth / imageWidth);
+    }
+
+    this._panelImage.style.maxWidth = scaleWidth + "px";
+    this._panelImage.style.minWidth = scaleWidth + "px";
+    this._panelImage.style.maxHeight = scaleHeight + "px";
+    this._panelImage.style.minHeight = scaleHeight + "px";
   },
 
   /**
@@ -368,34 +363,15 @@ ImageZoomChrome.Overlay = {
     this._logger.debug("observe");
 
     if ("nsPref:changed" == aTopic) {
-      switch (aData) {
-        case this.PREF_STATUSBAR_SHOW :
-          this._showStatusBarButton();
-          break;
-        case this.PREF_TWITTER_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.TWITTER);
-          break;
-        case this.PREF_FACEBOOK_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.FACEBOOK);
-          break;
-        case this.PREF_LINKEDIN_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.LINKEDIN);
-          break;
-        case this.PREF_AMAZON_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.AMAZON);
-          break;
-        case this.PREF_HI5_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.HI5);
-          break;
-        case this.PREF_PICASA_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.PICASA);
-          break;
-        case this.PREF_MYSPACE_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.MYSPACE);
-          break;
-        case this.PREF_FLICKR_ENABLE :
-          this._updateStatusbarMenu(ImageZoom.FilterService.FLICKR);
-          break;
+      if (this.PREF_STATUSBAR_SHOW == aData) {
+        this._showStatusBarButton();
+      } else if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
+                 -1 != aData.indexOf(".enable")) {
+        let page =
+          aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
+        let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);
+
+        this._updateStatusbarMenu(pageConstant);
       }
     }
   }

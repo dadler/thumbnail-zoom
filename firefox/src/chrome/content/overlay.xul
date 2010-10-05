@@ -83,6 +83,18 @@
           label="&imagezoom.hi5.label;" type="checkbox"
           oncommand="ImageZoomChrome.Overlay.togglePreference(
             ImageZoom.FilterService.HI5);" />
+        <menuitem id="imagezoom-status-menuitem-wikipedia"
+          label="&imagezoom.wikipedia.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.WIKIPEDIA);" />
+        <menuitem id="imagezoom-status-menuitem-devianart"
+          label="&imagezoom.devianart.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.DEVIANART);" />
+        <menuitem id="imagezoom-status-menuitem-photobucket"
+          label="&imagezoom.photobucket.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.PHOTOBUCKET);" />
         <menuseparator />
         <menuitem label="&imagezoom.statusbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />

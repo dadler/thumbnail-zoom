@@ -40,17 +40,20 @@ Cu.import("resource://imagezoom/common.js");
  */
 ImageZoom.FilterService = {
   /* Pages contants. */
-  TWITTER  : 0,
-  FACEBOOK : 1,
-  LINKEDIN : 2,
-  AMAZON   : 3,
-  HI5      : 4,
-  PICASA   : 5,
-  MYSPACE  : 6,
-  FLICKR   : 7,
+  TWITTER     : 0,
+  FACEBOOK    : 1,
+  LINKEDIN    : 2,
+  AMAZON      : 3,
+  HI5         : 4,
+  PICASA      : 5,
+  MYSPACE     : 6,
+  FLICKR      : 7,
+  WIKIPEDIA   : 8,
+  DEVIANART   : 9,
+  PHOTOBUCKET : 10,
 
   /* Pages info. */
-  _PAGE_INFO : [
+  PAGE_INFO : [
     { key: "twitter",
       imageRegExp: /twimg\.com\/profile_images\// },
     { key: "facebook",
@@ -66,7 +69,13 @@ ImageZoom.FilterService = {
     { key: "myspace",
       imageRegExp: /c[0-9]+\.ac-images\.myspacecdn\.com/ },
     { key: "flickr",
-      imageRegExp: /farm[0-9]+\.static\.flickr\.com/ }
+      imageRegExp: /farm[0-9]+\.static\.flickr\.com/ },
+    { key: "wikipedia",
+      imageRegExp: /a/ },
+    { key: "devianart",
+      imageRegExp: /a/ },
+    { key: "photobucket",
+      imageRegExp: /a/ }
   ],
 
   /* Logger for this object. */
@@ -85,8 +94,8 @@ ImageZoom.FilterService = {
    * @param aDocument the document object.
    * @return the page constant.
    */
-  getPageConstant : function(aDocument) {
-    this._logger.debug("getPageConstant");
+  getPageConstantByDoc : function(aDocument) {
+    this._logger.debug("getPageConstantByDoc");
 
     let pageConstant = -1;
 
@@ -128,14 +137,35 @@ ImageZoom.FilterService = {
   },
 
   /**
-   * Gets the page constant name.
-   * @param aPage the page constant.
+   * Gets the page constant by name.
+   * @param aPageName the page name.
+   * @return the page constant.
+   */
+  getPageConstantByName : function(aPageName) {
+    this._logger.debug("getPageConstantByName");
+
+    let pageCount = this.PAGE_INFO.length;
+    let pageConstant = null;
+
+    for (let i = 0; i < pageCount; i++) {
+      if (this.PAGE_INFO[i].key == aPageName) {
+        pageConstant = i;
+        break;
+      }
+    }
+
+    return pageConstant;
+  },
+
+  /**
+   * Gets the page name.
+   * @param aPageConstant the page constant.
    * @return the page constant name.
    */
-  getPageName : function(aPage) {
+  getPageName : function(aPageConstant) {
     this._logger.debug("getPageName");
 
-    return this._PAGE_INFO[aPage].key;
+    return this.PAGE_INFO[aPageConstant].key;
   },
 
   /**
@@ -208,7 +238,7 @@ ImageZoom.FilterService = {
     this._logger.debug("filterImage");
 
     let validImage = false;
-    let regExp = new RegExp(this._PAGE_INFO[aPage].imageRegExp);
+    let regExp = new RegExp(this.PAGE_INFO[aPage].imageRegExp);
 
     if (regExp.test(aImageSrc)) {
       validImage = true;
