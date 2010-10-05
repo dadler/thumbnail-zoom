@@ -87,10 +87,10 @@
           label="&imagezoom.wikipedia.label;" type="checkbox"
           oncommand="ImageZoomChrome.Overlay.togglePreference(
             ImageZoom.FilterService.WIKIPEDIA);" />
-        <menuitem id="imagezoom-status-menuitem-devianart"
-          label="&imagezoom.devianart.label;" type="checkbox"
+        <menuitem id="imagezoom-status-menuitem-deviantart"
+          label="&imagezoom.deviantart.label;" type="checkbox"
           oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.DEVIANART);" />
+            ImageZoom.FilterService.DEVIANTART);" />
         <menuitem id="imagezoom-status-menuitem-photobucket"
           label="&imagezoom.photobucket.label;" type="checkbox"
           oncommand="ImageZoomChrome.Overlay.togglePreference(

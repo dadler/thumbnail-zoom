@@ -49,33 +49,44 @@ ImageZoom.FilterService = {
   MYSPACE     : 6,
   FLICKR      : 7,
   WIKIPEDIA   : 8,
-  DEVIANART   : 9,
+  DEVIANTART  : 9,
   PHOTOBUCKET : 10,
 
   /* Pages info. */
   PAGE_INFO : [
     { key: "twitter",
+      host: "twitter.com",
       imageRegExp: /twimg\.com\/profile_images\// },
     { key: "facebook",
+      host: "www.facebook.com",
       imageRegExp: /(profile|photos-[a-z])\.ak\.fbcdn\.net\// },
     { key: "linkedin",
+      host: "www.linkedin.com",
       imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\// },
     { key: "amazon",
+      host: "www.amazon.com",
       imageRegExp: /\/ecx\.images\-amazon\.com\/images/ },
     { key: "hi5",
+      host: "www.hi5.com",
       imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/ },
     { key: "picasa",
+      host: "picasaweb.google.com",
       imageRegExp: /lh[0-9]+.ggpht.com/ },
     { key: "myspace",
+      host: "myspace.com",
       imageRegExp: /c[0-9]+\.ac-images\.myspacecdn\.com/ },
     { key: "flickr",
+      host: "www.flickr.com",
       imageRegExp: /farm[0-9]+\.static\.flickr\.com/ },
     { key: "wikipedia",
-      imageRegExp: /a/ },
-    { key: "devianart",
-      imageRegExp: /a/ },
+      host: "wikipedia.org",
+      imageRegExp: /upload\.wikimedia\.org\/wikipedia/ },
+    { key: "deviantart",
+      host: "deviantart.com",
+      imageRegExp: /th[0-9]+\.deviantart.net/ },
     { key: "photobucket",
-      imageRegExp: /a/ }
+      host: "photobucket.com",
+      imageRegExp: /i[0-9]+\.photobucket.com/ }
   ],
 
   /* Logger for this object. */
@@ -103,32 +114,12 @@ ImageZoom.FilterService = {
         ("http:" == aDocument.location.protocol ||
          "https:" == aDocument.location.protocol)) {
       let host = aDocument.location.host;
+      let pageCount = this.PAGE_INFO.length;
 
-      if (-1 != host.indexOf("myspace.com")) {
-        pageConstant = this.MYSPACE;
-      } else {
-        switch (host) {
-          case "twitter.com":
-            pageConstant = this.TWITTER;
-            break;
-          case "www.facebook.com":
-            pageConstant = this.FACEBOOK;
-            break;
-          case "www.linkedin.com":
-            pageConstant = this.LINKEDIN;
-            break;
-          case "www.amazon.com":
-            pageConstant = this.AMAZON;
-            break;
-          case "www.hi5.com":
-            pageConstant = this.HI5;
-            break;
-          case "picasaweb.google.com":
-            pageConstant = this.PICASA;
-            break;
-          case "www.flickr.com":
-            pageConstant = this.FLICKR;
-            break;
+      for (let i = 0; i < pageCount; i++) {
+        if (-1 != host.indexOf(this.PAGE_INFO[i].host)) {
+          pageConstant = i;
+          break;
         }
       }
     }
@@ -145,7 +136,7 @@ ImageZoom.FilterService = {
     this._logger.debug("getPageConstantByName");
 
     let pageCount = this.PAGE_INFO.length;
-    let pageConstant = null;
+    let pageConstant = -1;
 
     for (let i = 0; i < pageCount; i++) {
       if (this.PAGE_INFO[i].key == aPageName) {
@@ -311,6 +302,16 @@ ImageZoom.FilterService = {
         if (regExp1.test(aImageSrc)) {
           bigImageSrc = aImageSrc.replace(/_[smt]\./, ".");
         }
+        break;
+      case this.WIKIPEDIA:
+        bigImageSrc = aImageSrc;
+        break;
+      case this.DEVIANTART:
+        bigImageSrc = aImageSrc;
+        break;
+      case this.PHOTOBUCKET:
+        bigImageSrc = aImageSrc;
+        break;
     }
 
     return bigImageSrc;

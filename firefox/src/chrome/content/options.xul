@@ -61,8 +61,8 @@
         name="extensions.imagezoom.flickr.enable" type="bool"/>
       <preference id="imagezoom-options-wikipedia-pref"
         name="extensions.imagezoom.wikipedia.enable" type="bool"/>
-      <preference id="imagezoom-options-devianart-pref"
-        name="extensions.imagezoom.devianart.enable" type="bool"/>
+      <preference id="imagezoom-options-deviantart-pref"
+        name="extensions.imagezoom.deviantart.enable" type="bool"/>
       <preference id="imagezoom-options-photobucket-pref"
         name="extensions.imagezoom.photobucket.enable" type="bool"/>
     </preferences>
@@ -93,8 +93,8 @@
             preference="imagezoom-options-linkedin-pref" />
           <checkbox label="&imagezoom.wikipedia.label;"
             preference="imagezoom-options-wikipedia-pref" />
-          <checkbox label="&imagezoom.devianart.label;"
-            preference="imagezoom-options-devianart-pref" />
+          <checkbox label="&imagezoom.deviantart.label;"
+            preference="imagezoom-options-deviantart-pref" />
         </vbox>
         <vbox>
           <checkbox label="&imagezoom.amazon.label;"

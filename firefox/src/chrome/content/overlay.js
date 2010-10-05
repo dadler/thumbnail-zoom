@@ -156,12 +156,14 @@ ImageZoomChrome.Overlay = {
     let doc = aEvent.originalTarget;
 
     if (doc instanceof HTMLDocument) {
-      let page = ImageZoom.FilterService.getPageConstantByDoc(doc);
+      let pageConstant = ImageZoom.FilterService.getPageConstantByDoc(doc);
 
-      if (-1 != page) {
+      if (-1 != pageConstant) {
         doc.addEventListener(
           "mouseover",
-          function(aEvent) { that._handleMouseOver(aEvent, page); }, true);
+          function(aEvent) {
+            that._handleMouseOver(aEvent, pageConstant);
+          }, true);
       } else {
         this._closePanel();
       }
@@ -371,7 +373,9 @@ ImageZoomChrome.Overlay = {
           aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
         let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);
 
-        this._updateStatusbarMenu(pageConstant);
+        if (-1 != pageConstant) {
+          this._updateStatusbarMenu(pageConstant);
+        }
       }
     }
   }
