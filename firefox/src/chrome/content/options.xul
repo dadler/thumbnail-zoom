@@ -45,6 +45,8 @@
         name="extensions.imagezoom.panel.delay" type="int"/>
       <preference id="imagezoom-options-twitter-pref"
         name="extensions.imagezoom.twitter.enable" type="bool"/>
+      <preference id="imagezoom-options-twitpic-pref"
+        name="extensions.imagezoom.twitpic.enable" type="bool"/>
       <preference id="imagezoom-options-facebook-pref"
         name="extensions.imagezoom.facebook.enable" type="bool"/>
       <preference id="imagezoom-options-linkedin-pref"
@@ -107,6 +109,8 @@
             preference="imagezoom-options-hi5-pref" />
           <checkbox label="&imagezoom.photobucket.label;"
             preference="imagezoom-options-photobucket-pref" />
+          <checkbox label="&imagezoom.twitpic.label;"
+            preference="imagezoom-options-twitpic-pref" />
         </vbox>
       </hbox>
     </groupbox>

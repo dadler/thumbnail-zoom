@@ -37,6 +37,7 @@ pref("extensions.imagezoom.flickr.enable",      true);
 pref("extensions.imagezoom.amazon.enable",      true);
 pref("extensions.imagezoom.picasa.enable",      true);
 pref("extensions.imagezoom.twitter.enable",     true);
+pref("extensions.imagezoom.twitpic.enable",     true);
 pref("extensions.imagezoom.myspace.enable",     true);
 pref("extensions.imagezoom.facebook.enable",    true);
 pref("extensions.imagezoom.linkedin.enable",    true);

@@ -95,6 +95,10 @@
           label="&imagezoom.photobucket.label;" type="checkbox"
           oncommand="ImageZoomChrome.Overlay.togglePreference(
             ImageZoom.FilterService.PHOTOBUCKET);" />
+        <menuitem id="imagezoom-status-menuitem-twitpic"
+          label="&imagezoom.twitpic.label;" type="checkbox"
+          oncommand="ImageZoomChrome.Overlay.togglePreference(
+            ImageZoom.FilterService.TWITPIC);" />
         <menuseparator />
         <menuitem label="&imagezoom.statusbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />

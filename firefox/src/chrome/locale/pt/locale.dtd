@@ -43,6 +43,7 @@
 <!ENTITY imagezoom.picasa.label        "Picasa">
 <!ENTITY imagezoom.flickr.label        "Flickr">
 <!ENTITY imagezoom.twitter.label       "Twitter">
+<!ENTITY imagezoom.twitpic.label       "Twitpic">
 <!ENTITY imagezoom.myspace.label       "MySpace">
 <!ENTITY imagezoom.facebook.label      "Facebook">
 <!ENTITY imagezoom.linkedin.label      "LinkedIn">

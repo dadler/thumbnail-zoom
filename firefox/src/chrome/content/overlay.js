@@ -180,8 +180,8 @@ ImageZoomChrome.Overlay = {
   _handleMouseOver : function(aEvent, aPage) {
     this._logger.trace("_handleMouseOver");
 
-    let imageNode = aEvent.target;
-    let imageSrc = ImageZoom.FilterService.getImageSource(imageNode, aPage);
+    let node = aEvent.target;
+    let imageSrc = ImageZoom.FilterService.getImageSource(node, aPage);
 
     if (null != imageSrc) {
       if (ImageZoom.FilterService.isPageEnabled(aPage) &&
@@ -190,7 +190,7 @@ ImageZoomChrome.Overlay = {
 
         this._timer.cancel();
         this._timer.initWithCallback({ notify:
-          function() { that._showZoomedImage(imageSrc, imageNode, aPage); }
+          function() { that._showZoomedImage(imageSrc, node, aPage); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
         this._closePanel();

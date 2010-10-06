@@ -51,6 +51,7 @@ ImageZoom.FilterService = {
   WIKIPEDIA   : 8,
   DEVIANTART  : 9,
   PHOTOBUCKET : 10,
+  TWITPIC     : 11,
 
   /* Pages info. */
   PAGE_INFO : [
@@ -80,13 +81,16 @@ ImageZoom.FilterService = {
       imageRegExp: /farm[0-9]+\.static\.flickr\.com/ },
     { key: "wikipedia",
       host: "wikipedia.org",
-      imageRegExp: /upload\.wikimedia\.org\/wikipedia/ },
+      imageRegExp: /upload\.wikimedia\.org\/wikipedia\/commons/ },
     { key: "deviantart",
       host: "deviantart.com",
       imageRegExp: /th[0-9]+\.deviantart.net/ },
     { key: "photobucket",
       host: "photobucket.com",
-      imageRegExp: /i[0-9]+\.photobucket.com/ }
+      imageRegExp: /[0-9]+\.photobucket.com\/albums/ },
+    { key: "twitpic",
+      host: "twitpic.com",
+      imageRegExp: /(web[0-9][0-9]\.twitpic\.com\/img)|(s3\.amazonaws\.com\/twitpic)/ }
   ],
 
   /* Logger for this object. */
@@ -197,23 +201,42 @@ ImageZoom.FilterService = {
   },
 
   /**
-   * Gets the image source.
-   * @param aImageNode the image node.
+   * Gets the image source, handle special cases.
+   * @param aNode the html node.
    * @param aPage the page constant.
    * @return the image source, null if not apply.
    */
-  getImageSource : function(aImageNode, aPage) {
+  getImageSource : function(aNode, aPage) {
     this._logger.debug("getImageSource");
 
     let imageSrc = null;
+    let nodeName = aNode.localName.toLowerCase();
 
-    if ("img" == aImageNode.localName.toLowerCase()) {
-      imageSrc = aImageNode.getAttribute("src");
-    } else if (this.FACEBOOK == aPage &&
-               "i" == aImageNode.localName.toLowerCase() &&
-               null != aImageNode.style.backgroundImage) {
-      imageSrc = aImageNode.style.backgroundImage;
-      imageSrc = imageSrc.replace(/url\(\"/, "").replace(/\"\)/,"");
+    if ("img" == nodeName) {
+      imageSrc = aNode.getAttribute("src");
+    } else {
+      let nodeImage = aNode.style.backgroundImage;
+
+      if (null != nodeImage) {
+        let isValidImage = false;
+
+        switch (aPage) {
+          case this.FACEBOOK:
+            if ("i" == nodeName) {
+              isValidImage = true;
+            }
+            break;
+          case this.PHOTOBUCKET:
+            if ("div" == nodeName && "thumb" == aNode.getAttribute("class")) {
+              isValidImage = true;
+            }
+            break;
+        }
+
+        if (isValidImage) {
+          imageSrc = nodeImage.replace(/url\(\"/, "").replace(/\"\)/, "");
+        }
+      }
     }
 
     return imageSrc;
@@ -250,67 +273,91 @@ ImageZoom.FilterService = {
     let bigImageSrc = null;
     let regExp1 = null;
     let regExp2 = null;
+    let regExp3 = null;
 
     switch (aPage) {
       case this.TWITTER:
         regExp1 = new RegExp(/(_bigger\.)|(_mini\.)|(_normal\.)/);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc =
-            aImageSrc.replace(/(_bigger\.)|(_mini\.)|(_normal\.)/, ".");
+          bigImageSrc = aImageSrc.replace(regExp1, ".");
         }
         break;
       case this.FACEBOOK:
         regExp1 = new RegExp(/_[qsta]\./);
-        regExp2 = new RegExp(/[0-9]\/[qsta][0-9]/);
+        regExp2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/_[qsta]\./, "_n.");
+          bigImageSrc = aImageSrc.replace(regExp1, "_n.");
         } else if (regExp2.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/\/[qsta]/, "/n");
+          bigImageSrc = aImageSrc.replace(regExp2, "$1n$2");
         }
         break;
       case this.LINKEDIN:
-        bigImageSrc =
-          aImageSrc.replace(/\/shrink_[0-9][0-9]_[0-9][0-9]\//, "/");
+        regExp1 = new RegExp(/\/shrink_[0-9][0-9]_[0-9][0-9]\//);
+        bigImageSrc = aImageSrc.replace(regExp1, "/");
         break;
       case this.AMAZON:
-        bigImageSrc = aImageSrc.replace(/\._[A-Z].+_\./, ".");
+        regExp1 = new RegExp(/\._[a-z].+_\./i);
+        bigImageSrc = aImageSrc.replace(regExp1, ".");
         break;
       case this.HI5:
         regExp1 = new RegExp(/\-01\./);
         regExp2 = new RegExp(/\.small\./);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/\-01\./, "-02.");
+          bigImageSrc = aImageSrc.replace(regExp1, "-02.");
         } else if (regExp2.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/\.small\./, ".");
+          bigImageSrc = aImageSrc.replace(regExp2, ".");
         }
         break;
       case this.PICASA:
         regExp1 = new RegExp(/\/s([0-9]{2}|[123][0-9]{2})(-c)?\//);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc =
-            aImageSrc.replace(/\/s([0-9]{2}|[123][0-9]{2})(-c)?\//, "/s700/");
+          bigImageSrc = aImageSrc.replace(regExp1, "/s700/");
         }
         break;
       case this.MYSPACE:
-        regExp1 = new RegExp(/\/[sm]_.+\./);
+        regExp1 = new RegExp(/\/[sm](_.+\.)/);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/\/[sm]_/, "/l_");
+          bigImageSrc = aImageSrc.replace(regExp1, "/l$1");
         }
         break;
       case this.FLICKR:
         regExp1 = new RegExp(/_[smt]\./);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(/_[smt]\./, ".");
+          bigImageSrc = aImageSrc.replace(regExp1, ".");
         }
         break;
       case this.WIKIPEDIA:
-        bigImageSrc = aImageSrc;
+        regExp1 = new RegExp(/\/thumb\//);
+        regExp2 = new RegExp(/(\.[a-z]+)\/\d+px-.+\.[a-z]+/i);
+        regExp3 = new RegExp(/\.svg/);
+        if (regExp1.test(aImageSrc) && regExp2.test(aImageSrc) &&
+            !regExp3.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp1, "/").replace(regExp2,"$1");
+        }
         break;
       case this.DEVIANTART:
-        bigImageSrc = aImageSrc;
+        regExp1 = new RegExp(/(fs\d+\/)\w+\/([fiop])/);
+        if (regExp1.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp1, "$1$2");
+        }
         break;
       case this.PHOTOBUCKET:
-        bigImageSrc = aImageSrc;
+        regExp1 = new RegExp(/\/th_/);
+        if (regExp1.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp1, "/");
+        }
+        break;
+      case this.TWITPIC:
+        regExp1 = new RegExp(/-mini\./);
+        regExp2 = new RegExp(/-thumb\./);
+        regExp3 = new RegExp(/\/thumb\//);
+        if (regExp1.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp1, "-scaled.");
+        } else if (regExp2.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp2, "-full.");
+        } else if (regExp3.test(aImageSrc)) {
+          bigImageSrc = aImageSrc.replace(regExp2, "/large/");
+        }
         break;
     }
 
