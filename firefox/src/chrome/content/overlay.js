@@ -65,6 +65,7 @@ ImageZoomChrome.Overlay = {
     this._panelImage = document.getElementById("imagezoom-panel-image");
 
     this._preferencesService.addObserver(this.PREF_STATUSBAR_SHOW, this, false);
+    this._addMenuItems();
     this._addPreferenceObservers(true);
     this._showStatusBarButton();
     this._updatePreferencesUI();
@@ -81,6 +82,31 @@ ImageZoomChrome.Overlay = {
     this._panelImage = null;
     this._preferencesService.removeObserver(this.PREF_STATUSBAR_SHOW, this);
     this._addPreferenceObservers(false);
+  },
+
+  /**
+   * Adds the menu items.
+   */
+  _addMenuItems : function() {
+    this._logger.debug("_addMenuItems");
+
+    let menuPopup = document.getElementById("imagezoom-status-menu");
+    let menuSeparator =
+      document.getElementById("imagezoom-status-menuseparator");
+    let menuItem = null;
+    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
+    let pageInfo = null;
+
+    for (let i = 0; i < pageCount; i++) {
+      pageInfo = ImageZoom.FilterService.PAGE_INFO[i];
+      menuItem = document.createElement("menuitem");
+      menuItem.setAttribute("id", "imagezoom-status-menuitem-" + pageInfo.key);
+      menuItem.setAttribute("label", pageInfo.name);
+      menuItem.setAttribute("type", "checkbox");
+      menuItem.setAttribute(
+        "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
+      menuPopup.insertBefore(menuItem, menuSeparator);
+    }
   },
 
   /**

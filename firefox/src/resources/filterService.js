@@ -55,42 +55,43 @@ ImageZoom.FilterService = {
 
   /* Pages info. */
   PAGE_INFO : [
-    { key: "twitter",
+    { key: "twitter", name: "Twitter",
       host: "twitter.com",
       imageRegExp: /twimg\.com\/profile_images\// },
-    { key: "facebook",
+    { key: "facebook", name: "Facebook",
       host: "www.facebook.com",
       imageRegExp: /(profile|photos-[a-z])\.ak\.fbcdn\.net\// },
-    { key: "linkedin",
+    { key: "linkedin", name: "LinkedIn",
       host: "www.linkedin.com",
       imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\// },
-    { key: "amazon",
+    { key: "amazon", name: "Amazon",
       host: "www.amazon.com",
       imageRegExp: /\/ecx\.images\-amazon\.com\/images/ },
-    { key: "hi5",
+    { key: "hi5", name: "Hi5",
       host: "www.hi5.com",
       imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/ },
-    { key: "picasa",
+    { key: "picasa", name: "Picasa",
       host: "picasaweb.google.com",
       imageRegExp: /lh[0-9]+.ggpht.com/ },
-    { key: "myspace",
+    { key: "myspace", name: "MySpace",
       host: "myspace.com",
       imageRegExp: /c[0-9]+\.ac-images\.myspacecdn\.com/ },
-    { key: "flickr",
+    { key: "flickr", name: "Flickr",
       host: "www.flickr.com",
       imageRegExp: /farm[0-9]+\.static\.flickr\.com/ },
-    { key: "wikipedia",
+    { key: "wikipedia", name: "Wikipedia",
       host: "wikipedia.org",
       imageRegExp: /upload\.wikimedia\.org\/wikipedia\/commons/ },
-    { key: "deviantart",
+    { key: "deviantart", name: "deviantART",
       host: "deviantart.com",
       imageRegExp: /th[0-9]+\.deviantart.net/ },
-    { key: "photobucket",
+    { key: "photobucket", name: "PhotoBucket",
       host: "photobucket.com",
       imageRegExp: /[0-9]+\.photobucket.com\/albums/ },
-    { key: "twitpic",
+    { key: "twitpic", name: "Twitpic",
       host: "twitpic.com",
-      imageRegExp: /(web[0-9][0-9]\.twitpic\.com\/img)|(s3\.amazonaws\.com\/twitpic)/ }
+      imageRegExp:
+        /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)/ }
   ],
 
   /* Logger for this object. */
@@ -277,7 +278,7 @@ ImageZoom.FilterService = {
 
     switch (aPage) {
       case this.TWITTER:
-        regExp1 = new RegExp(/(_bigger\.)|(_mini\.)|(_normal\.)/);
+        regExp1 = new RegExp(/_(bigger|mini|normal)\./);
         if (regExp1.test(aImageSrc)) {
           bigImageSrc = aImageSrc.replace(regExp1, ".");
         }
@@ -348,15 +349,12 @@ ImageZoom.FilterService = {
         }
         break;
       case this.TWITPIC:
-        regExp1 = new RegExp(/-mini\./);
-        regExp2 = new RegExp(/-thumb\./);
-        regExp3 = new RegExp(/\/thumb\//);
+        regExp1 = new RegExp(/_(bigger|mini|normal)\./);
+        regExp2 = new RegExp(/-(mini|thumb)\./);
         if (regExp1.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(regExp1, "-scaled.");
+          bigImageSrc = aImageSrc.replace(regExp1, ".");
         } else if (regExp2.test(aImageSrc)) {
           bigImageSrc = aImageSrc.replace(regExp2, "-full.");
-        } else if (regExp3.test(aImageSrc)) {
-          bigImageSrc = aImageSrc.replace(regExp2, "/large/");
         }
         break;
     }

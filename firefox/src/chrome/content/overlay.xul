@@ -50,56 +50,8 @@
       insertafter="page-report-button"
       tooltiptext="&imagezoom.statusbar.tooltip;"
       src="chrome://imagezoom/skin/images/icon16.png">
-      <menupopup>
-        <menuitem id="imagezoom-status-menuitem-facebook"
-          label="&imagezoom.facebook.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.FACEBOOK);" />
-        <menuitem id="imagezoom-status-menuitem-twitter"
-          label="&imagezoom.twitter.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.TWITTER);" />
-        <menuitem id="imagezoom-status-menuitem-myspace"
-          label="&imagezoom.myspace.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.MYSPACE);" />
-        <menuitem id="imagezoom-status-menuitem-linkedin"
-          label="&imagezoom.linkedin.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.LINKEDIN);" />
-        <menuitem id="imagezoom-status-menuitem-amazon"
-          label="&imagezoom.amazon.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.AMAZON);" />
-        <menuitem id="imagezoom-status-menuitem-picasa"
-          label="&imagezoom.picasa.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.PICASA);" />
-        <menuitem id="imagezoom-status-menuitem-flickr"
-          label="&imagezoom.flickr.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.FLICKR);" />
-        <menuitem id="imagezoom-status-menuitem-hi5"
-          label="&imagezoom.hi5.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.HI5);" />
-        <menuitem id="imagezoom-status-menuitem-wikipedia"
-          label="&imagezoom.wikipedia.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.WIKIPEDIA);" />
-        <menuitem id="imagezoom-status-menuitem-deviantart"
-          label="&imagezoom.deviantart.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.DEVIANTART);" />
-        <menuitem id="imagezoom-status-menuitem-photobucket"
-          label="&imagezoom.photobucket.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.PHOTOBUCKET);" />
-        <menuitem id="imagezoom-status-menuitem-twitpic"
-          label="&imagezoom.twitpic.label;" type="checkbox"
-          oncommand="ImageZoomChrome.Overlay.togglePreference(
-            ImageZoom.FilterService.TWITPIC);" />
-        <menuseparator />
+      <menupopup id="imagezoom-status-menu">
+        <menuseparator id="imagezoom-status-menuseparator" />
         <menuitem label="&imagezoom.statusbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />
       </menupopup>

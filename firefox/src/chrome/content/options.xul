@@ -30,6 +30,7 @@
  -->
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet type="text/css" href="chrome://imagezoom/skin/overlay.css" ?>
 
 <!DOCTYPE overlay SYSTEM "chrome://imagezoom/locale/locale.dtd">
 
@@ -84,33 +85,33 @@
     <groupbox>
       <caption label="&imagezoom.options.enable.groupbox.caption;"/>
       <hbox>
-        <vbox>
+        <vbox class="imagezoom-options-pages-column">
           <checkbox label="&imagezoom.facebook.label;"
             preference="imagezoom-options-facebook-pref" />
           <checkbox label="&imagezoom.twitter.label;"
             preference="imagezoom-options-twitter-pref" />
+          <checkbox label="&imagezoom.twitpic.label;"
+            preference="imagezoom-options-twitpic-pref" />
           <checkbox label="&imagezoom.myspace.label;"
             preference="imagezoom-options-myspace-pref" />
           <checkbox label="&imagezoom.linkedin.label;"
             preference="imagezoom-options-linkedin-pref" />
-          <checkbox label="&imagezoom.wikipedia.label;"
-            preference="imagezoom-options-wikipedia-pref" />
-          <checkbox label="&imagezoom.deviantart.label;"
-            preference="imagezoom-options-deviantart-pref" />
+          <checkbox label="&imagezoom.hi5.label;"
+            preference="imagezoom-options-hi5-pref" />
         </vbox>
-        <vbox>
+        <vbox class="imagezoom-options-pages-column">
           <checkbox label="&imagezoom.amazon.label;"
             preference="imagezoom-options-amazon-pref" />
           <checkbox label="&imagezoom.picasa.label;"
             preference="imagezoom-options-picasa-pref" />
           <checkbox label="&imagezoom.flickr.label;"
             preference="imagezoom-options-flickr-pref" />
-          <checkbox label="&imagezoom.hi5.label;"
-            preference="imagezoom-options-hi5-pref" />
           <checkbox label="&imagezoom.photobucket.label;"
             preference="imagezoom-options-photobucket-pref" />
-          <checkbox label="&imagezoom.twitpic.label;"
-            preference="imagezoom-options-twitpic-pref" />
+          <checkbox label="&imagezoom.deviantart.label;"
+            preference="imagezoom-options-deviantart-pref" />
+          <checkbox label="&imagezoom.wikipedia.label;"
+            preference="imagezoom-options-wikipedia-pref" />
         </vbox>
       </hbox>
     </groupbox>
