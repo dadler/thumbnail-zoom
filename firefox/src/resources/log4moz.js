@@ -96,7 +96,7 @@ let Log4Moz = {
 
   get Formatter() { return Formatter; },
   get BasicFormatter() { return BasicFormatter; },
-  get AppcoastFormatter() { return AppcoastFormatter; },
+  get AdvancedFormatter() { return AdvancedFormatter; },
 
   get Appender() { return Appender; },
   get DumpAppender() { return DumpAppender; },
@@ -214,7 +214,7 @@ LogMessage.prototype = {
    * @return the stack string.
    */
   _getResourceStack : function(aStack) {
-    let message = "--- Module Stack Trace:\n";
+    let message = "--- Resource Stack Trace:\n";
     let frame = aStack;
     let filePath = null;
 
@@ -262,17 +262,13 @@ LogMessage.prototype = {
  */
 
 function Logger(name, repository) {
-  this._init(name, repository);
+  if (!repository)
+    repository = Log4Moz.repository;
+  this._name = name;
+  this._appenders = [];
+  this._repository = repository;
 }
 Logger.prototype = {
-  _init: function Logger__init(name, repository) {
-    if (!repository)
-      repository = Log4Moz.repository;
-    this._name = name;
-    this._appenders = [];
-    this._repository = repository;
-  },
-
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports]),
 
   parent: null,
@@ -287,7 +283,8 @@ Logger.prototype = {
       return this._level;
     if (this.parent)
       return this.parent.level;
-    dump("log4moz warning: root logger configuration error: no level defined\n");
+    dump(
+      "log4moz warning: root logger configuration error: no level defined\n");
     return Log4Moz.Level.All;
   },
   set level(level) {
@@ -455,23 +452,29 @@ BasicFormatter.prototype = {
   },
 
   format: function BF_format(message) {
-    let date = new Date(message.time);
-
     // Pad a string to a certain length (20) with a character (space)
     let pad = function BF__pad(str, len, chr) str +
       new Array(Math.max((len || 20) - str.length + 1, 0)).join(chr || " ");
 
-    return date.toLocaleFormat(this.dateFormat) + "\t" +
-      pad(message.loggerName) + " " + message.levelDesc + "\t" +
-      message.message + "\n";
+    // Generate a date string because toLocaleString doesn't work XXX 514803
+    let z = function(n) n < 10 ? "0" + n : n;
+    let d = new Date(message.time);
+    let dateStr = [d.getFullYear(), "-", z(d.getMonth() + 1), "-",
+      z(d.getDate()), " ", z(d.getHours()), ":", z(d.getMinutes()), ":",
+      z(d.getSeconds())].join("");
+
+    return dateStr + "\t" + pad(message.loggerName) + " " + message.levelDesc +
+      "\t" + message.message + "\n";
   }
 };
 
-function AppcoastFormatter(dateFormat) {
+function AdvancedFormatter(dateFormat) {
   if (dateFormat)
     this.dateFormat = dateFormat;
 }
-AppcoastFormatter.prototype = {
+AdvancedFormatter.prototype = {
+  __proto__: Formatter.prototype,
+
   _dateFormat: null,
 
   get dateFormat() {
@@ -486,19 +489,23 @@ AppcoastFormatter.prototype = {
 
   format: function BF_format(message) {
     let date = new Date(message.time);
-    return date.toLocaleFormat(this.dateFormat) + "\t\t" +
+    let stringLog = date.toLocaleFormat(this.dateFormat) + "\t" +
       message.levelDesc + "\t" + message.loggerName + " " +
-      message.message + "\n" + message.stackTrace + "\n";
+      message.message + "\n";
+
+    if (message.exception) {
+      stringLog += message.stackTrace + "\n";
+    }
+
+    return stringLog;
   }
 };
-AppcoastFormatter.prototype.__proto__ = new Formatter();
 
 /*
  * Appenders
  * These can be attached to Loggers to log to different places
  * Simply subclass and override doAppend to implement a new one
  */
-
 function Appender(formatter) {
   this._name = "Appender";
   this._formatter = formatter? formatter : new BasicFormatter();
@@ -525,7 +532,6 @@ Appender.prototype = {
  * DumpAppender
  * Logs to standard out
  */
-
 function DumpAppender(formatter) {
   this._name = "DumpAppender";
   this._formatter = formatter? formatter : new BasicFormatter();
@@ -542,7 +548,6 @@ DumpAppender.prototype = {
  * ConsoleAppender
  * Logs to the javascript console
  */
-
 function ConsoleAppender(formatter) {
   this._name = "ConsoleAppender";
   this._formatter = formatter;
@@ -572,7 +577,6 @@ function FileAppender(file, formatter) {
 }
 FileAppender.prototype = {
   __proto__: Appender.prototype,
-
   __fos: null,
   get _fos() {
     if (!this.__fos)
@@ -581,10 +585,19 @@ FileAppender.prototype = {
   },
 
   openStream: function FApp_openStream() {
-    this.__fos = Cc["@mozilla.org/network/file-output-stream;1"].
-      createInstance(Ci.nsIFileOutputStream);
-    let flags = MODE_WRONLY | MODE_CREATE | MODE_APPEND;
-    this.__fos.init(this._file, flags, PERMS_FILE, 0);
+    try {
+      let __fos = Cc["@mozilla.org/network/file-output-stream;1"].
+        createInstance(Ci.nsIFileOutputStream);
+      let flags = MODE_WRONLY | MODE_CREATE | MODE_APPEND;
+      __fos.init(this._file, flags, PERMS_FILE, 0);
+
+      this.__fos = Cc["@mozilla.org/intl/converter-output-stream;1"]
+            .createInstance(Ci.nsIConverterOutputStream);
+      this.__fos.init(__fos, "UTF-8", 4096,
+            Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+    } catch(e) {
+      dump("Error opening stream:\n" + e);
+    }
   },
 
   closeStream: function FApp_closeStream() {
@@ -602,7 +615,7 @@ FileAppender.prototype = {
     if (message === null || message.length <= 0)
       return;
     try {
-      this._fos.write(message, message.length);
+      this._fos.writeString(message);
     } catch(e) {
       dump("Error writing file:\n" + e);
     }
@@ -622,7 +635,6 @@ FileAppender.prototype = {
  * RotatingFileAppender
  * Similar to FileAppender, but rotates logs when they become too large
  */
-
 function RotatingFileAppender(file, formatter, maxSize, maxBackups) {
   if (maxSize === undefined)
     maxSize = ONE_MEGABYTE * 2;
@@ -644,11 +656,12 @@ RotatingFileAppender.prototype = {
       return;
     try {
       this.rotateLogs();
-      this._fos.write(message, message.length);
+      FileAppender.prototype.doAppend.call(this, message);
     } catch(e) {
-      dump("Error writing file:\n" + e);
+      dump("Error writing file:" + e + "\n");
     }
   },
+
   rotateLogs: function RFApp_rotateLogs() {
     if(this._file.exists() &&
        this._file.fileSize < this._maxSize)

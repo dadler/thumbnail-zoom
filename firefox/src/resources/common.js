@@ -51,7 +51,7 @@ if ("undefined" == typeof(ImageZoom)) {
     _init : function() {
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
-      let formatter = new Log4Moz.AppcoastFormatter();
+      let formatter = new Log4Moz.AdvancedFormatter();
       let root = Log4Moz.repository.rootLogger;
       let logFile = this.getExtensionDirectory();
       let app;
@@ -64,7 +64,7 @@ if ("undefined" == typeof(ImageZoom)) {
 
       // A console appender outputs to the JS Error Console.
       // app = new Log4Moz.ConsoleAppender(formatter);
-      // app.level = Log4Moz.Level["All"];
+      // app.level = Log4Moz.Level["Warn"];
       // root.addAppender(app);
 
       // A dump appender outputs to standard out.
