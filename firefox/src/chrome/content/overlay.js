@@ -28,6 +28,7 @@
  */
 
 Cu.import("resource://imagezoom/common.js");
+Cu.import("resource://imagezoom/pages.js");
 Cu.import("resource://imagezoom/filterService.js");
 Cu.import("resource://imagezoom/uninstallService.js");
 
@@ -50,6 +51,8 @@ ImageZoomChrome.Overlay = {
   _panel : null,
   /* The floating panel image. */
   _panelImage : null,
+  /* The current image source. */
+  _currentImage : null,
 
   /**
    * Initializes the object.
@@ -80,6 +83,7 @@ ImageZoomChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._currentImage = null;
     this._preferencesService.removeObserver(this.PREF_STATUSBAR_SHOW, this);
     this._addPreferenceObservers(false);
   },
@@ -94,11 +98,11 @@ ImageZoomChrome.Overlay = {
     let menuSeparator =
       document.getElementById("imagezoom-status-menuseparator");
     let menuItem = null;
-    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
+    let pageCount = ImageZoom.FilterService.pageList.length;
     let pageInfo = null;
 
     for (let i = 0; i < pageCount; i++) {
-      pageInfo = ImageZoom.FilterService.PAGE_INFO[i];
+      pageInfo = ImageZoom.FilterService.pageList[i];
       menuItem = document.createElement("menuitem");
       menuItem.setAttribute("id", "imagezoom-status-menuitem-" + pageInfo.key);
       menuItem.setAttribute("label", pageInfo.name);
@@ -116,12 +120,12 @@ ImageZoomChrome.Overlay = {
   _addPreferenceObservers : function(aValue) {
     this._logger.debug("_addPreferenceObservers");
 
-    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
+    let pageCount = ImageZoom.FilterService.pageList.length;
     let preference = null;
     let pageInfo = null;
 
     for (let i = 0; i < pageCount; i++) {
-      pageInfo = ImageZoom.FilterService.PAGE_INFO[i];
+      pageInfo = ImageZoom.FilterService.pageList[i];
       preference = ImageZoom.PrefBranch + pageInfo.key + ".enable";
 
       if (aValue) {
@@ -138,7 +142,7 @@ ImageZoomChrome.Overlay = {
   _updatePreferencesUI : function() {
     this._logger.trace("_updatePreferencesUI");
 
-    let pageCount = ImageZoom.FilterService.PAGE_INFO.length;
+    let pageCount = ImageZoom.FilterService.pageList.length;
 
     for (let i = 0; i < pageCount; i++) {
       this._updateStatusbarMenu(i);
@@ -207,16 +211,16 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_handleMouseOver");
 
     let node = aEvent.target;
-    let imageSrc = ImageZoom.FilterService.getImageSource(node, aPage);
+    let imageSource = ImageZoom.FilterService.getImageSource(node, aPage);
 
-    if (null != imageSrc) {
+    if (null != imageSource) {
       if (ImageZoom.FilterService.isPageEnabled(aPage) &&
-          ImageZoom.FilterService.filterImage(imageSrc, aPage)) {
+          ImageZoom.FilterService.filterImage(imageSource, aPage)) {
         let that = this;
 
         this._timer.cancel();
         this._timer.initWithCallback({ notify:
-          function() { that._showZoomImage(imageSrc, node, aPage); }
+          function() { that._showZoomImage(imageSource, node, aPage); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
         this._closePanel();
@@ -282,6 +286,7 @@ ImageZoomChrome.Overlay = {
     if (this._panel.state != "open") {
       this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
     }
+    this._currentImage = aImageSrc;
     this._preloadImage(aImageNode, aImageSrc);
   },
 
@@ -291,6 +296,7 @@ ImageZoomChrome.Overlay = {
   _closePanel : function() {
     this._logger.trace("_closePanel");
 
+    this._currentImage = null;
     this._timer.cancel();
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
@@ -309,10 +315,15 @@ ImageZoomChrome.Overlay = {
     let image = new Image();
 
     image.onload = function() {
-      let pageSide = that._getPageSide(aImageNode);
-      let scale = that._getScaleDimensions(image, pageSide);
+      if (that._currentImage == aImageSrc) {
+        let pageSide = that._getPageSide(aImageNode);
+        let scale = that._getScaleDimensions(image, pageSide);
 
-      that._showImage(aImageSrc, scale);
+        that._showImage(aImageSrc, scale);
+      }
+    };
+    image.onerror = function() {
+      that._closePanel();
     };
 
     image.src = aImageSrc;
