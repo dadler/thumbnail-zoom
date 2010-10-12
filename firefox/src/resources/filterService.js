@@ -220,6 +220,7 @@ ImageZoom.FilterService = {
 
       if (null != nodeImage) {
         let isValidImage = false;
+        let nodeClass = aNode.getAttribute("class");
 
         switch (aPage) {
           case this.FACEBOOK:
@@ -228,7 +229,7 @@ ImageZoom.FilterService = {
             }
             break;
           case this.PHOTOBUCKET:
-            if ("div" == nodeName && "thumb" == aNode.getAttribute("class")) {
+            if ("div" == nodeName && "thumb" == nodeClass) {
               isValidImage = true;
             }
             break;
@@ -278,7 +279,7 @@ ImageZoom.FilterService = {
 
     switch (aPage) {
       case this.TWITTER:
-        regExp1 = new RegExp(/_(bigger|mini|normal)\./);
+        regExp1 = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
         if (regExp1.test(aImageSrc)) {
           bigImageSrc = aImageSrc.replace(regExp1, ".");
         }
@@ -349,7 +350,7 @@ ImageZoom.FilterService = {
         }
         break;
       case this.TWITPIC:
-        regExp1 = new RegExp(/_(bigger|mini|normal)\./);
+        regExp1 = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
         regExp2 = new RegExp(/-(mini|thumb)\./);
         if (regExp1.test(aImageSrc)) {
           bigImageSrc = aImageSrc.replace(regExp1, ".");

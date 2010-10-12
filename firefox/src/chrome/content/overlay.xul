@@ -65,8 +65,7 @@
         <vbox align="center" pack="center">
           <image id="imagezoom-panel-throbber" />
         </vbox>
-        <image id="imagezoom-panel-image"
-          onload="ImageZoomChrome.Overlay.scaleImage();" />
+        <image id="imagezoom-panel-image" />
       </stack>
     </panel>
   </window>

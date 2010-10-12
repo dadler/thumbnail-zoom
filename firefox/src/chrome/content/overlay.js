@@ -216,64 +216,11 @@ ImageZoomChrome.Overlay = {
 
         this._timer.cancel();
         this._timer.initWithCallback({ notify:
-          function() { that._showZoomedImage(imageSrc, node, aPage); }
+          function() { that._showZoomImage(imageSrc, node, aPage); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
         this._closePanel();
       }
-    } else {
-      this._closePanel();
-    }
-  },
-
-  /**
-   * Closes the panel.
-   */
-  _closePanel : function() {
-    this._logger.trace("_closePanel");
-
-    this._timer.cancel();
-    if (this._panel.state != "closed") {
-      this._panel.hidePopup();
-    }
-  },
-
-  /**
-   * Shows the panel.
-   * @param aImageNode the image node.
-   * @param aImageSrc the image source.
-   */
-  _showPanel : function(aImageNode, aImageSrc) {
-    this._logger.trace("_showPanel");
-
-    // reset previous pic.
-    this._panelImage.removeAttribute("src");
-    this._panelImage.style.maxWidth = "";
-    this._panelImage.style.minWidth = "";
-    this._panelImage.style.maxHeight = "";
-    this._panelImage.style.minHeight = "";
-    this._closePanel();
-
-    // open new pic.
-    if (this._panel.state != "open") {
-      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
-    }
-    this._panelImage.src = aImageSrc;
-  },
-
-  /**
-   * Shows the zoomed image panel.
-   * @param aImageSrc the image source
-   * @param aImageNode the image node
-   * @param aPage the page constant
-   */
-  _showZoomedImage : function(aImageSrc, aImageNode, aPage) {
-    this._logger.trace("_showZoomedImage");
-
-    let zoomImageSrc = ImageZoom.FilterService.getZoomImage(aImageSrc, aPage);
-
-    if (null != zoomImageSrc) {
-      this._showPanel(aImageNode, zoomImageSrc);
     } else {
       this._closePanel();
     }
@@ -298,34 +245,145 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Scales the image to fit the window.
+   * Shows the zoom image panel.
+   * @param aImageSrc the image source
+   * @param aImageNode the image node
+   * @param aPage the page constant
    */
-  scaleImage : function() {
-    this._logger.debug("scaleImage");
+  _showZoomImage : function(aImageSrc, aImageNode, aPage) {
+    this._logger.trace("_showZoomImage");
+
+    let zoomImageSrc = ImageZoom.FilterService.getZoomImage(aImageSrc, aPage);
+
+    if (null != zoomImageSrc) {
+      this._showPanel(aImageNode, zoomImageSrc);
+    } else {
+      this._closePanel();
+    }
+  },
+
+  /**
+   * Shows the panel.
+   * @param aImageNode the image node.
+   * @param aImageSrc the image source.
+   */
+  _showPanel : function(aImageNode, aImageSrc) {
+    this._logger.trace("_showPanel");
+
+    // reset previous pic.
+    this._panelImage.removeAttribute("src");
+    this._panelImage.style.maxWidth = "";
+    this._panelImage.style.minWidth = "";
+    this._panelImage.style.maxHeight = "";
+    this._panelImage.style.minHeight = "";
+    this._closePanel();
+
+    // open new pic.
+    if (this._panel.state != "open") {
+      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+    }
+    this._preloadImage(aImageNode, aImageSrc);
+  },
+
+  /**
+   * Closes the panel.
+   */
+  _closePanel : function() {
+    this._logger.trace("_closePanel");
+
+    this._timer.cancel();
+    if (this._panel.state != "closed") {
+      this._panel.hidePopup();
+    }
+  },
+
+  /**
+   * Preloads the image.
+   * @param aImageNode the image node.
+   * @param aImageSrc the image source.
+   */
+  _preloadImage : function(aImageNode, aImageSrc) {
+    this._logger.trace("_preloadImage");
+
+    let that = this;
+    let image = new Image();
+
+    image.onload = function() {
+      let pageSide = that._getPageSide(aImageNode);
+      let scale = that._getScaleDimensions(image, pageSide);
+
+      that._showImage(aImageSrc, scale);
+    };
+
+    image.src = aImageSrc;
+  },
+
+  /**
+   * Gets the page side.
+   * @param aImageNode the image node.
+   * @return the page side dimension.
+   */
+  _getPageSide : function(aImageNode) {
+    this._logger.trace("_getPageSide");
 
     let pageWidth = content.document.documentElement.clientWidth;
-    let pageHeight = content.document.documentElement.clientHeight;
-    let imageWidth =
-      parseInt(window.getComputedStyle(this._panelImage, null).
-        getPropertyValue("width").replace("px", ""));
-    let imageHeight =
-      parseInt(window.getComputedStyle(this._panelImage, null).
-        getPropertyValue("height").replace("px", ""));
-    let scaleWidth = imageWidth;
-    let scaleHeight = imageHeight;
+    let pageSide = pageWidth;
+    let pageLeft = 0;
+    let pageRight = 0;
+    let pageNode = aImageNode;
 
-    if (imageHeight > pageHeight) {
-      scaleHeight = pageHeight;
-      scaleWidth = parseInt(imageWidth * pageHeight / imageHeight);
-    } else if (imageWidth > pageWidth) {
-      scaleWidth = pageWidth;
-      scaleHeight = parseInt(imageHeight * pageWidth / imageWidth);
+    while (null != pageNode) {
+      pageLeft += pageNode.offsetLeft;
+      pageNode = pageNode.offsetParent;
+    }
+    pageRight = pageWidth - pageLeft - aImageNode.offsetWidth;
+    pageSide = (pageLeft > pageRight ? pageLeft : pageRight) - 20;
+
+    return pageSide;
+  },
+
+  /**
+   * Gets the image scale dimensions to fit the window.
+   * @param aImage the image info.
+   * @param aPageSide the page side.
+   * @return the scale dimensions.
+   */
+  _getScaleDimensions : function(aImage, aPageSide) {
+    this._logger.trace("_getScaleDimensions");
+
+    let pageHeight = content.document.documentElement.clientHeight - 30;
+    let imageWidth = aImage.width;
+    let imageHeight = aImage.height;
+    let scaleRatio = (imageWidth / imageHeight);
+    let scale = { width: imageWidth, height: imageHeight };
+
+    if (scale.height > pageHeight) {
+      scale.height = pageHeight;
+      scale.width = Math.round(scale.height * scaleRatio);
+    }
+    if (scale.width > aPageSide) {
+      scale.width = aPageSide;
+      scale.height = Math.round(scale.width / scaleRatio);
     }
 
-    this._panelImage.style.maxWidth = scaleWidth + "px";
-    this._panelImage.style.minWidth = scaleWidth + "px";
-    this._panelImage.style.maxHeight = scaleHeight + "px";
-    this._panelImage.style.minHeight = scaleHeight + "px";
+    return scale;
+  },
+
+  /**
+   * Shows the image in the panel.
+   * @param aImageSrc the image source.
+   * @param aScale the scale dimmensions.
+   */
+  _showImage : function(aImageSrc, aScale) {
+    this._logger.trace("_showImage");
+
+    if (aScale) {
+      this._panelImage.style.maxWidth = aScale.width + "px";
+      this._panelImage.style.minWidth = aScale.width + "px";
+      this._panelImage.style.maxHeight = aScale.height + "px";
+      this._panelImage.style.minHeight = aScale.height + "px";
+    }
+    this._panelImage.src = aImageSrc;
   },
 
   /**
