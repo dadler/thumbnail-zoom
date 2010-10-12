@@ -44,6 +44,8 @@
         name="extensions.imagezoom.statusbar.show" type="bool"/>
       <preference id="imagezoom-options-delay-pref"
         name="extensions.imagezoom.panel.delay" type="int"/>
+      <preference id="imagezoom-options-key-pref"
+        name="extensions.imagezoom.panel.key" type="int"/>
       <preference id="imagezoom-options-twitter-pref"
         name="extensions.imagezoom.twitter.enable" type="bool"/>
       <preference id="imagezoom-options-twitpic-pref"
@@ -70,47 +72,70 @@
         name="extensions.imagezoom.photobucket.enable" type="bool"/>
     </preferences>
 
-    <checkbox label="&imagezoom.options.statusbar.checkbox.label;"
-      preference="imagezoom-options-statusbar-pref" />
-    <label value="&imagezoom.options.delay.selection.label;" />
-    <menulist preference="imagezoom-options-delay-pref">
-      <menupopup>
-        <menuitem value="0"
-          label="&imagezoom.options.delay.option1.menuitem;" />
-        <menuitem value="1"
-          label="&imagezoom.options.delay.option2.menuitem;" />
-      </menupopup>
-    </menulist>
+    <!-- General -->
+    <groupbox>
+      <caption>
+        <label value="&imagezoom.options.general.groupbox.caption;"/>
+      </caption>
+      <checkbox label="&imagezoom.options.statusbar.checkbox.label;"
+        preference="imagezoom-options-statusbar-pref" />
+      <grid>
+        <columns>
+          <column />
+          <column />
+        </columns>
+        <rows>
+          <row align="center">
+            <label value="&imagezoom.options.delay.selection.label;" />
+            <textbox preference="imagezoom-options-delay-pref" size="2"
+              maxlength="2" type="number" min="0" max="60" width="50" />
+          </row>
+          <row align="center">
+            <label value="&imagezoom.options.key.selection.label;" />
+            <menulist preference="imagezoom-options-key-pref">
+              <menupopup>
+                <menuitem value="0"
+                  label="&imagezoom.options.key.none.label;" />
+                <menuitem value="1" label="CTRL" />
+                <menuitem value="2" label="SHIFT" />
+                <menuitem value="3" label="ALT" />
+              </menupopup>
+            </menulist>
+          </row>
+        </rows>
+      </grid>
+    </groupbox>
 
+    <!-- Pages -->
     <groupbox>
       <caption label="&imagezoom.options.enable.groupbox.caption;"/>
-      <hbox>
-        <vbox class="imagezoom-options-pages-column">
-          <checkbox label="&imagezoom.facebook.label;"
+      <hbox flex="1">
+        <vbox class="imagezoom-options-pages-column" flex="1">
+          <checkbox label="Facebook"
             preference="imagezoom-options-facebook-pref" />
-          <checkbox label="&imagezoom.twitter.label;"
+          <checkbox label="Twitter"
             preference="imagezoom-options-twitter-pref" />
-          <checkbox label="&imagezoom.twitpic.label;"
+          <checkbox label="Twitpic"
             preference="imagezoom-options-twitpic-pref" />
-          <checkbox label="&imagezoom.myspace.label;"
+          <checkbox label="MySpace"
             preference="imagezoom-options-myspace-pref" />
-          <checkbox label="&imagezoom.linkedin.label;"
+          <checkbox label="LinkedIn"
             preference="imagezoom-options-linkedin-pref" />
-          <checkbox label="&imagezoom.hi5.label;"
+          <checkbox label="Hi5"
             preference="imagezoom-options-hi5-pref" />
         </vbox>
-        <vbox class="imagezoom-options-pages-column">
-          <checkbox label="&imagezoom.amazon.label;"
+        <vbox class="imagezoom-options-pages-column" flex="1">
+          <checkbox label="Amazon"
             preference="imagezoom-options-amazon-pref" />
-          <checkbox label="&imagezoom.picasa.label;"
+          <checkbox label="Picasa"
             preference="imagezoom-options-picasa-pref" />
-          <checkbox label="&imagezoom.flickr.label;"
+          <checkbox label="Flickr"
             preference="imagezoom-options-flickr-pref" />
-          <checkbox label="&imagezoom.photobucket.label;"
+          <checkbox label="PhotoBucket"
             preference="imagezoom-options-photobucket-pref" />
-          <checkbox label="&imagezoom.deviantart.label;"
+          <checkbox label="deviantART"
             preference="imagezoom-options-deviantart-pref" />
-          <checkbox label="&imagezoom.wikipedia.label;"
+          <checkbox label="Wikipedia"
             preference="imagezoom-options-wikipedia-pref" />
         </vbox>
       </hbox>

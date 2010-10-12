@@ -28,8 +28,9 @@
  */
 
 // General preferences.
-pref("extensions.imagezoom.statusbar.show",  true);
-pref("extensions.imagezoom.panel.delay",     0);
+pref("extensions.imagezoom.statusbar.show",     true);
+pref("extensions.imagezoom.panel.delay",        0);
+pref("extensions.imagezoom.panel.key",          0);
 
 // Site preferences.
 pref("extensions.imagezoom.hi5.enable",         true);

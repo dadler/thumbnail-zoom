@@ -33,20 +33,8 @@
 <!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
 <!ENTITY imagezoom.options.pane.label                    "Preferences">
 <!ENTITY imagezoom.options.statusbar.checkbox.label      "Show status bar button">
-<!ENTITY imagezoom.options.delay.selection.label         "Show panel:">
-<!ENTITY imagezoom.options.delay.option1.menuitem        "Inmediately">
-<!ENTITY imagezoom.options.delay.option2.menuitem        "After a short delay">
+<!ENTITY imagezoom.options.delay.selection.label         "Delay before showing panel (sec)">
+<!ENTITY imagezoom.options.key.selection.label           "Key to activate the panel:">
+<!ENTITY imagezoom.options.key.none.label                "None">
+<!ENTITY imagezoom.options.general.groupbox.caption      "General">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Enable or disable per site">
-
-<!ENTITY imagezoom.hi5.label           "Hi5">
-<!ENTITY imagezoom.amazon.label        "Amazon">
-<!ENTITY imagezoom.picasa.label        "Picasa">
-<!ENTITY imagezoom.flickr.label        "Flickr">
-<!ENTITY imagezoom.twitter.label       "Twitter">
-<!ENTITY imagezoom.twitpic.label       "Twitpic">
-<!ENTITY imagezoom.myspace.label       "MySpace">
-<!ENTITY imagezoom.facebook.label      "Facebook">
-<!ENTITY imagezoom.linkedin.label      "LinkedIn">
-<!ENTITY imagezoom.wikipedia.label     "Wikipedia">
-<!ENTITY imagezoom.deviantart.label    "deviantART">
-<!ENTITY imagezoom.photobucket.label   "PhotoBucket">

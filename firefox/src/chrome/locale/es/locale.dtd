@@ -33,20 +33,8 @@
 <!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
 <!ENTITY imagezoom.options.pane.label                    "Preferencias">
 <!ENTITY imagezoom.options.statusbar.checkbox.label      "Mostrar el boton en la barra de estado">
-<!ENTITY imagezoom.options.delay.selection.label         "Mostrar panel:">
-<!ENTITY imagezoom.options.delay.option1.menuitem        "Inmediatamente">
-<!ENTITY imagezoom.options.delay.option2.menuitem        "Despues de un pequeño retraso">
+<!ENTITY imagezoom.options.delay.selection.label         "Retraso antes de mostrar el panel (seg):">
+<!ENTITY imagezoom.options.key.selection.label           "Tecla para activar el panel:">
+<!ENTITY imagezoom.options.key.none.label                "Ninguna">
+<!ENTITY imagezoom.options.general.groupbox.caption      "General">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
-
-<!ENTITY imagezoom.hi5.label           "Hi5">
-<!ENTITY imagezoom.amazon.label        "Amazon">
-<!ENTITY imagezoom.picasa.label        "Picasa">
-<!ENTITY imagezoom.flickr.label        "Flickr">
-<!ENTITY imagezoom.twitter.label       "Twitter">
-<!ENTITY imagezoom.twitpic.label       "Twitpic">
-<!ENTITY imagezoom.myspace.label       "MySpace">
-<!ENTITY imagezoom.facebook.label      "Facebook">
-<!ENTITY imagezoom.linkedin.label      "LinkedIn">
-<!ENTITY imagezoom.wikipedia.label     "Wikipedia">
-<!ENTITY imagezoom.deviantart.label    "deviantART">
-<!ENTITY imagezoom.photobucket.label   "PhotoBucket">

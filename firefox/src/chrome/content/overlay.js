@@ -37,6 +37,7 @@ Cu.import("resource://imagezoom/uninstallService.js");
  */
 ImageZoomChrome.Overlay = {
   /* UI preference keys. */
+  PREF_PANEL_KEY : ImageZoom.PrefBranch + "panel.key",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
   PREF_STATUSBAR_SHOW : ImageZoom.PrefBranch + "statusbar.show",
 
@@ -213,7 +214,7 @@ ImageZoomChrome.Overlay = {
     let node = aEvent.target;
     let imageSource = ImageZoom.FilterService.getImageSource(node, aPage);
 
-    if (null != imageSource) {
+    if (null != imageSource && this._isKeyActive(aEvent)) {
       if (ImageZoom.FilterService.isPageEnabled(aPage) &&
           ImageZoom.FilterService.filterImage(imageSource, aPage)) {
         let that = this;
@@ -231,18 +232,46 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Verifies if the key is active.
+   * @param aEvent the event object.
+   * @return true if active, false otherwise.
+   */
+  _isKeyActive : function(aEvent) {
+    this._logger.trace("_isKeyActive");
+
+    let active = false;
+    let keyPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_KEY);
+
+    switch (keyPref.value) {
+      case 1:
+        active = aEvent.ctrlKey;
+        break;
+      case 2:
+        active = aEvent.shiftKey;
+        break;
+      case 3:
+        active = aEvent.altKey;
+        break;
+      default:
+        active = true;
+        break;
+    }
+
+    return active;
+  },
+
+  /**
    * Gets the hover time.
    * @return the hover time, 0 by default.
    */
   _getHoverTime : function() {
     this._logger.trace("_getHoverTime");
 
-    let delayPreference =
-      ImageZoom.Application.prefs.get(this.PREF_PANEL_DELAY);
     let hoverTime = 0;
+    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_DELAY);
 
-    if (delayPreference && 1 == delayPreference.value) {
-      hoverTime = 2000;
+    if (delayPref) {
+      hoverTime = 1000 * delayPref.value;
     }
 
     return hoverTime;
