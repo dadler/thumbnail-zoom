@@ -39,7 +39,9 @@
 
 #imagezoom-panel-throbber {
   list-style-image: url("chrome://imagezoom/skin/images/throbber.gif");
-  width: 40px;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
   height: 40px;
 }
 

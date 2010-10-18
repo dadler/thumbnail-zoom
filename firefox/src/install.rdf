@@ -40,6 +40,7 @@
     <em:creator>Andres Hernandez Monge</em:creator>
     <em:iconURL>chrome://imagezoom/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://imagezoom/content/options.xul</em:optionsURL>
+    <em:homepageURL>http://andrez47.github.com/thumbnail-zoom/</em:homepageURL>
     <em:type>2</em:type>
 
     <!-- Firefox -->

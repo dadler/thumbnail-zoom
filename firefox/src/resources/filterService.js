@@ -175,6 +175,13 @@ ImageZoom.FilterService = {
     let nodeName = aNode.localName.toLowerCase();
     let imageSource = ("img" == nodeName ? aNode.getAttribute("src") : null);
 
+    // check fake cover images.
+    if (null != imageSource && pageInfo.getInnerImage) {
+      let imageNode = pageInfo.getInnerImage(aNode, imageSource);
+
+      imageSource = (imageNode ? imageNode.getAttribute("src") : imageSource);
+    }
+    // check other image nodes.
     if (null == imageSource && pageInfo.getImageNode) {
       let nodeClass = aNode.getAttribute("class");
       let imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);

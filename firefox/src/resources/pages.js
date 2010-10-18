@@ -178,6 +178,11 @@ ImageZoom.Pages.Flickr = {
   name: "Flickr",
   host: "www.flickr.com",
   imageRegExp: /farm[0-9]+\.static\.flickr\.com/,
+  getInnerImage : function(aNode, aNodeSource) {
+    let image = (-1 != aNodeSource.indexOf("spaceball.gif") ?
+      aNode.parentNode.previousSibling.firstChild.firstChild : null);
+    return image;
+  },
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[smt]\./);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, ".") : null);
