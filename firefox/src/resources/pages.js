@@ -55,6 +55,11 @@ ImageZoom.Pages.Facebook = {
       "album_link" == aNodeClass ? aNode.parentNode : null));
     return image;
   },
+  getInnerImage : function(aNode, aNodeSource) {
+    let image =
+      (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif") ? aNode.nextSibling : null);
+    return image;
+  },
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/_[qsta]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
@@ -238,6 +243,37 @@ ImageZoom.Pages.PhotoBucket = {
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/th_/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/") : null);
+    return image;
+  }
+};
+
+/**
+ * Tagged.
+ */
+ImageZoom.Pages.Tagged = {
+  key: "tagged",
+  name: "Tagged",
+  host: "www.tagged.com",
+  imageRegExp: /[a-z]+[0-9]+\.tagstat.com\/image/,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/\/[123456789]0([\w-]+\.[a-z]+)/);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/00$1") : null);
+    return image;
+  }
+};
+
+/**
+ * Last.fm.
+ */
+ImageZoom.Pages.LastFM = {
+  key: "lastfm",
+  name: "Last.fm",
+  host: "www.last.fm",
+  imageRegExp: /userserve-ak\.last\.fm\/serve/,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/\/serve\/\w+\//);
+    let image =
+      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
     return image;
   }
 };

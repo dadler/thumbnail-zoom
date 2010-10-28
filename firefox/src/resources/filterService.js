@@ -52,7 +52,9 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.Flickr,
     ImageZoom.Pages.DeviantART,
     ImageZoom.Pages.PhotoBucket,
-    ImageZoom.Pages.Wikipedia
+    ImageZoom.Pages.Wikipedia,
+    ImageZoom.Pages.Tagged,
+    ImageZoom.Pages.LastFM
   ],
 
   /* Logger for this object. */

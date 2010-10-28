@@ -40,8 +40,6 @@
     src="chrome://imagezoom/content/common.js" />
   <script type="application/x-javascript"
     src="chrome://imagezoom/content/overlay.js" />
-  <script type="application/x-javascript"
-    src="chrome://imagezoom/content/panel.js" />
 
   <!-- Status bar button -->
   <statusbar id="status-bar">

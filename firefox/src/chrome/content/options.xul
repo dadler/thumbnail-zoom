@@ -70,6 +70,10 @@
         name="extensions.imagezoom.deviantart.enable" type="bool"/>
       <preference id="imagezoom-options-photobucket-pref"
         name="extensions.imagezoom.photobucket.enable" type="bool"/>
+      <preference id="imagezoom-options-tagged-pref"
+        name="extensions.imagezoom.tagged.enable" type="bool"/>
+      <preference id="imagezoom-options-lastfm-pref"
+        name="extensions.imagezoom.lastfm.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -123,6 +127,8 @@
             preference="imagezoom-options-linkedin-pref" />
           <checkbox label="Hi5"
             preference="imagezoom-options-hi5-pref" />
+          <checkbox label="Tagged"
+            preference="imagezoom-options-tagged-pref" />
         </vbox>
         <vbox class="imagezoom-options-pages-column" flex="1">
           <checkbox label="Amazon"
@@ -137,6 +143,8 @@
             preference="imagezoom-options-deviantart-pref" />
           <checkbox label="Wikipedia"
             preference="imagezoom-options-wikipedia-pref" />
+          <checkbox label="Last.fm"
+            preference="imagezoom-options-lastfm-pref" />
         </vbox>
       </hbox>
     </groupbox>

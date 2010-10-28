@@ -36,6 +36,8 @@ pref("extensions.imagezoom.panel.key",          0);
 pref("extensions.imagezoom.hi5.enable",         true);
 pref("extensions.imagezoom.flickr.enable",      true);
 pref("extensions.imagezoom.amazon.enable",      true);
+pref("extensions.imagezoom.tagged.enable",      true);
+pref("extensions.imagezoom.lastfm.enable",      true);
 pref("extensions.imagezoom.picasa.enable",      true);
 pref("extensions.imagezoom.twitter.enable",     true);
 pref("extensions.imagezoom.twitpic.enable",     true);
