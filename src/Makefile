@@ -43,15 +43,16 @@ ZIP := zip
 bin_dir := ../bin
 
 # The target XPI files.
-xpi_file := $(bin_dir)/$(extension_name).xpi
+xpi_file :=      $(bin_dir)/$(extension_name).xpi
 xpi_file_date := $(bin_dir)/$(extension_name)-$$(date "+%Y%m%d").xpi
+xpi_file_uuid := $(bin_dir)/{$(extension_uuid)}.xpi
 
 # The type of operating system this make command is running on.
 os_type := $(patsubst darwin%,darwin,$(shell echo $(OSTYPE)))
 
 # The location of the extension profile.
 profile_location := \
-  ~/Library/Application\ Support/Firefox/Profiles/$(profile_dir)/extensions/\{$(extension_uuid)\}
+  ~/Library/Application\ Support/Firefox/Profiles/$(profile_dir)/extensions/
 
 # The temporary location where the extension tree will be copied and built.
 build_dir := $(bin_dir)/build
@@ -61,6 +62,9 @@ install_rdf := install.rdf
 
 # The chrome.manifest file.
 chrome_manifest := chrome.manifest
+
+# The chrome dir.
+chrome_dir := chrome
 
 # The resources dir.
 resources_dir := resources
@@ -84,6 +88,7 @@ clean:
 	@rm -rf $(build_dir)
 	@rm -f $(xpi_file)
 	@rm -f $(xpi_file_date)
+	@rm -f $(xpi_file_uuid)
 	@echo "Cleanup is done."
 
 # The includes are added after the targets because we want this file to contain
@@ -95,7 +100,7 @@ include resources/Makefile.in
 # Makefiles.
 xpi_built := $(build_dir)/$(install_rdf) \
              $(build_dir)/$(chrome_manifest) \
-             $(chrome_jar_file) \
+             $(addprefix $(build_dir)/,$(chrome_sources)) \
              $(addprefix $(build_dir)/,$(resources_sources)) \
              $(build_dir)/$(preferences_dir)/$(extension_name).js \
 
@@ -103,10 +108,17 @@ xpi_built_no_dir := $(subst $(build_dir)/,,$(xpi_built))
 
 # This builds everything except for the actual XPI, and then it copies it to the
 # specified profile directory, allowing a quick update that requires no install.
-.PHONY: install
-install: $(build_dir) $(xpi_built)
-	@echo "Installing in profile folder: $(profile_location)"
-	@cp -Rf $(build_dir)/* $(profile_location)
+.PHONY: install3
+install3: $(build_dir) $(xpi_built)
+	@echo "Installing in profile folder on Fx3: $(profile_location)\{$(extension_uuid)\}"
+	@cp -Rf $(build_dir)/* $(profile_location)\{$(extension_uuid)\}
+	@echo "Installing in profile folder. Done!"
+	@echo
+
+.PHONY: install4
+install4: $(build_dir) $(xpi_built)
+	@echo "Installing in profile folder of Fx4: $(profile_location)"
+	@cp -Rf $(xpi_file_uuid) $(profile_location)
 	@echo "Installing in profile folder. Done!"
 	@echo
 
@@ -114,7 +126,15 @@ $(xpi_file): $(build_dir) $(xpi_built)
 	@echo "Creating XPI files."
 	@cd $(build_dir); $(ZIP) ../$(xpi_file) $(xpi_built_no_dir)
 	@cp -f $(xpi_file) $(xpi_file_date)
+	@cp -f $(xpi_file) $(xpi_file_uuid)
 	@echo "Creating XPI files. Done!"
+
+$(build_dir)/$(chrome_dir)/%: $(chrome_dir)/% $(build_dir)/$(chrome_dir)
+	@if [ ! -x $(dir $@) ]; \
+  then \
+    mkdir -p $(dir $@); \
+  fi
+	@cp -f $< $@
 
 $(build_dir)/$(resources_dir)/%: $(resources_dir)/% $(build_dir)/$(resources_dir)
 	@if [ ! -x $(dir $@) ]; \
@@ -140,6 +160,12 @@ $(build_dir):
 	@if [ ! -x $(build_dir) ]; \
   then \
     mkdir -p $(build_dir); \
+  fi
+
+$(build_dir)/$(chrome_dir):
+	@if [ ! -x $(build_dir)/$(chrome_dir) ]; \
+  then \
+    mkdir -p $(build_dir)/$(chrome_dir); \
   fi
 
 $(build_dir)/$(resources_dir):
