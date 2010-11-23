@@ -39,7 +39,8 @@ ImageZoomChrome.Overlay = {
   /* UI preference keys. */
   PREF_PANEL_KEY : ImageZoom.PrefBranch + "panel.key",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
-  PREF_STATUSBAR_SHOW : ImageZoom.PrefBranch + "statusbar.show",
+  /* Toolbar button preference key. */
+  PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
 
   /* Logger for this object. */
   _logger : null,
@@ -68,10 +69,9 @@ ImageZoomChrome.Overlay = {
     this._panel = document.getElementById("imagezoom-panel");
     this._panelImage = document.getElementById("imagezoom-panel-image");
 
-    this._preferencesService.addObserver(this.PREF_STATUSBAR_SHOW, this, false);
+    this._installToolbarButton();
     this._addMenuItems();
     this._addPreferenceObservers(true);
-    this._showStatusBarButton();
     this._updatePreferencesUI();
     this._addEventListeners();
   },
@@ -85,8 +85,40 @@ ImageZoomChrome.Overlay = {
     this._panel = null;
     this._panelImage = null;
     this._currentImage = null;
-    this._preferencesService.removeObserver(this.PREF_STATUSBAR_SHOW, this);
     this._addPreferenceObservers(false);
+  },
+
+  /**
+   * Installs the toolbar button on the first run.
+   */
+  _installToolbarButton : function() {
+    this._logger.trace("_installToolbarButton");
+
+    let buttonInstalled =
+      ImageZoom.Application.prefs.get(this.PREF_TOOLBAR_INSTALLED).value;
+
+    if (!buttonInstalled) {
+      let toolbarId =
+        (null == document.getElementById("addon-bar") ? "nav-bar": "addon-bar");
+      let toolbar = document.getElementById(toolbarId);
+      let newCurrentSet = null;
+
+      if (-1 != toolbar.currentSet.indexOf("urlbar-container")) {
+         newCurrentSet = toolbar.currentSet.replace(
+           /urlbar-container/, "imagezoom-toolbar-button,urlbar-container");
+      } else {
+         newCurrentSet = toolbar.currentSet + ",imagezoom-toolbar-button";
+      }
+      toolbar.setAttribute("currentset", newCurrentSet);
+      toolbar.currentSet = newCurrentSet;
+      document.persist(toolbarId, "currentset");
+
+      try {
+        BrowserToolboxCustomizeDone(true);
+      } catch (e) { }
+
+      ImageZoom.Application.prefs.setValue(this.PREF_TOOLBAR_INSTALLED, true);
+    }
   },
 
   /**
@@ -95,22 +127,25 @@ ImageZoomChrome.Overlay = {
   _addMenuItems : function() {
     this._logger.debug("_addMenuItems");
 
-    let menuPopup = document.getElementById("imagezoom-status-menu");
-    let menuSeparator =
-      document.getElementById("imagezoom-status-menuseparator");
-    let menuItem = null;
-    let pageCount = ImageZoom.FilterService.pageList.length;
-    let pageInfo = null;
+    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
 
-    for (let i = 0; i < pageCount; i++) {
-      pageInfo = ImageZoom.FilterService.pageList[i];
-      menuItem = document.createElement("menuitem");
-      menuItem.setAttribute("id", "imagezoom-status-menuitem-" + pageInfo.key);
-      menuItem.setAttribute("label", pageInfo.name);
-      menuItem.setAttribute("type", "checkbox");
-      menuItem.setAttribute(
-        "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
-      menuPopup.insertBefore(menuItem, menuSeparator);
+    if (menuPopup) {
+      let menuSeparator =
+        document.getElementById("imagezoom-toolbar-menuseparator");
+      let menuItem = null;
+      let pageCount = ImageZoom.FilterService.pageList.length;
+      let pageInfo = null;
+
+      for (let i = 0; i < pageCount; i++) {
+        pageInfo = ImageZoom.FilterService.pageList[i];
+        menuItem = document.createElement("menuitem");
+        menuItem.setAttribute("id", "imagezoom-toolbar-menuitem-" + pageInfo.key);
+        menuItem.setAttribute("label", pageInfo.name);
+        menuItem.setAttribute("type", "checkbox");
+        menuItem.setAttribute(
+          "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
+        menuPopup.insertBefore(menuItem, menuSeparator);
+      }
     }
   },
 
@@ -146,7 +181,7 @@ ImageZoomChrome.Overlay = {
     let pageCount = ImageZoom.FilterService.pageList.length;
 
     for (let i = 0; i < pageCount; i++) {
-      this._updateStatusbarMenu(i);
+      this._updatePagesMenu(i);
     }
   },
 
@@ -450,33 +485,20 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Updates the statusbar menu.
+   * Updates the pages menu.
    * @param aPage the page constant.
    */
-  _updateStatusbarMenu : function(aPage) {
-    this._logger.trace("_updateStatusbarMenu");
+  _updatePagesMenu : function(aPage) {
+    this._logger.trace("_updatePagesMenu");
 
     let pageName = ImageZoom.FilterService.getPageName(aPage);
     let pageEnable = ImageZoom.FilterService.isPageEnabled(aPage);
-    let menuItemId = "imagezoom-status-menuitem-" + pageName;
+    let menuItemId = "imagezoom-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
 
     if (null != menuItem) {
       menuItem.setAttribute("checked", pageEnable);
     }
-  },
-
-  /**
-   * Shows/hides the statusbar button.
-   */
-  _showStatusBarButton : function() {
-    this._logger.trace("_showStatusBarButton");
-
-    let statusbarButton = document.getElementById("imagezoom-statusbar-panel");
-    let statusbarPrefValue =
-      ImageZoom.Application.prefs.get(this.PREF_STATUSBAR_SHOW).value;
-
-    statusbarButton.hidden = !statusbarPrefValue;
   },
 
   /**
@@ -489,16 +511,14 @@ ImageZoomChrome.Overlay = {
     this._logger.debug("observe");
 
     if ("nsPref:changed" == aTopic) {
-      if (this.PREF_STATUSBAR_SHOW == aData) {
-        this._showStatusBarButton();
-      } else if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
-                 -1 != aData.indexOf(".enable")) {
+      if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
+          -1 != aData.indexOf(".enable")) {
         let page =
           aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
         let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);
 
         if (-1 != pageConstant) {
-          this._updateStatusbarMenu(pageConstant);
+          this._updatePagesMenu(pageConstant);
         }
       }
     }

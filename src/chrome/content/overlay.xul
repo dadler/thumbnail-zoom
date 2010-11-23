@@ -41,20 +41,20 @@
   <script type="application/x-javascript"
     src="chrome://imagezoom/content/overlay.js" />
 
-  <!-- Status bar button -->
-  <statusbar id="status-bar">
-    <statusbarpanel id="imagezoom-statusbar-panel"
-      class="statusbarpanel-menu-iconic"
-      insertafter="page-report-button"
-      tooltiptext="&imagezoom.statusbar.tooltip;"
-      src="chrome://imagezoom/skin/images/icon16.png">
-      <menupopup id="imagezoom-status-menu">
-        <menuseparator id="imagezoom-status-menuseparator" />
-        <menuitem label="&imagezoom.statusbar.settings.label;"
+  <!-- Toolbar button -->
+  <toolbarpalette id="BrowserToolbarPalette">
+    <toolbarbutton id="imagezoom-toolbar-button" type="menu"
+      label="&imagezoom.toolbar.label;"
+      tooltiptext="&imagezoom.toolbar.tooltip;"
+      class="chromeclass-toolbar-additional toolbarbutton-1 "
+      onclick="checkForMiddleClick(this, event);">
+      <menupopup id="imagezoom-toolbar-menu">
+        <menuseparator id="imagezoom-toolbar-menuseparator" />
+        <menuitem label="&imagezoom.toolbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />
       </menupopup>
-    </statusbarpanel>
-  </statusbar>
+    </toolbarbutton>
+  </toolbarpalette>
 
   <!-- Panel -->
   <window id="main-window">

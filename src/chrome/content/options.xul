@@ -40,8 +40,6 @@
 
   <prefpane id="imagezoom-options-pane" label="&imagezoom.options.pane.label;">
     <preferences>
-      <preference id="imagezoom-options-statusbar-pref"
-        name="extensions.imagezoom.statusbar.show" type="bool"/>
       <preference id="imagezoom-options-delay-pref"
         name="extensions.imagezoom.panel.delay" type="int"/>
       <preference id="imagezoom-options-key-pref"
@@ -81,8 +79,6 @@
       <caption>
         <label value="&imagezoom.options.general.groupbox.caption;"/>
       </caption>
-      <checkbox label="&imagezoom.options.statusbar.checkbox.label;"
-        preference="imagezoom-options-statusbar-pref" />
       <grid>
         <columns>
           <column />

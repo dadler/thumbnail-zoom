@@ -27,12 +27,12 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<!ENTITY imagezoom.statusbar.tooltip                     "Thumbnail Zoom">
-<!ENTITY imagezoom.statusbar.settings.label              "Opzioni...">
+<!ENTITY imagezoom.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY imagezoom.toolbar.tooltip                       "Thumbnail Zoom">
+<!ENTITY imagezoom.toolbar.settings.label                "Opzioni...">
 
 <!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
 <!ENTITY imagezoom.options.pane.label                    "Preferenze">
-<!ENTITY imagezoom.options.statusbar.checkbox.label      "Mostrare il pulsante nella barra di stato">
 <!ENTITY imagezoom.options.delay.selection.label         "Ritardo prima di mostrare il pannello (sec):">
 <!ENTITY imagezoom.options.key.selection.label           "Tasto per attivare il pannelo:">
 <!ENTITY imagezoom.options.key.none.label                "Nessuno">

@@ -28,7 +28,7 @@
  */
 
 // General preferences.
-pref("extensions.imagezoom.statusbar.show",     true);
+pref("extensions.imagezoom.button.installed",   false);
 pref("extensions.imagezoom.panel.delay",        0);
 pref("extensions.imagezoom.panel.key",          0);
 

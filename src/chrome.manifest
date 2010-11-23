@@ -27,12 +27,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ##
 
-content   imagezoom                jar:chrome/imagezoom.jar!/content/
-locale    imagezoom   en-US        jar:chrome/imagezoom.jar!/locale/en-US/
-locale    imagezoom   es           jar:chrome/imagezoom.jar!/locale/es/
-locale    imagezoom   it           jar:chrome/imagezoom.jar!/locale/it/
-locale    imagezoom   pt           jar:chrome/imagezoom.jar!/locale/pt/
-skin      imagezoom   classic/1.0  jar:chrome/imagezoom.jar!/skin/all/
+content   imagezoom                chrome/content/
+locale    imagezoom   en-US        chrome/locale/en-US/
+locale    imagezoom   es           chrome/locale/es/
+locale    imagezoom   it           chrome/locale/it/
+locale    imagezoom   pt           chrome/locale/pt/
+skin      imagezoom   classic/1.0  chrome/skin/all/
 resource  imagezoom   resources/
 
 overlay   chrome://browser/content/browser.xul          chrome://imagezoom/content/overlay.xul

@@ -27,12 +27,12 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<!ENTITY imagezoom.statusbar.tooltip                     "Thumbnail Zoom">
-<!ENTITY imagezoom.statusbar.settings.label              "Settings...">
+<!ENTITY imagezoom.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY imagezoom.toolbar.tooltip                       "Thumbnail Zoom">
+<!ENTITY imagezoom.toolbar.settings.label                "Settings...">
 
 <!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
 <!ENTITY imagezoom.options.pane.label                    "Preferences">
-<!ENTITY imagezoom.options.statusbar.checkbox.label      "Show status bar button">
 <!ENTITY imagezoom.options.delay.selection.label         "Delay before showing panel (sec)">
 <!ENTITY imagezoom.options.key.selection.label           "Key to activate the panel:">
 <!ENTITY imagezoom.options.key.none.label                "None">

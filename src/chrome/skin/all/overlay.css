@@ -27,9 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#imagezoom-statusbar-panel {
-  margin-left: 2px;
-  margin-right: 2px;
+#imagezoom-toolbar-button {
+  list-style-image: url("chrome://imagezoom/skin/images/icon16.png");
+  -moz-box-orient: horizontal;
 }
 
 #imagezoom-panel {
