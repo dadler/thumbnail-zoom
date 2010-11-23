@@ -53,6 +53,8 @@ ImageZoomChrome.Overlay = {
   _panel : null,
   /* The floating panel image. */
   _panelImage : null,
+  /* The floating panel throbber */
+  _panelThrobber : null,
   /* The current image source. */
   _currentImage : null,
 
@@ -68,6 +70,7 @@ ImageZoomChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("imagezoom-panel");
     this._panelImage = document.getElementById("imagezoom-panel-image");
+    this._panelThrobber = document.getElementById("imagezoom-panel-throbber");
 
     this._installToolbarButton();
     this._addPreferenceObservers(true);
@@ -82,6 +85,7 @@ ImageZoomChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._panelThrobber = null;
     this._currentImage = null;
     this._addPreferenceObservers(false);
   },
@@ -366,6 +370,7 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_closePanel");
 
     this._currentImage = null;
+    this._panelThrobber.hidden = false;
     this._timer.cancel();
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
@@ -464,6 +469,7 @@ ImageZoomChrome.Overlay = {
       this._panelImage.style.minHeight = aScale.height + "px";
     }
     this._panelImage.src = aImageSrc;
+    this._panelThrobber.hidden = true;
   },
 
   /**
