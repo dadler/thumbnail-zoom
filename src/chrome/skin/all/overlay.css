@@ -27,8 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#imagezoom-toolbar-button {
-  list-style-image: url("chrome://imagezoom/skin/images/icon16.png");
+toolbar[mode="icons"] #imagezoom-toolbar-button {
   -moz-box-orient: horizontal;
 }
 

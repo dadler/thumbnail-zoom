@@ -70,9 +70,7 @@ ImageZoomChrome.Overlay = {
     this._panelImage = document.getElementById("imagezoom-panel-image");
 
     this._installToolbarButton();
-    this._addMenuItems();
     this._addPreferenceObservers(true);
-    this._updatePreferencesUI();
     this._addEventListeners();
   },
 
@@ -122,34 +120,6 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Adds the menu items.
-   */
-  _addMenuItems : function() {
-    this._logger.debug("_addMenuItems");
-
-    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
-
-    if (menuPopup) {
-      let menuSeparator =
-        document.getElementById("imagezoom-toolbar-menuseparator");
-      let menuItem = null;
-      let pageCount = ImageZoom.FilterService.pageList.length;
-      let pageInfo = null;
-
-      for (let i = 0; i < pageCount; i++) {
-        pageInfo = ImageZoom.FilterService.pageList[i];
-        menuItem = document.createElement("menuitem");
-        menuItem.setAttribute("id", "imagezoom-toolbar-menuitem-" + pageInfo.key);
-        menuItem.setAttribute("label", pageInfo.name);
-        menuItem.setAttribute("type", "checkbox");
-        menuItem.setAttribute(
-          "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
-        menuPopup.insertBefore(menuItem, menuSeparator);
-      }
-    }
-  },
-
-  /**
    * Adds the preference observers.
    * @param aValue true if adding, false when removing.
    */
@@ -173,15 +143,50 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Updates the UI that depends on preferences.
+   * Adds the menu items.
    */
-  _updatePreferencesUI : function() {
-    this._logger.trace("_updatePreferencesUI");
+  addMenuItems : function() {
+    this._logger.debug("addMenuItems");
 
-    let pageCount = ImageZoom.FilterService.pageList.length;
+    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
 
-    for (let i = 0; i < pageCount; i++) {
-      this._updatePagesMenu(i);
+    if (menuPopup) {
+      let menuSeparator =
+        document.getElementById("imagezoom-toolbar-menuseparator");
+      let menuItem = null;
+      let pageCount = ImageZoom.FilterService.pageList.length;
+      let pageInfo = null;
+
+      for (let i = 0; i < pageCount; i++) {
+        pageInfo = ImageZoom.FilterService.pageList[i];
+        menuItem = document.createElement("menuitem");
+        menuItem.setAttribute(
+          "id", "imagezoom-toolbar-menuitem-" + pageInfo.key);
+        menuItem.setAttribute("label", pageInfo.name);
+        menuItem.setAttribute("type", "checkbox");
+        menuItem.setAttribute(
+          "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
+        menuPopup.insertBefore(menuItem, menuSeparator);
+        this._updatePagesMenu(i);
+      }
+    }
+  },
+
+  /**
+   * Removes the menu items.
+   */
+  removeMenuItems : function() {
+    this._logger.debug("removeMenuItems");
+
+    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
+
+    if (menuPopup) {
+      let menuSeparator =
+        document.getElementById("imagezoom-toolbar-menuseparator");
+
+      while (menuPopup.firstChild != menuSeparator) {
+        menuPopup.removeChild(menuPopup.firstChild);
+      }
     }
   },
 

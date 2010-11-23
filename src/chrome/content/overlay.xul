@@ -46,9 +46,11 @@
     <toolbarbutton id="imagezoom-toolbar-button" type="menu"
       label="&imagezoom.toolbar.label;"
       tooltiptext="&imagezoom.toolbar.tooltip;"
-      class="chromeclass-toolbar-additional toolbarbutton-1 "
-      onclick="checkForMiddleClick(this, event);">
-      <menupopup id="imagezoom-toolbar-menu">
+      image="chrome://imagezoom/skin/images/icon16.png"
+      class="chromeclass-toolbar-additional toolbarbutton-1">
+      <menupopup id="imagezoom-toolbar-menu"
+        onpopupshown="ImageZoomChrome.Overlay.addMenuItems();"
+        onpopuphidden="ImageZoomChrome.Overlay.removeMenuItems();">
         <menuseparator id="imagezoom-toolbar-menuseparator" />
         <menuitem label="&imagezoom.toolbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />
