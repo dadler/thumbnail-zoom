@@ -32,7 +32,9 @@ toolbar[mode="icons"] #imagezoom-toolbar-button {
 }
 
 #imagezoom-panel {
-  border: 1px solid #000;
+  border: 1px solid #000 !important;
+  background-color: #FFF !important;
+  background-image: none !important;
   padding: 5px;
 }
 

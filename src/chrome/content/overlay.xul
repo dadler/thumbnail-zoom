@@ -47,7 +47,7 @@
       label="&imagezoom.toolbar.label;"
       tooltiptext="&imagezoom.toolbar.tooltip;"
       image="chrome://imagezoom/skin/images/icon16.png"
-      class="chromeclass-toolbar-additional toolbarbutton-1">
+      class="chromeclass-toolbar-additional ">
       <menupopup id="imagezoom-toolbar-menu"
         onpopupshown="ImageZoomChrome.Overlay.addMenuItems();"
         onpopuphidden="ImageZoomChrome.Overlay.removeMenuItems();">
@@ -61,7 +61,7 @@
   <!-- Panel -->
   <window id="main-window">
     <panel id="imagezoom-panel" noautofocus="true" noautohide="true">
-      <stack>
+      <stack id="imagezoom-panel-stack">
         <vbox align="center" pack="center">
           <image id="imagezoom-panel-throbber" />
         </vbox>
