@@ -412,6 +412,7 @@ ImageZoomChrome.Overlay = {
         let pageSide = that._getPageSide(aImageNode);
         let scale = that._getScaleDimensions(image, pageSide);
 
+        scale = that._adjustPageZoom(scale);
         that._showImage(aImageSrc, scale);
       }
     };
@@ -471,6 +472,22 @@ ImageZoomChrome.Overlay = {
     }
 
     return scale;
+  },
+
+  /**
+   * Adjust the user's page zoom.
+   * @param aScale the image scale values.
+   * @return the adjusted scale.
+   */
+  _adjustPageZoom : function(aScale) {
+    this._logger.trace("_adjustPageZoom");
+
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+
+    aScale.width *= pageZoom;
+    aScale.height *= pageZoom;
+
+    return aScale;
   },
 
   /**
