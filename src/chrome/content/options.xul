@@ -41,7 +41,7 @@
   <prefpane id="imagezoom-options-pane" label="&imagezoom.options.pane.label;">
     <preferences>
       <preference id="imagezoom-options-delay-pref"
-        name="extensions.imagezoom.panel.delay" type="int"/>
+        name="extensions.imagezoom.panel.wait" type="string"/>
       <preference id="imagezoom-options-key-pref"
         name="extensions.imagezoom.panel.key" type="int"/>
       <preference id="imagezoom-options-twitter-pref"
@@ -87,8 +87,9 @@
         <rows>
           <row align="center">
             <label value="&imagezoom.options.delay.selection.label;" />
-            <textbox preference="imagezoom-options-delay-pref" size="2"
-              maxlength="2" type="number" min="0" max="60" width="50" />
+            <textbox preference="imagezoom-options-delay-pref" type="number"
+              size="4" maxlength="4" min="0" max="60" width="50"
+              decimalplaces="2" increment="0.1" />
           </row>
           <row align="center">
             <label value="&imagezoom.options.key.selection.label;" />

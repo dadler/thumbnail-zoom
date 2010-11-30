@@ -29,7 +29,7 @@
 
 // General preferences.
 pref("extensions.imagezoom.button.installed",   false);
-pref("extensions.imagezoom.panel.delay",        0);
+pref("extensions.imagezoom.panel.wait",         "0");
 pref("extensions.imagezoom.panel.key",          0);
 
 // Site preferences.

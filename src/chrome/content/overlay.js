@@ -38,6 +38,7 @@ Cu.import("resource://imagezoom/uninstallService.js");
 ImageZoomChrome.Overlay = {
   /* UI preference keys. */
   PREF_PANEL_KEY : ImageZoom.PrefBranch + "panel.key",
+  PREF_PANEL_WAIT : ImageZoom.PrefBranch + "panel.wait",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
@@ -72,6 +73,7 @@ ImageZoomChrome.Overlay = {
     this._panelImage = document.getElementById("imagezoom-panel-image");
     this._panelThrobber = document.getElementById("imagezoom-panel-throbber");
 
+    this._updatePreferenceFix();
     this._installToolbarButton();
     this._addPreferenceObservers(true);
     this._addEventListeners();
@@ -88,6 +90,23 @@ ImageZoomChrome.Overlay = {
     this._panelThrobber = null;
     this._currentImage = null;
     this._addPreferenceObservers(false);
+  },
+
+  /**
+   * Updates preference fix.
+   */
+  _updatePreferenceFix : function() {
+    this._logger.trace("_updatePreferenceFix");
+
+    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_DELAY);
+    if (delayPref) {
+      let preferenceService =
+        Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
+      let delayValue = String(delayPref.value);
+
+      ImageZoom.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
+      preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
+    }
   },
 
   /**
@@ -312,9 +331,9 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_getHoverTime");
 
     let hoverTime = 0;
-    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_DELAY);
+    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_WAIT);
 
-    if (delayPref) {
+    if (delayPref && !isNaN(delayPref.value)) {
       hoverTime = 1000 * delayPref.value;
     }
 
