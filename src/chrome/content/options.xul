@@ -72,6 +72,8 @@
         name="extensions.imagezoom.tagged.enable" type="bool"/>
       <preference id="imagezoom-options-lastfm-pref"
         name="extensions.imagezoom.lastfm.enable" type="bool"/>
+      <preference id="imagezoom-options-google-pref"
+        name="extensions.imagezoom.google.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -126,6 +128,8 @@
             preference="imagezoom-options-hi5-pref" />
           <checkbox label="Tagged"
             preference="imagezoom-options-tagged-pref" />
+          <checkbox label="Google Images"
+            preference="imagezoom-options-google-pref" />
         </vbox>
         <vbox class="imagezoom-options-pages-column" flex="1">
           <checkbox label="Amazon"

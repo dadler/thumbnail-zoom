@@ -54,7 +54,8 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.PhotoBucket,
     ImageZoom.Pages.Wikipedia,
     ImageZoom.Pages.Tagged,
-    ImageZoom.Pages.LastFM
+    ImageZoom.Pages.LastFM,
+    ImageZoom.Pages.Google
   ],
 
   /* Logger for this object. */
@@ -85,7 +86,8 @@ ImageZoom.FilterService = {
       let pageCount = this.pageList.length;
 
       for (let i = 0; i < pageCount; i++) {
-        if (-1 != host.indexOf(this.pageList[i].host)) {
+        let hostRegExp = new RegExp(this.pageList[i].host);
+        if (hostRegExp.test(host)) {
           pageConstant = i;
           break;
         }
@@ -177,11 +179,9 @@ ImageZoom.FilterService = {
     let nodeName = aNode.localName.toLowerCase();
     let imageSource = ("img" == nodeName ? aNode.getAttribute("src") : null);
 
-    // check fake cover images.
-    if (null != imageSource && pageInfo.getInnerImage) {
-      let imageNode = pageInfo.getInnerImage(aNode, imageSource);
-
-      imageSource = (imageNode ? imageNode.getAttribute("src") : imageSource);
+    // check special cases
+    if (null != imageSource && pageInfo.getSpecialSource) {
+      imageSource = pageInfo.getSpecialSource(aNode, imageSource);
     }
     // check other image nodes.
     if (null == imageSource && pageInfo.getImageNode) {
@@ -238,6 +238,4 @@ ImageZoom.FilterService = {
 /**
  * Constructor.
  */
-(function() {
-  this._init();
-}).apply(ImageZoom.FilterService);
+(function() { this._init(); }).apply(ImageZoom.FilterService);

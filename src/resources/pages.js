@@ -48,17 +48,17 @@ if ("undefined" == typeof(ImageZoom.Pages)) {
 ImageZoom.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
-  host: "www.facebook.com",
+  host: /www\.facebook\.com/,
   imageRegExp: /(profile|photos-[a-z])\.ak\.fbcdn\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     let image = ("i" == aNodeName ? aNode : ("a" == aNodeName &&
       "album_link" == aNodeClass ? aNode.parentNode : null));
     return image;
   },
-  getInnerImage : function(aNode, aNodeSource) {
-    let image =
-      (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif") ? aNode.nextSibling : null);
-    return image;
+  getSpecialSource : function(aNode, aNodeSource) {
+    let imageSource = (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif") ?
+      aNode.nextSibling.getAttribute("src") : aNodeSource);
+    return imageSource;
   },
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/_[qsta]\./);
@@ -75,7 +75,7 @@ ImageZoom.Pages.Facebook = {
 ImageZoom.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
-  host: "twitter.com",
+  host: /twitter\.com/,
   imageRegExp: /twimg\.com\/profile_images\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
@@ -90,7 +90,7 @@ ImageZoom.Pages.Twitter = {
 ImageZoom.Pages.Twitpic = {
   key: "twitpic",
   name: "Twitpic",
-  host: "twitpic.com",
+  host: /twitpic\.com/,
   imageRegExp:
     /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)/,
   getZoomImage : function(aImageSrc) {
@@ -108,7 +108,7 @@ ImageZoom.Pages.Twitpic = {
 ImageZoom.Pages.LinkedIn = {
   key: "linkedin",
   name: "LinkedIn",
-  host: "www.linkedin.com",
+  host: /www\.linkedin\.com/,
   imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\//,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\/shrink_[0-9][0-9]_[0-9][0-9]\//, "/");
@@ -121,8 +121,8 @@ ImageZoom.Pages.LinkedIn = {
 ImageZoom.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
-  host: "www.amazon.com",
-  imageRegExp: /\/ecx\.images\-amazon\.com\/images/,
+  host: /www\.amazon\.com/,
+  imageRegExp: /\/(g-)?ecx\.images\-amazon\.com\/images/,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\._[a-z].+_\./i, ".");
   }
@@ -134,7 +134,7 @@ ImageZoom.Pages.Amazon = {
 ImageZoom.Pages.Hi5 = {
   key: "hi5",
   name: "Hi5",
-  host: "www.hi5.com",
+  host: /www\.hi5\.com/,
   imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\-01\./);
@@ -151,7 +151,7 @@ ImageZoom.Pages.Hi5 = {
 ImageZoom.Pages.Picasa = {
   key: "picasa",
   name: "Picasa",
-  host: "picasaweb.google.com",
+  host: /picasaweb\.google\.com/,
   imageRegExp: /lh[0-9]+.ggpht.com/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/s([0-9]{2}|[123][0-9]{2})(-c)?\//);
@@ -166,7 +166,7 @@ ImageZoom.Pages.Picasa = {
 ImageZoom.Pages.MySpace = {
   key: "myspace",
   name: "MySpace",
-  host: "myspace.com",
+  host: /myspace\.com/,
   imageRegExp: /c[0-9]+\.ac-images\.myspacecdn\.com/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/[sm](_.+\.)/);
@@ -181,12 +181,13 @@ ImageZoom.Pages.MySpace = {
 ImageZoom.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
-  host: "www.flickr.com",
+  host: /www\.flickr\.com/,
   imageRegExp: /farm[0-9]+\.static\.flickr\.com/,
-  getInnerImage : function(aNode, aNodeSource) {
-    let image = (-1 != aNodeSource.indexOf("spaceball.gif") ?
-      aNode.parentNode.previousSibling.firstChild.firstChild : null);
-    return image;
+  getSpecialSource : function(aNode, aNodeSource) {
+    let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
+      aNode.parentNode.previousSibling.firstChild.firstChild.getAttribute("src")
+      : aNodeSource);
+    return imageSource;
   },
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[smt]\./);
@@ -201,7 +202,7 @@ ImageZoom.Pages.Flickr = {
 ImageZoom.Pages.Wikipedia = {
   key: "wikipedia",
   name: "Wikipedia",
-  host: "wikipedia.org",
+  host: /wikipedia\.org/,
   imageRegExp: /upload\.wikimedia\.org\/wikipedia\/commons/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\/thumb\//);
@@ -220,7 +221,7 @@ ImageZoom.Pages.Wikipedia = {
 ImageZoom.Pages.DeviantART = {
   key: "deviantart",
   name: "deviantART",
-  host: "deviantart.com",
+  host: /deviantart\.com/,
   imageRegExp: /th[0-9]+\.deviantart.net/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/(fs\d+\/)\w+\/([fiop])/);
@@ -235,8 +236,8 @@ ImageZoom.Pages.DeviantART = {
 ImageZoom.Pages.PhotoBucket = {
   key: "photobucket",
   name: "PhotoBucket",
-  host: "photobucket.com",
-  imageRegExp: /[0-9]+\.photobucket.com\/albums/,
+  host: /photobucket\.com/,
+  imageRegExp: /[0-9]+\.photobucket.com\/(albums|groups)/,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     return ("div" == aNodeName && "thumb" == aNodeClass ? aNode : null);
   },
@@ -253,7 +254,7 @@ ImageZoom.Pages.PhotoBucket = {
 ImageZoom.Pages.Tagged = {
   key: "tagged",
   name: "Tagged",
-  host: "www.tagged.com",
+  host: /www\.tagged\.com/,
   imageRegExp: /[a-z]+[0-9]+\.tagstat.com\/image/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/[123456789]0([\w-]+\.[a-z]+)/);
@@ -268,12 +269,38 @@ ImageZoom.Pages.Tagged = {
 ImageZoom.Pages.LastFM = {
   key: "lastfm",
   name: "Last.fm",
-  host: "www.last.fm",
+  host: /www\.last\.fm/,
   imageRegExp: /userserve-ak\.last\.fm\/serve/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/serve\/\w+\//);
     let image =
       (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
     return image;
+  }
+};
+
+/**
+ * Google.
+ */
+ImageZoom.Pages.Google = {
+  key: "google",
+  name: "Google Images",
+  host: /www\.google\.[a-z\.]+/,
+  imageRegExp: /.+/,
+  getSpecialSource : function(aNode, aNodeSource) {
+    let imageSource = null;
+    let rex = new RegExp(/t[0-9]\.gstatic\.com\/images/);
+    if (rex.test(aNodeSource)) {
+      let imageHref = aNode.parentNode.getAttribute("href");
+      let imageIndex = imageHref.indexOf("imgurl=");
+      if (-1 < imageIndex) {
+        imageSource = decodeURIComponent(imageHref.substring(
+          imageIndex + 7, imageHref.indexOf("&", imageIndex)));
+      }
+    }
+    return imageSource;
+  },
+  getZoomImage : function(aImageSrc) {
+    return aImageSrc;
   }
 };
