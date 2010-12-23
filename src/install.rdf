@@ -35,7 +35,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>{E10A6337-382E-4FE6-96DE-936ADC34DD04}</em:id>
     <em:name>Thumbnail Zoom</em:name>
-    <em:description>Zooms thumbnail pictures from a set sites including Facebook, Twitter and Amazon</em:description>
+    <em:description>Zooms thumbnail pictures from a set of sites including Facebook, Twitter and Amazon</em:description>
     <em:version>1.4</em:version>
     <em:creator>Andres Hernandez Monge</em:creator>
     <em:iconURL>chrome://imagezoom/skin/images/icon64.png</em:iconURL>
@@ -48,7 +48,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>3.0</em:minVersion>
-        <em:maxVersion>4.0b8pre</em:maxVersion>
+        <em:maxVersion>4.0b8</em:maxVersion>
       </Description>
     </em:targetApplication>
 

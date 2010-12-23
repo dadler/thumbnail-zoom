@@ -30,6 +30,7 @@
 Cu.import("resource://imagezoom/common.js");
 Cu.import("resource://imagezoom/pages.js");
 Cu.import("resource://imagezoom/filterService.js");
+Cu.import("resource://imagezoom/downloadService.js");
 Cu.import("resource://imagezoom/uninstallService.js");
 
 /**
@@ -58,6 +59,10 @@ ImageZoomChrome.Overlay = {
   _panelThrobber : null,
   /* The current image source. */
   _currentImage : null,
+  /* Context download image menu item */
+  _contextMenu : null,
+  /* File Picker. */
+  _filePicker : null,
 
   /**
    * Initializes the object.
@@ -72,6 +77,11 @@ ImageZoomChrome.Overlay = {
     this._panel = document.getElementById("imagezoom-panel");
     this._panelImage = document.getElementById("imagezoom-panel-image");
     this._panelThrobber = document.getElementById("imagezoom-panel-throbber");
+    this._contextMenu = document.getElementById("imagezoom-context-download");
+
+    this._filePicker =
+      Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+    this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
 
     this._updatePreferenceFix();
     this._installToolbarButton();
@@ -89,6 +99,7 @@ ImageZoomChrome.Overlay = {
     this._panelImage = null;
     this._panelThrobber = null;
     this._currentImage = null;
+    this._contextMenu = null;
     this._addPreferenceObservers(false);
   },
 
@@ -379,6 +390,7 @@ ImageZoomChrome.Overlay = {
       this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
     }
     this._currentImage = aImageSrc;
+    this._contextMenu.hidden = false;
     this._preloadImage(aImageNode, aImageSrc);
   },
 
@@ -389,6 +401,7 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_closePanel");
 
     this._currentImage = null;
+    this._contextMenu.hidden = true;
     this._panelThrobber.hidden = false;
     this._timer.cancel();
     if (this._panel.state != "closed") {
@@ -519,6 +532,35 @@ ImageZoomChrome.Overlay = {
         "imagezoom-options-window", "chrome,centerscreen");
 
     optionsDialog.focus();
+  },
+
+  /**
+   * Downloads the full image.
+   */
+  downloadImage : function() {
+    this._logger.debug("downloadImage");
+
+    if (null != this._currentImage) {
+      let fileURL = this._currentImage;
+      let filePickerResult = null;
+      let filePickerName =
+        fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
+
+      this._filePicker.defaultString = filePickerName;
+      filePickerResult = this._filePicker.show();
+
+      if (Ci.nsIFilePicker.returnOK == filePickerResult ||
+          Ci.nsIFilePicker.returnReplace == filePickerResult) {
+        let filePath = this._filePicker.file.path;
+        let image = new Image();
+
+        image.onload = function() {
+          ImageZoom.DownloadService.downloadImage(
+            image, filePath, window);
+        };
+        image.src = fileURL;
+      }
+    }
   },
 
   /**

@@ -38,3 +38,6 @@
 <!ENTITY imagezoom.options.key.none.label                "Nenhuma">
 <!ENTITY imagezoom.options.general.groupbox.caption      "Geral">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar ou deshabilitar por site">
+
+<!ENTITY imagezoom.context.download.label                "Salvar imagem ampliada como...">
+<!ENTITY imagezoom.context.download.accesskey            "Z">

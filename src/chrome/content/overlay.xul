@@ -70,4 +70,14 @@
     </panel>
   </window>
 
+  <!-- Context menu item -->
+  <popup id="contentAreaContextMenu">
+    <menuitem id="imagezoom-context-download" hidden="true"
+      insertbefore="context-saveimage" class="menuitem-iconic"
+      onclick="checkForMiddleClick(this, event);"
+      image="chrome://imagezoom/skin/images/icon16.png"
+      label="&imagezoom.context.download.label;"
+      accesskey="&imagezoom.context.download.accesskey;"
+      oncommand="ImageZoomChrome.Overlay.downloadImage();" />
+  </popup>
 </overlay>
