@@ -56,12 +56,19 @@ ImageZoom.Pages.Facebook = {
     return image;
   },
   getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif") ?
-      aNode.nextSibling.getAttribute("src") : aNodeSource);
+    let imageSource = aNodeSource;
+    if (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif")) {
+      if (-1 == aNode.style.backgroundImage.indexOf("url")) {
+        imageSource = aNode.nextSibling.getAttribute("src");
+      } else {
+        imageSource = aNode.style.backgroundImage.
+          replace(/url\(\"/, "").replace(/\"\)/, "");
+      }
+    }
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
-    let rex1 = new RegExp(/_[qsta]\./);
+    let rex1 = new RegExp(/_[qstan]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_n.") :
       (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "$1n$2") : null));
@@ -285,7 +292,7 @@ ImageZoom.Pages.LastFM = {
 ImageZoom.Pages.Google = {
   key: "google",
   name: "Google Images",
-  host: /www\.google\.[a-z\.]+/,
+  host: /\.google\.[a-z\.]+/,
   imageRegExp: /.+/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = null;
