@@ -76,6 +76,8 @@
         name="extensions.imagezoom.lastfm.enable" type="bool"/>
       <preference id="imagezoom-options-google-pref"
         name="extensions.imagezoom.google.enable" type="bool"/>
+      <preference id="imagezoom-options-youtube-pref"
+        name="extensions.imagezoom.youtube.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -152,6 +154,8 @@
             preference="imagezoom-options-wikipedia-pref" />
           <checkbox label="Last.fm"
             preference="imagezoom-options-lastfm-pref" />
+          <checkbox label="YouTube"
+            preference="imagezoom-options-youtube-pref" />
         </vbox>
       </hbox>
     </groupbox>

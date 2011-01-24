@@ -311,3 +311,26 @@ ImageZoom.Pages.Google = {
     return aImageSrc;
   }
 };
+
+/**
+ * YouTube.
+ */
+ImageZoom.Pages.YouTube = {
+  key: "youtube",
+  name: "YouTube",
+  host: /www\.youtube\.com/,
+  imageRegExp: /i[0-9]+\.ytimg\.com\/vi\//,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/\/default\./);
+    let image =
+      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/hqdefault.") : null);
+    return image;
+  },
+  getSpecialSource : function(aNode, aNodeSource) {
+    if (-1 == aNodeSource.indexOf("http:") &&
+        -1 == aNodeSource.indexOf("https:")) {
+      aNodeSource = "http:" + aNodeSource;
+    }
+    return aNodeSource;
+  }
+};

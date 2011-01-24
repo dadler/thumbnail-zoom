@@ -55,7 +55,8 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.Wikipedia,
     ImageZoom.Pages.Tagged,
     ImageZoom.Pages.LastFM,
-    ImageZoom.Pages.Google
+    ImageZoom.Pages.Google,
+    ImageZoom.Pages.YouTube
   ],
 
   /* Logger for this object. */

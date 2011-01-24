@@ -42,6 +42,7 @@ pref("extensions.imagezoom.lastfm.enable",      true);
 pref("extensions.imagezoom.picasa.enable",      true);
 pref("extensions.imagezoom.google.enable",      true);
 pref("extensions.imagezoom.twitter.enable",     true);
+pref("extensions.imagezoom.youtube.enable",     true);
 pref("extensions.imagezoom.twitpic.enable",     true);
 pref("extensions.imagezoom.myspace.enable",     true);
 pref("extensions.imagezoom.facebook.enable",    true);
