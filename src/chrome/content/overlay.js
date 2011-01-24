@@ -41,6 +41,7 @@ ImageZoomChrome.Overlay = {
   PREF_PANEL_KEY : ImageZoom.PrefBranch + "panel.key",
   PREF_PANEL_WAIT : ImageZoom.PrefBranch + "panel.wait",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
+  PREF_PANEL_BORDER : ImageZoom.PrefBranch + "panel.border",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
 
@@ -85,6 +86,8 @@ ImageZoomChrome.Overlay = {
 
     this._updatePreferenceFix();
     this._installToolbarButton();
+    this._showPanelBorder();
+    this._preferencesService.addObserver(this.PREF_PANEL_BORDER, this, false);
     this._addPreferenceObservers(true);
     this._addEventListeners();
   },
@@ -100,6 +103,7 @@ ImageZoomChrome.Overlay = {
     this._panelThrobber = null;
     this._currentImage = null;
     this._contextMenu = null;
+    this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
     this._addPreferenceObservers(false);
   },
 
@@ -591,6 +595,21 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Shows the panel border based in the preference value.
+   */
+  _showPanelBorder : function() {
+    this._logger.trace("_showPanelBorder");
+
+    let panelBorder = ImageZoom.Application.prefs.get(this.PREF_PANEL_BORDER);
+
+    if (panelBorder && panelBorder.value) {
+      this._panel.removeAttribute("panelnoborder");
+    } else {
+      this._panel.setAttribute("panelnoborder", true);
+    }
+  },
+
+  /**
    * Observes the authentication topic.
    * @param aSubject The object related to the change.
    * @param aTopic The topic being observed.
@@ -600,8 +619,10 @@ ImageZoomChrome.Overlay = {
     this._logger.debug("observe");
 
     if ("nsPref:changed" == aTopic) {
-      if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
-          -1 != aData.indexOf(".enable")) {
+      if (this.PREF_PANEL_BORDER == aData) {
+        this._showPanelBorder();
+      } else if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
+                 -1 != aData.indexOf(".enable")) {
         let page =
           aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
         let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);

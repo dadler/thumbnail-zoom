@@ -42,6 +42,8 @@
     <preferences>
       <preference id="imagezoom-options-delay-pref"
         name="extensions.imagezoom.panel.wait" type="string"/>
+      <preference id="imagezoom-options-border-pref"
+        name="extensions.imagezoom.panel.border" type="bool"/>
       <preference id="imagezoom-options-key-pref"
         name="extensions.imagezoom.panel.key" type="int"/>
       <preference id="imagezoom-options-twitter-pref"
@@ -104,6 +106,10 @@
                 <menuitem value="3" label="ALT" />
               </menupopup>
             </menulist>
+          </row>
+          <row align="center">
+            <checkbox preference="imagezoom-options-border-pref"
+              label="&imagezoom.options.border.checkbox.label;" />
           </row>
         </rows>
       </grid>

@@ -38,6 +38,7 @@
 <!ENTITY imagezoom.options.key.none.label                "Ninguna">
 <!ENTITY imagezoom.options.general.groupbox.caption      "General">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
+<!ENTITY imagezoom.options.border.checkbox.label         "Mostrar borde">
 
 <!ENTITY imagezoom.context.download.label                "Guardar imagen ampliada como ...">
 <!ENTITY imagezoom.context.download.accesskey            "Z">

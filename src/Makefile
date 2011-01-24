@@ -34,7 +34,7 @@ extension_name := imagezoom
 extension_uuid := E10A6337-382E-4FE6-96DE-936ADC34DD04
 
 # The name of the profile dir where the extension can be installed.
-profile_dir := eujqzbk5.default
+profile_dir := clfrupy2.default
 
 # The zip application to be used.
 ZIP := zip

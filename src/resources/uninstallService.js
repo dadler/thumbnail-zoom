@@ -187,6 +187,4 @@ ImageZoom.UninstallService = {
 /**
  * Constructor.
  */
-(function() {
-  this._init();
-}).apply(ImageZoom.UninstallService);
+(function() { this._init(); }).apply(ImageZoom.UninstallService);

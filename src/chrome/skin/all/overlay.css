@@ -37,6 +37,10 @@ toolbar[mode="icons"] #imagezoom-toolbar-button {
   background-image: none !important;
   padding: 5px;
 }
+#imagezoom-panel[panelnoborder=true] {
+  padding: 0px;
+  border: none !important;
+}
 
 #imagezoom-panel-throbber {
   list-style-image: url("chrome://imagezoom/skin/images/throbber.gif");
