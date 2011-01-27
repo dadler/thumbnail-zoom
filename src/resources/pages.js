@@ -57,7 +57,8 @@ ImageZoom.Pages.Facebook = {
   },
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = aNodeSource;
-    if (-1 != aNodeSource.indexOf("vJRBjt5XzbL.gif")) {
+    let rex = new RegExp(/static\.ak\.fbcdn\.net/);
+    if (rex.test(aNodeSource)) {
       if (-1 == aNode.style.backgroundImage.indexOf("url")) {
         imageSource = aNode.nextSibling.getAttribute("src");
       } else {
@@ -282,6 +283,17 @@ ImageZoom.Pages.LastFM = {
     let rex = new RegExp(/\/serve\/\w+\//);
     let image =
       (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
+    return image;
+  },
+  getImageNode : function(aNode, aNodeName, aNodeClass) {
+    let image = null;
+    if ("span" == aNodeName  && aNode.previousSibling) {
+      if ("overlay" == aNodeClass) {
+        image = aNode.previousSibling.firstChild;
+      } else if ("jewelcase" == aNodeClass) {
+        image = aNode.previousSibling;
+      }
+    }
     return image;
   }
 };

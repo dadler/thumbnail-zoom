@@ -190,10 +190,14 @@ ImageZoom.FilterService = {
       let imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);
 
       if (imageNode) {
-        let backImage = imageNode.style.backgroundImage;
+        if (imageNode.hasAttribute("src")) {
+          imageSource = imageNode.getAttribute("src");
+        } else {
+          let backImage = imageNode.style.backgroundImage;
 
-        if (backImage && "" != backImage) {
-          imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, "");
+          if (backImage && "" != backImage) {
+            imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, "");
+          }
         }
       }
     }
