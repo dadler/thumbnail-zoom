@@ -160,7 +160,7 @@ ImageZoom.Pages.Picasa = {
   key: "picasa",
   name: "Picasa",
   host: /picasaweb\.google\.com/,
-  imageRegExp: /lh[0-9]+.ggpht.com/,
+  imageRegExp: /lh[0-9]+\.(ggpht|googleusercontent)\.com/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/s([0-9]{2}|[123][0-9]{2})(-c)?\//);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/s700/") : null);
@@ -344,5 +344,20 @@ ImageZoom.Pages.YouTube = {
       aNodeSource = "http:" + aNodeSource;
     }
     return aNodeSource;
+  }
+};
+
+/**
+ * Daily Mile.
+ */
+ImageZoom.Pages.DailyMile = {
+  key: "dailymile",
+  name: "Daily Mile",
+  host: /dailymile\.com/,
+  imageRegExp: /(dmimg|media\.dailymile)\.com\/(pictures|photos)\//,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/_(mini|profile|preview|avatar)\./);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, ".") : aImageSrc);
+    return image;
   }
 };
