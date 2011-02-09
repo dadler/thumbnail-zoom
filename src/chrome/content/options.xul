@@ -46,6 +46,8 @@
         name="extensions.imagezoom.panel.border" type="bool"/>
       <preference id="imagezoom-options-key-pref"
         name="extensions.imagezoom.panel.key" type="int"/>
+      <preference id="imagezoom-options-opacity-pref"
+        name="extensions.imagezoom.panel.opacity" type="int"/>
       <preference id="imagezoom-options-twitter-pref"
         name="extensions.imagezoom.twitter.enable" type="bool"/>
       <preference id="imagezoom-options-twitpic-pref"
@@ -98,6 +100,12 @@
             <textbox preference="imagezoom-options-delay-pref" type="number"
               size="4" maxlength="4" min="0" max="60" width="50"
               decimalplaces="2" increment="0.1" />
+          </row>
+          <row align="center">
+            <label value="&imagezoom.options.opacity.selection.label;" />
+            <textbox preference="imagezoom-options-opacity-pref" type="number"
+              size="4" maxlength="4" min="1" max="100" width="50"
+              increment="1" />
           </row>
           <row align="center">
             <label value="&imagezoom.options.key.selection.label;" />

@@ -42,6 +42,7 @@ ImageZoomChrome.Overlay = {
   PREF_PANEL_WAIT : ImageZoom.PrefBranch + "panel.wait",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ImageZoom.PrefBranch + "panel.border",
+  PREF_PANEL_OPACITY : ImageZoom.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
 
@@ -88,6 +89,7 @@ ImageZoomChrome.Overlay = {
     this._installToolbarButton();
     this._showPanelBorder();
     this._preferencesService.addObserver(this.PREF_PANEL_BORDER, this, false);
+    this._preferencesService.addObserver(this.PREF_PANEL_OPACITY, this, false);
     this._addPreferenceObservers(true);
     this._addEventListeners();
   },
@@ -104,6 +106,7 @@ ImageZoomChrome.Overlay = {
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
+    this._preferencesService.removeObserver(this.PREF_PANEL_OPACITY, this);
     this._addPreferenceObservers(false);
   },
 
@@ -610,6 +613,19 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Updates the panel opacity based in the preference value.
+   */
+  _updatePanelOpacity : function() {
+    this._logger.trace("_updatePanelOpacity");
+
+    let panelOpacity = ImageZoom.Application.prefs.get(this.PREF_PANEL_OPACITY);
+
+    if (panelOpacity && panelOpacity.value) {
+      this._panel.style.opacity = panelOpacity.value / 100;
+    }
+  },
+
+  /**
    * Observes the authentication topic.
    * @param aSubject The object related to the change.
    * @param aTopic The topic being observed.
@@ -618,17 +634,24 @@ ImageZoomChrome.Overlay = {
   observe : function(aSubject, aTopic, aData) {
     this._logger.debug("observe");
 
-    if ("nsPref:changed" == aTopic) {
-      if (this.PREF_PANEL_BORDER == aData) {
-        this._showPanelBorder();
-      } else if (-1 != aData.indexOf(ImageZoom.PrefBranch) &&
-                 -1 != aData.indexOf(".enable")) {
+    if ("nsPref:changed" == aTopic &&
+        -1 != aData.indexOf(ImageZoom.PrefBranch)) {
+      if (-1 != aData.indexOf(".enable")) {
         let page =
           aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
         let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);
 
         if (-1 != pageConstant) {
           this._updatePagesMenu(pageConstant);
+        }
+      } else {
+        switch (aData) {
+          case this.PREF_PANEL_BORDER:
+            this._showPanelBorder();
+            break;
+          case this.PREF_PANEL_OPACITY:
+            this._updatePanelOpacity();
+            break;
         }
       }
     }

@@ -33,12 +33,13 @@
 
 <!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
 <!ENTITY imagezoom.options.pane.label                    "Preferências">
-<!ENTITY imagezoom.options.delay.selection.label         "Atraso antes de mostrar o panel (seg):">
-<!ENTITY imagezoom.options.key.selection.label           "Tecla para ativar o panel:">
+<!ENTITY imagezoom.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
+<!ENTITY imagezoom.options.opacity.selection.label       "Transparência das imagens: ">
+<!ENTITY imagezoom.options.key.selection.label           "Tecla para exibir a imagem:">
+<!ENTITY imagezoom.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY imagezoom.options.key.none.label                "Nenhuma">
 <!ENTITY imagezoom.options.general.groupbox.caption      "Geral">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar ou deshabilitar por site">
-<!ENTITY imagezoom.options.border.checkbox.label         "Mostra borda">
 
 <!ENTITY imagezoom.context.download.label                "Salvar imagem ampliada como...">
 <!ENTITY imagezoom.context.download.accesskey            "Z">
