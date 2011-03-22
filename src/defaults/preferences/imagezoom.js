@@ -36,6 +36,8 @@ pref("extensions.imagezoom.panel.opacity",      100);
 
 // Site preferences.
 pref("extensions.imagezoom.hi5.enable",         true);
+pref("extensions.imagezoom.imdb.enable",        true);
+pref("extensions.imagezoom.imgur.enable",       true);
 pref("extensions.imagezoom.flickr.enable",      true);
 pref("extensions.imagezoom.amazon.enable",      true);
 pref("extensions.imagezoom.tagged.enable",      true);

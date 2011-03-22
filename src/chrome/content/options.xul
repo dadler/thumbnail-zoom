@@ -82,6 +82,10 @@
         name="extensions.imagezoom.youtube.enable" type="bool"/>
       <preference id="imagezoom-options-dailymile-pref"
         name="extensions.imagezoom.dailymile.enable" type="bool"/>
+      <preference id="imagezoom-options-imdb-pref"
+        name="extensions.imagezoom.imdb.enable" type="bool"/>
+      <preference id="imagezoom-options-imgur-pref"
+        name="extensions.imagezoom.imgur.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -144,6 +148,8 @@
             preference="imagezoom-options-lastfm-pref" />
           <checkbox label="YouTube"
             preference="imagezoom-options-youtube-pref" />
+          <checkbox label="Imgur"
+            preference="imagezoom-options-imgur-pref" />
         </vbox>
         <vbox class="imagezoom-options-pages-column" flex="1">
           <checkbox label="Twitter"
@@ -170,6 +176,8 @@
             preference="imagezoom-options-deviantart-pref" />
           <checkbox label="Google Images"
             preference="imagezoom-options-google-pref" />
+          <checkbox label="IMDb"
+            preference="imagezoom-options-imdb-pref" />
         </vbox>
       </hbox>
     </groupbox>

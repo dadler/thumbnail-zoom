@@ -48,7 +48,7 @@ if ("undefined" == typeof(ImageZoom.Pages)) {
 ImageZoom.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
-  host: /www\.facebook\.com/,
+  host: /\.facebook\.com/,
   imageRegExp: /profile|photos-[a-z]\.((ak\.fbcdn)|(akamaihd))\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     let image = ("i" == aNodeName ? aNode : ("a" == aNodeName &&
@@ -116,7 +116,7 @@ ImageZoom.Pages.Twitpic = {
 ImageZoom.Pages.LinkedIn = {
   key: "linkedin",
   name: "LinkedIn",
-  host: /www\.linkedin\.com/,
+  host: /\.linkedin\.com/,
   imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\//,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\/shrink_[0-9][0-9]_[0-9][0-9]\//, "/");
@@ -129,7 +129,7 @@ ImageZoom.Pages.LinkedIn = {
 ImageZoom.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
-  host: /www\.amazon\.com/,
+  host: /www\.amazon\.[a-z]+/,
   imageRegExp: /\/(g-)?ecx\.images\-amazon\.com\/images/,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\._[a-z].+_\./i, ".");
@@ -142,7 +142,7 @@ ImageZoom.Pages.Amazon = {
 ImageZoom.Pages.Hi5 = {
   key: "hi5",
   name: "Hi5",
-  host: /www\.hi5\.com/,
+  host: /\.hi5\.com/,
   imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\-01\./);
@@ -262,7 +262,7 @@ ImageZoom.Pages.PhotoBucket = {
 ImageZoom.Pages.Tagged = {
   key: "tagged",
   name: "Tagged",
-  host: /www\.tagged\.com/,
+  host: /\.tagged\.com/,
   imageRegExp: /[a-z]+[0-9]+\.tagstat.com\/image/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/[123456789]0([\w-]+\.[a-z]+)/);
@@ -308,9 +308,8 @@ ImageZoom.Pages.Google = {
   imageRegExp: /.+/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = null;
-    let rex = new RegExp(/t[0-9]\.gstatic\.com\/images/);
-    if (rex.test(aNodeSource)) {
-      let imageHref = aNode.parentNode.getAttribute("href");
+    let imageHref = aNode.parentNode.getAttribute("href");
+    if (null != imageHref) {
       let imageIndex = imageHref.indexOf("imgurl=");
       if (-1 < imageIndex) {
         imageSource = decodeURIComponent(imageHref.substring(
@@ -354,10 +353,40 @@ ImageZoom.Pages.DailyMile = {
   key: "dailymile",
   name: "Daily Mile",
   host: /dailymile\.com/,
-  imageRegExp: /(dmimg|media\.dailymile)\.com\/(pictures|photos)\//,
+  imageRegExp: /(dmimg|dailymile)\.com\/(images|pictures|photos)\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(mini|profile|preview|avatar)\./);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, ".") : aImageSrc);
+    return image;
+  }
+};
+
+/**
+ * IMDb
+ */
+ImageZoom.Pages.IMDb = {
+  key: "imdb",
+  name: "IMDb",
+  host: /www\.imdb\.[a-z]+/,
+  imageRegExp: /ia\.media\-imdb\.com\/images\//,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/\._.+_(\.[a-z]+)/i);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
+    return image;
+  }
+};
+
+/**
+ * Imgur
+ */
+ImageZoom.Pages.Imgur = {
+  key: "imgur",
+  name: "Imgur",
+  host: /imgur\.com/,
+  imageRegExp: /(i\.)?imgur\.com\//,
+  getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/[bsm](\.[a-z]+)/i);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
     return image;
   }
 };

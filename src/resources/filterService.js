@@ -57,7 +57,9 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.LastFM,
     ImageZoom.Pages.Google,
     ImageZoom.Pages.YouTube,
-    ImageZoom.Pages.DailyMile
+    ImageZoom.Pages.DailyMile,
+    ImageZoom.Pages.IMDb,
+    ImageZoom.Pages.Imgur
   ],
 
   /* Logger for this object. */
