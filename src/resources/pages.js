@@ -175,10 +175,17 @@ ImageZoom.Pages.MySpace = {
   key: "myspace",
   name: "MySpace",
   host: /myspace\.com/,
-  imageRegExp: /c[0-9]+\.ac-images\.myspacecdn\.com/,
+  imageRegExp: /images\.myspacecdn\.com/,
+  getSpecialSource : function(aNode, aNodeSource) {
+    let imageSource = (aNode.hasAttribute("data-src") ?
+      aNode.getAttribute("data-src") : aNodeSource);
+    return imageSource;
+  },
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/\/[sm](_.+\.)/);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/l$1") : null);
+    let rex1 = new RegExp(/(\/|\_)[sml]\./i);
+    let rex2 = new RegExp(/\/(sml|med|lrg)_/i);
+    let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "$1l.") :
+      (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "/lrg_") : null));
     return image;
   }
 };
