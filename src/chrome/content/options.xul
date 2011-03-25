@@ -86,6 +86,8 @@
         name="extensions.imagezoom.imdb.enable" type="bool"/>
       <preference id="imagezoom-options-imgur-pref"
         name="extensions.imagezoom.imgur.enable" type="bool"/>
+      <preference id="imagezoom-options-photosight-pref"
+        name="extensions.imagezoom.photosight.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -164,6 +166,8 @@
             preference="imagezoom-options-wikipedia-pref" />
           <checkbox label="Daily Mile"
             preference="imagezoom-options-dailymile-pref" />
+          <checkbox label="Photosight"
+            preference="imagezoom-options-photosight-pref" />
         </vbox>
         <vbox class="imagezoom-options-pages-column" flex="1">
           <checkbox label="Twitpic"

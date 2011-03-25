@@ -36,14 +36,14 @@ const Cu = Components.utils;
 Cu.import("resource://imagezoom/common.js");
 
 /**
- * Pages namespace.
+ * Pages namespace
  */
 if ("undefined" == typeof(ImageZoom.Pages)) {
   ImageZoom.Pages = {};
 };
 
 /**
- * Facebook.
+ * Facebook
  */
 ImageZoom.Pages.Facebook = {
   key: "facebook",
@@ -78,7 +78,7 @@ ImageZoom.Pages.Facebook = {
 };
 
 /**
- * Twitter.
+ * Twitter
  */
 ImageZoom.Pages.Twitter = {
   key: "twitter",
@@ -93,7 +93,7 @@ ImageZoom.Pages.Twitter = {
 };
 
 /**
- * Twitpic.
+ * Twitpic
  */
 ImageZoom.Pages.Twitpic = {
   key: "twitpic",
@@ -111,7 +111,7 @@ ImageZoom.Pages.Twitpic = {
 };
 
 /**
- * LinkedIn.
+ * LinkedIn
  */
 ImageZoom.Pages.LinkedIn = {
   key: "linkedin",
@@ -124,7 +124,7 @@ ImageZoom.Pages.LinkedIn = {
 };
 
 /**
- * Amazon.
+ * Amazon
  */
 ImageZoom.Pages.Amazon = {
   key: "amazon",
@@ -137,7 +137,7 @@ ImageZoom.Pages.Amazon = {
 };
 
 /**
- * Hi5.
+ * Hi5
  */
 ImageZoom.Pages.Hi5 = {
   key: "hi5",
@@ -154,7 +154,7 @@ ImageZoom.Pages.Hi5 = {
 };
 
 /**
- * Picasa.
+ * Picasa
  */
 ImageZoom.Pages.Picasa = {
   key: "picasa",
@@ -169,7 +169,7 @@ ImageZoom.Pages.Picasa = {
 };
 
 /**
- * MySpace.
+ * MySpace
  */
 ImageZoom.Pages.MySpace = {
   key: "myspace",
@@ -191,7 +191,7 @@ ImageZoom.Pages.MySpace = {
 };
 
 /**
- * Flickr.
+ * Flickr
  */
 ImageZoom.Pages.Flickr = {
   key: "flickr",
@@ -212,7 +212,7 @@ ImageZoom.Pages.Flickr = {
 };
 
 /**
- * Wikipedia.
+ * Wikipedia
  */
 ImageZoom.Pages.Wikipedia = {
   key: "wikipedia",
@@ -231,7 +231,7 @@ ImageZoom.Pages.Wikipedia = {
 };
 
 /**
- * DeviantART.
+ * DeviantART
  */
 ImageZoom.Pages.DeviantART = {
   key: "deviantart",
@@ -246,7 +246,7 @@ ImageZoom.Pages.DeviantART = {
 };
 
 /**
- * PhotoBucket.
+ * PhotoBucket
  */
 ImageZoom.Pages.PhotoBucket = {
   key: "photobucket",
@@ -264,7 +264,7 @@ ImageZoom.Pages.PhotoBucket = {
 };
 
 /**
- * Tagged.
+ * Tagged
  */
 ImageZoom.Pages.Tagged = {
   key: "tagged",
@@ -279,7 +279,7 @@ ImageZoom.Pages.Tagged = {
 };
 
 /**
- * Last.fm.
+ * Last.fm
  */
 ImageZoom.Pages.LastFM = {
   key: "lastfm",
@@ -306,7 +306,7 @@ ImageZoom.Pages.LastFM = {
 };
 
 /**
- * Google.
+ * Google
  */
 ImageZoom.Pages.Google = {
   key: "google",
@@ -331,7 +331,7 @@ ImageZoom.Pages.Google = {
 };
 
 /**
- * YouTube.
+ * YouTube
  */
 ImageZoom.Pages.YouTube = {
   key: "youtube",
@@ -354,7 +354,7 @@ ImageZoom.Pages.YouTube = {
 };
 
 /**
- * Daily Mile.
+ * Daily Mile
  */
 ImageZoom.Pages.DailyMile = {
   key: "dailymile",
@@ -394,6 +394,35 @@ ImageZoom.Pages.Imgur = {
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/[bsm](\.[a-z]+)/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
+    return image;
+  }
+};
+
+/**
+ * Photosight
+ *
+ * ex:
+ * http://s.photosight.ru/img/4/aef/4167500_icon.jpg
+ * http://s.photosight.ru/img/4/aef/4167500_large.jpg
+ * ex2:
+ * http://img-1.photosight.ru/e68/4167692_top_of_day.jpg
+ * http://img-1.photosight.ru/e68/4167692_large.jpg
+ * ex3:
+ * http://s.photosight.ru/img/5/7bd/4167881_crop_1.jpeg
+ * http://s.photosight.ru/img/5/7bd/4167881_large.jpeg
+ */
+ImageZoom.Pages.Photosight = {
+  key: "photosight",
+  name: "Photosight",
+  host: /photosight\.ru/,
+  imageRegExp: /\.photosight\.ru/,
+  getZoomImage : function(aImageSrc) {
+    let rex1 = new RegExp(/_(icon)\./);
+    let rex2 = new RegExp(/_(crop)_[0-9]+\./);
+    let rex3 = new RegExp(/_top_of_day\./);
+    let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_large.") :
+      (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "_large.") :
+      (rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "_large.") : null)));
     return image;
   }
 };
