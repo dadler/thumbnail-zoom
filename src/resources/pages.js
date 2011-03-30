@@ -401,7 +401,7 @@ ImageZoom.Pages.Imgur = {
 /**
  * Photosight
  *
- * ex:
+ * ex1:
  * http://s.photosight.ru/img/4/aef/4167500_icon.jpg
  * http://s.photosight.ru/img/4/aef/4167500_large.jpg
  * ex2:
