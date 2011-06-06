@@ -60,7 +60,8 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.DailyMile,
     ImageZoom.Pages.IMDb,
     ImageZoom.Pages.Imgur,
-    ImageZoom.Pages.Photosight
+    ImageZoom.Pages.Photosight,
+    ImageZoom.Pages.Others
   ],
 
   /* Logger for this object. */
@@ -182,12 +183,16 @@ ImageZoom.FilterService = {
 
     let pageInfo = this.pageList[aPage];
     let nodeName = aNode.localName.toLowerCase();
-    let imageSource = ("img" == nodeName ? aNode.getAttribute("src") : null);
-
+    Components.utils.reportError("ThumbnailPreview node name: " + nodeName + " href: " + aNode.getAttribute("href"));
+    let imageSource =  null;
+    if ("img" == nodeName) {
+      imageSource = aNode.getAttribute("src");
+    }
     // check special cases
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
     }
+    
     // check other image nodes.
     if (null == imageSource && pageInfo.getImageNode) {
       let nodeClass = aNode.getAttribute("class");
@@ -196,6 +201,8 @@ ImageZoom.FilterService = {
       if (imageNode) {
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");
+        } else if (imageNode.hasAttribute("href")) {
+          imageSource = imageNode.getAttribute("href");
         } else {
           let backImage = imageNode.style.backgroundImage;
 
@@ -205,7 +212,8 @@ ImageZoom.FilterService = {
         }
       }
     }
-
+    Components.utils.reportError("ThumbnailPreview: using image source " + imageSource);
+                                             
     return imageSource;
   },
 
@@ -239,6 +247,7 @@ ImageZoom.FilterService = {
 
     let pageInfo = this.pageList[aPage];
     let zoomImage = pageInfo.getZoomImage(aImageSrc);
+    Components.utils.reportError("ThumbnailPreview: using zoom image " + zoomImage);
 
     return zoomImage;
   }

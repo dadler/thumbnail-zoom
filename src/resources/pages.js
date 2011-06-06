@@ -432,3 +432,23 @@ ImageZoom.Pages.Photosight = {
     return image;
   }
 };
+
+/**
+ * Others
+ */
+ImageZoom.Pages.Others = {
+  key: "others",
+  name: "Others",
+  host: /.*/,
+  imageRegExp: /\.gif|\.jpg|\.png/,
+
+  getImageNode : function(aNode, nodeName, nodeClass) {
+    return aNode;
+  },
+  
+  getZoomImage : function(aImageSrc) {
+    Components.utils.reportError("ThumbnailPreview: Others using zoom image " + aImageSrc);
+
+    return aImageSrc;
+  }
+};
