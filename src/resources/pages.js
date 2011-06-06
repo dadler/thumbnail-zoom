@@ -197,16 +197,22 @@ ImageZoom.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
   host: /www\.flickr\.com/,
-  imageRegExp: /farm[0-9]+\.static\.flickr\.com/,
+  imageRegExp: /farm[0-9]+\.static\.flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
       aNode.parentNode.previousSibling.firstChild.firstChild.getAttribute("src")
       : aNodeSource);
+    if (-1 != aNodeSource.indexOf("spaceout.gif")) {
+      imageSource = aNode.parentNode.parentNode.firstChild.firstChild.getAttribute("src");
+    }
+    // Components.utils.reportError("ThumbnailPreview: using image source " + imageSource + "\n");
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[smt]\./);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, ".") : null);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z.") : null);
+    // Components.utils.reportError("ThumbnailPreview: using zoom image " + image + "\n");
+
     return image;
   }
 };
