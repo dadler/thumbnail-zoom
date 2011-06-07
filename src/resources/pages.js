@@ -448,13 +448,22 @@ ImageZoom.Pages.Others = {
   },
   
   getImageNode : function(aNode, nodeName, nodeClass) {
+    let imgNodeURL = null;
+    if (aNode.localName.toLowerCase() == "img") {
+      imgNodeURL = aNode.getAttribute("src");
+    }
     while (aNode != null && aNode.localName != null && 
            aNode.localName.toLowerCase() != "a") {
       Components.utils.reportError("ThumbnailPreview: Others: trying parent of " + aNode);
       aNode = aNode.parentNode;
     }
-    if (aNode != null && aNode.localName == null) {
-      aNode = null;
+    if (aNode != null) {
+      if (aNode.localName == null) {
+        aNode = null;
+      } else if (aNode.getAttribute("href") == imgNodeURL) {
+        // Don't preview the same image as we're already displaying.
+        aNode = null;
+      }
     }
     Components.utils.reportError("ThumbnailPreview: Others: returning " + aNode);
 
