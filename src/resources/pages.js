@@ -442,7 +442,22 @@ ImageZoom.Pages.Others = {
   host: /.*/,
   imageRegExp: /\.gif|\.jpg|\.png/,
 
+  getSpecialSource : function(aNode, aNodeSource) {
+    // we never want to use the img node.
+    return null;
+  },
+  
   getImageNode : function(aNode, nodeName, nodeClass) {
+    while (aNode != null && aNode.localName != null && 
+           aNode.localName.toLowerCase() != "a") {
+      Components.utils.reportError("ThumbnailPreview: Others: trying parent of " + aNode);
+      aNode = aNode.parentNode;
+    }
+    if (aNode != null && aNode.localName == null) {
+      aNode = null;
+    }
+    Components.utils.reportError("ThumbnailPreview: Others: returning " + aNode);
+
     return aNode;
   },
   
