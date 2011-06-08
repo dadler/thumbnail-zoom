@@ -440,7 +440,10 @@ ImageZoom.Pages.Others = {
   key: "others",
   name: "Others",
   host: /.*/,
-  imageRegExp: /\.gif|\.jpg|\.png/,
+  
+  // imgur.com links w/o image type suffix give page containing image.
+  // Allow that; we'll add suffix in getZoomImage.
+  imageRegExp: /\.gif|\.jpg|\.png|imgur.com\/[a-zA-Z0-9]+$/,
 
   getSpecialSource : function(aNode, aNodeSource) {
     // we never want to use the img node.
@@ -471,6 +474,11 @@ ImageZoom.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
+    let rex = new RegExp(/(\.gif|\.jpg|\.png)$/);
+    if (! rex.test(aImageSrc)) {
+      // for imgur links.
+      aImageSrc += ".jpg";
+    }
     Components.utils.reportError("ThumbnailPreview: Others using zoom image " + aImageSrc);
 
     return aImageSrc;
