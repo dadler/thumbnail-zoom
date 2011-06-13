@@ -202,7 +202,10 @@ ImageZoom.FilterService = {
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");
         } else if (imageNode.hasAttribute("href")) {
-          imageSource = imageNode.getAttribute("href");
+          // for an <a href=> node, use javascript string conversion rather
+          // than retrieving the html attribute so it'll apply the base
+          // document's URL for missing components of the URL (eg domain).
+          imageSource = String(imageNode);
         } else {
           let backImage = imageNode.style.backgroundImage;
 
