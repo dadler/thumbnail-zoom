@@ -33,7 +33,7 @@
   xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
   <Description about="urn:mozilla:install-manifest">
-    <em:id>thumbnailZoom@davidadler.name</em:id>
+    <em:id>thumbnailZoom@dadler.github.com</em:id>
     <em:name>Thumbnail Zoom (DA)</em:name>
     <em:description>Zooms thumbnail pictures from a set of sites including Facebook, Twitter and Amazon</em:description>
     <em:version>1.4.3.1da</em:version>
