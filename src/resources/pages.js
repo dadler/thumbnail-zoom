@@ -444,7 +444,7 @@ ImageZoom.Pages.Others = {
   // imgur.com links w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
   // which getZoomImage will convert to a youtube thumb.
-  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/[a-zA-Z0-9]+$|www\.youtube\.com\/watch\?v=/,
+  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/watch\?v=/,
 
   getSpecialSource : function(aNode, aNodeSource) {
     // we never want to use the img node.
@@ -483,9 +483,13 @@ ImageZoom.Pages.Others = {
     if (youtubeEx.test(aImageSrc)) {
         aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
+    // If imgur link, remove part after "&", e.g. for https://imgur.com/nugJJ&yQU0G
+    let imgurRex = new RegExp(/(imgur\.com\/[a-zA-Z0-9]+)(&[^.]*)/);
+    aImageSrc = aImageSrc.replace(imgurRex, "$1");
+    
     let rex = new RegExp(/(\.gif|\.jpg|\.png)$/);
     if (! rex.test(aImageSrc)) {
-      // for imgur links.
+      // add .jpg, e.g. for imgur links.
       aImageSrc += ".jpg";
     }
     Components.utils.reportError("ThumbnailPreview: Others using zoom image " + aImageSrc);
