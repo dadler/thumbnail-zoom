@@ -442,8 +442,9 @@ ImageZoom.Pages.Others = {
   host: /.*/,
   
   // imgur.com links w/o image type suffix give page containing image.
-  // Allow that; we'll add suffix in getZoomImage.
-  imageRegExp: /\.gif|\.jpg|\.png|imgur.com\/[a-zA-Z0-9]+$/,
+  // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
+  // which getZoomImage will convert to a youtube thumb.
+  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/[a-zA-Z0-9]+$|www\.youtube\.com\/watch\?v=/,
 
   getSpecialSource : function(aNode, aNodeSource) {
     // we never want to use the img node.
@@ -455,6 +456,7 @@ ImageZoom.Pages.Others = {
     if (aNode.localName.toLowerCase() == "img") {
       imgNodeURL = aNode.getAttribute("src");
     }
+    // try to find an enclosing <a> (link) tag.
     while (aNode != null && aNode.localName != null && 
            aNode.localName.toLowerCase() != "a") {
       Components.utils.reportError("ThumbnailPreview: Others: trying parent of " + aNode);
@@ -474,6 +476,13 @@ ImageZoom.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
+    // For youtube links, change 
+    // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
+    // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
+    let youtubeEx = new RegExp(/www\.youtube\.com\/watch\?v=([^&]+).*/);
+    if (youtubeEx.test(aImageSrc)) {
+        aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
+    }
     let rex = new RegExp(/(\.gif|\.jpg|\.png)$/);
     if (! rex.test(aImageSrc)) {
       // for imgur links.

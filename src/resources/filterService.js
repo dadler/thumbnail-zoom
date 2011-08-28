@@ -230,10 +230,13 @@ ImageZoom.FilterService = {
     this._logger.debug("filterImage");
 
     let validImage = false;
-    let regExp = new RegExp(this.pageList[aPage].imageRegExp);
+    let exp = this.pageList[aPage].imageRegExp;
+    let regExp = new RegExp(exp);
 
     if (regExp.test(aImageSrc)) {
       validImage = true;
+    } else {
+      Components.utils.reportError("ThumbnailPreview: filterImage rejected " + aImageSrc + " using " + exp);
     }
 
     return validImage;
