@@ -1,0 +1,51 @@
+This git repository holds the source code for David Adler's fork of the ImageZoom add-on for Mozilla Firefox.
+The ImageZoom add-on shows a full-size image in a pop-up window when you hover over a thumbnail
+image or a link to an image.
+
+Tips for developers:
+
+
+DEVELOPMENT ENVIRONMENT:
+
+For general info about developing plug-ins see
+https://developer.mozilla.org/en/Building_an_Extension
+
+For tips on setting up your dev environment see
+https://developer.mozilla.org/en/Setting_up_extension_development_environment
+
+In particular, in my developer profile in Firefox, I create a symlink is follows
+(this should work on OSX or Linux but your directory may vary; on Windows see
+the mozilla link above).
+
+  cd /Library/Application Support/Firefox/Profiles/7sep123p.developer/extensions
+  ln -s /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src/ thumbnailZoom@dadler.github.com
+
+where /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
+my git repository. 
+
+With this symlink in place, to test a change I simply save my source file and restart Firefox
+(running my developer profile regular than my regular user profile).
+
+CAUTION: if you install the plug-in into this profile using an xpi file, firefox
+will remove the symlink and the directory it points to, which may cause you to lose
+uncommitted changes in your development tree.
+
+
+DEBUGGING:
+
+To enable debug logging, set enableDebug in common.js.  See comments there for the location
+of the log.txt file.  Messages are logged with calls like this:
+    this._logger.debug("getPageConstantByDoc");
+
+
+INSTALLING FOR NON DEVELOPERS:
+
+Make an installable xpi file like this:
+  cd /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src
+  make
+
+That will create ImageZoom.xpi in ../bin/ .  To install it in a running session of
+Firefox, drag-and-drop the xpi file onto the Firefox window.  It'll prompt you to install it,
+and will offer to restart Firefox so the change can take effect.  An alternative to drag-and-drop
+is to go to the Firefox Add-ons window and do "Instal Add-on From File" from the gear icon menu.
+ 

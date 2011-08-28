@@ -179,11 +179,12 @@ ImageZoom.FilterService = {
    * @return the image source, null if not apply.
    */
   getImageSource : function(aNode, aPage) {
+    this._logger.debug("___________________________");
     this._logger.debug("getImageSource");
 
     let pageInfo = this.pageList[aPage];
     let nodeName = aNode.localName.toLowerCase();
-    Components.utils.reportError("ThumbnailPreview node name: " + nodeName + " href: " + aNode.getAttribute("href"));
+    this._logger.debug("ThumbnailPreview node name: " + nodeName + " href: " + aNode.getAttribute("href"));
     let imageSource =  null;
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
@@ -215,7 +216,7 @@ ImageZoom.FilterService = {
         }
       }
     }
-    Components.utils.reportError("ThumbnailPreview: using image source " + imageSource);
+    this._logger.debug("ThumbnailPreview: using image source " + imageSource);
                                              
     return imageSource;
   },
@@ -236,7 +237,7 @@ ImageZoom.FilterService = {
     if (regExp.test(aImageSrc)) {
       validImage = true;
     } else {
-      Components.utils.reportError("ThumbnailPreview: filterImage rejected " + aImageSrc + " using " + exp);
+      this._logger.debug("ThumbnailPreview: filterImage rejected " + aImageSrc + " using " + exp);
     }
 
     return validImage;
@@ -253,7 +254,7 @@ ImageZoom.FilterService = {
 
     let pageInfo = this.pageList[aPage];
     let zoomImage = pageInfo.getZoomImage(aImageSrc);
-    Components.utils.reportError("ThumbnailPreview: using zoom image " + zoomImage);
+    this._logger.debug("ThumbnailPreview: using zoom image " + zoomImage);
 
     return zoomImage;
   }

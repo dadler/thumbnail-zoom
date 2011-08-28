@@ -74,7 +74,22 @@ if ("undefined" == typeof(ImageZoom)) {
 
       // This appender will log to the file system.
       app = new Log4Moz.RotatingFileAppender(logFile, formatter);
-      app.level = Log4Moz.Level["Warn"];
+      
+      // Set to true to enable debug messages.
+      let enableDebug = false;
+      if (enableDebug) {
+        // Debug messages will be written to ImageZoom/log.txt under
+        // your profile dir, e.g. on Mac OSX it might be
+        // /Users/myname/Library/Application Support/Firefox/Profiles/7sep291p.default/ImageZoom/log.txt
+        // To debug, set enableDebug above to true and monitor the log file
+        // in a terminal using "tail -f log.txt".
+        app.level = Log4Moz.Level["Debug"];
+
+        // To see not just debug() messages but also trace() messages, uncomment this:
+        // app.level = Log4Moz.Level["Trace"];
+      } else {
+        app.level = Log4Moz.Level["Warn"];
+      }
       root.addAppender(app);
 
       // get the observer service.
@@ -127,7 +142,10 @@ if ("undefined" == typeof(ImageZoom)) {
      * Gets the id of this extension.
      * @return the id of this extension.
      */
-    get ExtensionId() { return "{E10A6337-382E-4FE6-96DE-936ADC34DD04}"; },
+    get ExtensionId() { 
+      // return "{E10A6337-382E-4FE6-96DE-936ADC34DD04}"; 
+      return "thumbnailZoom@dadler.github.com"; 
+    },
 
     /**
      * Gets the observer service.

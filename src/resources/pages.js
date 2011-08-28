@@ -39,7 +39,20 @@ Cu.import("resource://imagezoom/common.js");
  * Pages namespace
  */
 if ("undefined" == typeof(ImageZoom.Pages)) {
-  ImageZoom.Pages = {};
+
+  ImageZoom.Pages = {
+    /* Logger for this object. */
+    _logger : null,
+    
+    /**
+     * Initializes the resource.
+     */
+    _init : function() {
+      this._logger = ImageZoom.getLogger("ImageZoom.Pages");
+      this._logger.trace("_init");
+    }
+  };
+  ImageZoom.Pages._init();
 };
 
 /**
@@ -446,6 +459,8 @@ ImageZoom.Pages.Others = {
   // which getZoomImage will convert to a youtube thumb.
   imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/watch\?v=/,
 
+  _logger: ImageZoom.Pages._logger,
+  
   getSpecialSource : function(aNode, aNodeSource) {
     // we never want to use the img node.
     return null;
@@ -459,7 +474,7 @@ ImageZoom.Pages.Others = {
     // try to find an enclosing <a> (link) tag.
     while (aNode != null && aNode.localName != null && 
            aNode.localName.toLowerCase() != "a") {
-      Components.utils.reportError("ThumbnailPreview: Others: trying parent of " + aNode);
+      this._logger.debug("ThumbnailPreview: Others: trying parent of " + aNode);
       aNode = aNode.parentNode;
     }
     if (aNode != null) {
@@ -470,7 +485,7 @@ ImageZoom.Pages.Others = {
         aNode = null;
       }
     }
-    Components.utils.reportError("ThumbnailPreview: Others: returning " + aNode);
+    this._logger.debug("ThumbnailPreview: Others: returning " + aNode);
 
     return aNode;
   },
@@ -492,7 +507,7 @@ ImageZoom.Pages.Others = {
       // add .jpg, e.g. for imgur links.
       aImageSrc += ".jpg";
     }
-    Components.utils.reportError("ThumbnailPreview: Others using zoom image " + aImageSrc);
+    this._logger.debug("ThumbnailPreview: Others using zoom image " + aImageSrc);
 
     return aImageSrc;
   }
