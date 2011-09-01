@@ -55,4 +55,5 @@ pref("extensions.imagezoom.wikipedia.enable",   true);
 pref("extensions.imagezoom.deviantart.enable",  true);
 pref("extensions.imagezoom.photosight.enable",  true);
 pref("extensions.imagezoom.photobucket.enable", true);
+pref("extensions.imagezoom.engadget.enable",    true);
 pref("extensions.imagezoom.others.enable",      true);

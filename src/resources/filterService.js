@@ -61,7 +61,8 @@ ImageZoom.FilterService = {
     ImageZoom.Pages.IMDb,
     ImageZoom.Pages.Imgur,
     ImageZoom.Pages.Photosight,
-    ImageZoom.Pages.Others
+    ImageZoom.Pages.Engadget,
+    ImageZoom.Pages.Others // last; lowest priority
   ],
 
   /* Logger for this object. */
@@ -141,7 +142,7 @@ ImageZoom.FilterService = {
    * @return true if the page is enabled, false otherwise.
    */
   isPageEnabled : function(aPage) {
-    this._logger.debug("isPageEnabled");
+    this._logger.debug("isPageEnabled " + aPage);
 
     let pageEnable = false;
     let pageName = this.getPageName(aPage);
@@ -180,11 +181,12 @@ ImageZoom.FilterService = {
    */
   getImageSource : function(aNode, aPage) {
     this._logger.debug("___________________________");
-    this._logger.debug("getImageSource");
+    this._logger.debug("getImageSource page " + aPage);
 
     let pageInfo = this.pageList[aPage];
     let nodeName = aNode.localName.toLowerCase();
-    this._logger.debug("ThumbnailPreview node name: " + nodeName + " href: " + aNode.getAttribute("href"));
+    this._logger.debug("ThumbnailPreview node name: " + nodeName + "; src: " +
+                       aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
     let imageSource =  null;
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
