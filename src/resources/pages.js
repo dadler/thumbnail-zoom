@@ -253,10 +253,12 @@ ImageZoom.Pages.Wikipedia = {
  * DeviantART
  */
 ImageZoom.Pages.DeviantART = {
+  // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg becomes
+  // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
   key: "deviantart",
   name: "deviantART",
   host: /deviantart\.com/,
-  imageRegExp: /th[0-9]+\.deviantart.net/,
+  imageRegExp: /(th[0-9]+|s).deviantart.(net|com)/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/(fs\d+\/)\w+\/([fiop])/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
