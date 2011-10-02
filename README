@@ -1,6 +1,17 @@
-This git repository holds the source code for David Adler's fork of the ImageZoom add-on for Mozilla Firefox.
-The ImageZoom add-on shows a full-size image in a pop-up window when you hover over a thumbnail
-image or a link to an image.
+This git repository holds the source code for Thumbnail Zoom DA, which is
+David Adler's fork of the Thumbnail Zoom add-on for Mozilla Firefox.
+
+Thumbnail Zoom DA is a Firefox addon which shows ful-sized images in a pop-over window when
+you hover over a thumbnail.  It works with sites like Facebook, Amazon, Imgur, Flickr, Reddit, 
+and many others, including most sites which link directly to full-size images.   
+This is a fork (derivation from) thumbnail-zoom by Andres Hernandez.
+
+This version isn't yet available directly from the Firefox add-ons site, but you can
+install it by clicking this link:
+
+http://dadler.github.com/thumbnailzoomda.xpi
+
+
 
 Tips for developers:
 
