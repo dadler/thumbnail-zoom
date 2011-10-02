@@ -86,6 +86,8 @@ ImageZoom.Pages.Facebook = {
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_n.") :
       (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "$1n$2") : null));
+    let rex3 = new RegExp(/\/s[0-9]+x[0-9]+\//);
+    image = image.replace(rex3, "/");
     return image;
   }
 };
@@ -218,13 +220,11 @@ ImageZoom.Pages.Flickr = {
     if (-1 != aNodeSource.indexOf("spaceout.gif")) {
       imageSource = aNode.parentNode.parentNode.firstChild.firstChild.getAttribute("src");
     }
-    // Components.utils.reportError("ThumbnailPreview: using image source " + imageSource + "\n");
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[smt]\./);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z.") : null);
-    // Components.utils.reportError("ThumbnailPreview: using zoom image " + image + "\n");
 
     return image;
   }

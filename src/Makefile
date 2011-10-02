@@ -28,7 +28,7 @@
 ##
 
 # The name of the extension.
-extension_name := imagezoom
+extension_name := thumbnailzoomda
 
 # The UUID of the extension.
 extension_uuid := E10A6337-382E-4FE6-96DE-936ADC34DD04
@@ -102,7 +102,7 @@ xpi_built := $(build_dir)/$(install_rdf) \
              $(build_dir)/$(chrome_manifest) \
              $(addprefix $(build_dir)/,$(chrome_sources)) \
              $(addprefix $(build_dir)/,$(resources_sources)) \
-             $(build_dir)/$(preferences_dir)/$(extension_name).js \
+             $(build_dir)/$(preferences_dir)/imagezoom.js \
 
 xpi_built_no_dir := $(subst $(build_dir)/,,$(xpi_built))
 

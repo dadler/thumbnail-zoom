@@ -432,8 +432,11 @@ ImageZoomChrome.Overlay = {
         let pageSide = that._getPageSide(aImageNode);
         let scale = that._getScaleDimensions(image, pageSide);
 
-        scale = that._adjustPageZoom(scale);
-        that._showImage(aImageSrc, scale);
+        let adjScale = that._adjustPageZoom(scale);
+        that._logger.debug("_preloadImage: pageSide=" + pageSide + 
+                           "; scale=["+scale.width + "," + scale.height + 
+                           "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
+        that._showImage(aImageSrc, adjScale);
       }
     };
     image.onerror = function() {

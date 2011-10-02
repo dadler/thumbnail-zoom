@@ -17,10 +17,10 @@ In particular, in my developer profile in Firefox, I create a symlink is follows
 (this should work on OSX or Linux but your directory may vary; on Windows see
 the mozilla link above).
 
-  cd /Library/Application Support/Firefox/Profiles/7sep123p.developer/extensions
-  ln -s /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src/ thumbnailZoom@dadler.github.com
+  cd $HOME/Library/Application Support/Firefox/Profiles/7sep123p.developer/extensions
+  ln -s $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src/ thumbnailZoom@dadler.github.com
 
-where /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
+where $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
 my git repository. 
 
 With this symlink in place, to test a change I simply save my source file and restart Firefox

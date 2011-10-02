@@ -34,13 +34,12 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>thumbnailZoom@dadler.github.com</em:id>
-    <em:name>Thumbnail Zoom (DA)</em:name>
-    <em:description>Zooms thumbnail pictures from a set of sites including Facebook, Twitter and Amazon</em:description>
-    <em:version>1.4.3.2da</em:version>
-    <em:creator>Andres Hernandez Monge</em:creator>
+    <em:name>Thumbnail Zoom DA</em:name>
+    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Facebook, Twitter, Reddit, Flickr, Google Images, and Amazon.  Thumbnail Zoom DA is an enhanced version of the Thumbnail Zoom add-on.</em:description>
+    <em:version>1.4.3.3</em:version>
+    <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
-    <em:contributor>David Adler</em:contributor>
-    <em:homepageURL>http://andrez47.github.com/thumbnail-zoom/</em:homepageURL>
+    <!-- <em:homepageURL>http://dadler.github.com/thumbnail-zoom/</em:homepageURL> -->
     <em:iconURL>chrome://imagezoom/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://imagezoom/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
@@ -50,7 +49,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>3.0</em:minVersion>
-        <em:maxVersion>6.0.*</em:maxVersion>
+        <em:maxVersion>9.0.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 

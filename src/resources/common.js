@@ -80,7 +80,7 @@ if ("undefined" == typeof(ImageZoom)) {
       if (enableDebug) {
         // Debug messages will be written to ImageZoom/log.txt under
         // your profile dir, e.g. on Mac OSX it might be
-        // /Users/myname/Library/Application Support/Firefox/Profiles/7sep291p.default/ImageZoom/log.txt
+        // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ImageZoom/log.txt"
         // To debug, set enableDebug above to true and monitor the log file
         // in a terminal using "tail -f log.txt".
         app.level = Log4Moz.Level["Debug"];
