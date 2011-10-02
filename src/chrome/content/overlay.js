@@ -394,10 +394,9 @@ ImageZoomChrome.Overlay = {
 
     // open new pic.
     if (this._panel.state != "open") {
-      // Note that we pop-up relative to the upper-left corner of 
-      // the browser instead of relative to aImageSrc.
-      // This allows us to display larger pop-ups. 
-      this._panel.openPopup(null, "end_before", 30, 30, false, false);
+      // Pop up the panel, causing the throbber to display near
+      // the image thumbnail.
+      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
     }
     this._currentImage = aImageSrc;
     this._contextMenu.hidden = false;
@@ -444,6 +443,12 @@ ImageZoomChrome.Overlay = {
         that._logger.debug("_preloadImage: pageSide=" + pageSide + 
                            "; scale=["+scale.width + "," + scale.height + 
                            "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
+        // Close and re-open the panel so we can reposition it to
+        // display the image.  Note that we pop-up relative to the upper-left
+        // corner of the browser instead of relative to aImageSrc.
+        // This allows us to display larger pop-ups. 
+        that._panel.hidePopup();
+        that._panel.openPopup(null, "end_before", 30, 30, false, false);
         that._showImage(aImageSrc, adjScale);
       }
     };
