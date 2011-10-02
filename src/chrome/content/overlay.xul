@@ -60,7 +60,8 @@
 
   <!-- Panel -->
   <window id="main-window">
-    <panel id="imagezoom-panel" noautofocus="true" noautohide="true">
+    <panel id="imagezoom-panel" noautofocus="true" noautohide="true"
+          onclick="this.hidePopup();">
       <stack id="imagezoom-panel-stack">
         <vbox align="center" pack="center">
           <image id="imagezoom-panel-throbber" />

@@ -75,6 +75,9 @@ if ("undefined" == typeof(ImageZoom)) {
       // This appender will log to the file system.
       app = new Log4Moz.RotatingFileAppender(logFile, formatter);
       
+      // 
+      // DEBUG ENABLE IS HERE:
+      //
       // Set to true to enable debug messages.
       let enableDebug = false;
       if (enableDebug) {

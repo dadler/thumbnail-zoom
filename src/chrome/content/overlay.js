@@ -394,7 +394,10 @@ ImageZoomChrome.Overlay = {
 
     // open new pic.
     if (this._panel.state != "open") {
-      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+      // Note that we pop-up relative to the upper-left corner of 
+      // the browser instead of relative to aImageSrc.
+      // This allows us to display larger pop-ups. 
+      this._panel.openPopup(null, "end_before", 30, 30, false, false);
     }
     this._currentImage = aImageSrc;
     this._contextMenu.hidden = false;
@@ -429,7 +432,12 @@ ImageZoomChrome.Overlay = {
 
     image.onload = function() {
       if (that._currentImage == aImageSrc) {
-        let pageSide = that._getPageSide(aImageNode);
+        // let pageSide = that._getPageSide(aImageNode);
+        
+        // We allow showing images larger than would fit entirely to the
+        // left or right of the thumbnail by using the full page width
+        // instead of calling _getPageSide.
+        let pageSide = content.document.documentElement.clientWidth - 30
         let scale = that._getScaleDimensions(image, pageSide);
 
         let adjScale = that._adjustPageZoom(scale);
