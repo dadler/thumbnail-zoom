@@ -211,7 +211,7 @@ ImageZoom.Pages.MySpace = {
 ImageZoom.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
-  host: /www\.flickr\.com/,
+  host: /\.flickr\.com/,
   imageRegExp: /farm[0-9]+\.static\.flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
@@ -224,6 +224,7 @@ ImageZoom.Pages.Flickr = {
   },
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[smt]\./);
+    // For bigger images, change _z to _b (but may download slower).
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z.") : null);
 
     return image;
@@ -338,6 +339,7 @@ ImageZoom.Pages.Google = {
     let imageSource = null;
     let imageHref = aNode.parentNode.getAttribute("href");
     if (null != imageHref) {
+      // This doesn't seem to work anymore; google isn't putting imgurl= in links now.
       let imageIndex = imageHref.indexOf("imgurl=");
       if (-1 < imageIndex) {
         imageSource = decodeURIComponent(imageHref.substring(
