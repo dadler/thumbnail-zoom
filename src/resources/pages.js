@@ -328,8 +328,11 @@ ImageZoom.Pages.LastFM = {
 };
 
 /**
- * Google
+ * Google (disabled)
+ * Note: Does not currently work since Google removed imgurl=
+ * from their URLs.
  */
+/*
 ImageZoom.Pages.Google = {
   key: "google",
   name: "Google Images",
@@ -352,6 +355,7 @@ ImageZoom.Pages.Google = {
     return aImageSrc;
   }
 };
+*/
 
 /**
  * YouTube

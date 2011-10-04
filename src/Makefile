@@ -28,7 +28,7 @@
 ##
 
 # The name of the extension.
-extension_name := thumbnailzoomda
+extension_name := thumbnailzoomplus
 
 # The UUID of the extension.
 extension_uuid := E10A6337-382E-4FE6-96DE-936ADC34DD04
