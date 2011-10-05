@@ -385,7 +385,6 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_showPanel");
 
     // reset previous pic.
-    this._panelImage.removeAttribute("src");
     this._panelImage.style.maxWidth = "";
     this._panelImage.style.minWidth = "";
     this._panelImage.style.maxHeight = "";
@@ -416,6 +415,8 @@ ImageZoomChrome.Overlay = {
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
     }
+    // We no longer need the image contents so help the garbage collector:
+    this._panelImage.removeAttribute("src");
   },
 
   /**
@@ -450,6 +451,12 @@ ImageZoomChrome.Overlay = {
         that._panel.hidePopup();
         that._panel.openPopup(null, "end_before", 30, 30, false, false);
         that._showImage(aImageSrc, adjScale);
+        
+        // Help the garbage collector reclaim memory quickly.
+        // (Test by watching "images" size in about:memory.)
+        image.src = null;
+        delete image;
+        image = null;
       }
     };
     image.onerror = function() {
