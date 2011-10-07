@@ -6,9 +6,13 @@ you hover over a thumbnail.  It works with sites like Facebook, Amazon, Imgur, F
 and many others, including most sites which link directly to full-size images.   
 This is a fork (derivation from) thumbnail-zoom by Andres Hernandez.
 
-This version isn't yet available directly from the Firefox add-ons site, but you can
-install it by clicking this link:
+This add-on is awaiting official review from the Mozilla add-ons site, at which point
+you'll be able to find it by searching for plug-ins in Firefox's add-ons page.  Until
+then you can go to its add-ons page directly at 
 
+    https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/ .
+
+Or you can install the plug-in directly by clicking this link:
 http://dadler.github.com/thumbnailzoomda.xpi
 
 
