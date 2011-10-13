@@ -80,6 +80,7 @@ if ("undefined" == typeof(ImageZoom)) {
       //
       // Set to true to enable debug messages.
       let enableDebug = false;
+      
       if (enableDebug) {
         // Debug messages will be written to ImageZoom/log.txt under
         // your profile dir, e.g. on Mac OSX it might be
