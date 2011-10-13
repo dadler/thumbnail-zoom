@@ -437,11 +437,12 @@ ImageZoomChrome.Overlay = {
         // We allow showing images larger than would fit entirely to the
         // left or right of the thumbnail by using the full page width
         // instead of calling _getPageSide.
-        let pageSide = content.document.documentElement.clientWidth - 30
+        let pageSide = content.window.innerWidth - 30
         let scale = that._getScaleDimensions(image, pageSide);
 
         let adjScale = that._adjustPageZoom(scale);
         that._logger.debug("_preloadImage: pageSide=" + pageSide + 
+                           "; doc height=" + content.window.innerHeight +
                            "; scale=["+scale.width + "," + scale.height + 
                            "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
         // Close and re-open the panel so we can reposition it to
@@ -474,7 +475,7 @@ ImageZoomChrome.Overlay = {
   _getPageSide : function(aImageNode) {
     this._logger.trace("_getPageSide");
 
-    let pageWidth = content.document.documentElement.clientWidth;
+    let pageWidth = content.content.window.innerWidth;
     let pageSide = pageWidth;
     let pageLeft = 0;
     let pageRight = 0;
@@ -499,7 +500,7 @@ ImageZoomChrome.Overlay = {
   _getScaleDimensions : function(aImage, aPageSide) {
     this._logger.trace("_getScaleDimensions");
 
-    let pageHeight = content.document.documentElement.clientHeight - 30;
+    let pageHeight = content.window.innerHeight - 30;
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
