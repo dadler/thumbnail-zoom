@@ -432,25 +432,31 @@ ImageZoomChrome.Overlay = {
 
     image.onload = function() {
       if (that._currentImage == aImageSrc) {
-        // let pageSide = that._getPageSide(aImageNode);
+        let widthOutsideThumb = that._getAvailableWidthOutsideThumb(aImageNode);
         
         // We allow showing images larger than would fit entirely to the
         // left or right of the thumbnail by using the full page width
         // instead of calling _getPageSide.
-        let pageSide = content.window.innerWidth - 30
-        let scale = that._getScaleDimensions(image, pageSide);
+        let maxWidth = content.window.innerWidth - 30
+        let scale = that._getScaleDimensions(image, maxWidth);
 
         let adjScale = that._adjustPageZoom(scale);
-        that._logger.debug("_preloadImage: pageSide=" + pageSide + 
+        that._logger.debug("_preloadImage: widthOutsideThumb=" + widthOutsideThumb + 
                            "; doc height=" + content.window.innerHeight +
                            "; scale=["+scale.width + "," + scale.height + 
                            "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
+        
         // Close and re-open the panel so we can reposition it to
-        // display the image.  Note that we pop-up relative to the upper-left
+        // display the image.  Note that if the image is too large to
+        // fit to the left/right of the thumb, we pop-up relative to the upper-left
         // corner of the browser instead of relative to aImageSrc.
         // This allows us to display larger pop-ups. 
         that._panel.hidePopup();
-        that._panel.openPopup(null, "end_before", 30, 30, false, false);
+        if (scale.width <= widthOutsideThumb) {
+            that._panel.openPopup(aImageNode, "end_before", 0, 0, false, false);
+        } else {
+            that._panel.openPopup(null, "end_before", 30, 30, false, false);
+        }
         that._showImage(aImageSrc, adjScale);
         
         // Help the garbage collector reclaim memory quickly.
@@ -468,11 +474,14 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Gets the page side.
+   * Gets the width of the larger of the space to the left or
+   * right of the thumbnail.  This is the space into which the
+   * image would have to fit if we displayed it to the side of the
+   * thumbnail without overlapping it.
    * @param aImageNode the image node.
    * @return the page side dimension.
    */
-  _getPageSide : function(aImageNode) {
+  _getAvailableWidthOutsideThumb : function(aImageNode) {
     this._logger.trace("_getPageSide");
 
     let pageWidth = content.content.window.innerWidth;
@@ -494,10 +503,10 @@ ImageZoomChrome.Overlay = {
   /**
    * Gets the image scale dimensions to fit the window.
    * @param aImage the image info.
-   * @param aPageSide the page side.
+   * @param maxWidth: the max width to allow.
    * @return the scale dimensions.
    */
-  _getScaleDimensions : function(aImage, aPageSide) {
+  _getScaleDimensions : function(aImage, maxWidth) {
     this._logger.trace("_getScaleDimensions");
 
     let pageHeight = content.window.innerHeight - 30;
@@ -506,12 +515,14 @@ ImageZoomChrome.Overlay = {
     let scaleRatio = (imageWidth / imageHeight);
     let scale = { width: imageWidth, height: imageHeight };
 
+    // Make sure scale.width, height is not larger than
+    // the window size.
     if (scale.height > pageHeight) {
       scale.height = pageHeight;
       scale.width = Math.round(scale.height * scaleRatio);
     }
-    if (scale.width > aPageSide) {
-      scale.width = aPageSide;
+    if (scale.width > maxWidth) {
+      scale.width = maxWidth;
       scale.height = Math.round(scale.width / scaleRatio);
     }
 
