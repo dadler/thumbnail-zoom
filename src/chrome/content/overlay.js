@@ -437,13 +437,16 @@ ImageZoomChrome.Overlay = {
         // We allow showing images larger than would fit entirely to the
         // left or right of the thumbnail by using the full page width
         // instead of calling _getPageSide.
-        let maxWidth = content.window.innerWidth - 30
+        let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+        let maxWidth = content.window.innerWidth * pageZoom - 30;
         let scale = that._getScaleDimensions(image, maxWidth);
 
-        let adjScale = that._adjustPageZoom(scale);
+        let adjScale = scale; // that._adjustPageZoom(scale);
         that._logger.debug("_preloadImage: widthOutsideThumb=" + widthOutsideThumb + 
-                           "; doc height=" + content.window.innerHeight +
-                           "; scale=["+scale.width + "," + scale.height + 
+                           "; win avail width=" + maxWidth +
+                           "; win height=" + content.window.innerHeight*pageZoom +
+                           "; image=["+image.width + "," + image.height + 
+                           "]; scale=["+scale.width + "," + scale.height + 
                            "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
         
         // Close and re-open the panel so we can reposition it to
@@ -455,6 +458,7 @@ ImageZoomChrome.Overlay = {
         if (scale.width <= widthOutsideThumb) {
             that._panel.openPopup(aImageNode, "end_before", 0, 0, false, false);
         } else {
+            // position relative to window's upper-left corner.
             that._panel.openPopup(null, "end_before", 30, 30, false, false);
         }
         that._showImage(aImageSrc, adjScale);
@@ -483,19 +487,20 @@ ImageZoomChrome.Overlay = {
    */
   _getAvailableWidthOutsideThumb : function(aImageNode) {
     this._logger.trace("_getPageSide");
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    let pageWidth = content.content.window.innerWidth;
+    let pageWidth = content.content.window.innerWidth * pageZoom;
     let pageSide = pageWidth;
     let pageLeft = 0;
     let pageRight = 0;
     let pageNode = aImageNode;
 
     while (null != pageNode) {
-      pageLeft += pageNode.offsetLeft;
+      pageLeft += pageNode.offsetLeft * pageZoom;
       pageNode = pageNode.offsetParent;
     }
-    pageRight = pageWidth - pageLeft - aImageNode.offsetWidth;
-    pageSide = (pageLeft > pageRight ? pageLeft : pageRight) - 20;
+    pageRight = pageWidth - pageLeft - aImageNode.offsetWidth * pageZoom;
+    pageSide = (pageLeft > pageRight ? pageLeft : pageRight);
 
     return pageSide;
   },
@@ -509,7 +514,8 @@ ImageZoomChrome.Overlay = {
   _getScaleDimensions : function(aImage, maxWidth) {
     this._logger.trace("_getScaleDimensions");
 
-    let pageHeight = content.window.innerHeight - 30;
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageHeight = content.window.innerHeight * pageZoom - 30;
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
