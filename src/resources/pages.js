@@ -480,7 +480,7 @@ ImageZoom.Pages.Others = {
   // imgur.com links w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
   // which getZoomImage will convert to a youtube thumb.
-  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/watch\?v=/,
+  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/watch\?v=/,
 
   _logger: ImageZoom.Pages._logger,
   
@@ -522,9 +522,9 @@ ImageZoom.Pages.Others = {
         aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
     // If imgur link, remove part after "&", e.g. for https://imgur.com/nugJJ&yQU0G
-    let imgurRex = new RegExp(/(imgur\.com\/[a-zA-Z0-9]+)(&[^.]*)/);
-    aImageSrc = aImageSrc.replace(imgurRex, "$1");
-    
+    // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
+    let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([a-zA-Z0-9]+)(&[^.]*)?/);
+    aImageSrc = aImageSrc.replace(imgurRex, "$1$3");
     let rex = new RegExp(/(\.gif|\.jpg|\.png)$/);
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links.
