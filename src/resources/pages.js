@@ -62,7 +62,7 @@ ImageZoom.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
   host: /\.facebook\.com/,
-  imageRegExp: /profile|photos-[a-z]\.((ak\.fbcdn)|(akamaihd))\.net\//,
+  imageRegExp: /profile|photos-[a-z].*(\.fbcdn|akamaihd)\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     let image = ("i" == aNodeName ? aNode : ("a" == aNodeName &&
       "album_link" == aNodeClass ? aNode.parentNode : null));
