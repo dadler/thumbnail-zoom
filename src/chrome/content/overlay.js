@@ -65,7 +65,10 @@ ImageZoomChrome.Overlay = {
   _contextMenu : null,
   /* File Picker. */
   _filePicker : null,
-
+  /* _thumbBBox is the bounding box of the thumbnail or link which caused
+     the popup to launch, in screen coordinates. */
+  _thumbBBox : { xMin: -999, xMax: -999, yMin: -999, yMax: 999},
+  
   /**
    * Initializes the object.
    */
@@ -245,6 +248,17 @@ ImageZoomChrome.Overlay = {
     gBrowser.tabContainer.addEventListener(
       "TabSelect",
       function(aEvent) { that._handleTabSelected(aEvent); }, false);
+    
+    this._panel.addEventListener(
+      "click",
+      function(aEvent) {
+        that._handlePopupClick(aEvent);
+      }, false);
+    this._panel.addEventListener(
+      "mousemove",
+      function(aEvent) {
+        that._handlePopupMove(aEvent);
+      }, true);
   },
 
   /**
@@ -253,7 +267,7 @@ ImageZoomChrome.Overlay = {
    */
   _handleTabSelected : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
-
+    this._thumbBBox.xMax = -999;
     this._closePanel();
   },
 
@@ -263,6 +277,8 @@ ImageZoomChrome.Overlay = {
    */
   _handlePageLoaded : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
+
+    this._thumbBBox.xMax = -999;
 
     let that = this;
     let doc = aEvent.originalTarget;
@@ -274,7 +290,7 @@ ImageZoomChrome.Overlay = {
         doc.addEventListener(
           "mouseover",
           function(aEvent) {
-            that._handleMouseOver(aEvent, pageConstant);
+            that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
       } else {
         this._closePanel();
@@ -289,25 +305,43 @@ ImageZoomChrome.Overlay = {
    * @param aEvent the event object.
    * @param aPage the filtered page.
    */
-  _handleMouseOver : function(aEvent, aPage) {
+  _handleMouseOver : function(aDocument, aEvent, aPage) {
     this._logger.trace("_handleMouseOver");
 
+    let x = aEvent.screenX;
+    let y = aEvent.screenY;
+    if (x >= this._thumbBBox.xMin &&
+        x <= this._thumbBBox.xMax &&
+        y >= this._thumbBBox.yMin &&
+        y <= this._thumbBBox.yMax) {
+      // Ignore attempt to redisplay the same image without first entering
+      // a different element, on the assumption that it's caused by a
+      // focus change after the popup was dismissed.
+      return;
+    }
+    
+    this._thumbBBox.xMax = -999;
+    
     let node = aEvent.target;
-    let imageSource = ImageZoom.FilterService.getImageSource(node, aPage);
+    let imageSource = ImageZoom.FilterService.getImageSource(aDocument, node, aPage);
 
-    if (null != imageSource && this._isKeyActive(aEvent)) {
+    if (null != imageSource && this._isKeyActive(aEvent)) {      
       if (ImageZoom.FilterService.isPageEnabled(aPage) &&
           ImageZoom.FilterService.filterImage(imageSource, aPage)) {
         let that = this;
 
         this._timer.cancel();
         this._timer.initWithCallback({ notify:
-          function() { that._showZoomImage(imageSource, node, aPage); }
+          function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
+        // This type of image is disabled or unrecognized. 
         this._closePanel();
       }
     } else {
+      // This element isn't an image or the hot key isn't down.
+      // This is how we dismiss the popup by moving the mouse out of
+      // the thumbnail.
       this._closePanel();
     }
   },
@@ -364,13 +398,13 @@ ImageZoomChrome.Overlay = {
    * @param aImageNode the image node
    * @param aPage the page constant
    */
-  _showZoomImage : function(aImageSrc, aImageNode, aPage) {
+  _showZoomImage : function(aImageSrc, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
 
     let zoomImageSrc = ImageZoom.FilterService.getZoomImage(aImageSrc, aPage);
 
     if (null != zoomImageSrc) {
-      this._showPanel(aImageNode, zoomImageSrc);
+      this._showPanel(aImageNode, zoomImageSrc, aEvent);
     } else {
       this._closePanel();
     }
@@ -381,7 +415,7 @@ ImageZoomChrome.Overlay = {
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
    */
-  _showPanel : function(aImageNode, aImageSrc) {
+  _showPanel : function(aImageNode, aImageSrc, aEvent) {
     this._logger.trace("_showPanel");
 
     // reset previous pic.
@@ -399,7 +433,7 @@ ImageZoomChrome.Overlay = {
     }
     this._currentImage = aImageSrc;
     this._contextMenu.hidden = false;
-    this._preloadImage(aImageNode, aImageSrc);
+    this._preloadImage(aImageNode, aImageSrc, aEvent);
   },
 
   /**
@@ -420,11 +454,48 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Event handler for mouse movement over the popup,
+   * which can happen when the popup overlaps the thumbnail.
+   * This routine closes the dialog if the mouse is outside
+   * the bounds of the thumbnail.
+   */
+  _handlePopupMove : function(aEvent) {
+    let x = aEvent.screenX;
+    let y = aEvent.screenY;
+
+    if (x >= this._thumbBBox.xMin &&
+        x <= this._thumbBBox.xMax &&
+        y >= this._thumbBBox.yMin &&
+        y <= this._thumbBBox.yMax) {
+      // Mouse is still over the thumbnail.  Ignore the move and don't
+      // dismiss since the thumb would immediately receive an 'over' event
+      // and retrigger the popup to display.
+      this._logger.debug("_handlePopupMove: ignoring since mouse at " +
+                         x + "," + y +
+                         " is within thumb " +
+                         this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
+                         this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
+      return;
+    }
+    // Non-trivial move; dismiss popup.
+    this._logger.debug("_handlePopupMove: closing with mouse at " +
+                        aEvent.screenX + "," + aEvent.screenY);
+    this._closePanel();
+  },
+
+  _handlePopupClick : function(aEvent) {
+    this._logger.debug("_handlePopupClick: mouse at " +
+                        aEvent.screenX + "," + aEvent.screenY);
+    this._closePanel();
+  },
+  
+  /**
    * Preloads the image.
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
+   * @param aEvent the mouse event which caused us to preload the image.
    */
-  _preloadImage : function(aImageNode, aImageSrc) {
+  _preloadImage : function(aImageNode, aImageSrc, aEvent) {
     this._logger.trace("_preloadImage");
 
     let that = this;
@@ -432,14 +503,19 @@ ImageZoomChrome.Overlay = {
 
     image.onload = function() {
       if (that._currentImage == aImageSrc) {
+        let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+        
+        clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
+        clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
+        that._updateThumbBBox(aImageNode, 
+                              clientToScreenX, clientToScreenY);
         let available = that._getAvailableSizeOutsideThumb(aImageNode);
         
         // We allow showing images larger than would fit entirely to the
         // left or right of the thumbnail by using the full page width
         // instead of calling _getPageSide.
-        let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
         let maxWidth = content.window.innerWidth * pageZoom - 30;
-        
+
         // Get the popup image's display size, which is the largest we
         // can display the image (without magnifying it and without it
         // being too big to fit on-screen).
@@ -463,6 +539,7 @@ ImageZoomChrome.Overlay = {
         // corner of the browser instead of relative to aImageSrc.
         // This allows us to display larger pop-ups. 
         that._panel.hidePopup();
+        
         if (imageSize.width <= available.width) {
           if (imageSize.width <= available.right) {
             // display to the right of the thumb.
@@ -479,7 +556,7 @@ ImageZoomChrome.Overlay = {
           }
         } else {
             // position relative to window's upper-left corner.
-            that._panel.openPopup(null, "end_before", 15, 15, false, false);
+            that._panel.openPopup(null, "overlap", 15, 15, false, false);
         }
         that._showImage(aImageSrc, imageSize);
         
@@ -498,6 +575,35 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
+   * Updates this._thumbBBox to indicate the range of DOM coordinates spanned
+   * by the thumb or link.
+   */
+  _updateThumbBBox : function(aImageNode, xOffset, yOffset) {
+    this._logger.trace("_updateThumbBBox");
+    			
+    var viewportElement = document.documentElement;  
+    var scrollLeft = viewportElement.scrollLeft;
+    var scrollTop = viewportElement.scrollTop;
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    var box = aImageNode.getBoundingClientRect();
+
+    this._logger.debug("_updateThumbBBox: scroll = " +
+                       scrollLeft + "," + scrollTop);
+    this._logger.debug("_updateThumbBBox: doc to screen offset = " +
+                       xOffset + "," + yOffset);
+
+    this._thumbBBox.xMin = xOffset + box.left * pageZoom + scrollLeft;
+		this._thumbBBox.yMin = yOffset + box.top  * pageZoom + scrollTop;
+    
+    this._thumbBBox.xMax = this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom;
+    this._thumbBBox.yMax = this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom;
+    
+    this._logger.debug("_updateThumbBBox: bbox = " +
+                       this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
+                       this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
+  },  
+  
+  /**
    * Returns the width of the larger of the space to the left or
    * right of the thumbnail, and the height of the larger of the space
    * above and below it.  This is the space into which the
@@ -511,8 +617,8 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    let pageWidth = content.content.window.innerWidth * pageZoom;
-    let pageHeight = content.content.window.innerHeight * pageZoom;
+    let pageWidth = content.window.innerWidth * pageZoom;
+    let pageHeight = content.window.innerHeight * pageZoom;
     
     /*
      * pageLeft is the space available to the left of the thumb. 
