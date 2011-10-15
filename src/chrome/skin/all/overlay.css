@@ -36,6 +36,7 @@ toolbar[mode="icons"] #imagezoom-toolbar-button {
   background-color: #FFF !important;
   background-image: none !important;
   padding: 5px;
+  cursor: none !important;
 }
 #imagezoom-panel[panelnoborder=true] {
   padding: 0px;
