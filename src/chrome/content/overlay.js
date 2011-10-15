@@ -432,22 +432,30 @@ ImageZoomChrome.Overlay = {
 
     image.onload = function() {
       if (that._currentImage == aImageSrc) {
-        let widthOutsideThumb = that._getAvailableWidthOutsideThumb(aImageNode);
+        let available = that._getAvailableSizeOutsideThumb(aImageNode);
         
         // We allow showing images larger than would fit entirely to the
         // left or right of the thumbnail by using the full page width
         // instead of calling _getPageSide.
         let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
         let maxWidth = content.window.innerWidth * pageZoom - 30;
-        let scale = that._getScaleDimensions(image, maxWidth);
+        
+        // Get the popup image's display size, which is the largest we
+        // can display the image (without magnifying it and without it
+        // being too big to fit on-screen).
+        let imageSize = that._getScaleDimensions(image, maxWidth);
 
-        let adjScale = scale; // that._adjustPageZoom(scale);
-        that._logger.debug("_preloadImage: widthOutsideThumb=" + widthOutsideThumb + 
+        that._logger.debug("_preloadImage: available: w/l/r:" + available.width + 
+                           "/" + available.left + 
+                           "/" + available.right +
+                           "; h/t/b:" + available.height + 
+                           "/" + available.top + 
+                           "/" + available.bottom);
+                        that._logger.debug("_preloadImage: " + 
                            "; win avail width=" + maxWidth +
                            "; win height=" + content.window.innerHeight*pageZoom +
                            "; image=["+image.width + "," + image.height + 
-                           "]; scale=["+scale.width + "," + scale.height + 
-                           "]; adjScale=[" + adjScale.width+", "+adjScale.height+"]"); 
+                           "]; imageSize=["+imageSize.width + "," + imageSize.height +"]"); 
         
         // Close and re-open the panel so we can reposition it to
         // display the image.  Note that if the image is too large to
@@ -455,13 +463,25 @@ ImageZoomChrome.Overlay = {
         // corner of the browser instead of relative to aImageSrc.
         // This allows us to display larger pop-ups. 
         that._panel.hidePopup();
-        if (scale.width <= widthOutsideThumb) {
-            that._panel.openPopup(aImageNode, "end_before", 0, 0, false, false);
+        if (imageSize.width <= available.width) {
+          if (imageSize.width <= available.right) {
+            // display to the right of the thumb.
+            that._panel.openPopup(aImageNode, "end_before", 15, 0, false, false);
+          } else {
+            that._panel.openPopup(aImageNode, "start_before", -15, 0, false, false);
+          }
+        } else if (imageSize.height <= available.height) {
+          if (imageSize.height <= available.bottom) {
+            // display below thumb.
+            that._panel.openPopup(aImageNode, "after_start", 0, 15, false, false);
+          } else {
+            that._panel.openPopup(aImageNode, "before_start", 0, -15, false, false);
+          }
         } else {
             // position relative to window's upper-left corner.
-            that._panel.openPopup(null, "end_before", 30, 30, false, false);
+            that._panel.openPopup(null, "end_before", 15, 15, false, false);
         }
-        that._showImage(aImageSrc, adjScale);
+        that._showImage(aImageSrc, imageSize);
         
         // Help the garbage collector reclaim memory quickly.
         // (Test by watching "images" size in about:memory.)
@@ -478,31 +498,62 @@ ImageZoomChrome.Overlay = {
   },
 
   /**
-   * Gets the width of the larger of the space to the left or
-   * right of the thumbnail.  This is the space into which the
-   * image would have to fit if we displayed it to the side of the
-   * thumbnail without overlapping it.
+   * Returns the width of the larger of the space to the left or
+   * right of the thumbnail, and the height of the larger of the space
+   * above and below it.  This is the space into which the
+   * image would have to fit if we displayed it to the side of or
+   * above/below the thumbnail without overlapping it.
    * @param aImageNode the image node.
-   * @return the page side dimension.
+   * @return An object with .left, .right, .top, .bottom, .width and .height 
+   * fields.
    */
-  _getAvailableWidthOutsideThumb : function(aImageNode) {
-    this._logger.trace("_getPageSide");
+  _getAvailableSizeOutsideThumb : function(aImageNode) {
+    this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
     let pageWidth = content.content.window.innerWidth * pageZoom;
-    let pageSide = pageWidth;
-    let pageLeft = 0;
-    let pageRight = 0;
+    let pageHeight = content.content.window.innerHeight * pageZoom;
+    
+    /*
+     * pageLeft is the space available to the left of the thumb. 
+     * pageTop is the space available above it.
+     */
+    let available = {left: 0, top: 0};
     let pageNode = aImageNode;
 
+    /*
+     * Calc the position of the upper-left corner of the thumb by summing
+     * offsets from the thumb to its parent, its parent to its grandparent, etc.
+     */
     while (null != pageNode) {
-      pageLeft += pageNode.offsetLeft * pageZoom;
+      let x = pageNode.offsetLeft * pageZoom;
+      let y = pageNode.offsetTop * pageZoom;
+      let parentNode = pageNode.parentNode;
+      if (parentNode) {
+        this._logger.debug("_getAvailableSizeOutsideThumb: scroll offset in " +
+                               parentNode + ": x,y = " + 
+                               parentNode.scrollLeft * pageZoom + "," +
+                               parentNode.scrollTop * pageZoom);
+        x -= parentNode.scrollLeft * pageZoom;
+        y -= parentNode.scrollTop * pageZoom;
+      }
+      this._logger.debug("_getAvailableSizeOutsideThumb: in " +
+                         pageNode + ": x,y = " + x + "," + y);
+      available.left += x;
+      available.top += y;
       pageNode = pageNode.offsetParent;
     }
-    pageRight = pageWidth - pageLeft - aImageNode.offsetWidth * pageZoom;
-    pageSide = (pageLeft > pageRight ? pageLeft : pageRight);
+    
+    /*
+     * pageRight is the space available to the right of the thumbnail,
+     * and pageBottom the space below.
+     */
+    available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
+    available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
+    available.width = Math.max(available.left, available.right);
+    available.height = Math.max(available.top, available.bottom);
 
-    return pageSide;
+    return available;
   },
 
   /**
@@ -533,22 +584,6 @@ ImageZoomChrome.Overlay = {
     }
 
     return scale;
-  },
-
-  /**
-   * Adjust the user's page zoom.
-   * @param aScale the image scale values.
-   * @return the adjusted scale.
-   */
-  _adjustPageZoom : function(aScale) {
-    this._logger.trace("_adjustPageZoom");
-
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-
-    aScale.width *= pageZoom;
-    aScale.height *= pageZoom;
-
-    return aScale;
   },
 
   /**
