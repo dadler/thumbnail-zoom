@@ -173,13 +173,21 @@ ImageZoom.FilterService = {
     }
   },
 
+  _applyBaseURI : function(aDocument, url) {
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
+                      .getService(Components.interfaces.nsIIOService);
+    baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
+    uri = ioService.newURI(url, aDocument.characterSet, baseUri);
+    return uri.spec;
+  },
+  
   /**
    * Gets the image source, handle special cases.
    * @param aNode the html node.
    * @param aPage the page constant.
    * @return the image source, null if not apply.
    */
-  getImageSource : function(aNode, aPage) {
+  getImageSource : function(aDocument, aNode, aPage) {
     this._logger.debug("___________________________");
     this._logger.debug("getImageSource page " + aPage);
 
@@ -190,7 +198,10 @@ ImageZoom.FilterService = {
     let imageSource =  null;
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
+      imageSource = this._applyBaseURI(aDocument, imageSource);
+      this._logger.debug("ThumbnailPreview node name: canonical URL: " + imageSource);
     }
+
     // check special cases
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
