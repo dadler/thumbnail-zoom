@@ -62,7 +62,12 @@ ImageZoom.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
   host: /\.facebook\.com/,
-  imageRegExp: /profile|photos-[a-z].*(\.fbcdn|akamaihd)\.net\//,
+  /*
+     Thumb URLs seem different when logged into Facebook vs when logged out
+     and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
+     test e.g. at https://www.facebook.com/Levis?sk=wall
+   */
+  imageRegExp: /profile|\.(fbcdn|akamaihd)\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     let image = ("i" == aNodeName ? aNode : ("a" == aNodeName &&
       "album_link" == aNodeClass ? aNode.parentNode : null));
@@ -72,6 +77,8 @@ ImageZoom.Pages.Facebook = {
     let imageSource = aNodeSource;
     let rex = new RegExp(/static\.ak\.fbcdn\.net/);
     if (rex.test(aNodeSource)) {
+      // Facebook photos sometimes use an <i> tag with the image
+      // displayed via a style with background-image.
       if (-1 == aNode.style.backgroundImage.indexOf("url")) {
         imageSource = aNode.nextSibling.getAttribute("src");
       } else {
