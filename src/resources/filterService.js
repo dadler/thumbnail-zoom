@@ -161,7 +161,7 @@ ImageZoom.FilterService = {
    * @param aPage the page constant.
    */
   togglePageEnable : function(aPage) {
-    this._logger.debug("togglePageEnable");
+    this._logger.debug("togglePageEnable " + aPage);
 
     let pageName = this.getPageName(aPage);
 
