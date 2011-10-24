@@ -89,10 +89,14 @@ ImageZoom.Pages.Facebook = {
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
-    let rex1 = new RegExp(/_[qstan]\./);
+    let rex1 = new RegExp(/_[qsta]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
+    // Apply replacement for rex1 or rex2; reject if neither matches.
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_n.") :
       (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "$1n$2") : null));
+    if (image == null) {
+      return null;
+    }
     let rex3 = new RegExp(/\/s[0-9]+x[0-9]+\//);
     image = image.replace(rex3, "/");
     return image;
