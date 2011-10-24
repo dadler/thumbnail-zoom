@@ -208,8 +208,12 @@ ImageZoomChrome.Overlay = {
           "id", "imagezoom-toolbar-menuitem-" + pageInfo.key);
         menuItem.setAttribute("label", pageInfo.name);
         menuItem.setAttribute("type", "checkbox");
-        menuItem.setAttribute(
-          "oncommand", "ImageZoomChrome.Overlay.togglePreference(" + i + ");");
+        { 
+          let aPage = i;
+          menuItem.addEventListener("command",
+              function() { ImageZoomChrome.Overlay.togglePreference(aPage);},
+              true );
+        }
         menuPopup.insertBefore(menuItem, menuSeparator);
         this._updatePagesMenu(i);
       }
@@ -261,6 +265,38 @@ ImageZoomChrome.Overlay = {
       }, true);
   },
 
+  /**
+   * Adds listeners when the popup image is shown.  The listener is added
+   * on the document itself (not the popup); otherwise we never get events,
+   * perhaps due to focus issues.
+   */
+  _addListenersWhenPopupShown : function() {
+    let that = ImageZoomChrome.Overlay;
+    doc = content.document.documentElement;
+    that._logger.debug("_addListenersWhenPopupShown for " +
+      doc);
+    
+    // Add a keypress listener so the "Escape" key can hide the popup.
+    // We don't use autohide mode since that causes Firefox to ignore
+    // a mouse click done while the popup is up, and would prevent the user from
+    // clicking the thumb to go to its linked page.
+    doc.addEventListener(
+      "keypress", that._handleKeypress, false);
+  },
+  
+  /**
+   * Removes listeners when the popup image is hidden again, so we don't keep
+   * a persistent key listener on the document all the time.
+   */
+  _removeListenersWhenPopupHidden : function() {
+    let that = ImageZoomChrome.Overlay;
+    doc = content.document.documentElement;
+    that._logger.debug("_removeListenersWhenPopupHidden for " +
+      doc);
+    doc.removeEventListener(
+      "keypress", that._handleKeypress, false);
+  },
+  
   /**
    * Handles the TabSelect event.
    * @param aEvent the event object.
@@ -430,6 +466,7 @@ ImageZoomChrome.Overlay = {
       // Pop up the panel, causing the throbber to display near
       // the image thumbnail.
       this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+      this._addListenersWhenPopupShown();
     }
     this._currentImage = aImageSrc;
     this._contextMenu.hidden = false;
@@ -446,6 +483,7 @@ ImageZoomChrome.Overlay = {
     this._contextMenu.hidden = true;
     this._panelThrobber.hidden = false;
     this._timer.cancel();
+    this._removeListenersWhenPopupHidden();
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
     }
@@ -489,6 +527,15 @@ ImageZoomChrome.Overlay = {
     this._closePanel();
   },
   
+  _handleKeypress : function(aEvent) {
+    let that = ImageZoomChrome.Overlay;
+    that._logger.debug("_handleKeypress for "  +
+       aEvent.keyCode );
+    if (aEvent.keyCode == 27 /* Escape key */) {
+      that._closePanel();
+    }
+  },
+  
   /**
    * Preloads the image.
    * @param aImageNode the image node.
@@ -502,8 +549,28 @@ ImageZoomChrome.Overlay = {
     let image = new Image();
 
     image.onload = function() {
+      // Close and (probably) re-open the panel so we can reposition it to
+      // display the image.  Note that if the image is too large to
+      // fit to the left/right of the thumb, we pop-up relative to the upper-left
+      // corner of the browser instead of relative to aImageSrc.
+      // This allows us to display larger pop-ups. 
+      that._panel.hidePopup();
+
       if (that._currentImage == aImageSrc) {
         let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+        
+        let thumbWidth = aImageNode.offsetWidth * pageZoom;
+        let thumbHeight = aImageNode.offsetHeight * pageZoom;
+        if (image.width < thumbWidth * 1.20 &&
+            image.height < thumbHeight * 1.20) {
+          that._logger.debug("_preloadImage: skipping: full-size image size (" +
+              image.width + " x " + image.height + 
+              ") isn't at least 20% bigger than thumb (" +
+              thumbWidth + " x " + thumbHeight + ")");
+          that._removeListenersWhenPopupHidden();
+
+          return;
+        }
         
         clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
         clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
@@ -521,43 +588,40 @@ ImageZoomChrome.Overlay = {
         // being too big to fit on-screen).
         let imageSize = that._getScaleDimensions(image, maxWidth);
 
-        that._logger.debug("_preloadImage: available: w/l/r:" + available.width + 
+        that._logger.debug("_preloadImage: available w/l/r:" + available.width + 
                            "/" + available.left + 
                            "/" + available.right +
                            "; h/t/b:" + available.height + 
                            "/" + available.top + 
                            "/" + available.bottom);
                         that._logger.debug("_preloadImage: " + 
-                           "; win avail width=" + maxWidth +
+                           "win avail width=" + maxWidth +
                            "; win height=" + content.window.innerHeight*pageZoom +
-                           "; image=["+image.width + "," + image.height + 
-                           "]; imageSize=["+imageSize.width + "," + imageSize.height +"]"); 
+                           "; full-size image=["+image.width + "," + image.height + 
+                           "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
         
-        // Close and re-open the panel so we can reposition it to
-        // display the image.  Note that if the image is too large to
-        // fit to the left/right of the thumb, we pop-up relative to the upper-left
-        // corner of the browser instead of relative to aImageSrc.
-        // This allows us to display larger pop-ups. 
-        that._panel.hidePopup();
         
         if (imageSize.width <= available.width) {
           if (imageSize.width <= available.right) {
-            // display to the right of the thumb.
+            that._logger.debug("_preloadImage: display to right of thumb"); 
             that._panel.openPopup(aImageNode, "end_before", 15, 0, false, false);
           } else {
+            that._logger.debug("_preloadImage: display to left of thumb"); 
             that._panel.openPopup(aImageNode, "start_before", -15, 0, false, false);
           }
         } else if (imageSize.height <= available.height) {
           if (imageSize.height <= available.bottom) {
-            // display below thumb.
+            that._logger.debug("_preloadImage: display below thumb"); 
             that._panel.openPopup(aImageNode, "after_start", 0, 15, false, false);
           } else {
+            that._logger.debug("_preloadImage: display above thumb"); 
             that._panel.openPopup(aImageNode, "before_start", 0, -15, false, false);
           }
         } else {
-            // position relative to window's upper-left corner.
+            that._logger.debug("_preloadImage: display in upper-left of window (overlap thumb)"); 
             that._panel.openPopup(null, "overlap", 15, 15, false, false);
         }
+        that._addListenersWhenPopupShown();
         that._showImage(aImageSrc, imageSize);
         
         // Help the garbage collector reclaim memory quickly.

@@ -60,7 +60,7 @@
 
   <!-- Panel -->
   <window id="main-window">
-    <panel id="imagezoom-panel" noautofocus="true" noautohide="false">
+    <panel id="imagezoom-panel" noautofocus="true" noautohide="true">
       <stack id="imagezoom-panel-stack">
         <vbox align="center" pack="center">
           <image id="imagezoom-panel-throbber" />
