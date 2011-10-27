@@ -42,6 +42,7 @@ ImageZoomChrome.Overlay = {
   PREF_PANEL_WAIT : ImageZoom.PrefBranch + "panel.wait",
   PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ImageZoom.PrefBranch + "panel.border",
+  PREF_PANEL_LARGE_IMAGE : ImageZoom.PrefBranch + "panel.largeimage",
   PREF_PANEL_OPACITY : ImageZoom.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
@@ -578,15 +579,10 @@ ImageZoomChrome.Overlay = {
                               clientToScreenX, clientToScreenY);
         let available = that._getAvailableSizeOutsideThumb(aImageNode);
         
-        // We allow showing images larger than would fit entirely to the
-        // left or right of the thumbnail by using the full page width
-        // instead of calling _getPageSide.
-        let maxWidth = content.window.innerWidth * pageZoom - 30;
-
         // Get the popup image's display size, which is the largest we
         // can display the image (without magnifying it and without it
         // being too big to fit on-screen).
-        let imageSize = that._getScaleDimensions(image, maxWidth);
+        let imageSize = that._getScaleDimensions(image, available);
 
         that._logger.debug("_preloadImage: available w/l/r:" + available.width + 
                            "/" + available.left + 
@@ -595,7 +591,7 @@ ImageZoomChrome.Overlay = {
                            "/" + available.top + 
                            "/" + available.bottom);
                         that._logger.debug("_preloadImage: " + 
-                           "win avail width=" + maxWidth +
+                           "; win width=" + content.window.innerWidth*pageZoom +
                            "; win height=" + content.window.innerHeight*pageZoom +
                            "; full-size image=["+image.width + "," + image.height + 
                            "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
@@ -729,28 +725,75 @@ ImageZoomChrome.Overlay = {
   /**
    * Gets the image scale dimensions to fit the window.
    * @param aImage the image info.
-   * @param maxWidth: the max width to allow.
+   * @param available: contains (width, height) of the max space available
+   * to the left or right and top or bottom of the thumb.
    * @return the scale dimensions.
    */
-  _getScaleDimensions : function(aImage, maxWidth) {
+  _getScaleDimensions : function(aImage, available) {
     this._logger.trace("_getScaleDimensions");
 
+    // We allow showing images larger 
+    // than would fit entirely to the left or right of
+    // the thumbnail by using the full page width
+    // instead of calling _getPageSide.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let pageHeight = content.window.innerHeight * pageZoom - 30;
+    let pageWidth = content.window.innerWidth * pageZoom - 15;
+    let pageHeight = content.window.innerHeight * pageZoom - 15;
+    
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
     let scale = { width: imageWidth, height: imageHeight };
 
-    // Make sure scale.width, height is not larger than
-    // the window size.
+    // Make sure scale.width, height is not larger than the window size.
     if (scale.height > pageHeight) {
       scale.height = pageHeight;
       scale.width = Math.round(scale.height * scaleRatio);
     }
-    if (scale.width > maxWidth) {
-      scale.width = maxWidth;
+    if (scale.width > pageWidth) {
+      scale.width = pageWidth;
       scale.height = Math.round(scale.width / scaleRatio);
+    }
+
+    // Calc sideScale as the biggest size we can use for the image without
+    // overlapping the thumb.
+    let sideScale = {width: scale.width, height: scale.height};
+    if (imageHeight > available.height) {
+      // Try fitting the image's height to available.height (and scaling
+      // width proportionally); this corresponds to showing the
+      // popup above or below the thumb.
+      sideScale.height = available.height;
+      sideScale.width = Math.round(sideScale.height * scaleRatio);
+    }
+    if (sideScale.width < available.width) {
+      // We can show the image larger by fitting its width to available.width
+      // rather than fitting its height; this allows it to appear to
+      // the left or right of the thumb.
+      sideScale.width = Math.min(available.width, imageWidth);
+      sideScale.height = Math.round(sideScale.width / scaleRatio);
+    }
+    if (sideScale.height > pageHeight) {
+      sideScale.height = pageHeight;
+      sideScale.width = Math.round(scale.height * scaleRatio);
+    }
+    if (sideScale.width > pageWidth) {
+      sideScale.width = pageWidth;
+      sideScale.height = Math.round(sideScale.width / scaleRatio);
+    }
+
+    let allowCoverThumb = ImageZoom.Application.prefs.get(this.PREF_PANEL_LARGE_IMAGE);
+    allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
+
+    // Check whether to allow popup to cover thumb.
+    if (! allowCoverThumb) {
+      this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
+      scale = sideScale;
+    } else if (scale.width < (sideScale.width * 1.20)) {
+      this._logger.debug("_getScaleDimensions: disallowing covering " + 
+                         "thumb because covering width " + scale.width +
+                         " isn't at least 20% bigger than uncovered width " +
+                         sideScale.width);
+      scale = sideScale;
     }
 
     return scale;

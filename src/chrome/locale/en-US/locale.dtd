@@ -37,6 +37,7 @@
 <!ENTITY imagezoom.options.opacity.selection.label       "Images opacity: ">
 <!ENTITY imagezoom.options.key.selection.label           "Key to display the image:">
 <!ENTITY imagezoom.options.border.checkbox.label         "Show white border">
+<!ENTITY imagezoom.options.largeimage.checkbox.label     "Maximize image size by overlapping thumbnail">
 <!ENTITY imagezoom.options.key.none.label                "None">
 <!ENTITY imagezoom.options.general.groupbox.caption      "General">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Enable or disable per site">

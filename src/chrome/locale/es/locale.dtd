@@ -37,6 +37,7 @@
 <!ENTITY imagezoom.options.opacity.selection.label       "Transparencia de las imágenes:">
 <!ENTITY imagezoom.options.key.selection.label           "Tecla para visualizar la imagen:">
 <!ENTITY imagezoom.options.border.checkbox.label         "Mostrar borde blanco">
+<!ENTITY imagezoom.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
 <!ENTITY imagezoom.options.key.none.label                "Ninguna">
 <!ENTITY imagezoom.options.general.groupbox.caption      "General">
 <!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
