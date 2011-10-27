@@ -44,6 +44,8 @@
         name="extensions.imagezoom.panel.wait" type="string"/>
       <preference id="imagezoom-options-border-pref"
         name="extensions.imagezoom.panel.border" type="bool"/>
+      <preference id="imagezoom-options-large-image-pref"
+        name="extensions.imagezoom.panel.largeimage" type="bool"/>
       <preference id="imagezoom-options-key-pref"
         name="extensions.imagezoom.panel.key" type="int"/>
       <preference id="imagezoom-options-opacity-pref"
@@ -129,10 +131,12 @@
               </menupopup>
             </menulist>
           </row>
-          <row align="center">
+          <hbox>
             <checkbox preference="imagezoom-options-border-pref"
-              label="&imagezoom.options.border.checkbox.label;" />
-          </row>
+              label="&imagezoom.options.border.checkbox.label;    " />
+            <checkbox preference="imagezoom-options-large-image-pref"
+              label="&imagezoom.options.largeimage.checkbox.label;" />
+          </hbox>
         </rows>
       </grid>
     </groupbox>
