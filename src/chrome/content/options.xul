@@ -186,9 +186,8 @@
             preference="imagezoom-options-flickr-pref" />
           <checkbox label="deviantART"
             preference="imagezoom-options-deviantart-pref" />
-<!--
-          <checkbox label="Google Images"
-            preference="imagezoom-options-google-pref" /> -->
+          <checkbox label="Google+"
+            preference="imagezoom-options-google-pref" />
           <checkbox label="IMDb"
             preference="imagezoom-options-imdb-pref" />
           <checkbox label="Engadget"

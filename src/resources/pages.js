@@ -339,34 +339,58 @@ ImageZoom.Pages.LastFM = {
 };
 
 /**
- * Google (disabled)
- * Note: Does not currently work since Google removed imgurl=
- * from their URLs.
+ * Google+
  */
-/*
 ImageZoom.Pages.Google = {
   key: "google",
-  name: "Google Images",
-  host: /\.google\.[a-z\.]+/,
-  imageRegExp: /.+/,
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = null;
-    let imageHref = aNode.parentNode.getAttribute("href");
-    if (null != imageHref) {
-      // This doesn't seem to work anymore; google isn't putting imgurl= in links now.
-      let imageIndex = imageHref.indexOf("imgurl=");
-      if (-1 < imageIndex) {
-        imageSource = decodeURIComponent(imageHref.substring(
-          imageIndex + 7, imageHref.indexOf("&", imageIndex)));
-      }
-    }
-    return imageSource;
-  },
+  name: "Google+",
+  host: /plus\.google\.com/,
+  imageRegExp: /\.(ggpht|googleusercontent)\.com/,
+  _logger: ImageZoom.Pages._logger,
   getZoomImage : function(aImageSrc) {
-    return aImageSrc;
+
+    // example profile pic link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg?sz=80
+    // example image link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg
+    // Note: the sz=48 or 32 case is the tiny thumb for which Google already has a popup which
+    // shows a medium thumb and Add To Circles; we don't want our popup from that tiny one.
+    let rex_prohibit = new RegExp(/\/photo\.jpg\?sz=(32|48)$/);
+    if (rex_prohibit.test(aImageSrc)) {
+      this._logger.debug("matched google+ tiny profile pic, from which we won't popup");
+      return null;
+    }
+
+    let rex3 = new RegExp(/\/photo\.jpg\?sz=([0-9]+)$/);
+    if (rex3.test(aImageSrc)) {
+      this._logger.debug("matched google+ profile pic");
+      return aImageSrc.replace(rex3, "/photo.jpg");
+    }
+    
+    // example photo thumb: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/w402/065.JPG
+    // corresponding large image: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/065.JPG
+    // the w402 field supports arbitrary width, height, and size specifications with
+    // w###, h###, s###.  I've also seen a "-k" suffix.
+    //
+    let rex1 = new RegExp(/\/(([swh][0-9]+|-[a-z])-?)+\//);
+    if (rex1.test(aImageSrc)) {
+      this._logger.debug("matched google+ non-profile photo");
+      return aImageSrc.replace(rex1, "/");
+    }
+
+    // example shared link thumb: https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?url=http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg&container=focus&gadget=a&rewriteMime=image/*&refresh=31536000&resize_h=120&no_expand=1
+    // corresponding image: http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg
+    let rex2 = /.*gadgets\/proxy\?url=([^&]+).*/;
+    if (rex2.test(aImageSrc)) {
+      // Extract the image's URL, which also needs to be url-unescaped.
+      this._logger.debug("matched google+ shared URL");
+      image = aImageSrc.replace(rex2, "$1");
+      image = unescape(image);
+      return image;
+    }
+    
+    this._logger.debug("didn't match any google+ URL");
+    return null;
   }
 };
-*/
 
 /**
  * YouTube
