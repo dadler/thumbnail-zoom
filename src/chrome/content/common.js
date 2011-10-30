@@ -30,8 +30,8 @@
 Components.utils.import("resource://thumbnailzoomplus/common.js");
 
 /**
- * ImageZoomChrome namespace.
+ * ThumbnailZoomPlusChrome namespace.
  */
-if ("undefined" == typeof(ImageZoomChrome)) {
-  ImageZoomChrome = {};
+if ("undefined" == typeof(ThumbnailZoomPlusChrome)) {
+  ThumbnailZoomPlusChrome = {};
 };

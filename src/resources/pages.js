@@ -38,9 +38,9 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 /**
  * Pages namespace
  */
-if ("undefined" == typeof(ImageZoom.Pages)) {
+if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
 
-  ImageZoom.Pages = {
+  ThumbnailZoomPlus.Pages = {
     /* Logger for this object. */
     _logger : null,
     
@@ -48,17 +48,17 @@ if ("undefined" == typeof(ImageZoom.Pages)) {
      * Initializes the resource.
      */
     _init : function() {
-      this._logger = ImageZoom.getLogger("ImageZoom.Pages");
+      this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.Pages");
       this._logger.trace("_init");
     }
   };
-  ImageZoom.Pages._init();
+  ThumbnailZoomPlus.Pages._init();
 };
 
 /**
  * Facebook
  */
-ImageZoom.Pages.Facebook = {
+ThumbnailZoomPlus.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
   host: /\.facebook\.com/,
@@ -106,7 +106,7 @@ ImageZoom.Pages.Facebook = {
 /**
  * Twitter
  */
-ImageZoom.Pages.Twitter = {
+ThumbnailZoomPlus.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
   host: /twitter\.com/,
@@ -121,7 +121,7 @@ ImageZoom.Pages.Twitter = {
 /**
  * Twitpic
  */
-ImageZoom.Pages.Twitpic = {
+ThumbnailZoomPlus.Pages.Twitpic = {
   key: "twitpic",
   name: "Twitpic",
   host: /twitpic\.com/,
@@ -139,7 +139,7 @@ ImageZoom.Pages.Twitpic = {
 /**
  * LinkedIn
  */
-ImageZoom.Pages.LinkedIn = {
+ThumbnailZoomPlus.Pages.LinkedIn = {
   key: "linkedin",
   name: "LinkedIn",
   host: /\.linkedin\.com/,
@@ -152,7 +152,7 @@ ImageZoom.Pages.LinkedIn = {
 /**
  * Amazon
  */
-ImageZoom.Pages.Amazon = {
+ThumbnailZoomPlus.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
   host: /www\.amazon\.[a-z]+/,
@@ -165,7 +165,7 @@ ImageZoom.Pages.Amazon = {
 /**
  * Hi5
  */
-ImageZoom.Pages.Hi5 = {
+ThumbnailZoomPlus.Pages.Hi5 = {
   key: "hi5",
   name: "Hi5",
   host: /\.hi5\.com/,
@@ -182,7 +182,7 @@ ImageZoom.Pages.Hi5 = {
 /**
  * Picasa
  */
-ImageZoom.Pages.Picasa = {
+ThumbnailZoomPlus.Pages.Picasa = {
   key: "picasa",
   name: "Picasa",
   host: /picasaweb\.google\.com/,
@@ -197,7 +197,7 @@ ImageZoom.Pages.Picasa = {
 /**
  * MySpace
  */
-ImageZoom.Pages.MySpace = {
+ThumbnailZoomPlus.Pages.MySpace = {
   key: "myspace",
   name: "MySpace",
   host: /myspace\.com/,
@@ -219,7 +219,7 @@ ImageZoom.Pages.MySpace = {
 /**
  * Flickr
  */
-ImageZoom.Pages.Flickr = {
+ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
   host: /\.flickr\.com/,
@@ -245,7 +245,7 @@ ImageZoom.Pages.Flickr = {
 /**
  * Wikipedia
  */
-ImageZoom.Pages.Wikipedia = {
+ThumbnailZoomPlus.Pages.Wikipedia = {
   key: "wikipedia",
   name: "Wikipedia",
   host: /wikipedia\.org/,
@@ -264,7 +264,7 @@ ImageZoom.Pages.Wikipedia = {
 /**
  * DeviantART
  */
-ImageZoom.Pages.DeviantART = {
+ThumbnailZoomPlus.Pages.DeviantART = {
   // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg becomes
   // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
   key: "deviantart",
@@ -281,7 +281,7 @@ ImageZoom.Pages.DeviantART = {
 /**
  * PhotoBucket
  */
-ImageZoom.Pages.PhotoBucket = {
+ThumbnailZoomPlus.Pages.PhotoBucket = {
   key: "photobucket",
   name: "PhotoBucket",
   host: /photobucket\.com/,
@@ -299,7 +299,7 @@ ImageZoom.Pages.PhotoBucket = {
 /**
  * Tagged
  */
-ImageZoom.Pages.Tagged = {
+ThumbnailZoomPlus.Pages.Tagged = {
   key: "tagged",
   name: "Tagged",
   host: /\.tagged\.com/,
@@ -314,7 +314,7 @@ ImageZoom.Pages.Tagged = {
 /**
  * Last.fm
  */
-ImageZoom.Pages.LastFM = {
+ThumbnailZoomPlus.Pages.LastFM = {
   key: "lastfm",
   name: "Last.fm",
   host: /www\.last\.fm/,
@@ -341,12 +341,12 @@ ImageZoom.Pages.LastFM = {
 /**
  * Google+
  */
-ImageZoom.Pages.Google = {
+ThumbnailZoomPlus.Pages.Google = {
   key: "google",
   name: "Google+",
   host: /plus\.google\.com/,
   imageRegExp: /\.(ggpht|googleusercontent)\.com/,
-  _logger: ImageZoom.Pages._logger,
+  _logger: ThumbnailZoomPlus.Pages._logger,
   getZoomImage : function(aImageSrc) {
 
     // example profile pic link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg?sz=80
@@ -395,7 +395,7 @@ ImageZoom.Pages.Google = {
 /**
  * YouTube
  */
-ImageZoom.Pages.YouTube = {
+ThumbnailZoomPlus.Pages.YouTube = {
   key: "youtube",
   name: "YouTube",
   host: /www\.youtube\.com/,
@@ -418,7 +418,7 @@ ImageZoom.Pages.YouTube = {
 /**
  * Daily Mile
  */
-ImageZoom.Pages.DailyMile = {
+ThumbnailZoomPlus.Pages.DailyMile = {
   key: "dailymile",
   name: "Daily Mile",
   host: /dailymile\.com/,
@@ -433,7 +433,7 @@ ImageZoom.Pages.DailyMile = {
 /**
  * IMDb
  */
-ImageZoom.Pages.IMDb = {
+ThumbnailZoomPlus.Pages.IMDb = {
   key: "imdb",
   name: "IMDb",
   host: /www\.imdb\.[a-z]+/,
@@ -448,7 +448,7 @@ ImageZoom.Pages.IMDb = {
 /**
  * Imgur
  */
-ImageZoom.Pages.Imgur = {
+ThumbnailZoomPlus.Pages.Imgur = {
   key: "imgur",
   name: "Imgur",
   host: /imgur\.com/,
@@ -473,7 +473,7 @@ ImageZoom.Pages.Imgur = {
  * http://s.photosight.ru/img/5/7bd/4167881_crop_1.jpeg
  * http://s.photosight.ru/img/5/7bd/4167881_large.jpeg
  */
-ImageZoom.Pages.Photosight = {
+ThumbnailZoomPlus.Pages.Photosight = {
   key: "photosight",
   name: "Photosight",
   host: /photosight\.ru/,
@@ -492,7 +492,7 @@ ImageZoom.Pages.Photosight = {
 /**
  * Engadget
  */
-ImageZoom.Pages.Engadget = {
+ThumbnailZoomPlus.Pages.Engadget = {
   key: "engadget",
   name: "Engadget",
   host: /\.engadget\.[a-z]+/,
@@ -507,7 +507,7 @@ ImageZoom.Pages.Engadget = {
 /**
  * Others
  */
-ImageZoom.Pages.Others = {
+ThumbnailZoomPlus.Pages.Others = {
   key: "others",
   name: "Others",
   host: /.*/,
@@ -519,7 +519,7 @@ ImageZoom.Pages.Others = {
   // image named similarly to the link.
   imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/watch.*[?&]v=/,
 
-  _logger: ImageZoom.Pages._logger,
+  _logger: ThumbnailZoomPlus.Pages._logger,
   
   getSpecialSource : function(aNode, aNodeSource) {
     // we never want to use the img node.

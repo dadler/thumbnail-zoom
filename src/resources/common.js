@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-var EXPORTED_SYMBOLS = ["ImageZoom"];
+var EXPORTED_SYMBOLS = ["ThumbnailZoomPlus"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -36,10 +36,10 @@ const Cu = Components.utils;
 Cu.import("resource://thumbnailzoomplus/log4moz.js");
 
 /**
- * ImageZoom namespace.
+ * ThumbnailZoomPlus namespace.
  */
-if ("undefined" == typeof(ImageZoom)) {
-  ImageZoom = {
+if ("undefined" == typeof(ThumbnailZoomPlus)) {
+  ThumbnailZoomPlus = {
     /* The FUEL Application object. */
     _application : null,
     /* Reference to the observer service. */
@@ -82,9 +82,9 @@ if ("undefined" == typeof(ImageZoom)) {
       let enableDebug = false;
       
       if (enableDebug) {
-        // Debug messages will be written to ImageZoom/log.txt under
+        // Debug messages will be written to ThumbnailZoomPlus/log.txt under
         // your profile dir, e.g. on Mac OSX it might be
-        // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ImageZoom/log.txt"
+        // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
         // To debug, set enableDebug above to true and monitor the log file
         // in a terminal using "tail -f log.txt".
         app.level = Log4Moz.Level["Debug"];
@@ -171,7 +171,7 @@ if ("undefined" == typeof(ImageZoom)) {
           getService(Ci.nsIProperties);
       let profDir = directoryService.get("ProfD", Ci.nsIFile);
 
-      profDir.append("ImageZoom");
+      profDir.append("ThumbnailZoomPlus");
 
       if (!profDir.exists() || !profDir.isDirectory()) {
         // read and write permissions to owner and group, read-only for others.
@@ -187,5 +187,5 @@ if ("undefined" == typeof(ImageZoom)) {
    */
   (function() {
     this._init();
-  }).apply(ImageZoom);
+  }).apply(ThumbnailZoomPlus);
 }

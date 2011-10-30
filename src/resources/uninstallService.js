@@ -43,7 +43,7 @@ const TOPIC_QUIT_APPLICATION = "quit-application";
 /**
  * The Uninstall Service.
  */
-ImageZoom.UninstallService = {
+ThumbnailZoomPlus.UninstallService = {
   /* Logger for this object. */
   _logger : null,
 
@@ -54,11 +54,11 @@ ImageZoom.UninstallService = {
    * Initializes the resource.
    */
   _init : function() {
-    this._logger = ImageZoom.getLogger("ImageZoom.UninstallService");
+    this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.UninstallService");
     this._logger.trace("_init");
 
-    ImageZoom.ObserverService.addObserver(this, TOPIC_QUIT_APPLICATION, false);
-    ImageZoom.ObserverService.addObserver(this, TOPIC_ACTION_REQUESTED, false);
+    ThumbnailZoomPlus.ObserverService.addObserver(this, TOPIC_QUIT_APPLICATION, false);
+    ThumbnailZoomPlus.ObserverService.addObserver(this, TOPIC_ACTION_REQUESTED, false);
 
     // Firefox 4 requires an special listener to catch add-on related activity
     // (uninstall event mostly). If we try importing the module and there's an
@@ -79,7 +79,7 @@ ImageZoom.UninstallService = {
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
 
     // remove the preferences.
-    prefBranch.deleteBranch(ImageZoom.PrefBranch);
+    prefBranch.deleteBranch(ThumbnailZoomPlus.PrefBranch);
     // remove the extension directory if possible.
     this._removeExtensionFolder();
   },
@@ -90,7 +90,7 @@ ImageZoom.UninstallService = {
   _removeExtensionFolder : function() {
     this._logger.trace("_removeExtensionFolder");
 
-    let installFolder = ImageZoom.getExtensionDirectory();
+    let installFolder = ThumbnailZoomPlus.getExtensionDirectory();
 
     try {
       if (installFolder.exists() && installFolder.isDirectory()) {
@@ -132,7 +132,7 @@ ImageZoom.UninstallService = {
   onUninstalling : function(aItem) {
     this._logger.debug("onUninstalling");
 
-    if (ImageZoom.ExtensionId == aItem.id) {
+    if (ThumbnailZoomPlus.ExtensionId == aItem.id) {
       this._shouldUninstall = true;
     }
   },
@@ -144,7 +144,7 @@ ImageZoom.UninstallService = {
   onOperationCancelled : function(aItem) {
     this._logger.debug("onOperationCancelled");
 
-    if (ImageZoom.ExtensionId == aItem.id) {
+    if (ThumbnailZoomPlus.ExtensionId == aItem.id) {
       this._shouldUninstall = false;
     }
   },
@@ -167,7 +167,7 @@ ImageZoom.UninstallService = {
       case TOPIC_ACTION_REQUESTED:
         aSubject.QueryInterface(Ci.nsIUpdateItem);
 
-        if (ImageZoom.ExtensionId == aSubject.id) {
+        if (ThumbnailZoomPlus.ExtensionId == aSubject.id) {
           switch(aData) {
             case "item-cancel-action":
               if (this._shouldUninstall) {
@@ -187,4 +187,4 @@ ImageZoom.UninstallService = {
 /**
  * Constructor.
  */
-(function() { this._init(); }).apply(ImageZoom.UninstallService);
+(function() { this._init(); }).apply(ThumbnailZoomPlus.UninstallService);

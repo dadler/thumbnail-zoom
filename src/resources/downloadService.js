@@ -38,7 +38,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 /**
  * The Download Service.
  */
-ImageZoom.DownloadService = {
+ThumbnailZoomPlus.DownloadService = {
   /* Logger for this object. */
   _logger : null,
 
@@ -46,7 +46,7 @@ ImageZoom.DownloadService = {
    * Initializes the resource.
    */
   _init : function() {
-    this._logger = ImageZoom.getLogger("ImageZoom.DownloadService");
+    this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.DownloadService");
     this._logger.trace("_init");
   },
 
@@ -106,4 +106,4 @@ ImageZoom.DownloadService = {
 /**
  * Constructor.
  */
-(function() { this._init(); }).apply(ImageZoom.DownloadService);
+(function() { this._init(); }).apply(ThumbnailZoomPlus.DownloadService);

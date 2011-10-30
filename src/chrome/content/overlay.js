@@ -36,16 +36,16 @@ Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 /**
  * Controls the browser overlay.
  */
-ImageZoomChrome.Overlay = {
+ThumbnailZoomPlusChrome.Overlay = {
   /* UI preference keys. */
-  PREF_PANEL_KEY : ImageZoom.PrefBranch + "panel.key",
-  PREF_PANEL_WAIT : ImageZoom.PrefBranch + "panel.wait",
-  PREF_PANEL_DELAY : ImageZoom.PrefBranch + "panel.delay",
-  PREF_PANEL_BORDER : ImageZoom.PrefBranch + "panel.border",
-  PREF_PANEL_LARGE_IMAGE : ImageZoom.PrefBranch + "panel.largeimage",
-  PREF_PANEL_OPACITY : ImageZoom.PrefBranch + "panel.opacity",
+  PREF_PANEL_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
+  PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
+  PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
+  PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
-  PREF_TOOLBAR_INSTALLED : ImageZoom.PrefBranch + "button.installed",
+  PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 
   /* Logger for this object. */
   _logger : null,
@@ -70,11 +70,19 @@ ImageZoomChrome.Overlay = {
      the popup to launch, in screen coordinates. */
   _thumbBBox : { xMin: -999, xMax: -999, yMin: -999, yMax: 999},
   
+  // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
+  _borderWidth : 5, // border itself adds 5 pixels on each edge.
+  
+  // _widthAddon is additional image width due to border if enabled:
+  // 0 or _borderWidth*2.
+  _widthAddon : 0,
+  _pad : 5,
+  
   /**
    * Initializes the object.
    */
   init : function() {
-    this._logger = ImageZoom.getLogger("ImageZoomChrome.Overlay");
+    this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlusChrome.Overlay");
     this._logger.debug("init");
 
     this._preferencesService =
@@ -120,13 +128,13 @@ ImageZoomChrome.Overlay = {
   _updatePreferenceFix : function() {
     this._logger.trace("_updatePreferenceFix");
 
-    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_DELAY);
+    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_DELAY);
     if (delayPref) {
       let preferenceService =
         Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
       let delayValue = String(delayPref.value);
 
-      ImageZoom.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
+      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
       preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
     }
   },
@@ -138,7 +146,7 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_installToolbarButton");
 
     let buttonInstalled =
-      ImageZoom.Application.prefs.get(this.PREF_TOOLBAR_INSTALLED).value;
+      ThumbnailZoomPlus.Application.prefs.get(this.PREF_TOOLBAR_INSTALLED).value;
 
     if (!buttonInstalled) {
       let toolbarId =
@@ -160,7 +168,7 @@ ImageZoomChrome.Overlay = {
         BrowserToolboxCustomizeDone(true);
       } catch (e) { }
 
-      ImageZoom.Application.prefs.setValue(this.PREF_TOOLBAR_INSTALLED, true);
+      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_TOOLBAR_INSTALLED, true);
     }
   },
 
@@ -171,13 +179,13 @@ ImageZoomChrome.Overlay = {
   _addPreferenceObservers : function(aValue) {
     this._logger.debug("_addPreferenceObservers");
 
-    let pageCount = ImageZoom.FilterService.pageList.length;
+    let pageCount = ThumbnailZoomPlus.FilterService.pageList.length;
     let preference = null;
     let pageInfo = null;
 
     for (let i = 0; i < pageCount; i++) {
-      pageInfo = ImageZoom.FilterService.pageList[i];
-      preference = ImageZoom.PrefBranch + pageInfo.key + ".enable";
+      pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
+      preference = ThumbnailZoomPlus.PrefBranch + pageInfo.key + ".enable";
 
       if (aValue) {
         this._preferencesService.addObserver(preference, this, false);
@@ -199,11 +207,11 @@ ImageZoomChrome.Overlay = {
       let menuSeparator =
         document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
       let menuItem = null;
-      let pageCount = ImageZoom.FilterService.pageList.length;
+      let pageCount = ThumbnailZoomPlus.FilterService.pageList.length;
       let pageInfo = null;
 
       for (let i = 0; i < pageCount; i++) {
-        pageInfo = ImageZoom.FilterService.pageList[i];
+        pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
         menuItem = document.createElement("menuitem");
         menuItem.setAttribute(
           "id", "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key);
@@ -212,7 +220,7 @@ ImageZoomChrome.Overlay = {
         { 
           let aPage = i;
           menuItem.addEventListener("command",
-              function() { ImageZoomChrome.Overlay.togglePreference(aPage);},
+              function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
               true );
         }
         menuPopup.insertBefore(menuItem, menuSeparator);
@@ -272,7 +280,7 @@ ImageZoomChrome.Overlay = {
    * perhaps due to focus issues.
    */
   _addListenersWhenPopupShown : function() {
-    let that = ImageZoomChrome.Overlay;
+    let that = ThumbnailZoomPlusChrome.Overlay;
     doc = content.document.documentElement;
     that._logger.debug("_addListenersWhenPopupShown for " +
       doc);
@@ -290,7 +298,7 @@ ImageZoomChrome.Overlay = {
    * a persistent key listener on the document all the time.
    */
   _removeListenersWhenPopupHidden : function() {
-    let that = ImageZoomChrome.Overlay;
+    let that = ThumbnailZoomPlusChrome.Overlay;
     doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
       doc);
@@ -305,6 +313,7 @@ ImageZoomChrome.Overlay = {
   _handleTabSelected : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
     this._thumbBBox.xMax = -999;
+    this._logger.debug("_closePanel since tab selected");
     this._closePanel();
   },
 
@@ -321,7 +330,7 @@ ImageZoomChrome.Overlay = {
     let doc = aEvent.originalTarget;
 
     if (doc instanceof HTMLDocument) {
-      let pageConstant = ImageZoom.FilterService.getPageConstantByDoc(doc);
+      let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
 
       if (-1 != pageConstant) {
         doc.addEventListener(
@@ -330,9 +339,11 @@ ImageZoomChrome.Overlay = {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
       } else {
+        this._logger.debug("_closePanel since not on a matching site: " + doc);
         this._closePanel();
       }
     } else {
+      this._logger.debug("_closePanel since not on an HTML doc");
       this._closePanel();
     }
   },
@@ -360,11 +371,11 @@ ImageZoomChrome.Overlay = {
     this._thumbBBox.xMax = -999;
     
     let node = aEvent.target;
-    let imageSource = ImageZoom.FilterService.getImageSource(aDocument, node, aPage);
+    let imageSource = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
 
     if (null != imageSource && this._isKeyActive(aEvent)) {      
-      if (ImageZoom.FilterService.isPageEnabled(aPage) &&
-          ImageZoom.FilterService.filterImage(imageSource, aPage)) {
+      if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
+          ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
         let that = this;
 
         this._timer.cancel();
@@ -372,13 +383,14 @@ ImageZoomChrome.Overlay = {
           function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
-        // This type of image is disabled or unrecognized. 
+        this._logger.debug("_closePanel since site disabled or image URL unrecognized");
         this._closePanel();
       }
     } else {
       // This element isn't an image or the hot key isn't down.
       // This is how we dismiss the popup by moving the mouse out of
       // the thumbnail.
+      this._logger.debug("_closePanel since mouse entered non-image or key not down");
       this._closePanel();
     }
   },
@@ -392,7 +404,7 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_isKeyActive");
 
     let active = false;
-    let keyPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_KEY);
+    let keyPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_KEY);
 
     switch (keyPref.value) {
       case 1:
@@ -420,7 +432,7 @@ ImageZoomChrome.Overlay = {
     this._logger.trace("_getHoverTime");
 
     let hoverTime = 0;
-    let delayPref = ImageZoom.Application.prefs.get(this.PREF_PANEL_WAIT);
+    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_WAIT);
 
     if (delayPref && !isNaN(delayPref.value)) {
       hoverTime = 1000 * delayPref.value;
@@ -438,11 +450,12 @@ ImageZoomChrome.Overlay = {
   _showZoomImage : function(aImageSrc, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
 
-    let zoomImageSrc = ImageZoom.FilterService.getZoomImage(aImageSrc, aPage);
+    let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(aImageSrc, aPage);
 
     if (null != zoomImageSrc) {
       this._showPanel(aImageNode, zoomImageSrc, aEvent);
     } else {
+      this._logger.debug("_closePanel since not a recognized image URL");
       this._closePanel();
     }
   },
@@ -460,13 +473,14 @@ ImageZoomChrome.Overlay = {
     this._panelImage.style.minWidth = "";
     this._panelImage.style.maxHeight = "";
     this._panelImage.style.minHeight = "";
+    this._logger.debug("_closePanel since closing any prev popup before loading new one");
     this._closePanel();
 
     // open new pic.
     if (this._panel.state != "open") {
       // Pop up the panel, causing the throbber to display near
       // the image thumbnail.
-      this._panel.openPopup(aImageNode, "end_before", 30, 30, false, false);
+      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
       this._addListenersWhenPopupShown();
     }
     this._currentImage = aImageSrc;
@@ -529,10 +543,11 @@ ImageZoomChrome.Overlay = {
   },
   
   _handleKeypress : function(aEvent) {
-    let that = ImageZoomChrome.Overlay;
+    let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeypress for "  +
        aEvent.keyCode );
     if (aEvent.keyCode == 27 /* Escape key */) {
+      that._logger.debug("_closePanel since pressed Esc key");
       that._closePanel();
     }
   },
@@ -555,6 +570,7 @@ ImageZoomChrome.Overlay = {
       // fit to the left/right of the thumb, we pop-up relative to the upper-left
       // corner of the browser instead of relative to aImageSrc.
       // This allows us to display larger pop-ups. 
+      that._logger.debug("hidePopup in image onload");
       that._panel.hidePopup();
 
       if (that._currentImage == aImageSrc) {
@@ -600,22 +616,22 @@ ImageZoomChrome.Overlay = {
         if (imageSize.width <= available.width) {
           if (imageSize.width <= available.right) {
             that._logger.debug("_preloadImage: display to right of thumb"); 
-            that._panel.openPopup(aImageNode, "end_before", 15, 0, false, false);
+            that._panel.openPopup(aImageNode, "end_before", that._pad, 0, false, false);
           } else {
             that._logger.debug("_preloadImage: display to left of thumb"); 
-            that._panel.openPopup(aImageNode, "start_before", -15, 0, false, false);
+            that._panel.openPopup(aImageNode, "start_before", -that._pad, 0, false, false);
           }
         } else if (imageSize.height <= available.height) {
           if (imageSize.height <= available.bottom) {
             that._logger.debug("_preloadImage: display below thumb"); 
-            that._panel.openPopup(aImageNode, "after_start", 0, 15, false, false);
+            that._panel.openPopup(aImageNode, "after_start", 0, that._pad, false, false);
           } else {
             that._logger.debug("_preloadImage: display above thumb"); 
-            that._panel.openPopup(aImageNode, "before_start", 0, -15, false, false);
+            that._panel.openPopup(aImageNode, "before_start", 0, -that._pad, false, false);
           }
         } else {
             that._logger.debug("_preloadImage: display in upper-left of window (overlap thumb)"); 
-            that._panel.openPopup(null, "overlap", 15, 15, false, false);
+            that._panel.openPopup(null, "overlap", 0, 0, false, false);
         }
         that._addListenersWhenPopupShown();
         that._showImage(aImageSrc, imageSize);
@@ -628,6 +644,7 @@ ImageZoomChrome.Overlay = {
       }
     };
     image.onerror = function() {
+      that._logger.debug("_closePanel since error loading image");
       that._closePanel();
     };
 
@@ -669,6 +686,7 @@ ImageZoomChrome.Overlay = {
    * above and below it.  This is the space into which the
    * image would have to fit if we displayed it to the side of or
    * above/below the thumbnail without overlapping it.
+   *
    * @param aImageNode the image node.
    * @return An object with .left, .right, .top, .bottom, .width and .height 
    * fields.
@@ -690,6 +708,8 @@ ImageZoomChrome.Overlay = {
     /*
      * Calc the position of the upper-left corner of the thumb by summing
      * offsets from the thumb to its parent, its parent to its grandparent, etc.
+     * We don't use the previously-calculated bbox since we need this in window
+     * coordinates, not screen coordinates.
      */
     while (null != pageNode) {
       let x = pageNode.offsetLeft * pageZoom;
@@ -697,25 +717,37 @@ ImageZoomChrome.Overlay = {
       let parentNode = pageNode.parentNode;
       if (parentNode) {
         this._logger.debug("_getAvailableSizeOutsideThumb: scroll offset in " +
-                               parentNode + ": x,y = " + 
+                               parentNode + ": this scroll x,y = " + 
                                parentNode.scrollLeft * pageZoom + "," +
                                parentNode.scrollTop * pageZoom);
         x -= parentNode.scrollLeft * pageZoom;
         y -= parentNode.scrollTop * pageZoom;
       }
-      this._logger.debug("_getAvailableSizeOutsideThumb: in " +
-                         pageNode + ": x,y = " + x + "," + y);
       available.left += x;
       available.top += y;
+      this._logger.debug("_getAvailableSizeOutsideThumb: in " +
+                         pageNode + ": this x,y = " + x + "," + y +
+                         "; combined x,y = " + 
+                         available.left + "," + available.top);
       pageNode = pageNode.offsetParent;
     }
-    
+
     /*
      * pageRight is the space available to the right of the thumbnail,
      * and pageBottom the space below.
      */
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
+
+    this._logger.debug("_getAvailableSizeOutsideThumb: reducing avail by " +
+                       this._pad + 
+                       "; _padWithouBorder=" + this._padWithoutBorder +
+                       "; _padWithBorder=" + this._padWithBorder);
+    available.left -= 2*this._pad + this._widthAddon;
+    available.right -= 2*this._pad + this._widthAddon;
+    available.top -= 2*this._pad + this._widthAddon;
+    available.bottom -= 2*this._pad + this._widthAddon;
+    
     available.width = Math.max(available.left, available.right);
     available.height = Math.max(available.top, available.bottom);
 
@@ -737,8 +769,8 @@ ImageZoomChrome.Overlay = {
     // the thumbnail by using the full page width
     // instead of calling _getPageSide.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let pageWidth = content.window.innerWidth * pageZoom - 15;
-    let pageHeight = content.window.innerHeight * pageZoom - 15;
+    let pageWidth = content.window.innerWidth * pageZoom - this._widthAddon - 2;
+    let pageHeight = content.window.innerHeight * pageZoom - this._widthAddon - 2;
     
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
@@ -781,7 +813,7 @@ ImageZoomChrome.Overlay = {
       sideScale.height = Math.round(sideScale.width / scaleRatio);
     }
 
-    let allowCoverThumb = ImageZoom.Application.prefs.get(this.PREF_PANEL_LARGE_IMAGE);
+    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_LARGE_IMAGE);
     allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
 
     // Check whether to allow popup to cover thumb.
@@ -851,7 +883,7 @@ ImageZoomChrome.Overlay = {
         let image = new Image();
 
         image.onload = function() {
-          ImageZoom.DownloadService.downloadImage(
+          ThumbnailZoomPlus.DownloadService.downloadImage(
             image, filePath, window);
         };
         image.src = fileURL;
@@ -866,7 +898,7 @@ ImageZoomChrome.Overlay = {
   togglePreference : function(aPage) {
     this._logger.debug("togglePreference");
 
-    ImageZoom.FilterService.togglePageEnable(aPage);
+    ThumbnailZoomPlus.FilterService.togglePageEnable(aPage);
   },
 
   /**
@@ -876,8 +908,8 @@ ImageZoomChrome.Overlay = {
   _updatePagesMenu : function(aPage) {
     this._logger.trace("_updatePagesMenu");
 
-    let pageName = ImageZoom.FilterService.getPageName(aPage);
-    let pageEnable = ImageZoom.FilterService.isPageEnabled(aPage);
+    let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
+    let pageEnable = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
     let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
 
@@ -892,12 +924,14 @@ ImageZoomChrome.Overlay = {
   _showPanelBorder : function() {
     this._logger.trace("_showPanelBorder");
 
-    let panelBorder = ImageZoom.Application.prefs.get(this.PREF_PANEL_BORDER);
+    let panelBorder = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_BORDER);
 
     if (panelBorder && panelBorder.value) {
       this._panel.removeAttribute("panelnoborder");
+      this._widthAddon = this._borderWidth * 2;
     } else {
       this._panel.setAttribute("panelnoborder", true);
+      this._widthAddon = 0;
     }
   },
 
@@ -907,7 +941,7 @@ ImageZoomChrome.Overlay = {
   _updatePanelOpacity : function() {
     this._logger.trace("_updatePanelOpacity");
 
-    let panelOpacity = ImageZoom.Application.prefs.get(this.PREF_PANEL_OPACITY);
+    let panelOpacity = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_OPACITY);
 
     if (panelOpacity && panelOpacity.value) {
       this._panel.style.opacity = panelOpacity.value / 100;
@@ -924,11 +958,11 @@ ImageZoomChrome.Overlay = {
     this._logger.debug("observe");
 
     if ("nsPref:changed" == aTopic &&
-        -1 != aData.indexOf(ImageZoom.PrefBranch)) {
+        -1 != aData.indexOf(ThumbnailZoomPlus.PrefBranch)) {
       if (-1 != aData.indexOf(".enable")) {
         let page =
-          aData.replace(ImageZoom.PrefBranch, "").replace(".enable", "");
-        let pageConstant = ImageZoom.FilterService.getPageConstantByName(page);
+          aData.replace(ThumbnailZoomPlus.PrefBranch, "").replace(".enable", "");
+        let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByName(page);
 
         if (-1 != pageConstant) {
           this._updatePagesMenu(pageConstant);
@@ -948,6 +982,6 @@ ImageZoomChrome.Overlay = {
 };
 
 window.addEventListener(
-  "load", function() { ImageZoomChrome.Overlay.init(); }, false);
+  "load", function() { ThumbnailZoomPlusChrome.Overlay.init(); }, false);
 window.addEventListener(
-  "unload", function() { ImageZoomChrome.Overlay.uninit(); }, false);
+  "unload", function() { ThumbnailZoomPlusChrome.Overlay.uninit(); }, false);

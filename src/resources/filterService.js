@@ -38,31 +38,31 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 /**
  * The Filter Service.
  */
-ImageZoom.FilterService = {
+ThumbnailZoomPlus.FilterService = {
   /* Pages info list. */
   pageList : [
-    ImageZoom.Pages.Facebook,
-    ImageZoom.Pages.Twitter,
-    ImageZoom.Pages.Twitpic,
-    ImageZoom.Pages.LinkedIn,
-    ImageZoom.Pages.MySpace,
-    ImageZoom.Pages.Hi5,
-    ImageZoom.Pages.Amazon,
-    ImageZoom.Pages.Picasa,
-    ImageZoom.Pages.Flickr,
-    ImageZoom.Pages.DeviantART,
-    ImageZoom.Pages.PhotoBucket,
-    ImageZoom.Pages.Wikipedia,
-    ImageZoom.Pages.Tagged,
-    ImageZoom.Pages.LastFM,
-    ImageZoom.Pages.Google,
-    ImageZoom.Pages.YouTube,
-    ImageZoom.Pages.DailyMile,
-    ImageZoom.Pages.IMDb,
-    ImageZoom.Pages.Imgur,
-    ImageZoom.Pages.Photosight,
-    ImageZoom.Pages.Engadget,
-    ImageZoom.Pages.Others // last; lowest priority
+    ThumbnailZoomPlus.Pages.Facebook,
+    ThumbnailZoomPlus.Pages.Twitter,
+    ThumbnailZoomPlus.Pages.Twitpic,
+    ThumbnailZoomPlus.Pages.LinkedIn,
+    ThumbnailZoomPlus.Pages.MySpace,
+    ThumbnailZoomPlus.Pages.Hi5,
+    ThumbnailZoomPlus.Pages.Amazon,
+    ThumbnailZoomPlus.Pages.Picasa,
+    ThumbnailZoomPlus.Pages.Flickr,
+    ThumbnailZoomPlus.Pages.DeviantART,
+    ThumbnailZoomPlus.Pages.PhotoBucket,
+    ThumbnailZoomPlus.Pages.Wikipedia,
+    ThumbnailZoomPlus.Pages.Tagged,
+    ThumbnailZoomPlus.Pages.LastFM,
+    ThumbnailZoomPlus.Pages.Google,
+    ThumbnailZoomPlus.Pages.YouTube,
+    ThumbnailZoomPlus.Pages.DailyMile,
+    ThumbnailZoomPlus.Pages.IMDb,
+    ThumbnailZoomPlus.Pages.Imgur,
+    ThumbnailZoomPlus.Pages.Photosight,
+    ThumbnailZoomPlus.Pages.Engadget,
+    ThumbnailZoomPlus.Pages.Others // last; lowest priority
   ],
 
   /* Logger for this object. */
@@ -72,7 +72,7 @@ ImageZoom.FilterService = {
    * Initializes the resource.
    */
   _init : function() {
-    this._logger = ImageZoom.getLogger("ImageZoom.FilterService");
+    this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.FilterService");
     this._logger.trace("_init");
   },
 
@@ -148,9 +148,9 @@ ImageZoom.FilterService = {
     let pageName = this.getPageName(aPage);
 
     if (null != pageName) {
-      let pagePrefKey = ImageZoom.PrefBranch + pageName + ".enable";
+      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
 
-      pageEnable = ImageZoom.Application.prefs.get(pagePrefKey).value;
+      pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
     }
 
     return pageEnable;
@@ -166,10 +166,10 @@ ImageZoom.FilterService = {
     let pageName = this.getPageName(aPage);
 
     if (null != pageName) {
-      let pagePrefKey = ImageZoom.PrefBranch + pageName + ".enable";
-      let pageEnable = ImageZoom.Application.prefs.get(pagePrefKey).value;
+      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
+      let pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
 
-      ImageZoom.Application.prefs.setValue(pagePrefKey, !pageEnable);
+      ThumbnailZoomPlus.Application.prefs.setValue(pagePrefKey, !pageEnable);
     }
   },
 
@@ -276,4 +276,4 @@ ImageZoom.FilterService = {
 /**
  * Constructor.
  */
-(function() { this._init(); }).apply(ImageZoom.FilterService);
+(function() { this._init(); }).apply(ThumbnailZoomPlus.FilterService);

@@ -49,11 +49,11 @@
       image="chrome://thumbnailzoomplus/skin/images/icon16.png"
       class="chromeclass-toolbar-additional ">
       <menupopup id="thumbnailzoomplus-toolbar-menu"
-        onpopupshown="ImageZoomChrome.Overlay.addMenuItems();"
-        onpopuphidden="ImageZoomChrome.Overlay.removeMenuItems();">
+        onpopupshown="ThumbnailZoomPlusChrome.Overlay.addMenuItems();"
+        onpopuphidden="ThumbnailZoomPlusChrome.Overlay.removeMenuItems();">
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
-          oncommand="ImageZoomChrome.Overlay.openPreferences();" />
+          oncommand="ThumbnailZoomPlusChrome.Overlay.openPreferences();" />
       </menupopup>
     </toolbarbutton>
   </toolbarpalette>
@@ -78,6 +78,6 @@
       image="chrome://thumbnailzoomplus/skin/images/icon16.png"
       label="&thumbnailzoomplus.context.download.label;"
       accesskey="&thumbnailzoomplus.context.download.accesskey;"
-      oncommand="ImageZoomChrome.Overlay.downloadImage();" />
+      oncommand="ThumbnailZoomPlusChrome.Overlay.downloadImage();" />
   </popup>
 </overlay>
