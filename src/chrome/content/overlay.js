@@ -565,15 +565,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     let image = new Image();
 
     image.onload = function() {
-      // Close and (probably) re-open the panel so we can reposition it to
-      // display the image.  Note that if the image is too large to
-      // fit to the left/right of the thumb, we pop-up relative to the upper-left
-      // corner of the browser instead of relative to aImageSrc.
-      // This allows us to display larger pop-ups. 
-      that._logger.debug("hidePopup in image onload");
-      that._panel.hidePopup();
+      that._logger.debug("In image onload");
 
       if (that._currentImage == aImageSrc) {
+        // This is the same image URL as we're currently loading.
+        // Close and (probably) re-open the panel so we can reposition it to
+        // display the image.  Note that if the image is too large to
+        // fit to the left/right of the thumb, we pop-up relative to the upper-left
+        // corner of the browser instead of relative to aImageSrc.
+        // This allows us to display larger pop-ups. 
+        that._logger.debug("hidePopup in image onload");
+        that._panel.hidePopup();
+
         let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
         
         let thumbWidth = aImageNode.offsetWidth * pageZoom;
