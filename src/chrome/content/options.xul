@@ -30,76 +30,76 @@
  -->
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet type="text/css" href="chrome://imagezoom/skin/overlay.css" ?>
+<?xml-stylesheet type="text/css" href="chrome://thumbnailzoomplus/skin/overlay.css" ?>
 
-<!DOCTYPE overlay SYSTEM "chrome://imagezoom/locale/locale.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://thumbnailzoomplus/locale/locale.dtd">
 
-<prefwindow id="imagezoom-options-window"
-  title="&imagezoom.options.window.title;"
+<prefwindow id="thumbnailzoomplus-options-window"
+  title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="imagezoom-options-pane" label="&imagezoom.options.pane.label;">
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.pane.label;">
     <preferences>
-      <preference id="imagezoom-options-delay-pref"
-        name="extensions.imagezoom.panel.wait" type="string"/>
-      <preference id="imagezoom-options-border-pref"
-        name="extensions.imagezoom.panel.border" type="bool"/>
-      <preference id="imagezoom-options-large-image-pref"
-        name="extensions.imagezoom.panel.largeimage" type="bool"/>
-      <preference id="imagezoom-options-key-pref"
-        name="extensions.imagezoom.panel.key" type="int"/>
-      <preference id="imagezoom-options-opacity-pref"
-        name="extensions.imagezoom.panel.opacity" type="int"/>
-      <preference id="imagezoom-options-twitter-pref"
-        name="extensions.imagezoom.twitter.enable" type="bool"/>
-      <preference id="imagezoom-options-twitpic-pref"
-        name="extensions.imagezoom.twitpic.enable" type="bool"/>
-      <preference id="imagezoom-options-facebook-pref"
-        name="extensions.imagezoom.facebook.enable" type="bool"/>
-      <preference id="imagezoom-options-linkedin-pref"
-        name="extensions.imagezoom.linkedin.enable" type="bool"/>
-      <preference id="imagezoom-options-amazon-pref"
-        name="extensions.imagezoom.amazon.enable" type="bool"/>
-      <preference id="imagezoom-options-hi5-pref"
-        name="extensions.imagezoom.hi5.enable" type="bool"/>
-      <preference id="imagezoom-options-picasa-pref"
-        name="extensions.imagezoom.picasa.enable" type="bool"/>
-      <preference id="imagezoom-options-myspace-pref"
-        name="extensions.imagezoom.myspace.enable" type="bool"/>
-      <preference id="imagezoom-options-flickr-pref"
-        name="extensions.imagezoom.flickr.enable" type="bool"/>
-      <preference id="imagezoom-options-wikipedia-pref"
-        name="extensions.imagezoom.wikipedia.enable" type="bool"/>
-      <preference id="imagezoom-options-deviantart-pref"
-        name="extensions.imagezoom.deviantart.enable" type="bool"/>
-      <preference id="imagezoom-options-photobucket-pref"
-        name="extensions.imagezoom.photobucket.enable" type="bool"/>
-      <preference id="imagezoom-options-tagged-pref"
-        name="extensions.imagezoom.tagged.enable" type="bool"/>
-      <preference id="imagezoom-options-lastfm-pref"
-        name="extensions.imagezoom.lastfm.enable" type="bool"/>
-      <preference id="imagezoom-options-google-pref"
-        name="extensions.imagezoom.google.enable" type="bool"/>
-      <preference id="imagezoom-options-youtube-pref"
-        name="extensions.imagezoom.youtube.enable" type="bool"/>
-      <preference id="imagezoom-options-dailymile-pref"
-        name="extensions.imagezoom.dailymile.enable" type="bool"/>
-      <preference id="imagezoom-options-imdb-pref"
-        name="extensions.imagezoom.imdb.enable" type="bool"/>
-      <preference id="imagezoom-options-imgur-pref"
-        name="extensions.imagezoom.imgur.enable" type="bool"/>
-      <preference id="imagezoom-options-photosight-pref"
-        name="extensions.imagezoom.photosight.enable" type="bool"/>
-      <preference id="imagezoom-options-engadget-pref"
-        name="extensions.imagezoom.engadget.enable" type="bool"/>
-      <preference id="imagezoom-options-others-pref"
-        name="extensions.imagezoom.others.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-delay-pref"
+        name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
+      <preference id="thumbnailzoomplus-options-border-pref"
+        name="extensions.thumbnailzoomplus.panel.border" type="bool"/>
+      <preference id="thumbnailzoomplus-options-large-image-pref"
+        name="extensions.thumbnailzoomplus.panel.largeimage" type="bool"/>
+      <preference id="thumbnailzoomplus-options-key-pref"
+        name="extensions.thumbnailzoomplus.panel.key" type="int"/>
+      <preference id="thumbnailzoomplus-options-opacity-pref"
+        name="extensions.thumbnailzoomplus.panel.opacity" type="int"/>
+      <preference id="thumbnailzoomplus-options-twitter-pref"
+        name="extensions.thumbnailzoomplus.twitter.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-twitpic-pref"
+        name="extensions.thumbnailzoomplus.twitpic.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-facebook-pref"
+        name="extensions.thumbnailzoomplus.facebook.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-linkedin-pref"
+        name="extensions.thumbnailzoomplus.linkedin.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-amazon-pref"
+        name="extensions.thumbnailzoomplus.amazon.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-hi5-pref"
+        name="extensions.thumbnailzoomplus.hi5.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-picasa-pref"
+        name="extensions.thumbnailzoomplus.picasa.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-myspace-pref"
+        name="extensions.thumbnailzoomplus.myspace.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-flickr-pref"
+        name="extensions.thumbnailzoomplus.flickr.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-wikipedia-pref"
+        name="extensions.thumbnailzoomplus.wikipedia.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-deviantart-pref"
+        name="extensions.thumbnailzoomplus.deviantart.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-photobucket-pref"
+        name="extensions.thumbnailzoomplus.photobucket.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-tagged-pref"
+        name="extensions.thumbnailzoomplus.tagged.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-lastfm-pref"
+        name="extensions.thumbnailzoomplus.lastfm.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-google-pref"
+        name="extensions.thumbnailzoomplus.google.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-youtube-pref"
+        name="extensions.thumbnailzoomplus.youtube.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-dailymile-pref"
+        name="extensions.thumbnailzoomplus.dailymile.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-imdb-pref"
+        name="extensions.thumbnailzoomplus.imdb.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-imgur-pref"
+        name="extensions.thumbnailzoomplus.imgur.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-photosight-pref"
+        name="extensions.thumbnailzoomplus.photosight.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-engadget-pref"
+        name="extensions.thumbnailzoomplus.engadget.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-others-pref"
+        name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
     <groupbox>
       <caption>
-        <label value="&imagezoom.options.general.groupbox.caption;"/>
+        <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
       </caption>
       <grid>
         <columns>
@@ -108,23 +108,23 @@
         </columns>
         <rows>
           <row align="center">
-            <label value="&imagezoom.options.delay.selection.label;" />
-            <textbox preference="imagezoom-options-delay-pref" type="number"
+            <label value="&thumbnailzoomplus.options.delay.selection.label;" />
+            <textbox preference="thumbnailzoomplus-options-delay-pref" type="number"
               size="4" maxlength="4" min="0" max="60" width="50"
               decimalplaces="2" increment="0.1" />
           </row>
           <row align="center">
-            <label value="&imagezoom.options.opacity.selection.label;" />
-            <textbox preference="imagezoom-options-opacity-pref" type="number"
+            <label value="&thumbnailzoomplus.options.opacity.selection.label;" />
+            <textbox preference="thumbnailzoomplus-options-opacity-pref" type="number"
               size="4" maxlength="4" min="1" max="100" width="50"
               increment="1" />
           </row>
           <row align="center">
-            <label value="&imagezoom.options.key.selection.label;" />
-            <menulist preference="imagezoom-options-key-pref">
+            <label value="&thumbnailzoomplus.options.key.selection.label;" />
+            <menulist preference="thumbnailzoomplus-options-key-pref">
               <menupopup>
                 <menuitem value="0"
-                  label="&imagezoom.options.key.none.label;" />
+                  label="&thumbnailzoomplus.options.key.none.label;" />
                 <menuitem value="1" label="CTRL" />
                 <menuitem value="2" label="SHIFT" />
                 <menuitem value="3" label="ALT" />
@@ -132,10 +132,10 @@
             </menulist>
           </row>
           <hbox>
-            <checkbox preference="imagezoom-options-border-pref"
-              label="&imagezoom.options.border.checkbox.label;    " />
-            <checkbox preference="imagezoom-options-large-image-pref"
-              label="&imagezoom.options.largeimage.checkbox.label;" />
+            <checkbox preference="thumbnailzoomplus-options-border-pref"
+              label="&thumbnailzoomplus.options.border.checkbox.label;    " />
+            <checkbox preference="thumbnailzoomplus-options-large-image-pref"
+              label="&thumbnailzoomplus.options.largeimage.checkbox.label;" />
           </hbox>
         </rows>
       </grid>
@@ -143,57 +143,57 @@
 
     <!-- Pages -->
     <groupbox>
-      <caption label="&imagezoom.options.enable.groupbox.caption;"/>
+      <caption label="&thumbnailzoomplus.options.enable.groupbox.caption;"/>
       <hbox flex="1">
-        <vbox class="imagezoom-options-pages-column" flex="1">
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="Facebook"
-            preference="imagezoom-options-facebook-pref" />
+            preference="thumbnailzoomplus-options-facebook-pref" />
           <checkbox label="MySpace"
-            preference="imagezoom-options-myspace-pref" />
+            preference="thumbnailzoomplus-options-myspace-pref" />
           <checkbox label="Amazon"
-            preference="imagezoom-options-amazon-pref" />
+            preference="thumbnailzoomplus-options-amazon-pref" />
           <checkbox label="Tagged"
-            preference="imagezoom-options-tagged-pref" />
+            preference="thumbnailzoomplus-options-tagged-pref" />
           <checkbox label="Last.fm"
-            preference="imagezoom-options-lastfm-pref" />
+            preference="thumbnailzoomplus-options-lastfm-pref" />
           <checkbox label="YouTube"
-            preference="imagezoom-options-youtube-pref" />
+            preference="thumbnailzoomplus-options-youtube-pref" />
           <checkbox label="Imgur"
-            preference="imagezoom-options-imgur-pref" />
+            preference="thumbnailzoomplus-options-imgur-pref" />
         </vbox>
-        <vbox class="imagezoom-options-pages-column" flex="1">
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="Twitter"
-            preference="imagezoom-options-twitter-pref" />
+            preference="thumbnailzoomplus-options-twitter-pref" />
           <checkbox label="LinkedIn"
-            preference="imagezoom-options-linkedin-pref" />
+            preference="thumbnailzoomplus-options-linkedin-pref" />
           <checkbox label="Picasa"
-            preference="imagezoom-options-picasa-pref" />
+            preference="thumbnailzoomplus-options-picasa-pref" />
           <checkbox label="PhotoBucket"
-            preference="imagezoom-options-photobucket-pref" />
+            preference="thumbnailzoomplus-options-photobucket-pref" />
           <checkbox label="Wikipedia"
-            preference="imagezoom-options-wikipedia-pref" />
+            preference="thumbnailzoomplus-options-wikipedia-pref" />
           <checkbox label="Daily Mile"
-            preference="imagezoom-options-dailymile-pref" />
+            preference="thumbnailzoomplus-options-dailymile-pref" />
           <checkbox label="Photosight"
-            preference="imagezoom-options-photosight-pref" />
+            preference="thumbnailzoomplus-options-photosight-pref" />
         </vbox>
-        <vbox class="imagezoom-options-pages-column" flex="1">
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="Twitpic"
-            preference="imagezoom-options-twitpic-pref" />
+            preference="thumbnailzoomplus-options-twitpic-pref" />
           <checkbox label="Hi5"
-            preference="imagezoom-options-hi5-pref" />
+            preference="thumbnailzoomplus-options-hi5-pref" />
           <checkbox label="Flickr"
-            preference="imagezoom-options-flickr-pref" />
+            preference="thumbnailzoomplus-options-flickr-pref" />
           <checkbox label="deviantART"
-            preference="imagezoom-options-deviantart-pref" />
+            preference="thumbnailzoomplus-options-deviantart-pref" />
           <checkbox label="Google+"
-            preference="imagezoom-options-google-pref" />
+            preference="thumbnailzoomplus-options-google-pref" />
           <checkbox label="IMDb"
-            preference="imagezoom-options-imdb-pref" />
+            preference="thumbnailzoomplus-options-imdb-pref" />
           <checkbox label="Engadget"
-            preference="imagezoom-options-engadget-pref" />
+            preference="thumbnailzoomplus-options-engadget-pref" />
           <checkbox label="Others"
-            preference="imagezoom-options-others-pref" />
+            preference="thumbnailzoomplus-options-others-pref" />
         </vbox>
       </hbox>
     </groupbox>

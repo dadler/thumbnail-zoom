@@ -36,12 +36,12 @@
     <em:id>thumbnailZoom@dadler.github.com</em:id>
     <em:name>Thumbnail Zoom Plus</em:name>
     <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Facebook, Twitter, Reddit, Flickr, Amazon, deviantART, and more.  Thumbnail Zoom Plus is an enhanced version of the Thumbnail Zoom add-on.</em:description>
-    <em:version>1.5.5</em:version>
+    <em:version>1.5.6</em:version>
     <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
     <!-- <em:homepageURL>http://dadler.github.com/thumbnail-zoom/</em:homepageURL> -->
-    <em:iconURL>chrome://imagezoom/skin/images/icon64.png</em:iconURL>
-    <em:optionsURL>chrome://imagezoom/content/options.xul</em:optionsURL>
+    <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
+    <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
 
     <!-- Firefox -->

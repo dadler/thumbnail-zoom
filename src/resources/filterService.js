@@ -33,7 +33,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://imagezoom/common.js");
+Cu.import("resource://thumbnailzoomplus/common.js");
 
 /**
  * The Filter Service.

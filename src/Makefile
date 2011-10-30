@@ -102,7 +102,7 @@ xpi_built := $(build_dir)/$(install_rdf) \
              $(build_dir)/$(chrome_manifest) \
              $(addprefix $(build_dir)/,$(chrome_sources)) \
              $(addprefix $(build_dir)/,$(resources_sources)) \
-             $(build_dir)/$(preferences_dir)/imagezoom.js \
+             $(build_dir)/$(preferences_dir)/thumbnailzoomplus.js \
 
 xpi_built_no_dir := $(subst $(build_dir)/,,$(xpi_built))
 

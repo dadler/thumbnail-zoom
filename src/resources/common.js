@@ -33,7 +33,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://imagezoom/log4moz.js");
+Cu.import("resource://thumbnailzoomplus/log4moz.js");
 
 /**
  * ImageZoom namespace.
@@ -140,7 +140,7 @@ if ("undefined" == typeof(ImageZoom)) {
      * Gets the preference branch.
      * @return the preference branch.
      */
-    get PrefBranch() { return "extensions.imagezoom."; },
+    get PrefBranch() { return "extensions.thumbnailzoomplus."; },
 
     /**
      * Gets the id of this extension.

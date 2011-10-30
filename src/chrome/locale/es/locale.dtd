@@ -27,20 +27,20 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<!ENTITY imagezoom.toolbar.label                         "Thumbnail Zoom">
-<!ENTITY imagezoom.toolbar.tooltip                       "Thumbnail Zoom">
-<!ENTITY imagezoom.toolbar.settings.label                "Opciones...">
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opciones...">
 
-<!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
-<!ENTITY imagezoom.options.pane.label                    "Preferencias">
-<!ENTITY imagezoom.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
-<!ENTITY imagezoom.options.opacity.selection.label       "Transparencia de las imágenes:">
-<!ENTITY imagezoom.options.key.selection.label           "Tecla para visualizar la imagen:">
-<!ENTITY imagezoom.options.border.checkbox.label         "Mostrar borde blanco">
-<!ENTITY imagezoom.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
-<!ENTITY imagezoom.options.key.none.label                "Ninguna">
-<!ENTITY imagezoom.options.general.groupbox.caption      "General">
-<!ENTITY imagezoom.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferencias">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
+<!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Transparencia de las imágenes:">
+<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para visualizar la imagen:">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
+<!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
+<!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
+<!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
 
-<!ENTITY imagezoom.context.download.label                "Guardar imagen ampliada como ...">
-<!ENTITY imagezoom.context.download.accesskey            "Z">
+<!ENTITY thumbnailzoomplus.context.download.label                "Guardar imagen ampliada como ...">
+<!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">

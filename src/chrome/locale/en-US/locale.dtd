@@ -27,20 +27,20 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<!ENTITY imagezoom.toolbar.label                         "Thumbnail Zoom">
-<!ENTITY imagezoom.toolbar.tooltip                       "Thumbnail Zoom">
-<!ENTITY imagezoom.toolbar.settings.label                "Settings...">
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Settings...">
 
-<!ENTITY imagezoom.options.window.title                  "Thumbnail Zoom">
-<!ENTITY imagezoom.options.pane.label                    "Preferences">
-<!ENTITY imagezoom.options.delay.selection.label         "Delay before displaying the image (sec):">
-<!ENTITY imagezoom.options.opacity.selection.label       "Images opacity: ">
-<!ENTITY imagezoom.options.key.selection.label           "Key to display the image:">
-<!ENTITY imagezoom.options.border.checkbox.label         "Show white border">
-<!ENTITY imagezoom.options.largeimage.checkbox.label     "Maximize image size by overlapping thumbnail">
-<!ENTITY imagezoom.options.key.none.label                "None">
-<!ENTITY imagezoom.options.general.groupbox.caption      "General">
-<!ENTITY imagezoom.options.enable.groupbox.caption       "Enable or disable per site">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferences">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying the image (sec):">
+<!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Images opacity: ">
+<!ENTITY thumbnailzoomplus.options.key.selection.label           "Key to display the image:">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximize image size by overlapping thumbnail">
+<!ENTITY thumbnailzoomplus.options.key.none.label                "None">
+<!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
+<!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Enable or disable per site">
 
-<!ENTITY imagezoom.context.download.label                "Save Enlarged Image As...">
-<!ENTITY imagezoom.context.download.accesskey            "Z">
+<!ENTITY thumbnailzoomplus.context.download.label                "Save Enlarged Image As...">
+<!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">

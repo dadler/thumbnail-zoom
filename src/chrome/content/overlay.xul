@@ -29,30 +29,30 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<?xml-stylesheet type="text/css" href="chrome://imagezoom/skin/overlay.css" ?>
+<?xml-stylesheet type="text/css" href="chrome://thumbnailzoomplus/skin/overlay.css" ?>
 
-<!DOCTYPE overlay SYSTEM "chrome://imagezoom/locale/locale.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://thumbnailzoomplus/locale/locale.dtd">
 
-<overlay id="imagezoom-browser-overlay"
+<overlay id="thumbnailzoomplus-browser-overlay"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript"
-    src="chrome://imagezoom/content/common.js" />
+    src="chrome://thumbnailzoomplus/content/common.js" />
   <script type="application/x-javascript"
-    src="chrome://imagezoom/content/overlay.js" />
+    src="chrome://thumbnailzoomplus/content/overlay.js" />
 
   <!-- Toolbar button -->
   <toolbarpalette id="BrowserToolbarPalette">
-    <toolbarbutton id="imagezoom-toolbar-button" type="menu"
-      label="&imagezoom.toolbar.label;"
-      tooltiptext="&imagezoom.toolbar.tooltip;"
-      image="chrome://imagezoom/skin/images/icon16.png"
+    <toolbarbutton id="thumbnailzoomplus-toolbar-button" type="menu"
+      label="&thumbnailzoomplus.toolbar.label;"
+      tooltiptext="&thumbnailzoomplus.toolbar.tooltip;"
+      image="chrome://thumbnailzoomplus/skin/images/icon16.png"
       class="chromeclass-toolbar-additional ">
-      <menupopup id="imagezoom-toolbar-menu"
+      <menupopup id="thumbnailzoomplus-toolbar-menu"
         onpopupshown="ImageZoomChrome.Overlay.addMenuItems();"
         onpopuphidden="ImageZoomChrome.Overlay.removeMenuItems();">
-        <menuseparator id="imagezoom-toolbar-menuseparator" />
-        <menuitem label="&imagezoom.toolbar.settings.label;"
+        <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
+        <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
           oncommand="ImageZoomChrome.Overlay.openPreferences();" />
       </menupopup>
     </toolbarbutton>
@@ -60,24 +60,24 @@
 
   <!-- Panel -->
   <window id="main-window">
-    <panel id="imagezoom-panel" noautofocus="true" noautohide="true">
-      <stack id="imagezoom-panel-stack">
+    <panel id="thumbnailzoomplus-panel" noautofocus="true" noautohide="true">
+      <stack id="thumbnailzoomplus-panel-stack">
         <vbox align="center" pack="center">
-          <image id="imagezoom-panel-throbber" />
+          <image id="thumbnailzoomplus-panel-throbber" />
         </vbox>
-        <image id="imagezoom-panel-image" />
+        <image id="thumbnailzoomplus-panel-image" />
       </stack>
     </panel>
   </window>
 
   <!-- Context menu item -->
   <popup id="contentAreaContextMenu">
-    <menuitem id="imagezoom-context-download" hidden="true"
+    <menuitem id="thumbnailzoomplus-context-download" hidden="true"
       insertbefore="context-saveimage" class="menuitem-iconic"
       onclick="checkForMiddleClick(this, event);"
-      image="chrome://imagezoom/skin/images/icon16.png"
-      label="&imagezoom.context.download.label;"
-      accesskey="&imagezoom.context.download.accesskey;"
+      image="chrome://thumbnailzoomplus/skin/images/icon16.png"
+      label="&thumbnailzoomplus.context.download.label;"
+      accesskey="&thumbnailzoomplus.context.download.accesskey;"
       oncommand="ImageZoomChrome.Overlay.downloadImage();" />
   </popup>
 </overlay>

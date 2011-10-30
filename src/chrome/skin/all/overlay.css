@@ -27,30 +27,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-toolbar[mode="icons"] #imagezoom-toolbar-button {
+toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   -moz-box-orient: horizontal;
 }
 
-#imagezoom-panel {
+#thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
   background-color: #FFF !important;
   background-image: none !important;
   padding: 5px;
   cursor: none !important;
+  z-index: 10100;
 }
-#imagezoom-panel[panelnoborder=true] {
+#thumbnailzoomplus-panel[panelnoborder=true] {
   padding: 0px;
   border: none !important;
 }
 
-#imagezoom-panel-throbber {
-  list-style-image: url("chrome://imagezoom/skin/images/throbber.gif");
+#thumbnailzoomplus-panel-throbber {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/throbber.gif");
   width: 40px !important;
   min-width: 40px !important;
   max-width: 40px !important;
   height: 40px;
 }
 
-.imagezoom-options-pages-column {
+.thumbnailzoomplus-options-pages-column {
   padding: 10px;
 }

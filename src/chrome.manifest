@@ -27,13 +27,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ##
 
-content   imagezoom                chrome/content/
-locale    imagezoom   en-US        chrome/locale/en-US/
-locale    imagezoom   es           chrome/locale/es/
-locale    imagezoom   it           chrome/locale/it/
-locale    imagezoom   pt           chrome/locale/pt/
-skin      imagezoom   classic/1.0  chrome/skin/all/
-resource  imagezoom   resources/
+content   thumbnailzoomplus                chrome/content/
+locale    thumbnailzoomplus   en-US        chrome/locale/en-US/
+locale    thumbnailzoomplus   es           chrome/locale/es/
+locale    thumbnailzoomplus   it           chrome/locale/it/
+locale    thumbnailzoomplus   pt           chrome/locale/pt/
+skin      thumbnailzoomplus   classic/1.0  chrome/skin/all/
+resource  thumbnailzoomplus   resources/
 
-overlay   chrome://browser/content/browser.xul          chrome://imagezoom/content/overlay.xul
-style     chrome://global/content/customizeToolbar.xul  chrome://imagezoom/skin/overlay.css
+overlay   chrome://browser/content/browser.xul          chrome://thumbnailzoomplus/content/overlay.xul
+style     chrome://global/content/customizeToolbar.xul  chrome://thumbnailzoomplus/skin/overlay.css

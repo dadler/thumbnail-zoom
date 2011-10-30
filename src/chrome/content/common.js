@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Components.utils.import("resource://imagezoom/common.js");
+Components.utils.import("resource://thumbnailzoomplus/common.js");
 
 /**
  * ImageZoomChrome namespace.

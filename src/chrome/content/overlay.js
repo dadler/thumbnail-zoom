@@ -27,11 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Cu.import("resource://imagezoom/common.js");
-Cu.import("resource://imagezoom/pages.js");
-Cu.import("resource://imagezoom/filterService.js");
-Cu.import("resource://imagezoom/downloadService.js");
-Cu.import("resource://imagezoom/uninstallService.js");
+Cu.import("resource://thumbnailzoomplus/common.js");
+Cu.import("resource://thumbnailzoomplus/pages.js");
+Cu.import("resource://thumbnailzoomplus/filterService.js");
+Cu.import("resource://thumbnailzoomplus/downloadService.js");
+Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 
 /**
  * Controls the browser overlay.
@@ -80,10 +80,10 @@ ImageZoomChrome.Overlay = {
     this._preferencesService =
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-    this._panel = document.getElementById("imagezoom-panel");
-    this._panelImage = document.getElementById("imagezoom-panel-image");
-    this._panelThrobber = document.getElementById("imagezoom-panel-throbber");
-    this._contextMenu = document.getElementById("imagezoom-context-download");
+    this._panel = document.getElementById("thumbnailzoomplus-panel");
+    this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
+    this._panelThrobber = document.getElementById("thumbnailzoomplus-panel-throbber");
+    this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
@@ -148,9 +148,9 @@ ImageZoomChrome.Overlay = {
 
       if (-1 != toolbar.currentSet.indexOf("urlbar-container")) {
          newCurrentSet = toolbar.currentSet.replace(
-           /urlbar-container/, "imagezoom-toolbar-button,urlbar-container");
+           /urlbar-container/, "thumbnailzoomplus-toolbar-button,urlbar-container");
       } else {
-         newCurrentSet = toolbar.currentSet + ",imagezoom-toolbar-button";
+         newCurrentSet = toolbar.currentSet + ",thumbnailzoomplus-toolbar-button";
       }
       toolbar.setAttribute("currentset", newCurrentSet);
       toolbar.currentSet = newCurrentSet;
@@ -193,11 +193,11 @@ ImageZoomChrome.Overlay = {
   addMenuItems : function() {
     this._logger.debug("addMenuItems");
 
-    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
+    let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
 
     if (menuPopup) {
       let menuSeparator =
-        document.getElementById("imagezoom-toolbar-menuseparator");
+        document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
       let menuItem = null;
       let pageCount = ImageZoom.FilterService.pageList.length;
       let pageInfo = null;
@@ -206,7 +206,7 @@ ImageZoomChrome.Overlay = {
         pageInfo = ImageZoom.FilterService.pageList[i];
         menuItem = document.createElement("menuitem");
         menuItem.setAttribute(
-          "id", "imagezoom-toolbar-menuitem-" + pageInfo.key);
+          "id", "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key);
         menuItem.setAttribute("label", pageInfo.name);
         menuItem.setAttribute("type", "checkbox");
         { 
@@ -227,11 +227,11 @@ ImageZoomChrome.Overlay = {
   removeMenuItems : function() {
     this._logger.debug("removeMenuItems");
 
-    let menuPopup = document.getElementById("imagezoom-toolbar-menu");
+    let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
 
     if (menuPopup) {
       let menuSeparator =
-        document.getElementById("imagezoom-toolbar-menuseparator");
+        document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
 
       while (menuPopup.firstChild != menuSeparator) {
         menuPopup.removeChild(menuPopup.firstChild);
@@ -824,8 +824,8 @@ ImageZoomChrome.Overlay = {
     this._logger.debug("openPreferences");
 
     let optionsDialog =
-      window.openDialog("chrome://imagezoom/content/options.xul",
-        "imagezoom-options-window", "chrome,centerscreen");
+      window.openDialog("chrome://thumbnailzoomplus/content/options.xul",
+        "thumbnailzoomplus-options-window", "chrome,centerscreen");
 
     optionsDialog.focus();
   },
@@ -878,7 +878,7 @@ ImageZoomChrome.Overlay = {
 
     let pageName = ImageZoom.FilterService.getPageName(aPage);
     let pageEnable = ImageZoom.FilterService.isPageEnabled(aPage);
-    let menuItemId = "imagezoom-toolbar-menuitem-" + pageName;
+    let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
 
     if (null != menuItem) {
