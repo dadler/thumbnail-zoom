@@ -351,9 +351,9 @@ ThumbnailZoomPlus.Pages.Google = {
 
     // example profile pic link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg?sz=80
     // example image link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg
-    // Note: the sz=48 or 32 case is the tiny thumb for which Google already has a popup which
+    // Note: the sz=48 or 32 or 24 case is the tiny thumb for which Google already has a popup which
     // shows a medium thumb and Add To Circles; we don't want our popup from that tiny one.
-    let rex_prohibit = new RegExp(/\/photo\.jpg\?sz=(32|48)$/);
+    let rex_prohibit = new RegExp(/\/photo\.jpg\?sz=(24|32|48)$/);
     if (rex_prohibit.test(aImageSrc)) {
       this._logger.debug("matched google+ tiny profile pic, from which we won't popup");
       return null;
