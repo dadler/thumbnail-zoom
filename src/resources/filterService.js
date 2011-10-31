@@ -84,11 +84,18 @@ ThumbnailZoomPlus.FilterService = {
   getPageConstantByDoc : function(aDocument) {
     this._logger.debug("getPageConstantByDoc");
 
+    // If enableFileProtocol, then the add-on is enabled for file:// URLs
+    // (typically used with the Others page type).  This is useful during
+    // debugging, but we don't normally enable it in the released version
+    // since we aren't sure if there might be subtle security risks.
+    enableFileProtocol = false;
+
     let pageConstant = -1;
 
     if (aDocument.location &&
         ("http:" == aDocument.location.protocol ||
-         "https:" == aDocument.location.protocol)) {
+         "https:" == aDocument.location.protocol ||
+         (enableFileProtocol && "file:" == aDocument.location.protocol))) {
       let host = aDocument.location.host;
       let pageCount = this.pageList.length;
 

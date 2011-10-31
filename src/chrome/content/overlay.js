@@ -78,6 +78,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   _widthAddon : 0,
   _pad : 5,
   
+  // _currentWindow is the window from which the current popup was launched.
+  // We use this to detect when a different document has been loaded into that
+  // window (as opposed to a different window).
+  _currentWindow : null,
+  
   /**
    * Initializes the object.
    */
@@ -311,7 +316,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aEvent the event object.
    */
   _handleTabSelected : function(aEvent) {
-    this._logger.trace("_handlePageLoaded");
+    this._logger.trace("_handleTabSelected");
     this._thumbBBox.xMax = -999;
     this._logger.debug("_closePanel since tab selected");
     this._closePanel();
@@ -330,6 +335,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let doc = aEvent.originalTarget;
 
     if (doc instanceof HTMLDocument) {
+      this._logger.debug("_handlePageLoaded: *** currently, cw=" + 
+                           (this._currentWindow == null ? "null" : this._currentWindow.top.document.documentURI) +
+                           "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
 
       if (-1 != pageConstant) {
@@ -339,11 +347,19 @@ ThumbnailZoomPlusChrome.Overlay = {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
       } else {
-        this._logger.debug("_closePanel since not on a matching site: " + doc);
-        this._closePanel();
+        this._logger.debug("_handlePageLoaded: not on a matching site: " + doc.documentURI);
       }
     } else {
-      this._logger.debug("_closePanel since not on an HTML doc");
+      this._logger.debug("_handlePageLoaded: not on an HTML doc: " + doc.documentURI);
+    }
+    if (this._currentWindow != null &&
+        this._currentWindow.top == aEvent.originalTarget.defaultView.top) {
+      // Detected that the user loaded a different page into our window, e.g.
+      // by clicking a link.  So close the popup.
+      // TODO: It'd be better to use a different event, so we can do this when
+      // the page starts loading, and so it'd work with Back and on
+      // deviantart photo links.
+      this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
       this._closePanel();
     }
   },
@@ -377,6 +393,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
           ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
         let that = this;
+        this._currentWindow = aDocument.defaultView.top;
+        this._logger.debug("_handleMouseOver: *** Setting _currentWindow=" + 
+                           this._currentWindow.document.documentURI);
 
         this._timer.cancel();
         this._timer.initWithCallback({ notify:
@@ -530,7 +549,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
       return;
     }
-    // Non-trivial move; dismiss popup.
+    // moved outside bbox of thumb; dismiss popup.
     this._logger.debug("_handlePopupMove: closing with mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
     this._closePanel();
@@ -563,12 +582,16 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let that = this;
     let image = new Image();
-
+    // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
+    // object so we can delete it when we load another image (so it doesn't
+    // keep loading in the background).
     image.onload = function() {
       that._logger.debug("In image onload");
 
       if (that._currentImage == aImageSrc) {
-        // This is the same image URL as we're currently loading.
+        // This is the image URL we're currently loading (not another previously
+        // image we had started loading).
+        
         // Close and (probably) re-open the panel so we can reposition it to
         // display the image.  Note that if the image is too large to
         // fit to the left/right of the thumb, we pop-up relative to the upper-left
@@ -578,19 +601,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         that._panel.hidePopup();
 
         let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-        
-        let thumbWidth = aImageNode.offsetWidth * pageZoom;
-        let thumbHeight = aImageNode.offsetHeight * pageZoom;
-        if (image.width < thumbWidth * 1.20 &&
-            image.height < thumbHeight * 1.20) {
-          that._logger.debug("_preloadImage: skipping: full-size image size (" +
-              image.width + " x " + image.height + 
-              ") isn't at least 20% bigger than thumb (" +
-              thumbWidth + " x " + thumbHeight + ")");
-          that._removeListenersWhenPopupHidden();
-
-          return;
-        }
         
         clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
         clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
@@ -615,7 +625,19 @@ ThumbnailZoomPlusChrome.Overlay = {
                            "; full-size image=["+image.width + "," + image.height + 
                            "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
         
-        
+        let thumbWidth = aImageNode.offsetWidth * pageZoom;
+        let thumbHeight = aImageNode.offsetHeight * pageZoom;
+        if (imageSize.width < thumbWidth * 1.20 &&
+            imageSize.height < thumbHeight * 1.20) {
+          that._logger.debug("_preloadImage: skipping: popup image size (" +
+              imageSize.width + " x " + imageSize.height + 
+              ") isn't at least 20% bigger than thumb (" +
+              thumbWidth + " x " + thumbHeight + ")");
+          that._removeListenersWhenPopupHidden();
+
+          return;
+        }
+                
         if (imageSize.width <= available.width) {
           if (imageSize.width <= available.right) {
             that._logger.debug("_preloadImage: display to right of thumb"); 
@@ -647,8 +669,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
     image.onerror = function() {
-      that._logger.debug("_closePanel since error loading image");
-      that._closePanel();
+      that._logger.debug("In image onerror");
+      if (that._currentImage == aImageSrc) {
+        that._logger.debug("_closePanel since error loading image");
+        that._closePanel();
+      }
     };
 
     image.src = aImageSrc;
@@ -735,6 +760,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       pageNode = pageNode.offsetParent;
     }
 
+    this._logger.debug("_getAvailableSizeOutsideThumb: " +
+                       "combined x,y = " + 
+                       available.left + "," + available.top +
+                       "; window screen x,y = " + 
+                       content.window.mozInnerScreenX + "," + content.window.mozInnerScreenY +
+                       "; bbox - window = " +
+                       (this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom) + "," +
+                       (this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom));
+    available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
+    available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
+    
     /*
      * pageRight is the space available to the right of the thumbnail,
      * and pageBottom the space below.
@@ -742,14 +778,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
-    this._logger.debug("_getAvailableSizeOutsideThumb: reducing avail by " +
+    adjustment = 2*this._pad + this._widthAddon;
+    this._logger.debug("_getAvailableSizeOutsideThumb: _pad=" +
                        this._pad + 
-                       "; _padWithouBorder=" + this._padWithoutBorder +
-                       "; _padWithBorder=" + this._padWithBorder);
-    available.left -= 2*this._pad + this._widthAddon;
-    available.right -= 2*this._pad + this._widthAddon;
-    available.top -= 2*this._pad + this._widthAddon;
-    available.bottom -= 2*this._pad + this._widthAddon;
+                       "; _widthAddon=" + this._widthAddon +
+                       "; reducing available by " + adjustment);
+    available.left -= adjustment;
+    available.right -= adjustment;
+    available.top -= adjustment;
+    available.bottom -= adjustment;
     
     available.width = Math.max(available.left, available.right);
     available.height = Math.max(available.top, available.bottom);

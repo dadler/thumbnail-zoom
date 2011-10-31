@@ -53,6 +53,25 @@ of the log.txt file.  Messages are logged with calls like this:
     this._logger.debug("getPageConstantByDoc");
 
 
+TESTING:
+
+Test on a variety of sites, including :
+
+* Facebook (wall photos, profile pics, photo galleries, photo theater mode, 
+  photo non-theater-mode which you get by hitting Return in the location field 
+  in theater mode).
+
+* Reddit
+
+* Deviantart (good for large images and thumbs on various parts of the screen)
+
+Test at 100% zoom and smaller and larger values.  
+
+Test with the page scrolled.
+
+Test in full-screen mode and not.
+
+
 INSTALLING FOR NON DEVELOPERS:
 
 Make an installable xpi file like this:

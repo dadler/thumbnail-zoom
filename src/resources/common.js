@@ -49,6 +49,15 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      * Initialize this object.
      */
     _init : function() {
+
+
+      // 
+      // ***** DEBUG ENABLE IS HERE: *****
+      //
+      // Set to true to enable debug messages.
+      let enableDebug = false;
+
+      
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
       let formatter = new Log4Moz.AdvancedFormatter();
@@ -75,12 +84,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // This appender will log to the file system.
       app = new Log4Moz.RotatingFileAppender(logFile, formatter);
       
-      // 
-      // DEBUG ENABLE IS HERE:
-      //
-      // Set to true to enable debug messages.
-      let enableDebug = false;
-      
       if (enableDebug) {
         // Debug messages will be written to ThumbnailZoomPlus/log.txt under
         // your profile dir, e.g. on Mac OSX it might be
@@ -89,6 +92,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         // in a terminal using "tail -f log.txt".
         app.level = Log4Moz.Level["Debug"];
 
+        //
+        // ***** ENABLE TRACE HERE: *****
+        //
         // To see not just debug() messages but also trace() messages, uncomment this:
         // app.level = Log4Moz.Level["Trace"];
       } else {
