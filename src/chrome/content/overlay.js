@@ -296,6 +296,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     // clicking the thumb to go to its linked page.
     doc.addEventListener(
       "keypress", that._handleKeypress, false);
+      
+    /*
+     * Listen for pagehide events to hide the popup when navigating away
+     * from the page.  Some pages like deviantart use hashtags like
+     * deviantart.com/#abcde to go to different pages; we must watch for
+     * that with hashchange (it doesn't get a pagehide).
+     */
+    window.addEventListener(
+      "pagehide", that._handlePageHide, false);
+    window.addEventListener(
+      "hashchange", that._handleHashChange, false);
   },
   
   /**
@@ -309,6 +320,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       doc);
     doc.removeEventListener(
       "keypress", that._handleKeypress, false);
+      
+    window.removeEventListener(
+      "pagehide", that._handlePageHide, false);
+    window.removeEventListener(
+      "hashchange", that._handlePageHide, false);
   },
   
   /**
@@ -317,11 +333,11 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _handleTabSelected : function(aEvent) {
     this._logger.trace("_handleTabSelected");
-    this._thumbBBox.xMax = -999;
+    this._thumbBBox.xMax = -999; // don't reject next move as trivial.
     this._logger.debug("_closePanel since tab selected");
     this._closePanel();
   },
-
+  
   /**
    * Handles the DOMContentLoaded event.
    * @param aEvent the event object.
@@ -336,7 +352,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (doc instanceof HTMLDocument) {
       this._logger.debug("_handlePageLoaded: *** currently, cw=" + 
-                           (this._currentWindow == null ? "null" : this._currentWindow.top.document.documentURI) +
+                           (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
                            "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
 
@@ -352,8 +368,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else {
       this._logger.debug("_handlePageLoaded: not on an HTML doc: " + doc.documentURI);
     }
-    if (this._currentWindow != null &&
-        this._currentWindow.top == aEvent.originalTarget.defaultView.top) {
+    if (this._currentWindow == aEvent.originalTarget.defaultView.top) {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
       // TODO: It'd be better to use a different event, so we can do this when
@@ -571,6 +586,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _handlePageHide : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("_handlePageHide: *** currently, cw=" + 
+                        (that._currentWindow == null ? "null" : that._currentWindow.document.documentURI) +
+                        "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
+    if (that._currentWindow == aEvent.originalTarget.defaultView.top) {
+      that._logger.debug("_handlePageHide: closing panel");
+      that._closePanel();
+    }
+    return true; // allow page to hide
+  },
+  
+  _handleHashChange : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("_handleHashChange: closing panel");
+    that._closePanel();
+  },
+    
   /**
    * Preloads the image.
    * @param aImageNode the image node.
@@ -637,22 +670,25 @@ ThumbnailZoomPlusChrome.Overlay = {
 
           return;
         }
-                
-        if (imageSize.width <= available.width) {
-          if (imageSize.width <= available.right) {
-            that._logger.debug("_preloadImage: display to right of thumb"); 
-            that._panel.openPopup(aImageNode, "end_before", that._pad, 0, false, false);
-          } else {
-            that._logger.debug("_preloadImage: display to left of thumb"); 
-            that._panel.openPopup(aImageNode, "start_before", -that._pad, 0, false, false);
-          }
-        } else if (imageSize.height <= available.height) {
+          
+        // We prefer above/below thumb to avoid tooltip.
+        if (imageSize.height <= available.height) {
           if (imageSize.height <= available.bottom) {
             that._logger.debug("_preloadImage: display below thumb"); 
             that._panel.openPopup(aImageNode, "after_start", 0, that._pad, false, false);
           } else {
             that._logger.debug("_preloadImage: display above thumb"); 
             that._panel.openPopup(aImageNode, "before_start", 0, -that._pad, false, false);
+          }
+        } else if (imageSize.width <= available.width) {
+          // We prefer left-of thumb over right-of thumb since tooltip
+          // typically extends to the right.
+          if (imageSize.width <= available.left) {
+            that._logger.debug("_preloadImage: display to left of thumb"); 
+            that._panel.openPopup(aImageNode, "start_before", -that._pad, 0, false, false);
+          } else {
+            that._logger.debug("_preloadImage: display to right of thumb"); 
+            that._panel.openPopup(aImageNode, "end_before", that._pad, 0, false, false);
           }
         } else {
             that._logger.debug("_preloadImage: display in upper-left of window (overlap thumb)"); 
