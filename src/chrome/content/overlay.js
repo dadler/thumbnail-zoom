@@ -267,6 +267,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       "TabSelect",
       function(aEvent) { that._handleTabSelected(aEvent); }, false);
     
+    // These handlers are on the popup's window, not the document's:
     this._panel.addEventListener(
       "click",
       function(aEvent) {
@@ -371,9 +372,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._currentWindow == aEvent.originalTarget.defaultView.top) {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
-      // TODO: It'd be better to use a different event, so we can do this when
-      // the page starts loading, and so it'd work with Back and on
-      // deviantart photo links.
       this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
       this._closePanel();
     }
