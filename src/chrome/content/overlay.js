@@ -83,6 +83,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // window (as opposed to a different window).
   _currentWindow : null,
   
+  
   /**
    * Initializes the object.
    */
@@ -111,6 +112,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._addEventListeners();
   },
 
+
   /**
    * Uninitializes the object.
    */
@@ -126,6 +128,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._preferencesService.removeObserver(this.PREF_PANEL_OPACITY, this);
     this._addPreferenceObservers(false);
   },
+
 
   /**
    * Updates preference fix.
@@ -143,6 +146,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
     }
   },
+
 
   /**
    * Installs the toolbar button on the first run.
@@ -177,6 +181,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Adds the preference observers.
    * @param aValue true if adding, false when removing.
@@ -199,6 +204,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     }
   },
+
 
   /**
    * Adds the menu items.
@@ -234,6 +240,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Removes the menu items.
    */
@@ -251,6 +258,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     }
   },
+
 
   /**
    * Adds the event listeners.
@@ -279,6 +287,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         that._handlePopupMove(aEvent);
       }, true);
   },
+
 
   /**
    * Adds listeners when the popup image is shown.  The listener is added
@@ -310,6 +319,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       "hashchange", that._handleHashChange, false);
   },
   
+  
   /**
    * Removes listeners when the popup image is hidden again, so we don't keep
    * a persistent key listener on the document all the time.
@@ -328,6 +338,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       "hashchange", that._handlePageHide, false);
   },
   
+  
   /**
    * Handles the TabSelect event.
    * @param aEvent the event object.
@@ -338,6 +349,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_closePanel since tab selected");
     this._closePanel();
   },
+  
   
   /**
    * Handles the DOMContentLoaded event.
@@ -376,6 +388,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._closePanel();
     }
   },
+  
 
   /**
    * Handles the mouse over event.
@@ -427,6 +440,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Verifies if the key is active.
    * @param aEvent the event object.
@@ -456,6 +470,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return active;
   },
 
+
   /**
    * Gets the hover time.
    * @return the hover time, 0 by default.
@@ -472,6 +487,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     return hoverTime;
   },
+
 
   /**
    * Shows the zoom image panel.
@@ -491,6 +507,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._closePanel();
     }
   },
+
 
   /**
    * Shows the panel.
@@ -520,6 +537,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._preloadImage(aImageNode, aImageSrc, aEvent);
   },
 
+
   /**
    * Closes the panel.
    */
@@ -537,6 +555,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // We no longer need the image contents so help the garbage collector:
     this._panelImage.removeAttribute("src");
   },
+
 
   /**
    * Event handler for mouse movement over the popup,
@@ -568,11 +587,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel();
   },
 
+
   _handlePopupClick : function(aEvent) {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
     this._closePanel();
   },
+  
   
   _handleKeypress : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
@@ -583,6 +604,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._closePanel();
     }
   },
+  
   
   _handlePageHide : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
@@ -596,11 +618,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     return true; // allow page to hide
   },
   
+  
   _handleHashChange : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleHashChange: closing panel");
     that._closePanel();
   },
+  
     
   /**
    * Preloads the image.
@@ -617,8 +641,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     // object so we can delete it when we load another image (so it doesn't
     // keep loading in the background).
     image.onload = function() {
-      that._logger.debug("In image onload");
-
       if (that._currentImage == aImageSrc) {
         // This is the image URL we're currently loading (not another previously
         // image we had started loading).
@@ -650,8 +672,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                            "; h/t/b:" + available.height + 
                            "/" + available.top + 
                            "/" + available.bottom);
-                        that._logger.debug("_preloadImage: " + 
-                           "; win width=" + content.window.innerWidth*pageZoom +
+        that._logger.debug("_preloadImage: " + 
+                           "win width=" + content.window.innerWidth*pageZoom +
                            "; win height=" + content.window.innerHeight*pageZoom +
                            "; full-size image=["+image.width + "," + image.height + 
                            "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
@@ -668,38 +690,15 @@ ThumbnailZoomPlusChrome.Overlay = {
 
           return;
         }
-          
-        // We prefer above/below thumb to avoid tooltip.
-        if (imageSize.height <= available.height) {
-          if (imageSize.height <= available.bottom) {
-            that._logger.debug("_preloadImage: display below thumb"); 
-            that._panel.openPopup(aImageNode, "after_start", 0, that._pad, false, false);
-          } else {
-            that._logger.debug("_preloadImage: display above thumb"); 
-            that._panel.openPopup(aImageNode, "before_start", 0, -that._pad, false, false);
-          }
-        } else if (imageSize.width <= available.width) {
-          // We prefer left-of thumb over right-of thumb since tooltip
-          // typically extends to the right.
-          if (imageSize.width <= available.left) {
-            that._logger.debug("_preloadImage: display to left of thumb"); 
-            that._panel.openPopup(aImageNode, "start_before", -that._pad, 0, false, false);
-          } else {
-            that._logger.debug("_preloadImage: display to right of thumb"); 
-            that._panel.openPopup(aImageNode, "end_before", that._pad, 0, false, false);
-          }
-        } else {
-            that._logger.debug("_preloadImage: display in upper-left of window (overlap thumb)"); 
-            that._panel.openPopup(null, "overlap", 0, 0, false, false);
-        }
-        that._addListenersWhenPopupShown();
-        that._showImage(aImageSrc, imageSize);
+      
+        that._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
         
         // Help the garbage collector reclaim memory quickly.
         // (Test by watching "images" size in about:memory.)
         image.src = null;
         delete image;
         image = null;
+
       }
     };
     image.onerror = function() {
@@ -713,6 +712,41 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.src = aImageSrc;
   },
 
+
+  /**
+   * Opens the popup positioned appropriately relative to the thumbnail
+   * aImageNode.
+   */
+  _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
+    // We prefer above/below thumb to avoid tooltip.
+    if (imageSize.height <= available.height) {
+      if (imageSize.height <= available.bottom) {
+        this._logger.debug("_openAndPositionPopup: display below thumb"); 
+        this._panel.openPopup(aImageNode, "after_start", 0, this._pad, false, false);
+      } else {
+        this._logger.debug("_openAndPositionPopup: display above thumb"); 
+        this._panel.openPopup(aImageNode, "before_start", 0, -this._pad, false, false);
+      }
+    } else if (imageSize.width <= available.width) {
+      // We prefer left-of thumb over right-of thumb since tooltip
+      // typically extends to the right.
+      if (imageSize.width <= available.left) {
+        this._logger.debug("_openAndPositionPopup: display to left of thumb"); 
+        this._panel.openPopup(aImageNode, "start_before", -this._pad, 0, false, false);
+      } else {
+        this._logger.debug("_openAndPositionPopup: display to right of thumb"); 
+        this._panel.openPopup(aImageNode, "end_before", this._pad, 0, false, false);
+      }
+    } else {
+      this._logger.debug("_openAndPositionPopup: display in upper-left of window (overlap thumb)"); 
+      this._panel.openPopup(null, "overlap", 0, 0, false, false);
+    }
+    
+    this._addListenersWhenPopupShown();
+    this._showImage(aImageSrc, imageSize);
+  },
+  
+  
   /**
    * Updates this._thumbBBox to indicate the range of DOM coordinates spanned
    * by the thumb or link.
@@ -742,6 +776,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
   },  
   
+  
   /**
    * Returns the width of the larger of the space to the left or
    * right of the thumbnail, and the height of the larger of the space
@@ -756,52 +791,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getAvailableSizeOutsideThumb : function(aImageNode) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
     
     /*
      * pageLeft is the space available to the left of the thumb. 
      * pageTop is the space available above it.
      */
-    let available = {left: 0, top: 0};
-    let pageNode = aImageNode;
+    let available = {};
 
-    /*
-     * Calc the position of the upper-left corner of the thumb by summing
-     * offsets from the thumb to its parent, its parent to its grandparent, etc.
-     * We don't use the previously-calculated bbox since we need this in window
-     * coordinates, not screen coordinates.
-     */
-    while (null != pageNode) {
-      let x = pageNode.offsetLeft * pageZoom;
-      let y = pageNode.offsetTop * pageZoom;
-      let parentNode = pageNode.parentNode;
-      if (parentNode) {
-        this._logger.debug("_getAvailableSizeOutsideThumb: scroll offset in " +
-                               parentNode + ": this scroll x,y = " + 
-                               parentNode.scrollLeft * pageZoom + "," +
-                               parentNode.scrollTop * pageZoom);
-        x -= parentNode.scrollLeft * pageZoom;
-        y -= parentNode.scrollTop * pageZoom;
-      }
-      available.left += x;
-      available.top += y;
-      this._logger.debug("_getAvailableSizeOutsideThumb: in " +
-                         pageNode + ": this x,y = " + x + "," + y +
-                         "; combined x,y = " + 
-                         available.left + "," + available.top);
-      pageNode = pageNode.offsetParent;
-    }
-
-    this._logger.debug("_getAvailableSizeOutsideThumb: " +
-                       "combined x,y = " + 
-                       available.left + "," + available.top +
-                       "; window screen x,y = " + 
-                       content.window.mozInnerScreenX + "," + content.window.mozInnerScreenY +
-                       "; bbox - window = " +
-                       (this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom) + "," +
-                       (this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom));
     available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
     available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
     
@@ -809,12 +805,17 @@ ThumbnailZoomPlusChrome.Overlay = {
      * pageRight is the space available to the right of the thumbnail,
      * and pageBottom the space below.
      */
+    let pageWidth = content.window.innerWidth * pageZoom;
+    let pageHeight = content.window.innerHeight * pageZoom;
+
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
     adjustment = 2*this._pad + this._widthAddon;
-    this._logger.debug("_getAvailableSizeOutsideThumb: _pad=" +
-                       this._pad + 
+    this._logger.debug("_getAvailableSizeOutsideThumb: " +
+                       "available.left,right before adjustment = " + 
+                       available.left + "," + available.top +
+                       "; _pad=" + this._pad + 
                        "; _widthAddon=" + this._widthAddon +
                        "; reducing available by " + adjustment);
     available.left -= adjustment;
@@ -827,6 +828,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     return available;
   },
+
 
   /**
    * Gets the image scale dimensions to fit the window.
@@ -905,6 +907,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return scale;
   },
 
+
   /**
    * Shows the image in the panel.
    * @param aImageSrc the image source.
@@ -923,6 +926,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelThrobber.hidden = true;
   },
 
+
   /**
    * Opens the preferences window.
    */
@@ -935,6 +939,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     optionsDialog.focus();
   },
+
 
   /**
    * Downloads the full image.
@@ -965,6 +970,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Toggles the preference value.
    * @param aPage the page constant.
@@ -974,6 +980,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     ThumbnailZoomPlus.FilterService.togglePageEnable(aPage);
   },
+
 
   /**
    * Updates the pages menu.
@@ -992,6 +999,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Shows the panel border based in the preference value.
    */
@@ -1009,6 +1017,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+
   /**
    * Updates the panel opacity based in the preference value.
    */
@@ -1021,6 +1030,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panel.style.opacity = panelOpacity.value / 100;
     }
   },
+
 
   /**
    * Observes the authentication topic.
