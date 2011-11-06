@@ -89,6 +89,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
+    // Check the thumbnail against rex1; we exclude _n type so we
+    // don't popup for the main photo in a Theater-mode photo page.
     let rex1 = new RegExp(/_[qsta]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
     // Apply replacement for rex1 or rex2; reject if neither matches.
