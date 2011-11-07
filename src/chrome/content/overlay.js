@@ -720,22 +720,60 @@ ThumbnailZoomPlusChrome.Overlay = {
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
+      // Position the popup horizontally flush with the right of the window or
+      // left-aligned with the left of the thumbnail, whichever is left-most.
+      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      let windowStartX = content.window.mozInnerScreenX * pageZoom;
+      let pageWidth = content.window.innerWidth * pageZoom;
+      let popupXPageCoords = pageWidth - (imageSize.width + this._widthAddon);
+      let popupXScreenCoords = popupXPageCoords + windowStartX;
+      let popupXOffset = popupXScreenCoords - this._thumbBBox.xMin;
+      this._logger.debug("_openAndPositionPopup: " +
+                         "windowStartX=" + windowStartX +
+                         "; pageWidth=" + pageWidth +
+                         "; popupXPageCoords=" + popupXPageCoords +
+                         "; popupXScreenCoords=" + popupXScreenCoords +
+                         "; popupXOffset=" + popupXOffset);
+      if (popupXOffset > 0) {
+        popupXOffset = 0;
+      }
       if (imageSize.height <= available.bottom) {
         this._logger.debug("_openAndPositionPopup: display below thumb"); 
-        this._panel.openPopup(aImageNode, "after_start", 0, this._pad, false, false);
+        this._panel.openPopup(aImageNode, "after_start", popupXOffset, this._pad, false, false);
       } else {
         this._logger.debug("_openAndPositionPopup: display above thumb"); 
-        this._panel.openPopup(aImageNode, "before_start", 0, -this._pad, false, false);
+        this._panel.openPopup(aImageNode, "before_start", popupXOffset, -this._pad, false, false);
       }
     } else if (imageSize.width <= available.width) {
       // We prefer left-of thumb over right-of thumb since tooltip
       // typically extends to the right.
+      
+      // Position the popup vertically flush with the bottom of the window or
+      // top-aligned with the top of the thumbnail, whichever is higher.
+      // We don't simply use a 0 offset and rely on Firefox's logic since
+      // on Windows that can position the thumb under an always-on-top
+      // Windows task bar.
+      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      let windowStartY = content.window.mozInnerScreenY * pageZoom;
+      let pageHeight = content.window.innerHeight * pageZoom;
+      let popupYPageCoords = pageHeight - (imageSize.height + this._widthAddon);
+      let popupYScreenCoords = popupYPageCoords + windowStartY;
+      let popupYOffset = popupYScreenCoords - this._thumbBBox.yMin;
+      this._logger.debug("_openAndPositionPopup: " +
+                         "windowStartY=" + windowStartY +
+                         "; pageHeight=" + pageHeight +
+                         "; popupYPageCoords=" + popupYPageCoords +
+                         "; popupYScreenCoords=" + popupYScreenCoords +
+                         "; popupYOffset=" + popupYOffset);
+      if (popupYOffset > 0) {
+        popupYOffset = 0;
+      }
       if (imageSize.width <= available.left) {
         this._logger.debug("_openAndPositionPopup: display to left of thumb"); 
-        this._panel.openPopup(aImageNode, "start_before", -this._pad, 0, false, false);
+        this._panel.openPopup(aImageNode, "start_before", -this._pad, popupYOffset, false, false);
       } else {
         this._logger.debug("_openAndPositionPopup: display to right of thumb"); 
-        this._panel.openPopup(aImageNode, "end_before", this._pad, 0, false, false);
+        this._panel.openPopup(aImageNode, "end_before", this._pad, popupYOffset, false, false);
       }
     } else {
       this._logger.debug("_openAndPositionPopup: display in upper-left of window (overlap thumb)"); 
@@ -840,10 +878,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getScaleDimensions : function(aImage, available) {
     this._logger.trace("_getScaleDimensions");
 
-    // We allow showing images larger 
+    // When enabled, we allow showing images larger 
     // than would fit entirely to the left or right of
     // the thumbnail by using the full page width
-    // instead of calling _getPageSide.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let pageWidth = content.window.innerWidth * pageZoom - this._widthAddon - 2;
     let pageHeight = content.window.innerHeight * pageZoom - this._widthAddon - 2;
