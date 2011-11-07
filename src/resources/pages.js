@@ -519,7 +519,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // which getZoomImage will convert to a youtube thumb.
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
-  imageRegExp: /\.gif|\.jpg|\.png|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/|youtu.be\/|quickmeme.com\/meme\/|qkme.me\//,
+  imageRegExp: /\.gif|\.jpg|\.png|\.bmp|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/|youtu.be\/|quickmeme.com\/meme\/|qkme.me\//,
 
   _logger: ThumbnailZoomPlus.Pages._logger,
   
