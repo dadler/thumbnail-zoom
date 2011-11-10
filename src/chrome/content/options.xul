@@ -82,6 +82,8 @@
         name="extensions.thumbnailzoomplus.lastfm.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-google-pref"
         name="extensions.thumbnailzoomplus.google.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-googleplus-pref"
+        name="extensions.thumbnailzoomplus.googleplus.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-youtube-pref"
         name="extensions.thumbnailzoomplus.youtube.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-dailymile-pref"
@@ -192,8 +194,10 @@
             preference="thumbnailzoomplus-options-flickr-pref" />
           <checkbox label="deviantART"
             preference="thumbnailzoomplus-options-deviantart-pref" />
-          <checkbox label="Google+"
+          <checkbox label="Google Images"
             preference="thumbnailzoomplus-options-google-pref" />
+          <checkbox label="Google+"
+            preference="thumbnailzoomplus-options-googleplus-pref" />
           <checkbox label="IMDb"
             preference="thumbnailzoomplus-options-imdb-pref" />
           <checkbox label="Engadget"

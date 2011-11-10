@@ -341,10 +341,10 @@ ThumbnailZoomPlus.Pages.LastFM = {
 };
 
 /**
- * Google+
+ * Google+ (Google Plus)
  */
-ThumbnailZoomPlus.Pages.Google = {
-  key: "google",
+ThumbnailZoomPlus.Pages.GooglePlus = {
+  key: "googleplus",
   name: "Google+",
   host: /plus\.google\.com/,
   imageRegExp: /\.(ggpht|googleusercontent)\.com/,
@@ -391,6 +391,46 @@ ThumbnailZoomPlus.Pages.Google = {
     
     this._logger.debug("didn't match any google+ URL");
     return null;
+  }
+};
+
+/**
+ * Google (Google Images)
+ */
+ThumbnailZoomPlus.Pages.Google = {
+  key: "google",
+  name: "Google Images",
+  
+  // host is all of Google so it can work on images.google.com, 
+  // www.google.com general search with image results, etc.
+  // To prevent this from interfering with GooglePlus, its entry
+  // comes later in filterService.js.
+  host: /\.google\.[a-z\.]+/,
+  imageRegExp: /.+/,
+  getSpecialSource : function(aNode, aNodeSource) {
+    let imageSource = null;
+    let imageHref = aNode.parentNode.getAttribute("href");
+    if (null != imageHref) {
+      let imageIndex = imageHref.indexOf("imgurl=");
+      if (-1 < imageIndex) {
+        imageSource = imageHref.substring(
+          imageIndex + 7, imageHref.indexOf("&", imageIndex));
+
+        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: before decode URI=" + imageSource);
+
+        // The image URL is double-encoded; for example, a space is represented as "%2520".
+        // After first decode it's "%20" and after second decode it's " ".
+        imageSource = decodeURIComponent(imageSource);
+        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after decode URI=" + imageSource);
+
+        imageSource = decodeURIComponent(imageSource);
+        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after 2nd decode URI=" + imageSource);
+      }
+    }
+    return imageSource;
+  },
+  getZoomImage : function(aImageSrc) {
+    return aImageSrc;
   }
 };
 

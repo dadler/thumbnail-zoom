@@ -46,6 +46,7 @@ pref("extensions.thumbnailzoomplus.tagged.enable",      true);
 pref("extensions.thumbnailzoomplus.lastfm.enable",      true);
 pref("extensions.thumbnailzoomplus.picasa.enable",      true);
 pref("extensions.thumbnailzoomplus.google.enable",      true);
+pref("extensions.thumbnailzoomplus.googleplus.enable",  true);
 pref("extensions.thumbnailzoomplus.twitter.enable",     true);
 pref("extensions.thumbnailzoomplus.youtube.enable",     true);
 pref("extensions.thumbnailzoomplus.twitpic.enable",     true);
