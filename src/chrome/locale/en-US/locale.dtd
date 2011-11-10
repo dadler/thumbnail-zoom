@@ -38,6 +38,7 @@
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Key to display the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximize image size by overlapping thumbnail">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Add images to browser history">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "None">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Enable or disable per site">

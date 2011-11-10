@@ -38,6 +38,7 @@
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para visualizar la imagen:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Añadir imágenes a la historia del navegador">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">

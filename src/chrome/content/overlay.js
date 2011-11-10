@@ -43,6 +43,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
@@ -961,6 +962,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     this._panelImage.src = aImageSrc;
     this._panelThrobber.hidden = true;
+    
+    this._addToHistory(aImageSrc);
   },
 
 
@@ -1099,7 +1102,36 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
       }
     }
+  },
+  
+  
+  _addToHistory : function(url) {
+    let allowRecordingHistory = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_HISTORY);
+    if (! allowRecordingHistory || !allowRecordingHistory.value) {
+    this._logger.debug("_addToHistory: history pref is off.");  
+      return;
+    }
+    
+    // We don't need to check for Private Browsing mode; addURI is automatically
+    // ignored in that mode.
+    if (url.indexOf(" ") != -1   
+        || url.split("?")[0].indexOf("..") != -1) {  
+      this._logger.debug("_addToHistory: bad URL syntax");  
+      return;  
+    }  
+    
+    this._logger.debug("_addToHistory: '" + url + "'");  
+    let ioService = Components.classes["@mozilla.org/network/io-service;1"]  
+                          .getService(Components.interfaces.nsIIOService);
+    let nsIURI = ioService.newURI(url, null, null);
+    
+    let historyService2 = Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                          .getService(Components.interfaces.nsIGlobalHistory2);  
+    
+    historyService2.addURI(nsIURI, false, true, null);  
+    
   }
+
 };
 
 window.addEventListener(
