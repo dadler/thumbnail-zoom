@@ -538,9 +538,9 @@ ThumbnailZoomPlus.Pages.Engadget = {
   key: "engadget",
   name: "Engadget",
   host: /\.engadget\.[a-z]+/,
-  imageRegExp: /_[0-9]+x[0-9]+\.jpe?g$/,
+  imageRegExp: /_[0-9]+x[0-9]+\.[a-zA-Z]+$/,
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/_[0-9]+x[0-9]+(\.jpe?g)$/i);
+    let rex = new RegExp(/_[0-9]+x[0-9]+(\.[a-zA-Z]+)$/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
     return image;
   }
