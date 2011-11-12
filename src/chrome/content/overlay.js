@@ -543,18 +543,27 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Closes the panel.
    */
   _closePanel : function() {
-    this._logger.trace("_closePanel");
+    try {
+      // When called from _handlePageHide after closing window with Control+W
+      // while popup is up, some of the statements below raise exceptions
+      // e.g. there is no this._contextMenu.  I suspect it's because the
+      // chrome is already being destroyed when this is called.  So we
+      // silently ignore exceptions here.
+      this._logger.trace("_closePanel");
 
-    this._currentImage = null;
-    this._contextMenu.hidden = true;
-    this._panelThrobber.hidden = false;
-    this._timer.cancel();
-    this._removeListenersWhenPopupHidden();
-    if (this._panel.state != "closed") {
-      this._panel.hidePopup();
+      this._currentImage = null;
+      this._contextMenu.hidden = true;
+      this._panelThrobber.hidden = false;
+      this._timer.cancel();
+      this._removeListenersWhenPopupHidden();
+      if (this._panel.state != "closed") {
+        this._panel.hidePopup();
+      }
+      // We no longer need the image contents so help the garbage collector:
+      this._panelImage.removeAttribute("src");
+    } catch (e) {
+      this._logger.debug("_closePanel: exception: " + e);
     }
-    // We no longer need the image contents so help the garbage collector:
-    this._panelImage.removeAttribute("src");
   },
 
 
@@ -702,10 +711,10 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       }
     };
-    image.onerror = function() {
+    image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {
-        that._logger.debug("_closePanel since error loading image");
+        that._logger.debug("_closePanel since error loading image (" + aEvent + ")");
         that._closePanel();
       }
     };
