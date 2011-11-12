@@ -559,7 +559,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // which getZoomImage will convert to a youtube thumb.
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
-  imageRegExp: /\.gif|\.jpg|\.png|\.bmp|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/|youtu.be\/|quickmeme.com\/meme\/|qkme.me\//,
+  imageRegExp: /\.gif|\.jpg|\.png|\.bmp|imgur\.com\/(gallery\/)?[a-zA-Z0-9]+(&.*)?$|www\.youtube\.com\/|youtu.be\/|quickmeme.com\/meme\/|qkme.me\//i,
 
   _logger: ThumbnailZoomPlus.Pages._logger,
   
@@ -608,7 +608,7 @@ ThumbnailZoomPlus.Pages.Others = {
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1.jpg");
     
-    let rex = new RegExp(/(\.gif|\.jpg|\.png)$/);
+    let rex = new RegExp(/(\.gif|\.jpg|\.png)$/i);
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links.
       aImageSrc += ".jpg";
