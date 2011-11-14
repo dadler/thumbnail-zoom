@@ -386,6 +386,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_handlePageLoaded");
     let doc = aEvent.originalTarget;
     this._addEventListenersToDoc(doc);
+
+    if (this._needToPopDown(doc.defaultView.top)) {
+      // Detected that the user loaded a different page into our window, e.g.
+      // by clicking a link.  So close the popup.
+      this._logger.debug("_addEventListenersToDoc: *** closing since a page loaded into its host window");
+      this._closePanel();
+    }
   },
   
   _addEventListenersToDoc: function(doc) {
@@ -412,12 +419,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     } else {
       this._logger.debug("_addEventListenersToDoc: not on an HTML doc: " + doc.documentURI);
-    }
-    if (this._currentWindow == doc.defaultView.top) {
-      // Detected that the user loaded a different page into our window, e.g.
-      // by clicking a link.  So close the popup.
-      this._logger.debug("_addEventListenersToDoc: *** closing since a page loaded into its host window");
-      this._closePanel();
     }
   },
   
@@ -685,13 +686,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _needToPopDown : function(affectedWindow) {
+      return 
+      (that._currentWindow == affectedWindow &&
+       that._currentWindow.document.documentURI != affectedWindow.document.documentURI);
+  },
   
   _handlePageHide : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handlePageHide: *** currently, cw=" + 
                         (that._currentWindow == null ? "null" : that._currentWindow.document.documentURI) +
                         "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
-    if (that._currentWindow == aEvent.originalTarget.defaultView.top) {
+    if (_needToPopDown(aEvent.originalTarget.defaultView.top)) {
       that._logger.debug("_handlePageHide: closing panel");
       that._closePanel();
     }
