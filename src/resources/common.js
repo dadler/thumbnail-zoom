@@ -55,7 +55,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // ***** DEBUG ENABLE IS HERE: *****
       //
       // Set to true to enable debug messages.
-      let enableDebug = false;
+      let enableDebug = true;
 
       
       // The basic formatter will output lines like:
@@ -96,7 +96,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         // ***** ENABLE TRACE HERE: *****
         //
         // To see not just debug() messages but also trace() messages, uncomment this:
-        // app.level = Log4Moz.Level["Trace"];
+        app.level = Log4Moz.Level["Trace"];
       } else {
         app.level = Log4Moz.Level["Warn"];
       }

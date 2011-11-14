@@ -287,6 +287,19 @@ ThumbnailZoomPlusChrome.Overlay = {
       function(aEvent) {
         that._handlePopupMove(aEvent);
       }, true);
+    
+    /*
+     * Add listeners in any pre-existing documents.  Normally there won't 
+     * be any yet (except maybe about:none for the initial empty tab).  But
+     * when a tab is dragged out to make a new window, we don't get a loaded
+     * event for the doc (since it was already loaded before), but its doc
+     * will already be existing when we initialize chrome for the new window. 
+     */
+    for (let i=0; i < gBrowser.browsers.length; i++) {
+      this._logger.debug("_addEventListeners: " +
+                         " pre-existing doc " + i + ": " + gBrowser.getBrowserAtIndex(i).contentDocument);
+      this._addEventListenersToDoc(gBrowser.getBrowserAtIndex(i).contentDocument);
+    }
   },
 
 
@@ -346,6 +359,19 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _handleTabSelected : function(aEvent) {
     this._logger.trace("_handleTabSelected");
+
+    /*
+     * When a tab is dragged from one window to another pre-existing window,
+     * we need to update its listeners to be ones in chrome of the new host
+     * window.
+     */
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                .getService(Components.interfaces.nsIWindowMediator);
+    var browserWindow = wm.getMostRecentWindow("navigator:browser");
+    let that = browserWindow.ThumbnailZoomPlusChrome.Overlay;
+    this._logger.debug("_handleTabSelected: other win=" + that._currentWindow);
+    that._addEventListenersToDoc(gBrowser.contentDocument);
+
     this._thumbBBox.xMax = -999; // don't reject next move as trivial.
     this._logger.debug("_closePanel since tab selected");
     this._closePanel();
@@ -358,16 +384,21 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _handlePageLoaded : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
+    let doc = aEvent.originalTarget;
+    this._addEventListenersToDoc(doc);
+  },
+  
+  _addEventListenersToDoc: function(doc) {
+    this._logger.trace("_addEventListenersToDoc");
 
     this._thumbBBox.xMax = -999;
 
     let that = this;
-    let doc = aEvent.originalTarget;
 
     if (doc instanceof HTMLDocument) {
-      this._logger.debug("_handlePageLoaded: *** currently, cw=" + 
+      this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
                            (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
-                           "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
+                           "   vs   event=" + doc.defaultView.top.document.documentURI);
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
 
       if (-1 != pageConstant) {
@@ -377,15 +408,15 @@ ThumbnailZoomPlusChrome.Overlay = {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
       } else {
-        this._logger.debug("_handlePageLoaded: not on a matching site: " + doc.documentURI);
+        this._logger.debug("_addEventListenersToDoc: not on a matching site: " + doc.documentURI);
       }
     } else {
-      this._logger.debug("_handlePageLoaded: not on an HTML doc: " + doc.documentURI);
+      this._logger.debug("_addEventListenersToDoc: not on an HTML doc: " + doc.documentURI);
     }
-    if (this._currentWindow == aEvent.originalTarget.defaultView.top) {
+    if (this._currentWindow == doc.defaultView.top) {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
-      this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
+      this._logger.debug("_addEventListenersToDoc: *** closing since a page loaded into its host window");
       this._closePanel();
     }
   },
@@ -419,13 +450,39 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (null != imageSource && this._isKeyActive(aEvent)) {      
       if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
           ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+
+        this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
+        this._timer.cancel();
+
+        /*
+         * Trickiness to get the right "that": normally this and 
+         * ThumbnailZoomPlusChrome.Overlay automatically refer to the
+         * correct instance -- which is the window the document was loaded into.
+         * But if the user drags a tab into a different window, the
+         * document carries its javascript state, which includes the
+         * registration of mouseOver handler to this._handleMouseOver -- for
+         * "this" of the original window.
+         *
+         * We want the popup to appear in the new window, not the original
+         * one, so we explicitly find the window of the now-active browser
+         * and get the ThumbnailZoomPlusChrome.Overlay object from that
+         * context.
+         */
+/*
+        var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                    .getService(Components.interfaces.nsIWindowMediator);
+        var browserWindow = wm.getMostRecentWindow("navigator:browser");
+        this._logger.debug("_handleMouseOver: other win=" + browserWindow.ThumbnailZoomPlusChrome.Overlay._currentWindow);
+        
+
+        let that = browserWindow.ThumbnailZoomPlusChrome.Overlay;
+*/
         let that = this;
-        this._currentWindow = aDocument.defaultView.top;
-        this._logger.debug("_handleMouseOver: *** Setting _currentWindow=" + 
+        that._currentWindow = aDocument.defaultView.top;
+        that._logger.debug("_handleMouseOver: *** Setting _currentWindow=" + 
                            this._currentWindow.document.documentURI);
 
-        this._timer.cancel();
-        this._timer.initWithCallback({ notify:
+        that._timer.initWithCallback({ notify:
           function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
