@@ -54,10 +54,18 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // 
       // ***** DEBUG ENABLE IS HERE: *****
       //
-      // Set to true to enable debug messages.
-      let enableDebug = true;
-
+      // Set to true to enable debug or trace messages.
+      //
+      // Log messages will be written to ThumbnailZoomPlus/log.txt under
+      // your profile dir, e.g. on Mac OSX it might be
+      // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
+      // To debug, set enableDebug above to true and monitor the log file
+      // in a terminal using "tail -f log.txt".
+      //
+      let enableDebug = false;
+      let enableTrace = false;
       
+            
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
       let formatter = new Log4Moz.AdvancedFormatter();
@@ -84,19 +92,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // This appender will log to the file system.
       app = new Log4Moz.RotatingFileAppender(logFile, formatter);
       
-      if (enableDebug) {
-        // Debug messages will be written to ThumbnailZoomPlus/log.txt under
-        // your profile dir, e.g. on Mac OSX it might be
-        // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
-        // To debug, set enableDebug above to true and monitor the log file
-        // in a terminal using "tail -f log.txt".
-        app.level = Log4Moz.Level["Debug"];
-
-        //
-        // ***** ENABLE TRACE HERE: *****
-        //
-        // To see not just debug() messages but also trace() messages, uncomment this:
+      if (enableTrace) {
         app.level = Log4Moz.Level["Trace"];
+      } else if (enableDebug) {
+        app.level = Log4Moz.Level["Debug"];
       } else {
         app.level = Log4Moz.Level["Warn"];
       }
