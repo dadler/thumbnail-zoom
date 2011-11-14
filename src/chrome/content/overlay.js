@@ -585,17 +585,30 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // open new pic.
     if (this._panel.state != "open") {
-      // Pop up the panel, causing the throbber to display near
-      // the image thumbnail.
-      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
-      this._addListenersWhenPopupShown();
+      let throbberDelay = 0.3 * 1000;
+      if (throbberDelay > 0.0) {
+        let that = this;
+        this._logger.debug("_showPanel: start timer which pops up throbber.");
+        this._timer.initWithCallback({ notify: function() { that._showThrobber(aImageNode)}, }, 
+                                  throbberDelay, Ci.nsITimer.TYPE_ONE_SHOT);
+      } else {
+        this._showThrobber();
+      }
     }
     this._currentImage = aImageSrc;
     this._contextMenu.hidden = false;
     this._preloadImage(aImageNode, aImageSrc, aEvent);
   },
 
-
+  _showThrobber : function(aImageNode) {
+    this._logger.trace("_showThrobber");
+    // Pop up the panel, causing the throbber to display near
+    // the image thumbnail.
+    // this._panelThrobber.hidden = false;
+    this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
+    this._addListenersWhenPopupShown();
+  },
+  
   /**
    * Closes the panel.
    */
