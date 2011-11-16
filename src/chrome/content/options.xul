@@ -154,56 +154,87 @@
       <caption label="&thumbnailzoomplus.options.enable.groupbox.caption;"/>
       <hbox flex="1">
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
-          <checkbox label="Facebook"
-            preference="thumbnailzoomplus-options-facebook-pref" />
-          <checkbox label="MySpace"
-            preference="thumbnailzoomplus-options-myspace-pref" />
+
           <checkbox label="Amazon"
             preference="thumbnailzoomplus-options-amazon-pref" />
-          <checkbox label="Tagged"
-            preference="thumbnailzoomplus-options-tagged-pref" />
-          <checkbox label="Last.fm"
-            preference="thumbnailzoomplus-options-lastfm-pref" />
-          <checkbox label="YouTube"
-            preference="thumbnailzoomplus-options-youtube-pref" />
-          <checkbox label="Imgur"
-            preference="thumbnailzoomplus-options-imgur-pref" />
-        </vbox>
-        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
-          <checkbox label="Twitter"
-            preference="thumbnailzoomplus-options-twitter-pref" />
-          <checkbox label="LinkedIn"
-            preference="thumbnailzoomplus-options-linkedin-pref" />
-          <checkbox label="Picasa"
-            preference="thumbnailzoomplus-options-picasa-pref" />
-          <checkbox label="PhotoBucket"
-            preference="thumbnailzoomplus-options-photobucket-pref" />
-          <checkbox label="Wikipedia"
-            preference="thumbnailzoomplus-options-wikipedia-pref" />
+
           <checkbox label="Daily Mile"
             preference="thumbnailzoomplus-options-dailymile-pref" />
-          <checkbox label="Photosight"
-            preference="thumbnailzoomplus-options-photosight-pref" />
-        </vbox>
-        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
-          <checkbox label="Twitpic"
-            preference="thumbnailzoomplus-options-twitpic-pref" />
-          <checkbox label="Hi5"
-            preference="thumbnailzoomplus-options-hi5-pref" />
-          <checkbox label="Flickr"
-            preference="thumbnailzoomplus-options-flickr-pref" />
+
           <checkbox label="deviantART"
             preference="thumbnailzoomplus-options-deviantart-pref" />
-          <checkbox label="Google Images"
-            preference="thumbnailzoomplus-options-google-pref" />
-          <checkbox label="Google+"
-            preference="thumbnailzoomplus-options-googleplus-pref" />
-          <checkbox label="IMDb"
-            preference="thumbnailzoomplus-options-imdb-pref" />
+
           <checkbox label="Engadget"
             preference="thumbnailzoomplus-options-engadget-pref" />
+
+          <checkbox label="Facebook"
+            preference="thumbnailzoomplus-options-facebook-pref" />
+
+          <checkbox label="Flickr"
+            preference="thumbnailzoomplus-options-flickr-pref" />
+
+        </vbox>
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Google+"
+            preference="thumbnailzoomplus-options-googleplus-pref" />
+
+          <checkbox label="Google Images"
+            preference="thumbnailzoomplus-options-google-pref" />
+
+          <checkbox label="Hi5"
+            preference="thumbnailzoomplus-options-hi5-pref" />
+
+          <checkbox label="IMDb"
+            preference="thumbnailzoomplus-options-imdb-pref" />
+
+          <checkbox label="Imgur"
+            preference="thumbnailzoomplus-options-imgur-pref" />
+
+          <checkbox label="Last.fm"
+            preference="thumbnailzoomplus-options-lastfm-pref" />
+
+        </vbox>
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="LinkedIn"
+            preference="thumbnailzoomplus-options-linkedin-pref" />
+
+          <checkbox label="MySpace"
+            preference="thumbnailzoomplus-options-myspace-pref" />
+
+          <checkbox label="PhotoBucket"
+            preference="thumbnailzoomplus-options-photobucket-pref" />
+
+          <checkbox label="Photosight"
+            preference="thumbnailzoomplus-options-photosight-pref" />
+
+          <checkbox label="Picasa"
+            preference="thumbnailzoomplus-options-picasa-pref" />
+
+          <checkbox label="Tagged"
+            preference="thumbnailzoomplus-options-tagged-pref" />
+
+        </vbox>
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Twitpic"
+            preference="thumbnailzoomplus-options-twitpic-pref" />
+
+          <checkbox label="Twitter"
+            preference="thumbnailzoomplus-options-twitter-pref" />
+
+          <checkbox label="YouTube"
+            preference="thumbnailzoomplus-options-youtube-pref" />
+
+          <checkbox label="Wikipedia"
+            preference="thumbnailzoomplus-options-wikipedia-pref" />
+
+          <spacer flex="1" />
+
           <checkbox label="Others"
             preference="thumbnailzoomplus-options-others-pref" />
+
         </vbox>
       </hbox>
     </groupbox>

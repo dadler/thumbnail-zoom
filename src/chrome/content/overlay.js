@@ -289,6 +289,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }, true);
     
     /*
+     * For dragging tab into empty space (make new window):
      * Add listeners in any pre-existing documents.  Normally there won't 
      * be any yet (except maybe about:none for the initial empty tab).  But
      * when a tab is dragged out to make a new window, we don't get a loaded

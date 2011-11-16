@@ -41,28 +41,28 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 ThumbnailZoomPlus.FilterService = {
   /* Pages info list. */
   pageList : [
-    ThumbnailZoomPlus.Pages.Facebook, // 0
-    ThumbnailZoomPlus.Pages.Twitter,
-    ThumbnailZoomPlus.Pages.Twitpic,
-    ThumbnailZoomPlus.Pages.LinkedIn,
-    ThumbnailZoomPlus.Pages.MySpace,
-    ThumbnailZoomPlus.Pages.Hi5, // 5
     ThumbnailZoomPlus.Pages.Amazon,
-    ThumbnailZoomPlus.Pages.Picasa,
-    ThumbnailZoomPlus.Pages.Flickr,
-    ThumbnailZoomPlus.Pages.DeviantART,
-    ThumbnailZoomPlus.Pages.PhotoBucket, // 10
-    ThumbnailZoomPlus.Pages.Wikipedia,
-    ThumbnailZoomPlus.Pages.Tagged,
-    ThumbnailZoomPlus.Pages.LastFM,
-    ThumbnailZoomPlus.Pages.GooglePlus, // before Google so it takes priority.
-    ThumbnailZoomPlus.Pages.Google, // 15
-    ThumbnailZoomPlus.Pages.YouTube,
     ThumbnailZoomPlus.Pages.DailyMile,
+    ThumbnailZoomPlus.Pages.DeviantART,
+    ThumbnailZoomPlus.Pages.Engadget,
+    ThumbnailZoomPlus.Pages.Facebook,
+    ThumbnailZoomPlus.Pages.Flickr,
+    ThumbnailZoomPlus.Pages.GooglePlus, // before Google so it takes priority.
+    ThumbnailZoomPlus.Pages.Google,
+    ThumbnailZoomPlus.Pages.Hi5,
     ThumbnailZoomPlus.Pages.IMDb,
     ThumbnailZoomPlus.Pages.Imgur,
-    ThumbnailZoomPlus.Pages.Photosight, // 20
-    ThumbnailZoomPlus.Pages.Engadget,
+    ThumbnailZoomPlus.Pages.LastFM,
+    ThumbnailZoomPlus.Pages.LinkedIn,
+    ThumbnailZoomPlus.Pages.MySpace,
+    ThumbnailZoomPlus.Pages.PhotoBucket,
+    ThumbnailZoomPlus.Pages.Photosight,
+    ThumbnailZoomPlus.Pages.Picasa,
+    ThumbnailZoomPlus.Pages.Tagged,
+    ThumbnailZoomPlus.Pages.Twitpic,
+    ThumbnailZoomPlus.Pages.Twitter,
+    ThumbnailZoomPlus.Pages.YouTube,
+    ThumbnailZoomPlus.Pages.Wikipedia,
     ThumbnailZoomPlus.Pages.Others // last; lowest priority
   ],
 
