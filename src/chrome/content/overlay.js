@@ -68,8 +68,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* File Picker. */
   _filePicker : null,
   /* _thumbBBox is the bounding box of the thumbnail or link which caused
-     the popup to launch, in screen coordinates. */
-  _thumbBBox : { xMin: -999, xMax: -999, yMin: -999, yMax: 999},
+     the popup to launch, in screen coordinates. 
+     refScroll{Left,Top} are the window scroll amounts implicit in the bbox
+     coords.  If the window might now be scrolled differently, subtract
+     these values from the coordinates and add the current window scroll
+     (as _insideThumbBBox does). */
+  _thumbBBox : { xMin: -999, xMax: -999, yMin: -999, yMax: 999,
+                 refScrollLeft: 0, refScrollTop: 0},
   
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
@@ -423,7 +428,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _insideThumbBBox : function(doc, x,y) {
+    var viewportElement = doc.documentElement;  
+    var scrollLeft = viewportElement.scrollLeft;
+    var scrollTop = viewportElement.scrollTop;
 
+    return (x >= this._thumbBBox.xMin - this._thumbBBox.refScrollLeft + scrollLeft &&
+            x <= this._thumbBBox.xMax - this._thumbBBox.refScrollLeft + scrollLeft  &&
+            y >= this._thumbBBox.yMin - this._thumbBBox.refScrollTop + scrollTop &&
+            y <= this._thumbBBox.yMax - this._thumbBBox.refScrollTop + scrollTop);
+  },
+  
   /**
    * Handles the mouse over event.
    * @param aEvent the event object.
@@ -434,10 +449,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let x = aEvent.screenX;
     let y = aEvent.screenY;
-    if (x >= this._thumbBBox.xMin &&
-        x <= this._thumbBBox.xMax &&
-        y >= this._thumbBBox.yMin &&
-        y <= this._thumbBBox.yMax) {
+    if (this._insideThumbBBox(aDocument, x, y)) {
       // Ignore attempt to redisplay the same image without first entering
       // a different element, on the assumption that it's caused by a
       // focus change after the popup was dismissed.
@@ -705,7 +717,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     return true; // allow page to hide
   },
   
-  
   _handleHashChange : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleHashChange: closing panel");
@@ -895,6 +906,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._thumbBBox.xMax = this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom;
     this._thumbBBox.yMax = this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom;
+    
+    this._thumbBBox.refScrollLeft = scrollLeft;
+    this._thumbBBox.refScrollTop = scrollTop;
     
     this._logger.debug("_updateThumbBBox: bbox = " +
                        this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
