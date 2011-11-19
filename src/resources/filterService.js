@@ -41,27 +41,27 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 ThumbnailZoomPlus.FilterService = {
   /* Pages info list. */
   pageList : [
-    ThumbnailZoomPlus.Pages.Amazon,
+    ThumbnailZoomPlus.Pages.Amazon, // 0
     ThumbnailZoomPlus.Pages.DailyMile,
     ThumbnailZoomPlus.Pages.DeviantART,
     ThumbnailZoomPlus.Pages.Engadget,
     ThumbnailZoomPlus.Pages.Facebook,
-    ThumbnailZoomPlus.Pages.Flickr,
+    ThumbnailZoomPlus.Pages.Flickr, // 5
     ThumbnailZoomPlus.Pages.GooglePlus, // before Google so it takes priority.
     ThumbnailZoomPlus.Pages.Google,
     ThumbnailZoomPlus.Pages.Hi5,
     ThumbnailZoomPlus.Pages.IMDb,
-    ThumbnailZoomPlus.Pages.Imgur,
+    ThumbnailZoomPlus.Pages.Imgur, // 10
     ThumbnailZoomPlus.Pages.LastFM,
     ThumbnailZoomPlus.Pages.LinkedIn,
     ThumbnailZoomPlus.Pages.MySpace,
     ThumbnailZoomPlus.Pages.PhotoBucket,
-    ThumbnailZoomPlus.Pages.Photosight,
+    ThumbnailZoomPlus.Pages.Photosight, // 15
     ThumbnailZoomPlus.Pages.Picasa,
     ThumbnailZoomPlus.Pages.Tagged,
     ThumbnailZoomPlus.Pages.Twitpic,
     ThumbnailZoomPlus.Pages.Twitter,
-    ThumbnailZoomPlus.Pages.YouTube,
+    ThumbnailZoomPlus.Pages.YouTube, // 20
     ThumbnailZoomPlus.Pages.Wikipedia,
     ThumbnailZoomPlus.Pages.Others // last; lowest priority
   ],
@@ -83,8 +83,6 @@ ThumbnailZoomPlus.FilterService = {
    * @return the page constant.
    */
   getPageConstantByDoc : function(aDocument) {
-    this._logger.debug("getPageConstantByDoc");
-
     // If enableFileProtocol, then the add-on is enabled for file:// URLs
     // (typically used with the Others page type).  This is useful during
     // debugging, but we don't normally enable it in the released version
@@ -108,6 +106,10 @@ ThumbnailZoomPlus.FilterService = {
         }
       }
     }
+
+    this._logger.debug("getPageConstantByDoc: returning " + pageConstant +
+                       " for " + aDocument.location + " host " + 
+                       aDocument.location.host);
 
     return pageConstant;
   },

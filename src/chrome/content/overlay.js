@@ -385,7 +385,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   
   /**
-   * Handles the DOMContentLoaded event.
+   * Handles the DOMContentLoaded event.  Note that this gets called
+   * not only for the html page itself, but also for each embedded image
+   * or other document.  As a result, it can attach listeners e.g. to an
+   * image based on the 'page' of the image's URL, even if that's different
+   * than the 'page' of the html doc.
+   *
    * @param aEvent the event object.
    */
   _handlePageLoaded : function(aEvent) {
@@ -432,11 +437,34 @@ ThumbnailZoomPlusChrome.Overlay = {
     var viewportElement = doc.documentElement;  
     var scrollLeft = viewportElement.scrollLeft;
     var scrollTop = viewportElement.scrollTop;
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    return (x >= this._thumbBBox.xMin - this._thumbBBox.refScrollLeft + scrollLeft &&
-            x <= this._thumbBBox.xMax - this._thumbBBox.refScrollLeft + scrollLeft  &&
-            y >= this._thumbBBox.yMin - this._thumbBBox.refScrollTop + scrollTop &&
-            y <= this._thumbBBox.yMax - this._thumbBBox.refScrollTop + scrollTop);
+    var adj = this._thumbBBox;
+    // Adjust the bounding box to account for scrolling.  Note that the box's
+    // position on-screen moves the opposite direction than the scroll amount.
+    var xOffset = (adj.refScrollLeft - scrollLeft) * pageZoom; 
+    var yOffset = (adj.refScrollTop - scrollTop) * pageZoom;
+    adj.xMin += xOffset;
+    adj.xMax += xOffset;
+    adj.yMin += yOffset;
+    adj.yMax += yOffset;
+
+    var inside = (x >= adj.xMin &&
+                  x <= adj.xMax &&
+                  y >= adj.yMin &&
+                  y <= adj.yMax);
+    if (0) this._logger.debug("_insideThumbBBox: orig scroll=" +
+                       adj.refScrollLeft + "," + adj.refScrollTop +
+                      "; cur scroll=" +
+                      scrollLeft + "," + scrollTop +
+                      "; scaled diff = " + xOffset+
+                      "," + yOffset );
+    this._logger.debug("_insideThumbBBox: adj=" +
+                       adj.xMin + ".." + adj.xMax + "," +
+                       adj.yMin + ".." + adj.yMax +
+                       " vs " + x + ".." + y + ": " +
+                       (inside ? "inside" : "outside") );
+    return inside;
   },
   
   /**
@@ -890,25 +918,27 @@ ThumbnailZoomPlusChrome.Overlay = {
   _updateThumbBBox : function(aImageNode, xOffset, yOffset) {
     this._logger.trace("_updateThumbBBox");
     			
-    var viewportElement = document.documentElement;  
-    var scrollLeft = viewportElement.scrollLeft;
-    var scrollTop = viewportElement.scrollTop;
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     var box = aImageNode.getBoundingClientRect();
 
-    this._logger.debug("_updateThumbBBox: scroll = " +
-                       scrollLeft + "," + scrollTop);
-    this._logger.debug("_updateThumbBBox: doc to screen offset = " +
+    this._logger.debug("_updateThumbBBox: x,y offset = " +
                        xOffset + "," + yOffset);
 
-    this._thumbBBox.xMin = xOffset + box.left * pageZoom + scrollLeft;
-		this._thumbBBox.yMin = yOffset + box.top  * pageZoom + scrollTop;
+    this._thumbBBox.xMin = xOffset + box.left * pageZoom;
+		this._thumbBBox.yMin = yOffset + box.top  * pageZoom;
     
     this._thumbBBox.xMax = this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom;
     this._thumbBBox.yMax = this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom;
     
+    var viewportElement = gBrowser.selectedBrowser.contentWindow;  
+    var scrollLeft = viewportElement.scrollX;
+    var scrollTop = viewportElement.scrollY;
     this._thumbBBox.refScrollLeft = scrollLeft;
     this._thumbBBox.refScrollTop = scrollTop;
+    this._logger.debug("_updateThumbBBox: tabbed browser = " +gBrowser + "; browser=" + gBrowser.selectedBrowser +
+                       "; win=" + gBrowser.selectedBrowser.contentWindow);
+    this._logger.debug("_updateThumbBBox: ref scroll = " +
+                       scrollLeft + "," + scrollTop);
     
     this._logger.debug("_updateThumbBBox: bbox = " +
                        this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
