@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds

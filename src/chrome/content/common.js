@@ -27,11 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 Components.utils.import("resource://thumbnailzoomplus/common.js");
 
 /**
  * ThumbnailZoomPlusChrome namespace.
  */
 if ("undefined" == typeof(ThumbnailZoomPlusChrome)) {
-  ThumbnailZoomPlusChrome = {};
+  var ThumbnailZoomPlusChrome = {};
 };

@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 var EXPORTED_SYMBOLS = [];
 
 const Cc = Components.classes;

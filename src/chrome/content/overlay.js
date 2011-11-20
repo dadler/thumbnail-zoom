@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
@@ -316,7 +318,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _addListenersWhenPopupShown : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    doc = content.document.documentElement;
+    let doc = content.document.documentElement;
     that._logger.debug("_addListenersWhenPopupShown for " +
       doc);
     
@@ -346,7 +348,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _removeListenersWhenPopupHidden : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    doc = content.document.documentElement;
+    let doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
       doc);
     doc.removeEventListener(
@@ -551,7 +553,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let active = false;
     let keyPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_KEY);
-
+    if (! keyPref) {
+      return true;
+    }
     switch (keyPref.value) {
       case 1:
         active = aEvent.ctrlKey;
@@ -781,8 +785,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
         let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
         
-        clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
-        clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
+        let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
+        let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
         that._updateThumbBBox(aImageNode, 
                               clientToScreenX, clientToScreenY);
         let available = that._getAvailableSizeOutsideThumb(aImageNode);
@@ -822,9 +826,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // Help the garbage collector reclaim memory quickly.
         // (Test by watching "images" size in about:memory.)
         image.src = null;
-        delete image;
         image = null;
-
       }
     };
     image.onerror = function(aEvent) {
@@ -980,7 +982,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
-    adjustment = 2*this._pad + this._widthAddon;
+    let adjustment = 2*this._pad + this._widthAddon;
     this._logger.debug("_getAvailableSizeOutsideThumb: " +
                        "available.left,right before adjustment = " + 
                        available.left + "," + available.top +

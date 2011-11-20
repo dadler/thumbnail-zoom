@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 var EXPORTED_SYMBOLS = [];
 
 const Cc = Components.classes;
@@ -225,7 +227,7 @@ ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
   host: /\.flickr\.com/,
-  imageRegExp: /farm[0-9]+\.static\.flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
+  imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
       aNode.parentNode.previousSibling.firstChild.firstChild.getAttribute("src")

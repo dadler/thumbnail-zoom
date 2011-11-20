@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 var EXPORTED_SYMBOLS = ["ThumbnailZoomPlus"];
 
 const Cc = Components.classes;
@@ -39,7 +41,7 @@ Cu.import("resource://thumbnailzoomplus/log4moz.js");
  * ThumbnailZoomPlus namespace.
  */
 if ("undefined" == typeof(ThumbnailZoomPlus)) {
-  ThumbnailZoomPlus = {
+  var ThumbnailZoomPlus = {
     /* The FUEL Application object. */
     _application : null,
     /* Reference to the observer service. */
@@ -180,7 +182,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
 
       if (!profDir.exists() || !profDir.isDirectory()) {
         // read and write permissions to owner and group, read-only for others.
-        profDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0774);
+        profDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0774', 8));
       }
 
       return profDir;

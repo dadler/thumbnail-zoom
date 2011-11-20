@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+"use strict";
+
 var EXPORTED_SYMBOLS = [];
 
 const Cc = Components.classes;
@@ -87,10 +89,11 @@ ThumbnailZoomPlus.FilterService = {
     // (typically used with the Others page type).  This is useful during
     // debugging, but we don't normally enable it in the released version
     // since we aren't sure if there might be subtle security risks.
-    enableFileProtocol = false;
+    let enableFileProtocol = false;
 
     let pageConstant = -1;
-
+    let name = "?";
+    
     if (aDocument.location &&
         ("http:" == aDocument.location.protocol ||
          "https:" == aDocument.location.protocol ||
@@ -102,13 +105,14 @@ ThumbnailZoomPlus.FilterService = {
         let hostRegExp = new RegExp(this.pageList[i].host);
         if (hostRegExp.test(host)) {
           pageConstant = i;
+          name = this.pageList[i].key;
           break;
         }
       }
     }
 
     this._logger.debug("getPageConstantByDoc: returning " + pageConstant +
-                       " for " + aDocument.location + " host " + 
+                       " '" + name + "' for " + aDocument.location + " host " + 
                        aDocument.location.host);
 
     return pageConstant;
@@ -160,7 +164,8 @@ ThumbnailZoomPlus.FilterService = {
     if (null != pageName) {
       let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
 
-      pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
+      if (ThumbnailZoomPlus.Application.prefs.get(pagePrefKey))
+        pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
     }
 
     return pageEnable;
@@ -186,8 +191,8 @@ ThumbnailZoomPlus.FilterService = {
   _applyBaseURI : function(aDocument, url) {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                       .getService(Components.interfaces.nsIIOService);
-    baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
-    uri = ioService.newURI(url, aDocument.characterSet, baseUri);
+    var baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
+    var uri = ioService.newURI(url, aDocument.characterSet, baseUri);
     return uri.spec;
   },
   
@@ -199,9 +204,9 @@ ThumbnailZoomPlus.FilterService = {
    */
   getImageSource : function(aDocument, aNode, aPage) {
     this._logger.debug("___________________________");
-    this._logger.debug("getImageSource page " + aPage);
-
     let pageInfo = this.pageList[aPage];
+    this._logger.debug("getImageSource page " + aPage + " " + pageInfo.key);
+
     let nodeName = aNode.localName.toLowerCase();
     this._logger.debug("ThumbnailPreview node name: " + nodeName + "; src: " +
                        aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
