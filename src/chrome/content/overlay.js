@@ -91,6 +91,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   // window (as opposed to a different window).
   _currentWindow : null,
   
+  // _originalURI is the URL _currentWindow had when we last showed the popup.
+  _originalURI : "",
   
   /**
    * Initializes the object.
@@ -440,6 +442,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     var viewportElement = doc.documentElement;  
     var scrollLeft = viewportElement.scrollLeft;
     var scrollTop = viewportElement.scrollTop;
+    if (typeof(gBrowser) == "undefined") {
+      // This happens after moving the final remaining tab in a window
+      // to a different window, and then hovering an image in the moved tab.
+      // I think the problem is taht events are still registered on the <img>
+      // sub-documents from the original tab's load.  We work around it by
+      // declaring inside the thumb bbox, so the move event will be ignored.
+      this._logger.debug("_insideThumbBBox: returning true since no gBrowser");
+      return true;
+    }
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
     var adj = this._thumbBBox;
@@ -478,6 +489,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleMouseOver : function(aDocument, aEvent, aPage) {
     this._logger.trace("_handleMouseOver");
 
+    if (this._needToPopDown(aDocument.defaultView.top)) {
+      this._logger.debug("_closePanel since mouse different doc.");
+      this._closePanel();
+      return;
+    }
     let x = aEvent.screenX;
     let y = aEvent.screenY;
     if (this._insideThumbBBox(aDocument, x, y)) {
@@ -524,8 +540,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 */
         let that = this;
         that._currentWindow = aDocument.defaultView.top;
-        that._logger.debug("_handleMouseOver: *** Setting _currentWindow=" + 
-                           this._currentWindow.document.documentURI);
+        that._originalURI = that._currentWindow.document.documentURI;
+        that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
+                           this._originalURI);
 
         that._timer.initWithCallback({ notify:
           function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
@@ -629,6 +646,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minHeight = "";
     this._logger.debug("_closePanel since closing any prev popup before loading new one");
     this._closePanel();
+    this._originalURI = this._currentWindow.document.documentURI;
 
     // open new pic.
     if (this._panel.state != "open") {
@@ -673,6 +691,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelThrobber.hidden = false;
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
+      this._originalURI = "";
       if (this._panel.state != "closed") {
         this._panel.hidePopup();
       }
@@ -733,17 +752,21 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _needToPopDown : function(affectedWindow) {
-      return 
-      (that._currentWindow == affectedWindow &&
-       that._currentWindow.document.documentURI != affectedWindow.document.documentURI);
+    let needTo = 
+      (this._originalURI != "" &&
+       this._currentWindow == affectedWindow &&
+       this._originalURI != affectedWindow.document.documentURI);
+    this._logger.debug("_needToPopDown: returning " + needTo + 
+                       " for _originalURI=" + this._originalURI +
+                       "   vs affectedWindow=" + affectedWindow.document.documentURI);
+    
+    return needTo;
   },
   
   _handlePageHide : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handlePageHide: *** currently, cw=" + 
-                        (that._currentWindow == null ? "null" : that._currentWindow.document.documentURI) +
-                        "   vs   event=" + aEvent.originalTarget.defaultView.top.document.documentURI);
-    if (_needToPopDown(aEvent.originalTarget.defaultView.top)) {
+    that._logger.trace("_handlePageHide");
+    if (this._currentWindow == affectedWindow) {
       that._logger.debug("_handlePageHide: closing panel");
       that._closePanel();
     }
@@ -752,6 +775,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handleHashChange : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.trace("_handleHashChange");
     that._logger.debug("_handleHashChange: closing panel");
     that._closePanel();
   },
@@ -817,7 +841,7 @@ ThumbnailZoomPlusChrome.Overlay = {
               imageSize.width + " x " + imageSize.height + 
               ") isn't at least 20% bigger than thumb (" +
               thumbWidth + " x " + thumbHeight + ")");
-          that._removeListenersWhenPopupHidden();
+          that._closePanel();
 
           return;
         }
