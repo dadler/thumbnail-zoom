@@ -150,7 +150,7 @@ ThumbnailZoomPlus.Pages.LinkedIn = {
   key: "linkedin",
   name: "LinkedIn",
   host: /^(.*\.)?linkedin\.com$/,
-  imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\//,
+  imageRegExp: /\/mpr\//,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\/shrink_[0-9][0-9]_[0-9][0-9]\//, "/");
   }
