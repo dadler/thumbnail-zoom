@@ -63,7 +63,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
 ThumbnailZoomPlus.Pages.Facebook = {
   key: "facebook",
   name: "Facebook",
-  host: /\.facebook\.com/,
+  host: /^(.*\.)?facebook\.com$/,
   /*
      Thumb URLs seem different when logged into Facebook vs when logged out
      and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
@@ -113,7 +113,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
 ThumbnailZoomPlus.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
-  host: /twitter\.com/,
+  host: /^(.*\.)?twitter\.com$/,
   imageRegExp: /twimg\.com\/profile_images\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
@@ -128,14 +128,17 @@ ThumbnailZoomPlus.Pages.Twitter = {
 ThumbnailZoomPlus.Pages.Twitpic = {
   key: "twitpic",
   name: "Twitpic",
-  host: /twitpic\.com/,
+  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com)$/,
   imageRegExp:
-    /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)/,
+    /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)|(\.twitpicproxy\.com\/photos)/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
     let rex2 = new RegExp(/-(mini|thumb)\./);
-    let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, ".") :
-      (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : null));
+    let rex3 = new RegExp(/\/(mini|thumb)\//);
+    let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, ".") :
+                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
+                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                null;
     return image;
   }
 };
@@ -146,7 +149,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
 ThumbnailZoomPlus.Pages.LinkedIn = {
   key: "linkedin",
   name: "LinkedIn",
-  host: /\.linkedin\.com/,
+  host: /^(.*\.)?linkedin\.com$/,
   imageRegExp: /media[0-9][0-9]\.linkedin.com\/mpr\//,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\/shrink_[0-9][0-9]_[0-9][0-9]\//, "/");
@@ -159,7 +162,8 @@ ThumbnailZoomPlus.Pages.LinkedIn = {
 ThumbnailZoomPlus.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
-  host: /www\.amazon\.[a-z]+/,
+  // Work on amazon.com, amazon.cn, etc.
+  host: /^(.*\.)?amazon\.[a-z]+$/,
   imageRegExp: /\/(g-)?ecx\.images\-amazon\.com\/images/,
   getZoomImage : function(aImageSrc) {
     return aImageSrc.replace(/\._[a-z].+_\./i, ".");
@@ -172,7 +176,7 @@ ThumbnailZoomPlus.Pages.Amazon = {
 ThumbnailZoomPlus.Pages.Hi5 = {
   key: "hi5",
   name: "Hi5",
-  host: /\.hi5\.com/,
+  host: /^(.*\.)?hi5\.com$/,
   imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\-01\./);
@@ -189,10 +193,10 @@ ThumbnailZoomPlus.Pages.Hi5 = {
 ThumbnailZoomPlus.Pages.Picasa = {
   key: "picasa",
   name: "Picasa",
-  host: /picasaweb\.google\.com/,
+  host: /picasaweb\.google\.com$/,
   imageRegExp: /lh[0-9]+\.(ggpht|googleusercontent)\.com/,
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/\/s([0-9]{2}|[123][0-9]{2})(-c)?\//);
+    let rex = new RegExp(/\/s([0-9]{2}|[123][0-9]{2})(-[a-z])?\//);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/s700/") : null);
     return image;
   }
@@ -204,7 +208,7 @@ ThumbnailZoomPlus.Pages.Picasa = {
 ThumbnailZoomPlus.Pages.MySpace = {
   key: "myspace",
   name: "MySpace",
-  host: /myspace\.com/,
+  host: /^(.*\.)?myspace\.com$/,
   imageRegExp: /images\.myspacecdn\.com/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (aNode.hasAttribute("data-src") ?
@@ -226,7 +230,7 @@ ThumbnailZoomPlus.Pages.MySpace = {
 ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
-  host: /\.flickr\.com/,
+  host: /^(.*\.)?flickr\.com$/,
   imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
@@ -252,7 +256,7 @@ ThumbnailZoomPlus.Pages.Flickr = {
 ThumbnailZoomPlus.Pages.Wikipedia = {
   key: "wikipedia",
   name: "Wikipedia",
-  host: /wikipedia\.org/,
+  host: /^(.*\.)?wikipedia\.org$/,
   imageRegExp: /upload\.wikimedia\.org\/wikipedia\/commons/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\/thumb\//);
@@ -273,7 +277,7 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
   key: "deviantart",
   name: "deviantART",
-  host: /deviantart\.com/,
+  host: /^(.*\.)?deviantart\.com$/,
   imageRegExp: /(th[0-9]+|s).deviantart.(net|com)/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/(fs\d+\/)\w+\/([fiop])/);
@@ -288,7 +292,7 @@ ThumbnailZoomPlus.Pages.DeviantART = {
 ThumbnailZoomPlus.Pages.PhotoBucket = {
   key: "photobucket",
   name: "PhotoBucket",
-  host: /photobucket\.com/,
+  host: /^(.*\.)?photobucket\.com$/,
   imageRegExp: /[0-9]+\.photobucket.com\/(albums|groups)/,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     return ("div" == aNodeName && "thumb" == aNodeClass ? aNode : null);
@@ -306,7 +310,7 @@ ThumbnailZoomPlus.Pages.PhotoBucket = {
 ThumbnailZoomPlus.Pages.Tagged = {
   key: "tagged",
   name: "Tagged",
-  host: /\.tagged\.com/,
+  host: /^(.*\.)?tagged\.com$/,
   imageRegExp: /[a-z]+[0-9]+\.tagstat.com\/image/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/[123456789]0([\w-]+\.[a-z]+)/);
@@ -321,7 +325,7 @@ ThumbnailZoomPlus.Pages.Tagged = {
 ThumbnailZoomPlus.Pages.LastFM = {
   key: "lastfm",
   name: "Last.fm",
-  host: /www\.last\.fm/,
+  host: /^(.*\.)?(last\.fm|lastfm.[a-z]+)$/,
   imageRegExp: /userserve-ak\.last\.fm\/serve/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/serve\/\w+\//);
@@ -348,7 +352,7 @@ ThumbnailZoomPlus.Pages.LastFM = {
 ThumbnailZoomPlus.Pages.GooglePlus = {
   key: "googleplus",
   name: "Google+",
-  host: /plus\.google\.com/,
+  host: /^(.*\.)?plus\.google\.com$/,
   imageRegExp: /\.(ggpht|googleusercontent)\.com/,
   _logger: ThumbnailZoomPlus.Pages._logger,
   getZoomImage : function(aImageSrc) {
@@ -407,7 +411,7 @@ ThumbnailZoomPlus.Pages.Google = {
   // www.google.com general search with image results, etc.
   // To prevent this from interfering with GooglePlus, its entry
   // comes later in filterService.js.
-  host: /\.google\.[a-z\.]+/,
+  host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,
   imageRegExp: /.+/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = null;
@@ -442,7 +446,7 @@ ThumbnailZoomPlus.Pages.Google = {
 ThumbnailZoomPlus.Pages.YouTube = {
   key: "youtube",
   name: "YouTube",
-  host: /www\.youtube\.com/,
+  host: /^(.*\.)?youtube\.com$/,
   imageRegExp: /i[0-9]+\.ytimg\.com\/vi\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\/default\./);
@@ -465,7 +469,7 @@ ThumbnailZoomPlus.Pages.YouTube = {
 ThumbnailZoomPlus.Pages.DailyMile = {
   key: "dailymile",
   name: "Daily Mile",
-  host: /dailymile\.com/,
+  host: /^(.*\.)?dailymile\.com$/,
   imageRegExp: /(dmimg|dailymile)\.com\/(images|pictures|photos)\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(mini|profile|preview|avatar)\./);
@@ -480,7 +484,7 @@ ThumbnailZoomPlus.Pages.DailyMile = {
 ThumbnailZoomPlus.Pages.IMDb = {
   key: "imdb",
   name: "IMDb",
-  host: /www\.imdb\.[a-z]+/,
+  host: /^(.*\.)?imdb\.[a-z]+$/,
   imageRegExp: /ia\.media\-imdb\.com\/images\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/\._.+_(\.[a-z]+)/i);
@@ -495,7 +499,7 @@ ThumbnailZoomPlus.Pages.IMDb = {
 ThumbnailZoomPlus.Pages.Imgur = {
   key: "imgur",
   name: "Imgur",
-  host: /imgur\.com/,
+  host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/[bsm](\.[a-z]+)/i);
@@ -520,7 +524,7 @@ ThumbnailZoomPlus.Pages.Imgur = {
 ThumbnailZoomPlus.Pages.Photosight = {
   key: "photosight",
   name: "Photosight",
-  host: /photosight\.ru/,
+  host: /^(.*\.)?photosight\.ru$/,
   imageRegExp: /\.photosight\.ru/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/_(icon)\./);
@@ -539,7 +543,7 @@ ThumbnailZoomPlus.Pages.Photosight = {
 ThumbnailZoomPlus.Pages.Engadget = {
   key: "engadget",
   name: "Engadget",
-  host: /\.engadget\.[a-z]+/,
+  host: /^(.*\.)?engadget\.[a-z]+$/,
   imageRegExp: /_[0-9]+x[0-9]+\.[a-zA-Z]+$/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_[0-9]+x[0-9]+(\.[a-zA-Z]+)$/i);
