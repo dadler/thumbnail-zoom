@@ -416,10 +416,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = this;
 
     if (doc instanceof HTMLDocument) {
+      this._logger.debug("............................"); 
+      let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
       this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
                            (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
                            "   vs   event=" + doc.defaultView.top.document.documentURI);
-      let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
 
       if (-1 != pageConstant) {
         doc.addEventListener(
