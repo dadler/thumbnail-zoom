@@ -419,7 +419,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (doc instanceof HTMLDocument) {
       this._logger.debug("............................"); 
-      let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc);
+      let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc, 0);
       this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
                            (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
                            "   vs   event=" + doc.defaultView.top.document.documentURI);
@@ -505,62 +505,73 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._thumbBBox.xMax = -999;
     
-    let node = aEvent.target;
-    let imageSource = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
-
-    if (null != imageSource && this._isKeyActive(aEvent)) {      
-      if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
-          ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-
-        this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
-        this._timer.cancel();
-
-        /*
-         * Trickiness to get the right "that": normally this and 
-         * ThumbnailZoomPlusChrome.Overlay automatically refer to the
-         * correct instance -- which is the window the document was loaded into.
-         * But if the user drags a tab into a different window, the
-         * document carries its javascript state, which includes the
-         * registration of mouseOver handler to this._handleMouseOver -- for
-         * "this" of the original window.
-         *
-         * We want the popup to appear in the new window, not the original
-         * one, so we explicitly find the window of the now-active browser
-         * and get the ThumbnailZoomPlusChrome.Overlay object from that
-         * context.
-         */
-/*
-        var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                    .getService(Components.interfaces.nsIWindowMediator);
-        var browserWindow = wm.getMostRecentWindow("navigator:browser");
-        this._logger.debug("_handleMouseOver: other win=" + browserWindow.ThumbnailZoomPlusChrome.Overlay._currentWindow);
-        
-
-        let that = browserWindow.ThumbnailZoomPlusChrome.Overlay;
-*/
-        let that = this;
-        that._currentWindow = aDocument.defaultView.top;
-        that._originalURI = that._currentWindow.document.documentURI;
-        that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
-                           this._originalURI);
-
-        that._timer.initWithCallback({ notify:
-          function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
-        }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
-      } else {
-        this._logger.debug("_closePanel since site disabled or image URL unrecognized");
-        this._closePanel();
-      }
-    } else {
-      // This element isn't an image or the hot key isn't down.
-      // This is how we dismiss the popup by moving the mouse out of
-      // the thumbnail.
-      this._logger.debug("_closePanel since mouse entered non-image or key not down");
+    if (! this._isKeyActive(aEvent)) {
+      this._logger.debug("_closePanel since hot key not down");
       this._closePanel();
+      return;
     }
+      
+    this._logger.debug("___________________________");
+    this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
+    let node = aEvent.target;
+    this._findPageAndShowImage(aDocument, aEvent, aPage, node);
   },
 
 
+  _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+
+    /*
+     * Try each maching page (rule), starting with the one we found for the
+     * document itself when we loaded it, until we find one which can generate
+     * an image URL.
+     */
+    while (aPage >= 0) {
+      this._logger.debug("... _findPageAndShowImage: Trying page '" + 
+                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                         "'");
+
+      let imageSource = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
+      
+      if (null != imageSource) {      
+        if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
+            ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+          // Found a matching page!
+          this._timer.cancel();
+          
+          /*
+           * Trickiness to get the right "that": normally this and 
+           * ThumbnailZoomPlusChrome.Overlay automatically refer to the
+           * correct instance -- which is the window the document was loaded into.
+           * But if the user drags a tab into a different window, the
+           * document carries its javascript state, which includes the
+           * registration of mouseOver handler to this._handleMouseOver -- for
+           * "this" of the original window.
+           *
+           * We want the popup to appear in the new window, not the original
+           * one, so we explicitly find the window of the now-active browser
+           * and get the ThumbnailZoomPlusChrome.Overlay object from that
+           * context.
+           */
+          let that = this;
+          that._currentWindow = aDocument.defaultView.top;
+          that._originalURI = that._currentWindow.document.documentURI;
+          that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
+                             this._originalURI);
+          
+          that._timer.initWithCallback({ notify:
+                                       function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
+                                       }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
+          return;
+        }
+      }
+      
+      // Try to find another matching page.
+      aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
+    }
+    this._logger.debug("_closePanel since mouse not in recognized URL or site disabled");
+    this._closePanel();
+  },
+  
   /**
    * Verifies if the key is active.
    * @param aEvent the event object.

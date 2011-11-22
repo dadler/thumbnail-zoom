@@ -84,7 +84,7 @@ ThumbnailZoomPlus.FilterService = {
    * @param aDocument the document object.
    * @return the page constant.
    */
-  getPageConstantByDoc : function(aDocument) {
+  getPageConstantByDoc : function(aDocument, startFromPage) {
     // If enableFileProtocol, then the add-on is enabled for file:// URLs
     // (typically used with the Others page type).  This is useful during
     // debugging, but we don't normally enable it in the released version
@@ -101,7 +101,7 @@ ThumbnailZoomPlus.FilterService = {
       let host = aDocument.location.host;
       let pageCount = this.pageList.length;
 
-      for (let i = 0; i < pageCount; i++) {
+      for (let i = startFromPage; i < pageCount; i++) {
         let hostRegExp = new RegExp(this.pageList[i].host);
         if (hostRegExp.test(host)) {
           pageConstant = i;
@@ -205,7 +205,6 @@ ThumbnailZoomPlus.FilterService = {
    * @return the image source, null if not apply.
    */
   getImageSource : function(aDocument, aNode, aPage) {
-    this._logger.debug("___________________________");
     let pageInfo = this.pageList[aPage];
     this._logger.debug("getImageSource page " + aPage + " " + pageInfo.key);
 
@@ -237,6 +236,11 @@ ThumbnailZoomPlus.FilterService = {
           // than retrieving the html attribute so it'll apply the base
           // document's URL for missing components of the URL (eg domain).
           imageSource = String(imageNode);
+          if (/^http:\/\/t\.co\//.test(imageSource)) {
+			// Special case for twitter http://t.co links; the actual
+			// URL is in the link's tooltip.
+            imageSource = imageNode.title;
+          }
         } else {
           let backImage = imageNode.style.backgroundImage;
 
