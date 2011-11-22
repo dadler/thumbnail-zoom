@@ -116,8 +116,8 @@ ThumbnailZoomPlus.Pages.Twitter = {
   host: /^(.*\.)?twitter\.com$/,
   imageRegExp: /twimg\.com\/profile_images\//,
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, ".") : null);
+    let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "") : null);
     return image;
   }
 };
@@ -132,10 +132,10 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   imageRegExp:
     /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)|(\.twitpicproxy\.com\/photos)/,
   getZoomImage : function(aImageSrc) {
-    let rex1 = new RegExp(/_(bigger|mini|normal|reasonably_small)\./);
+    let rex1 = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     let rex3 = new RegExp(/\/(mini|thumb)\//);
-    let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, ".") :
+    let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
                 rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
                 rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
                 null;
@@ -565,7 +565,15 @@ ThumbnailZoomPlus.Pages.Others = {
   // which getZoomImage will convert to a youtube thumb.
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
-  imageRegExp: /(\.gif|\.jpe?g|\.png|\.bmp)(\?.*)?$|tumblr.com\/photo\/|imgur\.com\/(gallery\/)?[^\/&]+(&.*)?$|www\.youtube\.com\/|youtu.be\/|quickmeme.com\/meme\/|qkme.me\//i,
+  imageRegExp: new RegExp("(\\.gif|\\.jpe?g|\\.png|\\.bmp)(\\?.*)?$|" +
+                      "tumblr.com/photo/|" +
+                      "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
+                      "www\\.youtube\\.com/|" +
+                      "youtu.be/|" +
+                      "quickmeme\\.com/meme/|" +
+                      "qkme.me/|" +
+                      "https?://twitter.com/.*\\?url=",
+                      "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
   
@@ -580,7 +588,8 @@ ThumbnailZoomPlus.Pages.Others = {
       imgNodeURL = aNode.getAttribute("src");
     }
     // try to find an enclosing <a> (link) tag.
-    while (aNode != null && aNode.localName != null && 
+    while (aNode != null && 
+           aNode.localName != null && 
            aNode.localName.toLowerCase() != "a") {
       this._logger.debug("ThumbnailPreview: Others: trying parent of " + aNode);
       aNode = aNode.parentNode;
@@ -599,6 +608,12 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
+    // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
+    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
+    if (twitterEx.test(aImageSrc)) {
+      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -613,7 +628,7 @@ ThumbnailZoomPlus.Pages.Others = {
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1.jpg");
-    
+        
     // For sites other than tumblr, if there is no image suffix, add .jpg.
     let rex = new RegExp(/(tumblr\.com\/.*|\.gif|\.jpe?g|\.png)(\?.*)?$/i);
     if (! rex.test(aImageSrc)) {
