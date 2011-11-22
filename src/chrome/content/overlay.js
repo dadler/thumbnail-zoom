@@ -67,6 +67,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   _panel : null,
   /* The floating panel image. */
   _panelImage : null,
+  /* The floating panel caption (a label). */
+  _panelCaption : null,
   /* The current image source. */
   _currentImage : null,
   /* Context download image menu item */
@@ -110,6 +112,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
+    this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
@@ -134,6 +137,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._panelCaption = null;
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
@@ -580,6 +584,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     return inside;
   },
   
+  _getEffectiveTitle : function(aNode) {
+    while (aNode != null && aNode.localName.toLowerCase() != "body") {
+      if (aNode.title != undefined && aNode.title != "") {
+        return aNode.title;
+      }
+      this._logger.debug("_getEffectiveTitle: trying parent of " + aNode);
+      aNode = aNode.parentNode;
+    }
+    return "";
+  },
+  
   /**
    * Handles the mouse over event.
    * @param aEvent the event object.
@@ -666,6 +681,11 @@ ThumbnailZoomPlusChrome.Overlay = {
           } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
+            let caption = this._getEffectiveTitle(node);
+       	    this._logger.debug("_handleMouseOver: image title='" + 
+            	                 caption + "'");
+    	    this._panelCaption.value = caption;
+
             this._currentWindow = aDocument.defaultView.top;
             this._originalURI = this._currentWindow.document.documentURI;
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 

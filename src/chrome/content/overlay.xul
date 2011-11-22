@@ -77,7 +77,10 @@
   <!-- Panel -->
   <window id="main-window">
     <panel id="thumbnailzoomplus-panel" noautofocus="true" noautohide="true">
-      <image id="thumbnailzoomplus-panel-image" /> 
+      <vbox align="center" pack="center">
+        <image id="thumbnailzoomplus-panel-image" />
+        <label id="thumbnailzoomplus-panel-caption" />
+      </vbox>
     </panel>
   </window>
 
