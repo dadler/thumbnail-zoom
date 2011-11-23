@@ -636,7 +636,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (null != zoomImageSrc) {
       this._showPanel(aImageNode, zoomImageSrc, aEvent);
     } else {
-      this._logger.debug("_closePanel since not a recognized image URL");
+      this._logger.debug("_closePanel since getZoomImage returned null");
       this._closePanel();
     }
   },

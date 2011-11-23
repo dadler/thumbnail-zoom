@@ -83,6 +83,10 @@ ThumbnailZoomPlus.FilterService = {
    * Detects and gets the page constant.
    * @param aDocument the document object.
    * @return the page constant.
+   *
+   * TODO: perhaps we should change this to use the URI of the
+   * thumb / link being evaluated (dynamically) instead of
+   * the URI of the document itself.
    */
   getPageConstantByDoc : function(aDocument, startFromPage) {
     // If enableFileProtocol, then the add-on is enabled for file:// URLs
@@ -288,7 +292,7 @@ ThumbnailZoomPlus.FilterService = {
 
     let pageInfo = this.pageList[aPage];
     let zoomImage = pageInfo.getZoomImage(aImageSrc);
-    this._logger.debug("ThumbnailPreview: using zoom image " + zoomImage);
+    this._logger.debug("ThumbnailPreview: getZoomImage returned " + zoomImage);
 
     return zoomImage;
   }

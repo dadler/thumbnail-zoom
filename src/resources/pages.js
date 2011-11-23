@@ -113,7 +113,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
 ThumbnailZoomPlus.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
-  host: /^(.*\.)?twitter\.com$/,
+  host: /^(.*\.)?(twitter\.com|twimg\.com)$/,
   imageRegExp: /twimg\.com\/profile_images\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
@@ -128,16 +128,20 @@ ThumbnailZoomPlus.Pages.Twitter = {
 ThumbnailZoomPlus.Pages.Twitpic = {
   key: "twitpic",
   name: "Twitpic",
-  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com)$/,
+  
+  // Host includes twitter.com since twitter often hosts twitpic images.
+  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg\.com)$/,
   imageRegExp:
-    /(twimg\.com\/profile_images\/)|(web[0-9][0-9]\.twitpic\.com\/img)|(\.twitpicproxy\.com\/photos)/,
+    /^(.*[.|\/])?(twimg\.com|twitpic\.com|twitpic\.com\/(img|show)|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
   getZoomImage : function(aImageSrc) {
-    let rex1 = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
+    let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     let rex3 = new RegExp(/\/(mini|thumb)\//);
+    let rexNoModNecessary = new RegExp(/(yfrog\.com|instagr\.am|instagram.com|twimg\.com)/);
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
                 rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
                 rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                rexNoModNecessary.test(aImageSrc) ? aImageSrc :
                 null;
     return image;
   }
@@ -242,9 +246,15 @@ ThumbnailZoomPlus.Pages.Flickr = {
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/_[smt]\./);
-    // For bigger images, change _z to _b (but may download slower).
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z.") : null);
+    // match an image name with a s, m, or t size code, or no size code, e.g.
+    // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04_s.jpg or
+    // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04.jpg
+    let rex = new RegExp(/(?:_[a-z])?(\.[a-z]+)$/);
+    // Substitute to the letter code for the desired size (_z=Medium_640).
+    // It's tempting to use a code for a larger size, but some images aren't
+    // available in larger size, causing them to get no popup at all if we change
+    // it.
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z$1") : null);
 
     return image;
   }
