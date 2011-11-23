@@ -240,9 +240,9 @@ ThumbnailZoomPlus.FilterService = {
           // than retrieving the html attribute so it'll apply the base
           // document's URL for missing components of the URL (eg domain).
           imageSource = String(imageNode);
-          if (/^http:\/\/t\.co\//.test(imageSource)) {
-			// Special case for twitter http://t.co links; the actual
-			// URL is in the link's tooltip.
+          if (/^https?:\/\/t\.co\//.test(imageSource)) {
+			      // Special case for twitter http://t.co links; the actual
+			      // URL is in the link's tooltip.
             imageSource = imageNode.title;
           }
         } else {
