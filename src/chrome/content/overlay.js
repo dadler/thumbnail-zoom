@@ -307,7 +307,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      */
     for (let i=0; i < gBrowser.browsers.length; i++) {
       this._logger.debug("_addEventListeners: " +
-                         " pre-existing doc " + i + ": " + gBrowser.getBrowserAtIndex(i).contentDocument);
+                         " pre-existing doc #" + i + ": " + gBrowser.getBrowserAtIndex(i).contentDocument);
       this._addEventListenersToDoc(gBrowser.getBrowserAtIndex(i).contentDocument);
     }
   },
@@ -419,6 +419,33 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (doc instanceof HTMLDocument) {
       this._logger.debug("............................"); 
+
+      if (doc.location.host == "api.twitter.com" ||
+          doc.location.host == "adjax.flickr.yahoo.com") {
+        // Don't add handlers when Twitter's API doc is opened; doing so
+        // would cause us to register an extra set of handlers.
+        // TODO: I don't know a general way to detect this situation (eg
+        // for other sites).
+        this._logger.debug("_addEventListenersToDoc: ignoring host " + doc.location.host);
+        return;
+      }
+
+      // Try to detect if we're already registered, e.g. so we don't
+      // reregister due to autopager. But this never actually detects.
+      if ("undefined" == typeof(doc.ThumbnailZoomPlus)) {
+        doc.ThumbnailZoomPlus = {addedListeners: false};
+      }
+      this._logger.debug("_addEventListenersToDoc: addedListeners=" +
+                         doc.ThumbnailZoomPlus.addedListeners); 
+
+      if (doc.ThumbnailZoomPlus.addedListeners) {
+        this._logger.debug("_addEventListenersToDoc: Already has handlers; returning."); 
+        return;
+      }
+      doc.ThumbnailZoomPlus.addedListeners = true;
+      this._logger.debug("_addEventListenersToDoc: addedListeners=" +
+                         doc.ThumbnailZoomPlus.addedListeners); 
+
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc, 0);
       this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
                            (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
