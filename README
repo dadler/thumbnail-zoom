@@ -1,19 +1,14 @@
-This git repository holds the source code for Thumbnail Zoom DA, which is
+This git repository holds the source code for Thumbnail Zoom Plus, which is
 David Adler's fork of the Thumbnail Zoom add-on for Mozilla Firefox.
 
-Thumbnail Zoom DA is a Firefox addon which shows ful-sized images in a pop-over window when
+Thumbnail Zoom Plus is a Firefox addon which shows ful-sized images in a pop-over window when
 you hover over a thumbnail.  It works with sites like Facebook, Amazon, Imgur, Flickr, Reddit, 
 and many others, including most sites which link directly to full-size images.   
 This is a fork (derivation from) thumbnail-zoom by Andres Hernandez.
 
-This add-on is awaiting official review from the Mozilla add-ons site, at which point
-you'll be able to find it by searching for plug-ins in Firefox's add-ons page.  Until
-then you can go to its add-ons page directly at 
+You can find this add-on on the official Firefox Add-on site:
 
     https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/ .
-
-Or you can install the plug-in directly by clicking this link:
-http://dadler.github.com/thumbnailzoomda.xpi
 
 
 
@@ -55,24 +50,10 @@ of the log.txt file.  Messages are logged with calls like this:
 
 TESTING:
 
-Test on a variety of sites, including :
-
-* Facebook (wall photos, profile pics, photo galleries, photo theater mode, 
-  photo non-theater-mode which you get by hitting Return in the location field 
-  in theater mode).
-
-* Reddit
-
-* Deviantart (good for large images and thumbs on various parts of the screen)
-
-Test at 100% zoom and smaller and larger values.  
-
-Test with the page scrolled.
-
-Test in full-screen mode and not.
+See src/TestCases.html.
 
 
-INSTALLING FOR NON DEVELOPERS:
+MAKING AN INSTALLABLE XPI FILE:
 
 Make an installable xpi file like this:
   cd /Users/dadler/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src
