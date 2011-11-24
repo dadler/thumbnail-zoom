@@ -434,7 +434,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       // Try to detect if we're already registered, e.g. so we don't
-      // reregister due to autopager. But this never actually detects.
+      // reregister due to autopager. 
       if ("undefined" == typeof(doc.ThumbnailZoomPlus)) {
         doc.ThumbnailZoomPlus = {addedListeners: false};
       }
