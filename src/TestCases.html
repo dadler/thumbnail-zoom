@@ -26,7 +26,8 @@ wheel or track pad).  Verify that popup appears.  Scroll thumb out of mouse.
 Verify that popup disappears.
 <li>Test for factors related to the geometry of the thumb, image, and browser window.  
 <li>Verify correct placement of the popup adjcent to or on top of the thumb (depending on the preference).
-<li>Test with Firefox's language set to Spanish, Italian, Portugese.
+<li>Test with all languages for which the add-on has translations (see its locale dir).
+Set in about:config general.useragent.locale, with intl.locale.matchOS=false.
 </ul>
 
 
@@ -159,6 +160,41 @@ Oreos product page</a>: hover product image and its icon for bigger image.
 <li><a href="http://www.lastfm.es/charts">In Spanish</a>
 </ul>
 
+<h2>Direct Links To Images</h2>
+<ul>
+<li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
+should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
+YouTube videos should work too.
+<li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
+hosted on tumblr.com; those links should show popups.
+<li>Examples of direct links to images:
+
+<ul>
+<li>Note: Thumbnail Zoom Plus doesn't work on file:// links (it's a
+security restriction).  So to test these links, you must either:
+<ul>
+<li>temporarily set enableFileProtocol=true in filterService.js; or
+<li>Run "python -m SimpleHTTPServer" in .../thumbnail-zoom/src to
+create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
+from your machine over http</a>
+</ul>
+<li>Regular existing image:<br>&nbsp;&nbsp;
+<a href="http://imgur.com/KFC9m">text part of link
+<img src="http://d.thumbs.redditmedia.com/Z4st3vIRrgG81YQ-.jpg" />
+</a>
+
+<li>Big gif image; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
+<a href="http://imgur.com/7ZFpN">text part of link
+<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
+</a>
+
+<li>Image on non-existent host (use to make sure there are no exceptions; may take a couple minutes
+to timeout):<br>&nbsp;&nbsp;
+<a href="http://1.0.0.0/non-existent-server.jpg">
+[http://1.0.0.0/non-existent-server.jpg]
+</a>
+</ul>
+</ul>
 <h2>Hi5</h2>
 
 
@@ -185,14 +221,6 @@ Oreos product page</a>: hover product image and its icon for bigger image.
 
 <h2>Photosight.ru</h2>
 
-
-<h2></h2>
-
-
-<h2></h2>
-
-
-<h2></h2>
 
 
 (end)
