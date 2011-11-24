@@ -607,10 +607,10 @@ ThumbnailZoomPlus.Pages.Others = {
     if (aNode != null) {
       if (aNode.localName == null) {
         aNode = null;
-      } else if (aNode.getAttribute("href") == imgNodeURL) {
-        // Don't preview the same image as we're already displaying.
-        aNode = null;
       }
+      // Note that we allow the resulting preview to be for the same URL
+      // as the thumbnail itself since the thumbnail may be shown at
+      // smaller size (eg with explicit width attribute).
     }
     this._logger.debug("ThumbnailPreview: Others: returning " + aNode);
 
