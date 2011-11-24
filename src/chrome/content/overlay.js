@@ -420,8 +420,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (doc instanceof HTMLDocument) {
       this._logger.debug("............................"); 
 
-      if (doc.location.host == "api.twitter.com" ||
-          doc.location.host == "adjax.flickr.yahoo.com") {
+    if (doc.location &&
+        ("http:" == doc.location.protocol ||
+         "https:" == doc.location.protocol) &&
+        (doc.location.host == "api.twitter.com" ||
+         doc.location.host == "adjax.flickr.yahoo.com") ) {
         // Don't add handlers when Twitter's API doc is opened; doing so
         // would cause us to register an extra set of handlers.
         // TODO: I don't know a general way to detect this situation (eg
@@ -448,8 +451,13 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc, 0);
       this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
-                           (this._currentWindow == null ? "null" : this._currentWindow.document.documentURI) +
-                           "   vs   event=" + doc.defaultView.top.document.documentURI);
+                           (this._currentWindow == null ? "null" : 
+                           this._currentWindow.document == null ? "nullD" :
+                           this._currentWindow.document.documentURI) +
+                           "   vs   event=" + 
+                           (doc.defaultView == null ? "null" :
+                           doc.defaultView.top.document == null ? "nullD" :
+                           doc.defaultView.top.document.documentURI) );
 
       if (-1 != pageConstant) {
         doc.addEventListener(

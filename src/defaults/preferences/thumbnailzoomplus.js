@@ -27,7 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-"use strict";
+// Note: this file cannot "use strict"; it prevents default preferences
+// from taking effect.
 
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);

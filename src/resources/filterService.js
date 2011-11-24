@@ -116,8 +116,8 @@ ThumbnailZoomPlus.FilterService = {
     }
 
     this._logger.debug("getPageConstantByDoc: Found '" +
-                       name + "' (" + pageConstant + ") for " + aDocument.location + " host " + 
-                       aDocument.location.host +
+                       name + "' (" + pageConstant + ") for " + aDocument.location + // " host " + 
+                       //aDocument.location.host +
                        (pageConstant < 0 ? "" : 
                        (" based on regexp " + this.pageList[pageConstant].host)) );
 
