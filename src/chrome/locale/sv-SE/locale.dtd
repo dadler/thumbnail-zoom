@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-
 <!--
  - Copyright (c) 2010 Andres Hernandez Monge
  - All rights reserved.
@@ -29,29 +27,23 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+// These Swedish translations were done by Mikael Hiort af Ornäs
 
-  <Description about="urn:mozilla:install-manifest">
-    <em:id>thumbnailZoom@dadler.github.com</em:id>
-    <em:name>Thumbnail Zoom Plus</em:name>
-    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Facebook, Twitter, Reddit, Flickr, Amazon, deviantART, and more.  Thumbnail Zoom Plus is an enhanced version of the Thumbnail Zoom add-on.</em:description>
-    <em:version>1.5.9beta1</em:version>
-    <em:creator>David Adler and Andres Hernandez Monge</em:creator>
-    <em:contributor>Alexey Kuznetsov</em:contributor>
-    <!-- <em:homepageURL>http://dadler.github.com/thumbnail-zoom/</em:homepageURL> -->
-    <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
-    <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
-    <em:type>2</em:type>
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Se bilderna bakom bildminiatyrerna">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Inställningar…">
 
-    <!-- Firefox -->
-    <em:targetApplication>
-      <Description>
-        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-        <em:minVersion>3.0</em:minVersion>
-        <em:maxVersion>10.0a1</em:maxVersion>
-      </Description>
-    </em:targetApplication>
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.options.pane.label                    "Inställningar">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
+<!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Bilders ogenomskinlighet: ">
+<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tangent för bildvisning:">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till bilder i webbläsarhistoriken">
+<!ENTITY thumbnailzoomplus.options.key.none.label                "Ingen">
+<!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
+<!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Aktivera/inaktivera för följande webbplatser">
 
-  </Description>
-</RDF>
+<!ENTITY thumbnailzoomplus.context.download.label                "Spara förstorad bild som…">
+<!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">

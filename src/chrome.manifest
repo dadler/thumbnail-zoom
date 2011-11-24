@@ -32,6 +32,7 @@ locale    thumbnailzoomplus   en-US        chrome/locale/en-US/
 locale    thumbnailzoomplus   es           chrome/locale/es/
 locale    thumbnailzoomplus   it           chrome/locale/it/
 locale    thumbnailzoomplus   pt           chrome/locale/pt/
+locale    thumbnailzoomplus   sv-SE        chrome/locale/sv-SE/
 skin      thumbnailzoomplus   classic/1.0  chrome/skin/all/
 resource  thumbnailzoomplus   resources/
 
