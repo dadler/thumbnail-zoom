@@ -27,12 +27,14 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-// These Swedish translations were done by Mikael Hiort af Ornäs
+<!-- These Swedish translations were done by Mikael Hiort af Ornäs -->
 
+<!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Se bilderna bakom bildminiatyrerna">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Inställningar…">
 
+<!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Inställningar">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
@@ -45,5 +47,12 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Aktivera/inaktivera för följande webbplatser">
 
+<!-- Site Names
+     To localize a name, add it to XXXENTITYREF in overlay.js
+     and here (in each locale). -->
+<!ENTITY thumbnailzoomplus.pages.names.others                    "Övriga">
+<!ENTITY thumbnailzoomplus.pages.names.google                    "Google Bilder">
+
+<!-- Context (right-click) menu -->
 <!ENTITY thumbnailzoomplus.context.download.label                "Spara förstorad bild som…">
 <!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">

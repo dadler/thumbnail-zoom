@@ -27,10 +27,12 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
+<!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opciones...">
 
+<!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferencias">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
@@ -43,5 +45,12 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
 
+<!-- Site Names
+     To localize a name, add it to XXXENTITYREF in overlay.js
+     and here (in each locale). -->
+<!ENTITY thumbnailzoomplus.pages.names.others                    "Otros">
+<!ENTITY thumbnailzoomplus.pages.names.google                    "Imágenes de Google">
+
+<!-- Context (right-click) menu -->
 <!ENTITY thumbnailzoomplus.context.download.label                "Guardar imagen ampliada como ...">
 <!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">

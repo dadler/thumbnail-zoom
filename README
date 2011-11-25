@@ -23,7 +23,10 @@ https://developer.mozilla.org/en/Building_an_Extension
 For tips on setting up your dev environment see
 https://developer.mozilla.org/en/Setting_up_extension_development_environment
 
-In particular, in my developer profile in Firefox, I create a symlink is follows
+If you're using the Restartless Restart add-on, also turn on Disable Fastload
+in its preferences.
+
+In my developer profile in Firefox, I create a symlink is follows
 (this should work on OSX or Linux but your directory may vary; on Windows see
 the mozilla link above).
 

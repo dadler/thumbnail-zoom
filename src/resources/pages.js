@@ -415,7 +415,7 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
  */
 ThumbnailZoomPlus.Pages.Google = {
   key: "google",
-  name: "Google Images",
+  name: "", // Set in ENTITYgoogle.
   
   // host is all of Google so it can work on images.google.com, 
   // www.google.com general search with image results, etc.
@@ -567,7 +567,7 @@ ThumbnailZoomPlus.Pages.Engadget = {
  */
 ThumbnailZoomPlus.Pages.Others = {
   key: "others",
-  name: "Others",
+  name: "", // Set in ENTITYothers.
   host: /.*/,
   
   // imgur.com links w/o image type suffix give page containing image.

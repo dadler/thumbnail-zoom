@@ -234,9 +234,21 @@ ThumbnailZoomPlusChrome.Overlay = {
       for (let i = 0; i < pageCount; i++) {
         pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
         menuItem = document.createElement("menuitem");
-        menuItem.setAttribute(
-          "id", "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key);
-        menuItem.setAttribute("label", pageInfo.name);
+        menuItem.setAttribute("id", 
+                              "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key);
+        
+        let name = pageInfo.name;
+        if (name == "") {
+          // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
+          // this is how we get localized names based on locale.dtd entity
+          // definitions.
+          name = document.getElementById("thumbnailzoomplus-options-page-names")
+                           .getAttribute("ENTITY" + pageInfo.key);
+            this._logger.debug("addMenuItems: name from entity=" + name);
+            ThumbnailZoomPlus.FilterService.pageList[i].name = name;
+        }
+        this._logger.debug("addMenuItems: name=" + name);
+        menuItem.setAttribute("label", name);
         menuItem.setAttribute("type", "checkbox");
         { 
           let aPage = i;

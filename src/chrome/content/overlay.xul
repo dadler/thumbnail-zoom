@@ -48,12 +48,28 @@
       tooltiptext="&thumbnailzoomplus.toolbar.tooltip;"
       image="chrome://thumbnailzoomplus/skin/images/icon16.png"
       class="chromeclass-toolbar-additional ">
+      
       <menupopup id="thumbnailzoomplus-toolbar-menu"
         onpopupshown="ThumbnailZoomPlusChrome.Overlay.addMenuItems();"
         onpopuphidden="ThumbnailZoomPlusChrome.Overlay.removeMenuItems();">
+      
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
           oncommand="ThumbnailZoomPlusChrome.Overlay.openPreferences();" />
+          
+        <!--
+           This XXXENTITYREF tag is ignored when building the user interface,
+           but defines a tag from which overlay.js can retrieve the translation
+           of entities like thumbnailzoomplus.pages.names.others in
+           addMenuItems().
+           
+           We must define here one attribute for each page name which
+           is localized with an entity.
+         -->
+        <XXXENTITYREF id="thumbnailzoomplus-options-page-names"
+           ENTITYothers="&thumbnailzoomplus.pages.names.others;" 
+           ENTITYgoogle="&thumbnailzoomplus.pages.names.google;" 
+           />
       </menupopup>
     </toolbarbutton>
   </toolbarpalette>
@@ -80,4 +96,6 @@
       accesskey="&thumbnailzoomplus.context.download.accesskey;"
       oncommand="ThumbnailZoomPlusChrome.Overlay.downloadImage();" />
   </popup>
+  
+
 </overlay>

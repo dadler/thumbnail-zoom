@@ -43,6 +43,16 @@
     <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
+	
+	<em:localized>
+		<Description>
+			<em:locale>sv-SE</em:locale>
+			<em:name>Thumbnail Zoom Plus</em:name>
+			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Facebook, Twitter, Reddit, Flickr, Amazon, deviantART och många fler.  Thumbnail Zoom Plus är en förbättrad version av tillägget Thumbnail Zoom.</em:description>
+			<em:creator>David Adler och Andres Hernandez Monge</em:creator>
+			<em:translator>Mikael Hiort af Ornäs</em:translator>
+		</Description>
+	</em:localized>
 
     <!-- Firefox -->
     <em:targetApplication>

@@ -179,7 +179,7 @@
           <checkbox label="Google+"
             preference="thumbnailzoomplus-options-googleplus-pref" />
 
-          <checkbox label="Google Images"
+          <checkbox label="&thumbnailzoomplus.pages.names.google;"
             preference="thumbnailzoomplus-options-google-pref" />
 
           <checkbox label="Hi5"
@@ -232,7 +232,7 @@
 
           <spacer flex="1" />
 
-          <checkbox label="Others"
+          <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
 
         </vbox>
