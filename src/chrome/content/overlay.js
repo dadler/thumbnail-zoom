@@ -583,32 +583,37 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
             ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
           // Found a matching page!
-          this._timer.cancel();
-          
-          /*
-           * Trickiness to get the right "that": normally this and 
-           * ThumbnailZoomPlusChrome.Overlay automatically refer to the
-           * correct instance -- which is the window the document was loaded into.
-           * But if the user drags a tab into a different window, the
-           * document carries its javascript state, which includes the
-           * registration of mouseOver handler to this._handleMouseOver -- for
-           * "this" of the original window.
-           *
-           * We want the popup to appear in the new window, not the original
-           * one, so we explicitly find the window of the now-active browser
-           * and get the ThumbnailZoomPlusChrome.Overlay object from that
-           * context.
-           */
-          let that = this;
-          that._currentWindow = aDocument.defaultView.top;
-          that._originalURI = that._currentWindow.document.documentURI;
-          that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
-                             this._originalURI);
-          
-          that._timer.initWithCallback({ notify:
-                                       function() { that._showZoomImage(imageSource, node, aPage, aEvent); }
-                                       }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
-          return;
+          let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
+          if (zoomImageSrc == null) {
+            this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
+          } else {
+            this._timer.cancel();
+            
+            /*
+             * Trickiness to get the right "that": normally this and 
+             * ThumbnailZoomPlusChrome.Overlay automatically refer to the
+             * correct instance -- which is the window the document was loaded into.
+             * But if the user drags a tab into a different window, the
+             * document carries its javascript state, which includes the
+             * registration of mouseOver handler to this._handleMouseOver -- for
+             * "this" of the original window.
+             *
+             * We want the popup to appear in the new window, not the original
+             * one, so we explicitly find the window of the now-active browser
+             * and get the ThumbnailZoomPlusChrome.Overlay object from that
+             * context.
+             */
+            let that = this;
+            that._currentWindow = aDocument.defaultView.top;
+            that._originalURI = that._currentWindow.document.documentURI;
+            that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
+                               this._originalURI);
+            
+            that._timer.initWithCallback({ notify:
+                                         function() { that._showZoomImage(zoomImageSrc, node, aPage, aEvent); }
+                                         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
+            return;
+          }
         }
       }
       
@@ -675,10 +680,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node
    * @param aPage the page constant
    */
-  _showZoomImage : function(aImageSrc, aImageNode, aPage, aEvent) {
+  _showZoomImage : function(zoomImageSrc, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
-
-    let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(aImageSrc, aPage);
 
     if (null != zoomImageSrc) {
       this._showPanel(aImageNode, zoomImageSrc, aEvent);

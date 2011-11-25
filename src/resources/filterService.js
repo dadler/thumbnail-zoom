@@ -254,7 +254,7 @@ ThumbnailZoomPlus.FilterService = {
         }
       }
     }
-    this._logger.debug("ThumbnailPreview: using image source " + imageSource);
+    this._logger.debug("ThumbnailPreview: using image source       " + imageSource);
                                              
     return imageSource;
   },
