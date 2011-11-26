@@ -114,7 +114,7 @@ ThumbnailZoomPlus.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
   host: /^(.*\.)?(twitter\.com|twimg\.com)$/,
-  imageRegExp: /twimg\.com\/profile_images\//,
+  imageRegExp: /(twitter\.com|twimg\.com)\//,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "") : null);
@@ -137,7 +137,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     let rex3 = new RegExp(/\/(mini|thumb)\//);
-    let rexNoModNecessary = new RegExp(/(yfrog\.com|instagr\.am|instagram.com|twimg\.com)/);
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg\.com)/);
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
                 rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
                 rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
