@@ -222,7 +222,7 @@ ThumbnailZoomPlus.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
   // Work on amazon.com, amazon.cn, etc.
-  host: /^(.*\.)?amazon\.[a-z]+$/,
+  host: /^(.*\.)?(images-)?amazon\.[a-z]+$/,
   
   // Product images seem to come from exc.images-amazon.com.  Static graphics
   // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com.

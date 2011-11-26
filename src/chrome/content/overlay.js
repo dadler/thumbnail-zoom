@@ -803,7 +803,58 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
 
-  _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+  /**
+    _tryImageSource tries to display a popup using rule aPage, returning
+    true iff aPage's rule matches (in which case it starts a timer to
+    make the popup appear later).
+    @return true iff it finds a valid site (and thus shows its image).
+   */
+  _tryImageSource : function(aDocument, pageMatchNode, aEvent, aPage, node) {
+    if (! ThumbnailZoomPlus.FilterService.testPageConstantByDoc(pageMatchNode, aPage)) {
+      return false;
+    }
+    
+    let imageSourceInfo = ThumbnailZoomPlus.FilterService
+                                .getImageSource(aDocument, node, aPage, false);
+    let imageSource = imageSourceInfo.imageURL;
+    
+    if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage)) {
+      if (null != imageSource) {    
+        if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+          imageSource = null;
+        }
+      }
+      if (null == imageSource &&
+          ThumbnailZoomPlus.FilterService.getPageName(aPage) == "others") {
+        // Couldn't get image source from link; use the thumb itself as source.
+        imageSourceInfo = ThumbnailZoomPlus.FilterService
+                                  .getImageSource(aDocument, node, aPage, true);
+        imageSource = imageSourceInfo.imageURL;
+      }
+      if (null != imageSource) {
+        // Found a matching page with an image source!
+        let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
+        if (zoomImageSrc == "") {
+          this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
+        } else if (zoomImageSrc == null) {
+          this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
+        } else {
+          this._currentWindow = aDocument.defaultView.top;
+          this._originalURI = this._currentWindow.document.documentURI;
+          this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
+                             this._originalURI);
+          
+          this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
+                              node, aPage, aEvent);
+          return true;
+        }
+      }
+    }
+    return false;
+  },
+
+
+  _findPageAndShowImage : function(aDocument, aEvent, minFullPageNum, node) {
     this._logger.trace("_findPageAndShowImage"); 
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
@@ -813,52 +864,33 @@ ThumbnailZoomPlusChrome.Overlay = {
                           clientToScreenX, clientToScreenY);
 
     /*
-     * Try each maching page (rule), starting with the one we found for the
-     * document itself when we loaded it, until we find one which can generate
-     * an image URL.
+     * Try each maching page (rule), starting with the first one,
+     * until we find one which can generate an image URL.  We actually
+     * try each rule twice -- once matching the page itself and again
+     * matching the image.
+     *
+     * For the page test, we don't test page rules smaller than minFullPageNum,
+     * the first matching page determined in onLoad.
      */
-
-    while (aPage >= 0) {
-      this._logger.debug("... _findPageAndShowImage: Trying page '" + 
-                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
-                         "'");
-
-      let imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage, false);
-      let imageSource = imageSourceInfo.imageURL;
-      
-      if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage)) {
-        if (null != imageSource) {    
-          if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-            imageSource = null;
-          }
-        }
-        if (null == imageSource &&
-            ThumbnailZoomPlus.FilterService.getPageName(aPage) == "others") {
-          imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage, true);
-          imageSource = imageSourceInfo.imageURL;
-        }
-        if (null != imageSource) {
-          // Found a matching page!
-          let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
-          if (zoomImageSrc == "") {
-            this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
-          } else if (zoomImageSrc == null) {
-            this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
-          } else {
-            this._currentWindow = aDocument.defaultView.top;
-            this._originalURI = this._currentWindow.document.documentURI;
-            this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
-                               this._originalURI);
-            
-            this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
-                                node, aPage, aEvent);
-            return;
-          }
+    for (var aPage = 0 ; 
+         aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
+         aPage++) {
+    
+      if (aPage >= minFullPageNum) {
+        this._logger.debug("... _findPageAndShowImage: Trying page  against '" + 
+                           ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                           "'");
+        
+        if (this._tryImageSource(aDocument, aDocument, aEvent, aPage, node)) {
+          return;
         }
       }
-      
-      // Try to find another matching page.
-      aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
+      this._logger.debug("... _findPageAndShowImage: Trying image against '" + 
+                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                         "'");
+      if (this._tryImageSource(aDocument, node, aEvent, aPage, node)) {
+        return;
+      }
     }
   },
   

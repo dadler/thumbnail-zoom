@@ -82,13 +82,80 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   /**
+   * Tests whether the specified document is compatible with the specified page.
+   * @param aDocument the document object, which could be the document
+   * of the entire web page or an image node or <a href=...> node.
+   * @param aPage: the page constant to be tested
+   * @return true iff they are compatible.
+   */
+  testPageConstantByDoc : function(aDocument, aPage) {
+    // If enableFileProtocol, then the add-on is enabled for file:// URLs
+    // (typically used with the Others page type).  This is useful during
+    // debugging, but we don't normally enable it in the released version
+    // since we aren't sure if there might be subtle security risks.
+    let enableFileProtocol = false;
+    
+    // Get location from document or image.
+    // TODO: to really do this right we'd need to split part of
+    // getImageSource up so we can properly find the image/link URL
+    // even before we know the page.  Or else call getImageSource on
+    // each aPage, if that's not too slow.
+    
+    let protocol = null;
+    let host = null;
+    if (aDocument.location) {
+      host = aDocument.location.host;
+      protocol = aDocument.location.protocol;
+    }
+    if (! host || !protocol) {
+      this._logger.debug("    testPageConstantByDoc: trying loc from img.src");
+      let imageSource = aDocument.src;
+      if (imageSource) {
+        this._logger.debug("    testPageConstantByDoc: trying loc from img.src "
+                           + imageSource);
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
+                            .getService(Components.interfaces.nsIIOService);
+        var uri = ioService.newURI(imageSource, aDocument.characterSet, null);
+        host = uri.host;
+        protocol = uri.scheme + ":";
+        uri = null;
+      }
+    }
+    if (! host || !protocol) {
+      this._logger.debug("    testPageConstantByDoc: Reject '" +
+                         this.pageList[aPage].key + "' (" + aPage + "); couldn't get loc from " + 
+                         aDocument + "; got " + protocol + "//" + host);
+      return false;
+    }
+
+    if (("http:" == protocol ||
+         "https:" == protocol ||
+         (enableFileProtocol && "file:" == protocol))) {
+      let hostRegExp = this.pageList[aPage].host;
+      if (hostRegExp.test(host)) {
+          this._logger.debug("    testPageConstantByDoc: FOUND  '" +
+                       this.pageList[aPage].key + "' (" + aPage + ") for " + 
+                       host +
+                       " based on regexp " + this.pageList[aPage].host );
+        return true;
+      }
+      this._logger.debug("    testPageConstantByDoc: Reject '" +
+                   this.pageList[aPage].key + "' (" + aPage + ") for " + 
+                   host +
+                   " based on regexp " + this.pageList[aPage].host );
+      return false;
+    }
+    this._logger.debug("    testPageConstantByDoc: Reject '" +
+                 this.pageList[aPage].key + "' (" + aPage + ") by protocol for " + 
+                 protocol + "//" + host);
+    return false;
+  },
+
+  /**
    * Detects and gets the page constant.
-   * @param aDocument the document object.
+   * @param aDocument the document object, which could be the document
+   * of the entire web page or an image node or <a href=...> node.
    * @return the page constant.
-   *
-   * TODO: perhaps we should change this to use the URI of the
-   * thumb / link being evaluated (dynamically) instead of
-   * the URI of the document itself.
    */
   getPageConstantByDoc : function(aDocument, startFromPage) {
     // If enableFileProtocol, then the add-on is enabled for file:// URLs
@@ -100,28 +167,15 @@ ThumbnailZoomPlus.FilterService = {
     let pageConstant = -1;
     let name = "?";
     
-    if (aDocument.location &&
-        ("http:" == aDocument.location.protocol ||
-         "https:" == aDocument.location.protocol ||
-         (enableFileProtocol && "file:" == aDocument.location.protocol))) {
-      let host = aDocument.location.host;
-      let pageCount = this.pageList.length;
-
-      for (let i = startFromPage; i < pageCount; i++) {
-        let hostRegExp = new RegExp(this.pageList[i].host);
-        if (hostRegExp.test(host)) {
-          pageConstant = i;
-          name = this.pageList[i].key;
-          break;
-        }
+    let pageCount = this.pageList.length;
+    
+    for (let i = startFromPage; i < pageCount; i++) {
+      if (this.testPageConstantByDoc(aDocument, i)) {
+        pageConstant = i;
+        name = this.pageList[i].key;
+        break;
       }
     }
-
-    this._logger.debug("getPageConstantByDoc: Found '" +
-                       name + "' (" + pageConstant + ") for " + aDocument.location + // " host " + 
-                       //aDocument.location.host +
-                       (pageConstant < 0 ? "" : 
-                       (" based on regexp " + this.pageList[pageConstant].host)) );
 
     return pageConstant;
   },
@@ -310,7 +364,8 @@ ThumbnailZoomPlus.FilterService = {
    * Gets the zoomed image source.
    * @param aImageSrc the image source url.
    * @param aPage the filtered page.
-   * @return the zoomed image source.
+   * @return the zoomed image source, null if none could be found, or "" if
+   *  one was found, but for a site which the user disabled.
    */
   getZoomImage : function(aImageSrc, aPage) {
     this._logger.debug("getZoomImage");
