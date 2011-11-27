@@ -339,11 +339,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_addListenersWhenPopupShown: for " +
                        doc);
     
-    // Add a keypress listener so the "Escape" key can hide the popup.
-    // We don't use autohide mode since that causes Firefox to ignore
-    // a mouse click done while the popup is up, and would prevent the user from
-    // clicking the thumb to go to its linked page.
-    doc.addEventListener("keypress", this._handleKeypress, false);
+    /*
+     * Add key listeners so the "Escape" key can hide the popup.
+     * We make sure the web site won't see the Escape key by handling
+     * all three of keydown, keyup, and keypress; that keeps for example
+     * reddpics.com from refreshing the page when we hit Escape.
+     * This is only active while the pop-up is displayed.
+     */
+    doc.addEventListener("keyup", this._handleKeyUp, true);
+    doc.addEventListener("keypress", this._handleIgnoreEsc, true);
+    doc.addEventListener("keydown", this._handleIgnoreEsc, true);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -364,9 +369,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     let doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
-      doc);
-    doc.removeEventListener(
-      "keypress", that._handleKeypress, false);
+                       doc);
+    doc.removeEventListener("keyup", this._handleKeyUp, true);
+    doc.removeEventListener("keypress", this._handleIgnoreEsc, true);
+    doc.removeEventListener("keydown", this._handleIgnoreEsc, true);
       
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -787,14 +793,27 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel();
   },
   
-  
-  _handleKeypress : function(aEvent) {
+  _handleKeyUp : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeypress for "  +
-       aEvent.keyCode );
+    that._logger.debug("_handleKeyUp for "  + aEvent.keyCode );
     if (aEvent.keyCode == 27 /* Escape key */) {
-      that._logger.debug("_handleKeypress: _closePanel since pressed Esc key");
+      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
+      
+      aEvent.stopPropagation(); // the web page should ignore the key.
+      aEvent.preventDefault();
+      aEvent.bubbles = false;
+    }
+  },
+  
+  _handleIgnoreEsc : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("_handleIgnoreEsc for "  + aEvent.keyCode );
+    if (aEvent.keyCode == 27 /* Escape key */) {
+      that._logger.debug("_handleIgnoreEsc: ignoring Esc key");
+      aEvent.stopPropagation(); // the web page should ignore the key.
+      aEvent.preventDefault();
+      aEvent.bubbles = false;
     }
   },
   
