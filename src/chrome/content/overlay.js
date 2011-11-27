@@ -712,7 +712,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // open new pic.
     if (this._panel.state != "open") {
-      let throbberDelay = 0.3 * 1000;
+      let throbberDelay = 0.0 * 1000;
       if (throbberDelay > 0.0) {
         let that = this;
         this._logger.debug("_showPanel: start timer which pops up throbber.");
@@ -843,7 +843,81 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._closePanel();
   },
   
-    
+  _checkIfImageLoaded : function(aImageNode, aImageSrc, 
+                               clientToScreenX, clientToScreenY,
+                               image)
+  {
+    this._logger.trace("_checkIfImageLoaded");
+    if (image.width > 0 && image.height > 0) {
+      this._imageOnLoad(aImageNode, aImageSrc, 
+                               clientToScreenX, clientToScreenY,
+                               image);
+    }
+  },
+
+  _imageOnLoad : function(aImageNode, aImageSrc, 
+                               clientToScreenX, clientToScreenY,
+                               image)
+  {
+    this._logger.trace("_imageOnLoad");
+    if (this._currentImage == aImageSrc) {
+      this._timer.cancel();
+      // This is the image URL we're currently loading (not another previously
+      // image we had started loading).
+      
+      // Close and (probably) re-open the panel so we can reposition it to
+      // display the image.  Note that if the image is too large to
+      // fit to the left/right of the thumb, we pop-up relative to the upper-left
+      // corner of the browser instead of relative to aImageSrc.
+      // This allows us to display larger pop-ups. 
+      this._logger.debug("hidePopup in image onload");
+      this._panel.hidePopup();
+      
+      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      
+      this._updateThumbBBox(aImageNode, 
+                            clientToScreenX, clientToScreenY);
+      let available = this._getAvailableSizeOutsideThumb(aImageNode);
+      
+      // Get the popup image's display size, which is the largest we
+      // can display the image (without magnifying it and without it
+      // being too big to fit on-screen).
+      let imageSize = this._getScaleDimensions(image, available);
+      
+      this._logger.debug("_preloadImage: available w/l/r:" + available.width + 
+                         "/" + available.left + 
+                         "/" + available.right +
+                         "; h/t/b:" + available.height + 
+                         "/" + available.top + 
+                         "/" + available.bottom);
+      this._logger.debug("_preloadImage: " + 
+                         "win width=" + content.window.innerWidth*pageZoom +
+                         "; win height=" + content.window.innerHeight*pageZoom +
+                         "; full-size image=["+image.width + "," + image.height + 
+                         "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
+      
+      let thumbWidth = aImageNode.offsetWidth * pageZoom;
+      let thumbHeight = aImageNode.offsetHeight * pageZoom;
+      if (imageSize.width < thumbWidth * 1.20 &&
+          imageSize.height < thumbHeight * 1.20) {
+        this._logger.debug("_preloadImage: skipping: popup image size (" +
+                           imageSize.width + " x " + imageSize.height + 
+                           ") isn't at least 20% bigger than thumb (" +
+                           thumbWidth + " x " + thumbHeight + ")");
+        this._closePanel();
+        
+        return;
+      }
+      
+      this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
+      
+      // Help the garbage collector reclaim memory quickly.
+      // (Test by watching "images" size in about:memory.)
+      image.src = null;
+      image = null;
+    }
+  },
+  
   /**
    * Preloads the image.
    * @param aImageNode the image node.
@@ -856,6 +930,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = this;
     let image = new Image();
     
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
+    let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
+
     // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
     // object so we can delete it when we load another image (so it doesn't
     // keep loading in the background).
@@ -864,64 +942,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     // a timer every .25 seconds, so we can position and show image even before
     // its done loading by checking .width!=0.
     image.onload = function() {
-      if (that._currentImage == aImageSrc) {
-        // This is the image URL we're currently loading (not another previously
-        // image we had started loading).
-        
-        // Close and (probably) re-open the panel so we can reposition it to
-        // display the image.  Note that if the image is too large to
-        // fit to the left/right of the thumb, we pop-up relative to the upper-left
-        // corner of the browser instead of relative to aImageSrc.
-        // This allows us to display larger pop-ups. 
-        that._logger.debug("hidePopup in image onload");
-        that._panel.hidePopup();
-
-        let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-        
-        let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
-        let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
-        that._updateThumbBBox(aImageNode, 
-                              clientToScreenX, clientToScreenY);
-        let available = that._getAvailableSizeOutsideThumb(aImageNode);
-        
-        // Get the popup image's display size, which is the largest we
-        // can display the image (without magnifying it and without it
-        // being too big to fit on-screen).
-        let imageSize = that._getScaleDimensions(image, available);
-
-        that._logger.debug("_preloadImage: available w/l/r:" + available.width + 
-                           "/" + available.left + 
-                           "/" + available.right +
-                           "; h/t/b:" + available.height + 
-                           "/" + available.top + 
-                           "/" + available.bottom);
-        that._logger.debug("_preloadImage: " + 
-                           "win width=" + content.window.innerWidth*pageZoom +
-                           "; win height=" + content.window.innerHeight*pageZoom +
-                           "; full-size image=["+image.width + "," + image.height + 
-                           "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
-        
-        let thumbWidth = aImageNode.offsetWidth * pageZoom;
-        let thumbHeight = aImageNode.offsetHeight * pageZoom;
-        if (imageSize.width < thumbWidth * 1.20 &&
-            imageSize.height < thumbHeight * 1.20) {
-          that._logger.debug("_preloadImage: skipping: popup image size (" +
-              imageSize.width + " x " + imageSize.height + 
-              ") isn't at least 20% bigger than thumb (" +
-              thumbWidth + " x " + thumbHeight + ")");
-          that._closePanel();
-
-          return;
-        }
-      
-        that._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
-        
-        // Help the garbage collector reclaim memory quickly.
-        // (Test by watching "images" size in about:memory.)
-        image.src = null;
-        image = null;
-      }
+      that._imageOnLoad(aImageNode, aImageSrc, 
+                             clientToScreenX, clientToScreenY,
+                             image)
     };
+
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {
@@ -932,6 +957,16 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panelImage.src = aImageSrc;
     image.src = aImageSrc;
+
+    this._timer.initWithCallback(
+      { notify:
+        function() {
+            that._checkIfImageLoaded(aImageNode, aImageSrc, 
+                             clientToScreenX, clientToScreenY,
+                             image);
+          }
+      }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
+    
   },
 
 
