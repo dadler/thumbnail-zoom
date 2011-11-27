@@ -582,7 +582,8 @@ ThumbnailZoomPlus.Pages.Others = {
                       "youtu.be/|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
-                      "https?://twitter.com/.*\\?url=",
+                      "https?://twitter.com/.*\\?url=|" +
+                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*)",
                       "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -624,6 +625,13 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
     }
 
+    // For StumbleUpon.com links, change
+    // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
+    // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
+    // http://content.mindcrap.com/gallery/dogs/15/34.jpg
+    let stumbleUponEx = new RegExp(/^(.*\.)?stumbleupon.com\/(to|su)\/[^\/]+\/(.*?)(\/t:[0-9a-f]+;.*)?$/);
+    aImageSrc = aImageSrc.replace(stumbleUponEx, "http://$3");
+    
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -631,6 +639,7 @@ ThumbnailZoomPlus.Pages.Others = {
     if (youtubeEx.test(aImageSrc)) {
         aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
+    
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
