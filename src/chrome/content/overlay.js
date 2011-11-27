@@ -881,11 +881,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._updateThumbBBox(aImageNode, 
                             clientToScreenX, clientToScreenY);
       let available = this._getAvailableSizeOutsideThumb(aImageNode);
-      
+      let thumbWidth = aImageNode.offsetWidth * pageZoom;
+      let thumbHeight = aImageNode.offsetHeight * pageZoom;
+
       // Get the popup image's display size, which is the largest we
       // can display the image (without magnifying it and without it
       // being too big to fit on-screen).
-      let imageSize = this._getScaleDimensions(image, available);
+      let imageSize = this._getScaleDimensions(image, available,
+                                               thumbWidth, thumbHeight);
       
       this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
                          "/" + available.left + 
@@ -899,14 +902,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "; full-size image=["+image.width + "," + image.height + 
                          "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
       
-      let thumbWidth = aImageNode.offsetWidth * pageZoom;
-      let thumbHeight = aImageNode.offsetHeight * pageZoom;
-      if (imageSize.width < thumbWidth * 1.20 &&
-          imageSize.height < thumbHeight * 1.20) {
-        this._logger.debug("_imageOnLoad: skipping: popup image size (" +
-                           imageSize.width + " x " + imageSize.height + 
-                           ") isn't at least 20% bigger than thumb (" +
-                           thumbWidth + " x " + thumbHeight + ")");
+      if (! imageSize.allow) {
         this._closePanel();
         
         return;
@@ -1149,9 +1145,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImage the image info.
    * @param available: contains (width, height) of the max space available
    * to the left or right and top or bottom of the thumb.
-   * @return the scale dimensions.
+   * @return the scale dimensions in these fields:
+   *   {width, height, allow}
    */
-  _getScaleDimensions : function(aImage, available) {
+  _getScaleDimensions : function(aImage, available, thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
 
     // When enabled, we allow showing images larger 
@@ -1164,7 +1161,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
-    let scale = { width: imageWidth, height: imageHeight };
+    let scale = { width: imageWidth, height: imageHeight, allow: true };
 
     // Make sure scale.width, height is not larger than the window size.
     if (scale.height > pageHeight) {
@@ -1178,7 +1175,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Calc sideScale as the biggest size we can use for the image without
     // overlapping the thumb.
-    let sideScale = {width: scale.width, height: scale.height};
+    let sideScale = {width: scale.width, height: scale.height, allow: true};
     if (imageHeight > available.height) {
       // Try fitting the image's height to available.height (and scaling
       // width proportionally); this corresponds to showing the
@@ -1209,14 +1206,32 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (! allowCoverThumb) {
       this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
       scale = sideScale;
-    } else if (scale.width < (sideScale.width * 1.20)) {
+    } 
+
+    // Allow showing the popup if popup size is at least 20% bigger
+    // than thumb.
+    scale.allow = (scale.width >= thumbWidth * 1.20 ||
+                   scale.height >= thumbHeight * 1.20);
+    sideScale.allow = scale.allow;
+    if (! scale.allow) {
+        this._logger.debug("_getScaleDimensions: skipping: popup image size (" +
+                           scale.width + " x " + scale.height + 
+                           ") isn't at least 20% bigger than thumb (" +
+                           thumbWidth + " x " + thumbHeight + ")");
+    }
+    if (scale.allow &&
+        scale.width < sideScale.width * 1.20 &&
+        sideScale.width > thumbWidth * 1.20) {
+      // Disallow covering thumb if it doesn't make the image at least 20%
+      // bigger -- but do allow covering even then, if not covering
+      // would make the popup less than 20% bigger than the thumb.
       this._logger.debug("_getScaleDimensions: disallowing covering " + 
                          "thumb because covering width " + scale.width +
                          " isn't at least 20% bigger than uncovered width " +
                          sideScale.width);
       scale = sideScale;
     }
-
+    
     scale.width = Math.round(scale.width);
     scale.height = Math.round(scale.height);
     
