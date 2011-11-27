@@ -562,6 +562,8 @@ ThumbnailZoomPlus.Pages.Engadget = {
   }
 };
 
+ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(\\.gif|\\.jpe?g|\\.png|\\.bmp)";
+
 /**
  * Others
  */
@@ -575,7 +577,8 @@ ThumbnailZoomPlus.Pages.Others = {
   // which getZoomImage will convert to a youtube thumb.
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
-  imageRegExp: new RegExp("(\\.gif|\\.jpe?g|\\.png|\\.bmp)(\\?.*)?$|" +
+  
+  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$|" +
                       "tumblr.com/photo/|" +
                       "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
                       "www\\.youtube\\.com/|" +
@@ -583,7 +586,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
                       "https?://twitter.com/.*\\?url=|" +
-                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*)",
+                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -630,8 +633,12 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
     // http://content.mindcrap.com/gallery/dogs/15/34.jpg
     let stumbleUponEx = new RegExp(/^(.*\.)?stumbleupon.com\/(to|su)\/[^\/]+\/(.*?)(\/t:[0-9a-f]+;.*)?$/);
-    aImageSrc = aImageSrc.replace(stumbleUponEx, "http://$3");
-    
+    if (stumbleUponEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(stumbleUponEx, "http://$3");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      aImageSrc = decodeURIComponent(aImageSrc);
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -649,7 +656,9 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1.jpg");
         
     // For sites other than tumblr, if there is no image suffix, add .jpg.
-    let rex = new RegExp(/(tumblr\.com\/.*|\.gif|\.jpe?g|\.png)(\?.*)?$/i);
+    let rex = new RegExp("(tumblr\\.com/.*|" + 
+                         ThumbnailZoomPlus.Pages._imageTypesRegExpStr + 
+                         ")(\\?.*)?$", "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
