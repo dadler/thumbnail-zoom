@@ -62,7 +62,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel image. */
   _panelImage : null,
   /* The floating panel throbber */
-  _panelThrobber : null,
+  // _panelThrobber : null,
   /* The current image source. */
   _currentImage : null,
   /* Context download image menu item */
@@ -75,7 +75,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      coords.  If the window might now be scrolled differently, subtract
      these values from the coordinates and add the current window scroll
      (as _insideThumbBBox does). */
-  _thumbBBox : { xMin: -999, xMax: -999, yMin: -999, yMax: 999,
+  _thumbBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
                  refScrollLeft: 0, refScrollTop: 0},
   
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
@@ -106,7 +106,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
-    this._panelThrobber = document.getElementById("thumbnailzoomplus-panel-throbber");
+    //this._panelThrobber = document.getElementById("thumbnailzoomplus-panel-throbber");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
@@ -131,7 +131,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
-    this._panelThrobber = null;
+    // this._panelThrobber = null;
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
@@ -371,7 +371,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
     window.removeEventListener(
-      "hashchange", that._handlePageHide, false);
+      "hashchange", that._handleHashChange, false);
   },
   
   
@@ -700,11 +700,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, aEvent) {
     this._logger.trace("_showPanel");
 
-    // reset previous pic.
-    this._panelImage.style.maxWidth = "";
-    this._panelImage.style.minWidth = "";
-    this._panelImage.style.maxHeight = "";
-    this._panelImage.style.minHeight = "";
+    // reset to size for progress version of image while loading.
+    this._panelImage.style.maxWidth = "64px";
+    this._panelImage.style.minWidth = "64px";
+    this._panelImage.style.maxHeight = "64px";
+    this._panelImage.style.minHeight = "64px";
+
     this._logger.debug("_closePanel since closing any prev popup before loading new one");
     this._closePanel();
     this._originalURI = this._currentWindow.document.documentURI;
@@ -718,7 +719,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._timer.initWithCallback({ notify: function() { that._showThrobber(aImageNode)}, }, 
                                   throbberDelay, Ci.nsITimer.TYPE_ONE_SHOT);
       } else {
-        this._showThrobber();
+        this._showThrobber(aImageNode);
       }
     }
     this._currentImage = aImageSrc;
@@ -746,10 +747,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       // chrome is already being destroyed when this is called.  So we
       // silently ignore exceptions here.
       this._logger.trace("_closePanel");
-
+      
       this._currentImage = null;
       this._contextMenu.hidden = true;
-      this._panelThrobber.hidden = false;
+      //this._panelThrobber.hidden = false;
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
       this._originalURI = "";
@@ -826,6 +827,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handlePageHide : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
+    let affectedWindow = aEvent.originalTarget.defaultView.top;
     that._logger.trace("_handlePageHide");
     if (this._currentWindow == affectedWindow) {
       that._logger.debug("_handlePageHide: closing panel");
@@ -853,9 +855,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let that = this;
     let image = new Image();
+    
     // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
     // object so we can delete it when we load another image (so it doesn't
     // keep loading in the background).
+    //
+    // TODO: idea: in addition to doing this in onload, we could do it with
+    // a timer every .25 seconds, so we can position and show image even before
+    // its done loading by checking .width!=0.
     image.onload = function() {
       if (that._currentImage == aImageSrc) {
         // This is the image URL we're currently loading (not another previously
@@ -923,6 +930,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
+    this._panelImage.src = aImageSrc;
     image.src = aImageSrc;
   },
 
@@ -1172,14 +1180,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showImage : function(aImageSrc, aScale) {
     this._logger.trace("_showImage");
 
-    if (aScale) {
-      this._panelImage.style.maxWidth = aScale.width + "px";
-      this._panelImage.style.minWidth = aScale.width + "px";
-      this._panelImage.style.maxHeight = aScale.height + "px";
-      this._panelImage.style.minHeight = aScale.height + "px";
-    }
-    this._panelImage.src = aImageSrc;
-    this._panelThrobber.hidden = true;
+    this._logger.debug("_showImage: setting size to " +
+                       aScale.width + " x " + aScale.height);
+    this._panelImage.style.maxWidth = aScale.width + "px";
+    this._panelImage.style.minWidth = aScale.width + "px";
+    this._panelImage.style.maxHeight = aScale.height + "px";
+    this._panelImage.style.minHeight = aScale.height + "px";
+    // this._panelThrobber.hidden = true;
     
     this._addToHistory(aImageSrc);
   },

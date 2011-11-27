@@ -77,12 +77,7 @@
   <!-- Panel -->
   <window id="main-window">
     <panel id="thumbnailzoomplus-panel" noautofocus="true" noautohide="true">
-      <stack id="thumbnailzoomplus-panel-stack">
-        <vbox align="center" pack="center">
-          <image id="thumbnailzoomplus-panel-throbber" />
-        </vbox>
-        <image id="thumbnailzoomplus-panel-image" />
-      </stack>
+      <image id="thumbnailzoomplus-panel-image" /> 
     </panel>
   </window>
 
