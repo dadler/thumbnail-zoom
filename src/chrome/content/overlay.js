@@ -840,6 +840,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     this._logger.trace("_checkIfImageLoaded");
     if (image.width > 0 && image.height > 0) {
+        this._logger.debug("_checkIfImageLoaded: calling _imageOnLoad since have size.");
       this._imageOnLoad(aImageNode, aImageSrc, 
                                clientToScreenX, clientToScreenY,
                                image);
@@ -866,6 +867,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                                image)
   {
     this._logger.trace("_imageOnLoad");
+
+    // Make sure we don't get called again as an onLoad, if current call
+    // was due to the timer.
+    image.onload = null;
+
     if (this._currentImage == aImageSrc) {
       this._timer.cancel();
       // This is the image URL we're currently loading (not another previously
@@ -1163,11 +1169,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Make sure scale.width, height is not larger than the window size.
     if (scale.height > pageHeight) {
       scale.height = pageHeight;
-      scale.width = Math.round(scale.height * scaleRatio);
+      scale.width = scale.height * scaleRatio;
     }
     if (scale.width > pageWidth) {
       scale.width = pageWidth;
-      scale.height = Math.round(scale.width / scaleRatio);
+      scale.height = scale.width / scaleRatio;
     }
 
     // Calc sideScale as the biggest size we can use for the image without
@@ -1178,22 +1184,22 @@ ThumbnailZoomPlusChrome.Overlay = {
       // width proportionally); this corresponds to showing the
       // popup above or below the thumb.
       sideScale.height = available.height;
-      sideScale.width = Math.round(sideScale.height * scaleRatio);
+      sideScale.width = sideScale.height * scaleRatio;
     }
     if (sideScale.width < available.width) {
       // We can show the image larger by fitting its width to available.width
       // rather than fitting its height; this allows it to appear to
       // the left or right of the thumb.
       sideScale.width = Math.min(available.width, imageWidth);
-      sideScale.height = Math.round(sideScale.width / scaleRatio);
+      sideScale.height = sideScale.width / scaleRatio;
     }
     if (sideScale.height > pageHeight) {
       sideScale.height = pageHeight;
-      sideScale.width = Math.round(scale.height * scaleRatio);
+      sideScale.width = scale.height * scaleRatio;
     }
     if (sideScale.width > pageWidth) {
       sideScale.width = pageWidth;
-      sideScale.height = Math.round(sideScale.width / scaleRatio);
+      sideScale.height = sideScale.width / scaleRatio;
     }
 
     let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_LARGE_IMAGE);
@@ -1211,6 +1217,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale = sideScale;
     }
 
+    scale.width = Math.round(scale.width);
+    scale.height = Math.round(scale.height);
+    
     return scale;
   },
 
