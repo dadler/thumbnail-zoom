@@ -44,7 +44,11 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   border: none !important;
 }
 #thumbnailzoomplus-panel-image {
-  background-image: url("chrome://thumbnailzoomplus/skin/images/icon64.png") !important;
+  /* This background image appears as our "working" indicator, showing when
+     the window is a very small 'working' indicator and at the bottom-left
+     of the full-size image until enough of the image has loaded to cover it.
+  */
+  background-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png") !important;
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
 }

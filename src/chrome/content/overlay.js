@@ -55,14 +55,18 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* Preferences service. */
   _preferencesService : null,
 
-  /* The timer. */
+  /* The timer, which is used:
+   *   - for the user-configured delay from when the user hovers until
+   *     we start trying to load an image.
+   *   - for the repeating timer after we start loading to poll whether we
+   *     have loaded enough to know image dimensions and thus show the full-size
+   *     image.
+   */
   _timer : null,
   /* The floating panel. */
   _panel : null,
   /* The floating panel image. */
   _panelImage : null,
-  /* The floating panel throbber */
-  // _panelThrobber : null,
   /* The current image source. */
   _currentImage : null,
   /* Context download image menu item */
@@ -106,7 +110,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
-    //this._panelThrobber = document.getElementById("thumbnailzoomplus-panel-throbber");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
@@ -131,7 +134,6 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
-    // this._panelThrobber = null;
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
@@ -587,8 +589,6 @@ ThumbnailZoomPlusChrome.Overlay = {
           if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
-            this._timer.cancel();
-            
             /*
              * Trickiness to get the right "that": normally this and 
              * ThumbnailZoomPlusChrome.Overlay automatically refer to the
@@ -603,14 +603,17 @@ ThumbnailZoomPlusChrome.Overlay = {
              * and get the ThumbnailZoomPlusChrome.Overlay object from that
              * context.
              */
-            let that = this;
-            that._currentWindow = aDocument.defaultView.top;
-            that._originalURI = that._currentWindow.document.documentURI;
-            that._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
+            this._currentWindow = aDocument.defaultView.top;
+            this._originalURI = this._currentWindow.document.documentURI;
+            this._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
                                this._originalURI);
             
-            that._timer.initWithCallback({ notify:
-                                         function() { that._showZoomImage(zoomImageSrc, node, aPage, aEvent); }
+            // Start a timer to try to load the image after the configured
+            // hover delay time.
+            this._timer.cancel();
+            let that = this;
+            this._timer.initWithCallback({ notify:
+                                           function() { that._showZoomImage(zoomImageSrc, node, aPage, aEvent); }
                                          }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
             return;
           }
@@ -700,42 +703,27 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, aEvent) {
     this._logger.trace("_showPanel");
 
-    // reset to size for progress version of image while loading.
-    this._panelImage.style.maxWidth = "64px";
-    this._panelImage.style.minWidth = "64px";
-    this._panelImage.style.maxHeight = "64px";
-    this._panelImage.style.minHeight = "64px";
+    // reset to small size to show our icon as a "working" indicator
+    // while loading.  This normally appears only briefly (or not at all)
+    // since we show the full image size as soon as enough of the image is
+    // loaded to know its dimensions.
+    this._panelImage.style.maxWidth = "16px";
+    this._panelImage.style.minWidth = "16px";
+    this._panelImage.style.maxHeight = "16px";
+    this._panelImage.style.minHeight = "16px";
 
     this._logger.debug("_closePanel since closing any prev popup before loading new one");
     this._closePanel();
     this._originalURI = this._currentWindow.document.documentURI;
 
-    // open new pic.
-    if (this._panel.state != "open") {
-      let throbberDelay = 0.0 * 1000;
-      if (throbberDelay > 0.0) {
-        let that = this;
-        this._logger.debug("_showPanel: start timer which pops up throbber.");
-        this._timer.initWithCallback({ notify: function() { that._showThrobber(aImageNode)}, }, 
-                                  throbberDelay, Ci.nsITimer.TYPE_ONE_SHOT);
-      } else {
-        this._showThrobber(aImageNode);
-      }
-    }
     this._currentImage = aImageSrc;
+    
+    // Allow the user to see the context (right-click) menu item for
+    // "Save Enlarged Image As...".
     this._contextMenu.hidden = false;
     this._preloadImage(aImageNode, aImageSrc, aEvent);
   },
 
-  _showThrobber : function(aImageNode) {
-    this._logger.trace("_showThrobber");
-    // Pop up the panel, causing the throbber to display near
-    // the image thumbnail.
-    // this._panelThrobber.hidden = false;
-    this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
-    this._addListenersWhenPopupShown();
-  },
-  
   /**
    * Closes the panel.
    */
@@ -750,7 +738,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       
       this._currentImage = null;
       this._contextMenu.hidden = true;
-      //this._panelThrobber.hidden = false;
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
       this._originalURI = "";
@@ -843,6 +830,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._closePanel();
   },
   
+  /**
+   * _checkIfImageLoaded is called from a repeating timer after we
+   * start loading.  It checks whether enough has been loaded to
+   * know image dimensions.  If so, it displays the full-size popup
+   * (which cancels the timer).
+   */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
                                clientToScreenX, clientToScreenY,
                                image)
@@ -852,9 +845,23 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._imageOnLoad(aImageNode, aImageSrc, 
                                clientToScreenX, clientToScreenY,
                                image);
+    } else {
+      if (this._panel.state != "open") {
+        // Show the panel even without its image so the user will at
+        // least see our icon and know it's being loaded.
+        this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
+        this._addListenersWhenPopupShown();
+      }
     }
   },
 
+  /**
+   * _imageOnLoad displays the full-size image (if it's called on the
+   * appropriate image's window).
+   * This is called from the image's onLoad handler and also from
+   * _checkIfImageLoaded if enough of the image is loaded to know
+   * its dimensions.
+   */
   _imageOnLoad : function(aImageNode, aImageSrc, 
                                clientToScreenX, clientToScreenY,
                                image)
@@ -864,15 +871,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._timer.cancel();
       // This is the image URL we're currently loading (not another previously
       // image we had started loading).
-      
-      // Close and (probably) re-open the panel so we can reposition it to
-      // display the image.  Note that if the image is too large to
-      // fit to the left/right of the thumb, we pop-up relative to the upper-left
-      // corner of the browser instead of relative to aImageSrc.
-      // This allows us to display larger pop-ups. 
-      this._logger.debug("hidePopup in image onload");
-      this._panel.hidePopup();
-      
       let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
       
       this._updateThumbBBox(aImageNode, 
@@ -941,12 +939,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     // TODO: idea: in addition to doing this in onload, we could do it with
     // a timer every .25 seconds, so we can position and show image even before
     // its done loading by checking .width!=0.
-    image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, 
-                             clientToScreenX, clientToScreenY,
-                             image)
-    };
-
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {
@@ -955,9 +947,22 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
+    image.onload = function() {
+      that._imageOnLoad(aImageNode, aImageSrc, 
+                             clientToScreenX, clientToScreenY,
+                             image)
+    };
+
     this._panelImage.src = aImageSrc;
     image.src = aImageSrc;
 
+    /*
+     * In addition to image.onload, set a repeating timer to poll
+     * the image.  This lets us display the full-size image as soon
+     * as its size is known, even before it's fully loaded, especially
+     * important for large images and gifs on a slow connection.
+     * The first timer call also causes our working icon to appear.
+     */
     this._timer.initWithCallback(
       { notify:
         function() {
@@ -966,7 +971,6 @@ ThumbnailZoomPlusChrome.Overlay = {
                              image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
-    
   },
 
 
@@ -975,6 +979,11 @@ ThumbnailZoomPlusChrome.Overlay = {
    * aImageNode.
    */
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
+    // Close and (probably) re-open the panel so we can reposition it to
+    // display the image. 
+    this._logger.debug("hidePopup in image onload");
+    this._panel.hidePopup();
+    
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
       // Position the popup horizontally flush with the right of the window or
@@ -1208,7 +1217,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Shows the image in the panel.
+   * Shows the image at its full size in the panel.
+   * Assumes the popup and image itself are already visible.
    * @param aImageSrc the image source.
    * @param aScale the scale dimmensions.
    */
@@ -1221,7 +1231,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minWidth = aScale.width + "px";
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
-    // this._panelThrobber.hidden = true;
     
     this._addToHistory(aImageSrc);
   },
