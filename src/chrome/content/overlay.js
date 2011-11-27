@@ -333,17 +333,17 @@ ThumbnailZoomPlusChrome.Overlay = {
    * perhaps due to focus issues.
    */
   _addListenersWhenPopupShown : function() {
-    let that = ThumbnailZoomPlusChrome.Overlay;
+    this._logger.trace("_addListenersWhenPopupShown");
+
     let doc = content.document.documentElement;
-    that._logger.debug("_addListenersWhenPopupShown for " +
-      doc);
+    this._logger.debug("_addListenersWhenPopupShown: for " +
+                       doc);
     
     // Add a keypress listener so the "Escape" key can hide the popup.
     // We don't use autohide mode since that causes Firefox to ignore
     // a mouse click done while the popup is up, and would prevent the user from
     // clicking the thumb to go to its linked page.
-    doc.addEventListener(
-      "keypress", that._handleKeypress, false);
+    doc.addEventListener("keypress", this._handleKeypress, false);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -351,10 +351,8 @@ ThumbnailZoomPlusChrome.Overlay = {
      * deviantart.com/#abcde to go to different pages; we must watch for
      * that with hashchange (it doesn't get a pagehide).
      */
-    window.addEventListener(
-      "pagehide", that._handlePageHide, false);
-    window.addEventListener(
-      "hashchange", that._handleHashChange, false);
+    window.addEventListener("pagehide", this._handlePageHide, false);
+    window.addEventListener("hashchange", this._handleHashChange, false);
   },
   
   
@@ -397,7 +395,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._addEventListenersToDoc(gBrowser.contentDocument);
 
     this._thumbBBox.xMax = -999; // don't reject next move as trivial.
-    this._logger.debug("_closePanel since tab selected");
+    this._logger.debug("_handleTabSelected: _closePanel since tab selected");
     this._closePanel();
   },
   
@@ -419,7 +417,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._needToPopDown(doc.defaultView.top)) {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
-      this._logger.debug("_addEventListenersToDoc: *** closing since a page loaded into its host window");
+      this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
       this._closePanel();
     }
   },
@@ -536,10 +534,11 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aPage the filtered page.
    */
   _handleMouseOver : function(aDocument, aEvent, aPage) {
+    this._logger.debug("___________________________");
     this._logger.trace("_handleMouseOver");
 
     if (this._needToPopDown(aDocument.defaultView.top)) {
-      this._logger.debug("_closePanel since mouse different doc.");
+      this._logger.debug("_handleMouseOver: _closePanel since mouse different doc.");
       this._closePanel();
       return;
     }
@@ -555,12 +554,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._thumbBBox.xMax = -999;
     
     if (! this._isKeyActive(aEvent)) {
-      this._logger.debug("_closePanel since hot key not down");
+      this._logger.debug("_handleMouseOver: _closePanel since hot key not down");
       this._closePanel();
       return;
     }
       
-    this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
     let node = aEvent.target;
     this._findPageAndShowImage(aDocument, aEvent, aPage, node);
@@ -605,7 +603,7 @@ ThumbnailZoomPlusChrome.Overlay = {
              */
             this._currentWindow = aDocument.defaultView.top;
             this._originalURI = this._currentWindow.document.documentURI;
-            this._logger.debug("_handleMouseOver: *** Setting _originalURI=" + 
+            this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                                this._originalURI);
             
             // Start a timer to try to load the image after the configured
@@ -623,7 +621,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Try to find another matching page.
       aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
     }
-    this._logger.debug("_closePanel since mouse not in recognized URL or site disabled");
+    this._logger.debug("_findPageAndShowImage: _closePanel since mouse not in recognized URL or site disabled");
     this._closePanel();
   },
   
@@ -689,7 +687,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (null != zoomImageSrc) {
       this._showPanel(aImageNode, zoomImageSrc, aEvent);
     } else {
-      this._logger.debug("_closePanel since getZoomImage returned null");
+      this._logger.debug("_showZoomImage: _closePanel since getZoomImage returned null");
       this._closePanel();
     }
   },
@@ -712,7 +710,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
 
-    this._logger.debug("_closePanel since closing any prev popup before loading new one");
+    this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
     this._closePanel();
     this._originalURI = this._currentWindow.document.documentURI;
 
@@ -795,7 +793,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("_handleKeypress for "  +
        aEvent.keyCode );
     if (aEvent.keyCode == 27 /* Escape key */) {
-      that._logger.debug("_closePanel since pressed Esc key");
+      that._logger.debug("_handleKeypress: _closePanel since pressed Esc key");
       that._closePanel();
     }
   },
@@ -849,6 +847,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._panel.state != "open") {
         // Show the panel even without its image so the user will at
         // least see our icon and know it's being loaded.
+        this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
         this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
         this._addListenersWhenPopupShown();
       }
@@ -882,13 +881,13 @@ ThumbnailZoomPlusChrome.Overlay = {
       // being too big to fit on-screen).
       let imageSize = this._getScaleDimensions(image, available);
       
-      this._logger.debug("_preloadImage: available w/l/r:" + available.width + 
+      this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
                          "/" + available.left + 
                          "/" + available.right +
                          "; h/t/b:" + available.height + 
                          "/" + available.top + 
                          "/" + available.bottom);
-      this._logger.debug("_preloadImage: " + 
+      this._logger.debug("_imageOnLoad: " + 
                          "win width=" + content.window.innerWidth*pageZoom +
                          "; win height=" + content.window.innerHeight*pageZoom +
                          "; full-size image=["+image.width + "," + image.height + 
@@ -898,7 +897,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       let thumbHeight = aImageNode.offsetHeight * pageZoom;
       if (imageSize.width < thumbWidth * 1.20 &&
           imageSize.height < thumbHeight * 1.20) {
-        this._logger.debug("_preloadImage: skipping: popup image size (" +
+        this._logger.debug("_imageOnLoad: skipping: popup image size (" +
                            imageSize.width + " x " + imageSize.height + 
                            ") isn't at least 20% bigger than thumb (" +
                            thumbWidth + " x " + thumbHeight + ")");
@@ -942,7 +941,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {
-        that._logger.debug("_closePanel since error loading image (" + aEvent + ")");
+        that._logger.debug("image onerror: _closePanel since error loading image (" + aEvent + ")");
         that._closePanel();
       }
     };
@@ -981,7 +980,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
     // Close and (probably) re-open the panel so we can reposition it to
     // display the image. 
-    this._logger.debug("hidePopup in image onload");
+    this._logger.debug("_openAndPositionPopup: hidePopup");
     this._panel.hidePopup();
     
     // We prefer above/below thumb to avoid tooltip.
