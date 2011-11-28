@@ -57,6 +57,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   ThumbnailZoomPlus.Pages._init();
 };
 
+ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
+
 /**
  * Facebook
  */
@@ -132,17 +134,30 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg\.com)$/,
   imageRegExp:
-    /^(.*[.|\/])?(twimg\.com|twitpic\.com|twitpic\.com\/(img|show)|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
+    /^(.*[.|\/])?(twimg\.com|twitpic\.com|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
-    let rex3 = new RegExp(/\/(mini|thumb)\//);
+    let rex3 = new RegExp(/\/(mini|thumb|iphone|large)\//);
+    let rex4 = new RegExp(/\?size=t/);
     let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg\.com)/);
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
                 rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
                 rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=l") :
                 rexNoModNecessary.test(aImageSrc) ? aImageSrc :
                 null;
+    if (image == null) {
+      return null;
+    }
+    
+    // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
+    let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr);
+    if (/twitpic.com|twimg.com/.test(image) &&
+        ! suffixRegex.test(image)) {
+      image += ".jpg";
+    }
+    
     return image;
   }
 };
@@ -562,8 +577,6 @@ ThumbnailZoomPlus.Pages.Engadget = {
   }
 };
 
-ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(\\.gif|\\.jpe?g|\\.png|\\.bmp)";
-
 /**
  * Others
  */
@@ -585,6 +598,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "youtu.be/|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
+                      "(.*\\.)?twitpic.com|" +
                       "https?://twitter.com/.*\\?url=|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
@@ -646,6 +660,14 @@ ThumbnailZoomPlus.Pages.Others = {
     if (youtubeEx.test(aImageSrc)) {
         aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
+    
+    // For links to twitpic pages, chage
+    // http://twitpic.com/10l4j4.jpg to
+    // http://twitpic.com/show/full/10l4j4
+    let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
+    this._logger.debug("ThumbnailPreview: twitpic ex " + twitpicEx);
+    this._logger.debug("ThumbnailPreview: twitpic ex matches: " +  (twitpicEx.test(aImageSrc)));
+    aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg

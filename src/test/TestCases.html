@@ -1,0 +1,232 @@
+<html>
+<body>
+<h1><a href="https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/">
+Thumbnail Zoom Plus</a> Test Cases</h1>
+
+[<a href="http://0.0.0.0:8000/TestCases.html">local http version</a>]<br>
+
+<h2>General Instructions</h2>
+<p>Test in the most recent released version of Firefox, the beta, the nightly, and the oldest supported (eg version 3).
+<p>Run tests in Private Browsing mode so they don't depend on your "logged-in" 
+state (but the drawback is that if you fix a bug and want to restart, you'll lose the browser's state).
+<p>Try tests with both http and https (on Twitter you may need to change
+a Twitter site pref to enable http).
+<ul>
+<li>Test basic popping up of thumbs.
+<li>Verify that the popup dismisses when you mouse away from the thumb, click the page,
+press Escape, switch tabs, use Control-L and enter a different URL, navigate away by
+the back or forward keys, or close the window with Control-W / Apple-W
+<li>Display popup; then drag page to open space to open in new window.  The 
+hover thumb in the dragged page.  Verify that popup appears in the new page 
+and not in the old one.
+<li>Repeat tab-dragging, but back into original window.
+<li>After testing, open the Error Console (Shift+Apple+r) and verify no errors from
+the add-on.
+<li>Perform the following tests with non-default page zoom.
+<li>Instead of moving mouse onto a thumb, scroll thumb to be under mouse (using mouse
+wheel or track pad).  Verify that popup appears.  Scroll thumb out of mouse.
+Verify that popup disappears.
+<li>Test for factors related to the geometry of the thumb, image, and browser window.  
+<li>Verify correct placement of the popup adjcent to or on top of the thumb (depending on the preference).
+<li>Test with all languages for which the add-on has translations (see its locale dir).
+Set in about:config general.useragent.locale, with intl.locale.matchOS=false.
+</ul>
+
+
+<h2>Facebook</h2>
+<ul>
+<li><a href="https://www.facebook.com/Levis?sk=wall">Facebook: Levi's: Wall</a>.  
+<ul>
+  <li>Verify popup on "Levis" small profile thumb, photo thumbs at top of page,
+larger photos on the Wall.  
+  <li>Click a wall photo after its 
+popup appears.  Verify that the popup is dismissed as the photo opens in its Theater-mode page.
+  <li>After popup appears, use Control+L / Apple-L and enter facebook.com.  
+Verify that popup dismisses.  Verify that popups work on the page you now have loaded.
+</ul>
+<li><a href="https://www.facebook.com/Levis?sk=videos">Facebook: Levi's: Videos</a>.  
+Hover a video and make sure a popup appears.
+</li>
+</ul>
+
+
+<h2>Twitter</h2>
+<ul>
+<li>Log into Twitter and go to the <a href="http://twitter.com/#!/activity">Activity tab</a>.
+  <ul>
+    <li>
+Hover over the medium profile thumbs in the left-most column and verify popup.
+    <li>
+    Hover over a large thumb of a person who was "followed", in the same box as a "follow" button.
+    (Doesn't currently work except sometimes when entered from below; a div
+    covers the img so we don't get an event when mouse hovers the img).
+  </ul>
+<li>Go to <a href="http://twitter.com/#!/cnn">cnn's twitter page</a>.
+<ul>
+  <li>Hover over the small profile icons of people "Similar to".
+  <li>Hover over the tiny profile icons of people "Following".
+  <li>Scroll through CNN's feed, looking for the icon which indicates there's a pic.  Click on such tweets; then
+  in the right-hand pane, hover the image.  
+  <blockquote>Debugging tip: when you click the tweet, a new (nested) document loads; watch the log to
+  verify it's detected as twitpic.
+</ul>
+<li><a href="http://twitter.com/#!/CNN/media/grid">CNN's Images</a>: 
+Hover over the images.  It may not work for images from all sources,
+but should work for twitpic, yfrog, and instagr.am images.
+<li>Do similar tests on <a href="http://twitter.com/#!/TheRomMistress/media/grid">another user's images.</a>
+<li>https version of <a href="https://twitter.com/#!/TheRomMistress/media/grid">another user's images.</a>
+</ul>
+
+
+<h2>TwitPic</h2>
+<p>Note that we can't work on thumbs hosted at http://s3.amazonaws.com/
+since their URL includes a key which prevents us from changing it to
+a non-thumb.</p>
+<ul>
+<li><a href="http://twitpic.com/">TwitPic home page</a>: 
+<ul>
+<li>hover over small thumbs in Latest Photos From Users area.  
+<li>Hover over medium Popular Users profile thumbs.
+<li>Hover over large What's Trending thumbs.
+</ul>
+<li><a href="http://twitpic.com/search#q=rockies&type=mixed&page=1">TwitPic Search Results</a>:
+Hover over medium results thumbs.
+<li><a href="http://twitpic.com/public_timeline/">Public Timeline</a>
+<li><a href="http://twitpic.com/public_timeline/feed.rss">RSS feed</a>
+</ul>
+
+
+<h2>Google Images</h2>
+<ul><li>Search on <a href="https://www.google.com/search?hl=en&q=pizza&bav=on.2,or.r_gc.r_pw.,cf.osb&biw=1396&bih=741&noj=1&um=1&ie=UTF-8&tbm=isch&source=og&sa=N&tab=wi">
+Google Images</a>.  Hover a thumb to see Google's slightly bigger popup.  Hover the thumb in that popup to see the add-on's popup.
+</ul>
+
+<h2>Google Plus</h2>
+<ul><li><a href="https://plus.google.com/102150693225130002912/posts">Posts page</a>: should see popup for profile icons of various sizes
+(if G+ pops up its own little popup, hover the image in that).  Hover photos in the stream.  
+</ul>
+
+
+<h2>Flickr</h2>
+<ul>
+<li><a href="http://www.flickr.com/search/?q=grand+teton&f=hp">Flickr search results</a>: hover over results thumbs, 
+with thumbs at Small, Medium, and Detail sizes.
+<li><a href="http://www.flickr.com/photos/sathishcj/2887178930/sizes/s/in/photostream/">A particular photo's page</a>:
+Hover over ithe image itself at sizes Square, Thumbnail, Small, Medium 500, Medium 640.
+<li>Thumbnail Zoom Plus doesn't do popups from profile icons.
+</ul>
+
+
+<h2>YouTube</h2>
+<ul>
+<li><a href="http://www.youtube.com/">Main page</a>: 
+Hover over movie thumbs and links.
+<li><a href="http://www.reddit.com/r/videos">youtube links on reddit</a>
+</ul>
+
+<h2>deviantArt</h2>
+<ul>
+<li><a href="http://www.deviantart.com/">deviantArt home</a>: 
+<ul>
+<li>popups should appear from images, and should disappar when you click an image (which tests the hash-change listener).
+<li>because thumbs are laid out in a grid covering most of the page, and images tend to be large, this is a good
+site to test popup positioning.  Try with Maximize Image Size By Overlapping Thumbnail both off and on.  With it off, verify that images
+are positioned with an edge neary touching the thumb, and opposite edge touching the edge
+of the browser (assuming it's a large image).  Test on horizontal and vertical aspect
+images.  Test with page zoomed in and out.
+</ul>
+</ul>
+
+
+<h2>MySpace</h2>
+
+
+<h2>LinkedIn</h2>
+<li><a href="http://www.linkedin.com/pub/dir/?first=john&last=doe&search=Search&searchType=fps">
+Search Results</a>: hover profile icons.
+
+<h2>Amazon</h2>
+<ul><li><a href="http://www.amazon.com/">Main page</a>: hover product thumbs (More Items To Consider)
+<li><a href="http://www.amazon.com/Variety-Chips-Nutter-Butter-12-Count/dp/B003VMW0ZC/ref=sr_1_5?ie=UTF8&qid=1322031667&sr=8-5">
+Oreos product page</a>: hover product image and its icon for bigger image.
+</ul>
+
+<h2>Picasa</h2>
+
+
+<h2>Last.fm</h2>
+<ul>
+<li><a href="http://www.last.fm/charts">Charts</a>: hover over album thumbs
+<li><a href="http://www.last.fm/community">Community</a>: Profile thumbs
+<li><a href="http://www.last.fm/charts">Charts</a>: hover over album thumbs
+<li><a href="http://www.lastfm.es/charts">In Spanish</a>
+</ul>
+
+<h2>Direct Links To Images</h2>
+<ul>
+<li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
+should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
+YouTube videos should work too.
+<li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
+hosted on tumblr.com; those links should show popups.
+<li>Examples of direct links to images:
+
+<ul>
+<li>Note: Thumbnail Zoom Plus doesn't work on file:// links (it's a
+security restriction).  So to test these links, you must either:
+<ul>
+<li>temporarily set enableFileProtocol=true in filterService.js; or
+<li>Run "python -m SimpleHTTPServer" in .../thumbnail-zoom/src/test to
+create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
+from your machine over http</a>
+</ul>
+<li>Regular existing image:<br>&nbsp;&nbsp;
+<a href="http://imgur.com/KFC9m">text part of link
+<img src="http://d.thumbs.redditmedia.com/Z4st3vIRrgG81YQ-.jpg" />
+</a>
+
+<li>Big gif image; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
+<a href="http://imgur.com/7ZFpN">text part of link
+<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
+</a>
+
+<li>Image on non-existent host (use to make sure there are no exceptions; may take a couple minutes
+to timeout):<br>&nbsp;&nbsp;
+<a href="http://1.0.0.0/non-existent-server.jpg">
+[http://1.0.0.0/non-existent-server.jpg]
+</a>
+<li>A <a href="gradient.jpg">gradiet image</a> and a 
+<a href="gradient_corrupt.jpg">corrupt gradient image</a>.
+</ul>
+</ul>
+<h2>Hi5</h2>
+
+
+<h2>Tagged</h2>
+
+
+<h2>Photobucket</h2>
+
+
+<h2>Wikipedia</h2>
+
+
+<h2>IMDB</h2>
+
+
+<h2>DailyMile</h2>
+
+
+<h2>Engadget</h2>
+
+
+<h2>Imgur</h2>
+
+
+<h2>Photosight.ru</h2>
+
+
+
+(end)
+</body>
+</html>

@@ -968,12 +968,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
 
     // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
-    // object so we can delete it when we load another image (so it doesn't
+    // object so we can delete it if we load different image (so it doesn't
     // keep loading in the background).
-    //
-    // TODO: idea: in addition to doing this in onload, we could do it with
-    // a timer every .25 seconds, so we can position and show image even before
-    // its done loading by checking .width!=0.
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {

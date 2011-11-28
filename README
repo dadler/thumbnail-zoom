@@ -53,7 +53,7 @@ of the log.txt file.  Messages are logged with calls like this:
 
 TESTING:
 
-See src/TestCases.html.
+See src/test/TestCases.html.
 
 
 MAKING AN INSTALLABLE XPI FILE:
