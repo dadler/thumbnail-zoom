@@ -578,6 +578,10 @@ ThumbnailZoomPlusChrome.Overlay = {
      * document itself when we loaded it, until we find one which can generate
      * an image URL.
      */
+
+    // we consider showing a noMatchingRule indicator if the user hovered over
+    // an image or if any enabled rule matches (even if its image doesn't).
+    let foundAnyImageSource = (node.localName.toLowerCase() == "img");
     while (aPage >= 0) {
       this._logger.debug("... _findPageAndShowImage: Trying page '" + 
                          ThumbnailZoomPlus.FilterService.pageList[aPage].key +
@@ -589,6 +593,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
             ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
           // Found a matching page!
+          foundAnyImageSource = true;
           let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
           if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
@@ -613,7 +618,9 @@ ThumbnailZoomPlusChrome.Overlay = {
                                this._originalURI);
             
             // Start a timer to try to load the image after the configured
-            // hover delay time.
+            // hover delay time.  TODO: it'd be better run _findPageAndShowImage 
+            // in the timer call to avoid its overhead when the mouse won't stay
+            // still as long as hoverTime.
             this._timer.cancel();
             let that = this;
             this._timer.initWithCallback({ notify:
@@ -627,8 +634,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Try to find another matching page.
       aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
     }
-    this._logger.debug("_findPageAndShowImage: _closePanel since mouse not in recognized URL or site disabled");
-    this._closePanel();
+    if (foundAnyImageSource) {
+      this._logger.debug("_findPageAndShowImage: show noMatchingRule icon briefly " +
+                         "since mouse not in recognized URL or site disabled");
+      this._showStatusIconBriefly(node, "noMatchingRule16.png", 32);      
+    } else {
+      this._logger.debug("_findPageAndShowImage: _closePanel since no image source found");
+      this._closePanel();
+    }
   },
   
   /**
@@ -689,13 +702,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _showZoomImage : function(zoomImageSrc, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
-
-    if (null != zoomImageSrc) {
-      this._showPanel(aImageNode, zoomImageSrc, aEvent);
-    } else {
-      this._logger.debug("_showZoomImage: _closePanel since getZoomImage returned null");
-      this._closePanel();
-    }
+    this._showPanel(aImageNode, zoomImageSrc, aEvent);
   },
 
 
@@ -707,19 +714,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, aEvent) {
     this._logger.trace("_showPanel");
 
-    // reset to small size to show our icon as a "working" indicator
-    // while loading.  This normally appears only briefly (or not at all)
-    // since we show the full image size as soon as enough of the image is
-    // loaded to know its dimensions.
-    this._panelImage.style.maxWidth = "16px";
-    this._panelImage.style.minWidth = "16px";
-    this._panelImage.style.maxHeight = "16px";
-    this._panelImage.style.minHeight = "16px";
-
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
     this._closePanel();
-    this._originalURI = this._currentWindow.document.documentURI;
 
+    this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
     
     // Allow the user to see the context (right-click) menu item for
@@ -748,7 +746,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._panel.state != "closed") {
         this._panel.hidePopup();
       }
-      // We no longer need the image contents so help the garbage collector:
+      // We no longer need the image contents, and don't want them to show
+      // next time we show the working dialog.  This also helps the garbage 
+      // collector:
+      this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
     } catch (e) {
       this._logger.debug("_closePanel: exception: " + e);
@@ -845,6 +846,40 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._closePanel();
   },
   
+  _showStatusIcon : function(aImageNode, iconName, iconWidth) {
+    this._logger.trace("_showStatusIcon");
+    
+    this._logger.debug("_showStatusIcon: showing " + iconName);
+
+    this._panelImage.style.backgroundImage =
+      "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
+    this._panelImage.style.maxWidth = iconWidth + "px";
+    this._panelImage.style.minWidth = iconWidth + "px";
+    this._panelImage.style.maxHeight = "16px";
+    this._panelImage.style.minHeight = "16px";
+
+    if (this._panel.state != "open") {
+      this._logger.debug("_showStatusIcon: popping up to show " + iconName);
+      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
+      this._addListenersWhenPopupShown();
+    }
+  },
+  
+  _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
+    this._logger.trace("_showStatusIconBriefly");
+
+    // We don't want to see any image on top of the icon.
+    this._panelImage.src = null;
+    this._showStatusIcon(aImageNode, iconName, iconWidth);
+    
+    // Hide the icon after a little while
+    this._timer.cancel();
+    let that = this;
+    this._timer.initWithCallback(
+        { notify: function() { that._closePanel(); } }, 
+        1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+  },
+  
   /**
    * _checkIfImageLoaded is called from a repeating timer after we
    * start loading.  It checks whether enough has been loaded to
@@ -865,8 +900,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Show the panel even without its image so the user will at
       // least see our icon and know it's being loaded.
       this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
-      this._addListenersWhenPopupShown();
+      // Set to our status icon as a "working" indicator
+      // while loading.  This normally appears only briefly (or not at all)
+      // since we show the full image size as soon as enough of the image is
+      // loaded to know its dimensions.
+      this._showStatusIcon(aImageNode, "icon16.png", 16);      
     }
     
     if (image.width > 0 && image.height > 0) {
@@ -938,8 +976,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
       
       if (! imageSize.allow) {
-        this._closePanel();
-        
+        this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
+
         return;
       }
       
@@ -974,8 +1012,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
       if (that._currentImage == aImageSrc) {
-        that._logger.debug("image onerror: _closePanel since error loading image (" + aEvent + ")");
-        that._closePanel();
+        that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
+        that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
       }
     };
 
