@@ -64,8 +64,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // To debug, set enableDebug above to true and monitor the log file
       // in a terminal using "tail -f log.txt".
       //
-      let enableDebug = false;
-      let enableTrace = false;
+      let enableDebug = true;
+      let enableTrace = true;
       
             
       // The basic formatter will output lines like:
