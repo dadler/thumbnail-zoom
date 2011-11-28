@@ -115,8 +115,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
 ThumbnailZoomPlus.Pages.Twitter = {
   key: "twitter",
   name: "Twitter",
-  host: /^(.*\.)?(twitter\.com|twimg\.com)$/,
-  imageRegExp: /(twitter\.com|twimg\.com)\//,
+  
+  // We match anything with timg to catch things like twimg0-a.akamaihd.net
+  host: /^(.*\.)?(twitter\.com$|twimg[.0-9-])/,
+  imageRegExp: /(twitter\.com\/|twimg[.0-9-])/,
   getZoomImage : function(aImageSrc) {
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "") : null);
@@ -129,21 +131,27 @@ ThumbnailZoomPlus.Pages.Twitter = {
  */
 ThumbnailZoomPlus.Pages.Twitpic = {
   key: "twitpic",
-  name: "Twitpic",
+  name: "Twitpic",   
   
   // Host includes twitter.com since twitter often hosts twitpic images.
-  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg\.com)$/,
+  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.|\/])?(twimg\.com|twitpic\.com|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
+    /^(.*[.|\/])?(twimg[.0-9-].*|twitpic\.com|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     let rex3 = new RegExp(/\/(mini|thumb|iphone|large)\//);
     let rex4 = new RegExp(/\?size=t/);
-    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg\.com)/);
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg)/);
+    
+    /*
+     * Change resolutions to "large".  Another option is "full", which is bigger,
+     * but the server seems quite slow and "full" could take several seconds to
+     * load even on a high-speed connection.
+     */
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
-                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
-                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-large.") : 
+                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/large/") : 
                 rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=l") :
                 rexNoModNecessary.test(aImageSrc) ? aImageSrc :
                 null;
@@ -153,7 +161,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     
     // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
     let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr);
-    if (/twitpic.com|twimg.com/.test(image) &&
+    if (/twitpic\.com|twimg/.test(image) &&
         ! suffixRegex.test(image)) {
       image += ".jpg";
     }
