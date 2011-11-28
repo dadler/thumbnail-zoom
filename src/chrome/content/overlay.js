@@ -802,7 +802,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
-      aEvent.bubbles = false;
     }
   },
   
@@ -813,7 +812,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._logger.debug("_handleIgnoreEsc: ignoring Esc key");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
-      aEvent.bubbles = false;
     }
   },
   
@@ -858,11 +856,28 @@ ThumbnailZoomPlusChrome.Overlay = {
                                image)
   {
     this._logger.trace("_checkIfImageLoaded");
+    if (this._currentImage != aImageSrc) {
+      return;
+    }
+
     if (image.width > 0 && image.height > 0) {
-        this._logger.debug("_checkIfImageLoaded: calling _imageOnLoad since have size.");
-      this._imageOnLoad(aImageNode, aImageSrc, 
-                               clientToScreenX, clientToScreenY,
-                               image);
+        this._logger.debug("_checkIfImageLoaded: delayed-calling _imageOnLoad since have size.");
+      /*
+       * The image has a size so we could technically display it now.  But that
+       * often causes it to appear very briefly only half-displayed, with
+       * its lower half white.  We try to prevent that by displaying it a bit
+       * later, using the timer again.
+       */
+      this._timer.cancel();
+      let that = this;
+      this._timer.initWithCallback(
+        { notify:
+          function() {
+            that._imageOnLoad(aImageNode, aImageSrc, 
+                             clientToScreenX, clientToScreenY,
+                             image);
+          }
+         }, 0.2 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
     } else {
       if (this._panel.state != "open") {
         // Show the panel even without its image so the user will at
