@@ -544,7 +544,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_handleMouseOver");
 
     if (this._needToPopDown(aDocument.defaultView.top)) {
-      this._logger.debug("_handleMouseOver: _closePanel since mouse different doc.");
+      this._logger.debug("_handleMouseOver: _closePanel since different doc.");
       this._closePanel();
       return;
     }
@@ -564,14 +564,25 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._closePanel();
       return;
     }
-      
+    
     this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
     let node = aEvent.target;
-    this._findPageAndShowImage(aDocument, aEvent, aPage, node);
+
+    // Close the previously displayed popup (if any).
+    this._closePanel();
+
+    // Start a timer to try to load the image after the configured
+    // hover delay time. 
+    let that = this;
+    this._timer.cancel();
+    this._timer.initWithCallback({ notify:
+        function() { that._findPageAndShowImage(aDocument, aEvent, aPage, node); }
+      }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
   },
 
 
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+    this._logger.trace("_findPageAndShowImage"); 
 
     /*
      * Try each maching page (rule), starting with the one we found for the
@@ -598,34 +609,12 @@ ThumbnailZoomPlusChrome.Overlay = {
           if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
-            /*
-             * Trickiness to get the right "that": normally this and 
-             * ThumbnailZoomPlusChrome.Overlay automatically refer to the
-             * correct instance -- which is the window the document was loaded into.
-             * But if the user drags a tab into a different window, the
-             * document carries its javascript state, which includes the
-             * registration of mouseOver handler to this._handleMouseOver -- for
-             * "this" of the original window.
-             *
-             * We want the popup to appear in the new window, not the original
-             * one, so we explicitly find the window of the now-active browser
-             * and get the ThumbnailZoomPlusChrome.Overlay object from that
-             * context.
-             */
             this._currentWindow = aDocument.defaultView.top;
             this._originalURI = this._currentWindow.document.documentURI;
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                                this._originalURI);
             
-            // Start a timer to try to load the image after the configured
-            // hover delay time.  TODO: it'd be better run _findPageAndShowImage 
-            // in the timer call to avoid its overhead when the mouse won't stay
-            // still as long as hoverTime.
-            this._timer.cancel();
-            let that = this;
-            this._timer.initWithCallback({ notify:
-                                           function() { that._showZoomImage(zoomImageSrc, node, aPage, aEvent); }
-                                         }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
+            this._showZoomImage(zoomImageSrc, node, aPage, aEvent);
             return;
           }
         }
@@ -638,9 +627,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_findPageAndShowImage: show noMatchingRule icon briefly " +
                          "since mouse not in recognized URL or site disabled");
       this._showStatusIconBriefly(node, "noMatchingRule16.png", 32);      
-    } else {
-      this._logger.debug("_findPageAndShowImage: _closePanel since no image source found");
-      this._closePanel();
     }
   },
   

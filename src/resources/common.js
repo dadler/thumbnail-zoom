@@ -64,6 +64,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // To debug, set enableDebug above to true and monitor the log file
       // in a terminal using "tail -f log.txt".
       //
+      // Enabling these increases CPU usage when moving the mouse in Firefox.
+      //
       let enableDebug = false;
       let enableTrace = false;
       
