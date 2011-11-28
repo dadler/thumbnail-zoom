@@ -306,8 +306,14 @@ ThumbnailZoomPlus.Pages.Wikipedia = {
  * DeviantART
  */
 ThumbnailZoomPlus.Pages.DeviantART = {
-  // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg becomes
+  // Change
+  // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg to
   // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
+  //
+  // Note: doesn't currently work for gifs since multiple parts of their URLS change and
+  // I don't know how to predict that, e.g.
+  //   http://fc06.deviantart.net/fs70/i/2011/331/1/4/charmander_the_stray_by_brittanytucker-d4hijn7.gif to
+  //   http://fc04.deviantart.net/fs70/f/2011/331/b/3/charmander_the_stray_by_brittanytucker-d4hijn7.gif
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
@@ -452,9 +458,12 @@ ThumbnailZoomPlus.Pages.Google = {
     if (null != imageHref) {
       let imageIndex = imageHref.indexOf("imgurl=");
       if (-1 < imageIndex) {
-        imageSource = imageHref.substring(
-          imageIndex + 7, imageHref.indexOf("&", imageIndex));
-
+        imageSource = imageHref.substring(imageIndex + 7);
+        imageIndex = imageSource.indexOf("&");
+        if (-1 < imageIndex) {
+          imageSource = imageSource.substring(0, imageIndex);
+        }
+        
         ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: before decode URI=" + imageSource);
 
         // The image URL is double-encoded; for example, a space is represented as "%2520".
@@ -599,7 +608,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
   
-  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$|" +
+  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
                       "tumblr.com/photo/|" +
                       "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
                       "www\\.youtube\\.com/|" +
@@ -608,6 +617,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "qkme.me/|" +
                       "(.*\\.)?twitpic.com|" +
                       "https?://twitter.com/.*\\?url=|" +
+                      "[\?&]img_?url=|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
 
@@ -661,6 +671,17 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
+    // For google images links, images.yandex.ru, and some others, get URL from
+    // imgurl=... part.
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+      aImageSrc = decodeURIComponent(aImageSrc);
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -673,8 +694,6 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://twitpic.com/10l4j4.jpg to
     // http://twitpic.com/show/full/10l4j4
     let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
-    this._logger.debug("ThumbnailPreview: twitpic ex " + twitpicEx);
-    this._logger.debug("ThumbnailPreview: twitpic ex matches: " +  (twitpicEx.test(aImageSrc)));
     aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
