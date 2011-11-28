@@ -857,11 +857,20 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     this._logger.trace("_checkIfImageLoaded");
     if (this._currentImage != aImageSrc) {
+      this._logger.debug("_checkIfImageLoaded: ignoring (different window).");
       return;
     }
 
+    if (this._panel.state != "open") {
+      // Show the panel even without its image so the user will at
+      // least see our icon and know it's being loaded.
+      this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
+      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
+      this._addListenersWhenPopupShown();
+    }
+    
     if (image.width > 0 && image.height > 0) {
-        this._logger.debug("_checkIfImageLoaded: delayed-calling _imageOnLoad since have size.");
+      this._logger.debug("_checkIfImageLoaded: delayed-calling _imageOnLoad since have size.");
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
@@ -877,16 +886,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                              clientToScreenX, clientToScreenY,
                              image);
           }
-         }, 0.2 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
-    } else {
-      if (this._panel.state != "open") {
-        // Show the panel even without its image so the user will at
-        // least see our icon and know it's being loaded.
-        this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-        this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
-        this._addListenersWhenPopupShown();
-      }
-    }
+         }, 0.7 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+    } 
   },
 
   /**
