@@ -70,6 +70,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
      Thumb URLs seem different when logged into Facebook vs when logged out
      and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
      test e.g. at https://www.facebook.com/Levis?sk=wall
+
+     Example image URLs:
+     https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
+     https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
    */
   imageRegExp: /profile|\.(fbcdn|akamaihd)\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
@@ -93,6 +97,14 @@ ThumbnailZoomPlus.Pages.Facebook = {
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
+    // Handle externally-linked images.
+    let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
+    if (rexExternal.test(aImageSrc)) {
+      let image = aImageSrc.replace(rexExternal, "$1");
+      image = decodeURIComponent(image);
+      return image;
+    }
+
     // Check the thumbnail against rex1; we exclude _n type so we
     // don't popup for the main photo in a Theater-mode photo page.
     let rex1 = new RegExp(/_[qsta]\./);
@@ -701,8 +713,8 @@ ThumbnailZoomPlus.Pages.Others = {
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
     aImageSrc = aImageSrc.replace(imgurRex, "$1$3");
 
-    let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|qkme\.me)\/([^\/\?]+).*/);
-    aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1.jpg");
+    let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
+    aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
         
     // For sites other than tumblr, if there is no image suffix, add .jpg.
     let rex = new RegExp("(tumblr\\.com/.*|" + 
