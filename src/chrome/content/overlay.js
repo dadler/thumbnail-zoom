@@ -590,9 +590,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      * an image URL.
      */
 
-    // we consider showing a noMatchingRule indicator if the user hovered over
-    // an image or if any enabled rule matches (even if its image doesn't).
-    let foundAnyImageSource = (node.localName.toLowerCase() == "img");
+    let foundAnyImageSource = false;
     while (aPage >= 0) {
       this._logger.debug("... _findPageAndShowImage: Trying page '" + 
                          ThumbnailZoomPlus.FilterService.pageList[aPage].key +
