@@ -604,7 +604,10 @@ ThumbnailZoomPlusChrome.Overlay = {
           // Found a matching page!
           foundAnyImageSource = true;
           let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
-          if (zoomImageSrc == null) {
+          if (zoomImageSrc == "") {
+            this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
+            foundAnyImageSource = false;
+          } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
             this._currentWindow = aDocument.defaultView.top;

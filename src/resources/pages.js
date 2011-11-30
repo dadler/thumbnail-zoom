@@ -157,14 +157,17 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg)/);
     
     /*
-     * Change resolutions to "large".  Another option is "full", which is bigger,
+     * We could resolutions to "large".  Another option is "full", which is bigger,
      * but the server seems quite slow and "full" could take several seconds to
      * load even on a high-speed connection.
+     * But some images have "full" size but not "large" size.
+     * Ideally we'd try "large" but if it fails, try "full".
+     * For now we use "full" to assure we get something, but it may be slow.
      */
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
-                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-large.") : 
-                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/large/") : 
-                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=l") :
+                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
+                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=f") :
                 rexNoModNecessary.test(aImageSrc) ? aImageSrc :
                 null;
     if (image == null) {
@@ -666,12 +669,6 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
-    // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
-    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
-    if (twitterEx.test(aImageSrc)) {
-      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
-    }
-
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
@@ -683,6 +680,26 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
+    // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
+    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
+    if (twitterEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitter.key)) {
+        return ""; // Twitter support is disabled by user preference.
+      }
+      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
+    }
+    
+    // For links to twitpic pages, chage
+    // http://twitpic.com/10l4j4.jpg to
+    // http://twitpic.com/show/full/10l4j4  (or .../large/...)
+    let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
+    if (twitpicEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitpic.key)) {
+        return ""; // Twitter support is disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
+    }
+    
     // For google images links, images.yandex.ru, and some others, get URL from
     // imgurl=... part.
     let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
@@ -699,14 +716,11 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
     let youtubeEx = new RegExp(/(?:www\.youtube\.com|youtu.be).*(?:v=|\/)([^&#!\/]+)[^\/]*$/);
     if (youtubeEx.test(aImageSrc)) {
-        aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
+        return ""; // YouTube support disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
-    
-    // For links to twitpic pages, chage
-    // http://twitpic.com/10l4j4.jpg to
-    // http://twitpic.com/show/full/10l4j4
-    let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
-    aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
