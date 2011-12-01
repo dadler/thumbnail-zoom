@@ -30,12 +30,12 @@
 <!-- These Swedish translations were done by Mikael Hiort af Ornäs -->
 
 <!-- Toolbar -->
-<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Se bilderna bakom bildminiatyrerna">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Inställningar…">
 
 <!-- Settings dialog -->
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Inställningar">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Bilders ogenomskinlighet: ">

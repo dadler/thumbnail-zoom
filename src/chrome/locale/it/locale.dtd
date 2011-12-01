@@ -28,12 +28,12 @@
  -->
 
 <!-- Toolbar -->
-<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom">
-<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
+<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opzioni...">
 
 <!-- Settings dialog -->
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferenze">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Ritardo prima di visualizzare l'immagine (sec):">
 <!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Trasparenza delle immagini:">
