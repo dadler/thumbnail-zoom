@@ -571,6 +571,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Close the previously displayed popup (if any).
     this._closePanel();
 
+    if (node == null) {
+      this._logger.debug("_handleMouseOver: event.target=null; ignoring");
+      return;
+    }
+    if (node.localName == null) {
+      // reported by user on Ubuntu Linux.
+      this._logger.debug("_handleMouseOver: event.target.localName=null; ignoring");
+      return;
+    }
+
     // Start a timer to try to load the image after the configured
     // hover delay time. 
     let that = this;
@@ -1040,7 +1050,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     // display the image. 
     this._logger.debug("_openAndPositionPopup: hidePopup");
     this._panel.hidePopup();
+    this._panelImage.style.backgroundImage = ""; // hide status icon
     
+    this._addListenersWhenPopupShown();
+    this._setImageSize(aImageSrc, imageSize);
+    this._addToHistory(aImageSrc);
+
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
       // Position the popup horizontally flush with the right of the window or
@@ -1102,9 +1117,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_openAndPositionPopup: display in upper-left of window (overlap thumb)"); 
       this._panel.openPopup(null, "overlap", 0, 0, false, false);
     }
-    
-    this._addListenersWhenPopupShown();
-    this._showImage(aImageSrc, imageSize);
   },
   
   
@@ -1301,17 +1313,15 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageSrc the image source.
    * @param aScale the scale dimmensions.
    */
-  _showImage : function(aImageSrc, aScale) {
-    this._logger.trace("_showImage");
+  _setImageSize : function(aImageSrc, aScale) {
+    this._logger.trace("_setImageSize");
 
-    this._logger.debug("_showImage: setting size to " +
+    this._logger.debug("_setImageSize: setting size to " +
                        aScale.width + " x " + aScale.height);
     this._panelImage.style.maxWidth = aScale.width + "px";
     this._panelImage.style.minWidth = aScale.width + "px";
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
-    
-    this._addToHistory(aImageSrc);
   },
 
 
