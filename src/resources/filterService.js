@@ -168,10 +168,7 @@ ThumbnailZoomPlus.FilterService = {
     let pageName = this.getPageName(aPage);
 
     if (null != pageName) {
-      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
-
-      if (ThumbnailZoomPlus.Application.prefs.get(pagePrefKey))
-        pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
+      pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
     }
 
     return pageEnable;

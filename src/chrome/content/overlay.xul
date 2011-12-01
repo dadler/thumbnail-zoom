@@ -47,7 +47,7 @@
       label="&thumbnailzoomplus.toolbar.label;"
       tooltiptext="&thumbnailzoomplus.toolbar.tooltip;"
       image="chrome://thumbnailzoomplus/skin/images/icon16.png"
-      class="chromeclass-toolbar-additional ">
+      class="toolbarbutton-1 chromeclass-toolbar-additional ">
       
       <menupopup id="thumbnailzoomplus-toolbar-menu"
         onpopupshown="ThumbnailZoomPlusChrome.Overlay.addMenuItems();"

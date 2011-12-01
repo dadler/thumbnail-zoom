@@ -44,15 +44,17 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
   var ThumbnailZoomPlus = {
     /* The FUEL Application object. */
     _application : null,
+    
     /* Reference to the observer service. */
     _observerService : null,
+    
+    /* Logger for this object (common.js itself). */
+    _logger : null,
 
     /**
      * Initialize this object.
      */
     _init : function() {
-
-
       // 
       // ***** DEBUG ENABLE IS HERE: *****
       //
@@ -64,8 +66,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // To debug, set enableDebug above to true and monitor the log file
       // in a terminal using "tail -f log.txt".
       //
-      let enableDebug = true;
-      let enableTrace = true;
+      // Enabling these increases CPU usage when moving the mouse in Firefox.
+      //
+      let enableDebug = false;
+      let enableTrace = false;
       
             
       // The basic formatter will output lines like:
@@ -102,6 +106,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         app.level = Log4Moz.Level["Warn"];
       }
       root.addAppender(app);
+
+      this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus");
 
       // get the observer service.
       this._observerService =
@@ -144,12 +150,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     },
 
     /**
-     * Gets the preference branch.
-     * @return the preference branch.
-     */
-    get PrefBranch() { return "extensions.thumbnailzoomplus."; },
-
-    /**
      * Gets the id of this extension.
      * @return the id of this extension.
      */
@@ -186,7 +186,32 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       }
 
       return profDir;
-    }
+    },
+    
+    /**
+     * Gets the preference branch.
+     * @return the preference branch.
+     */
+    get PrefBranch() { return "extensions.thumbnailzoomplus."; },
+
+    /**
+     * Verify if the page is enabled.
+     * @param aPage the page key (string).
+     * @return true if the page is enabled, false otherwise.
+     */
+    isNamedPageEnabled : function(key) {
+      this._logger.debug("isNamedPageEnabled " + key);
+
+      let pageEnable = false;
+
+      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";
+      
+      if (ThumbnailZoomPlus.Application.prefs.get(pagePrefKey))
+        pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
+      
+      return pageEnable;
+    },
+
   };
 
   /**

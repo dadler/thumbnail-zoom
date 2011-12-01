@@ -70,6 +70,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
      Thumb URLs seem different when logged into Facebook vs when logged out
      and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
      test e.g. at https://www.facebook.com/Levis?sk=wall
+
+     Example image URLs:
+     https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
+     https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
    */
   imageRegExp: /profile|\.(fbcdn|akamaihd)\.net\//,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
@@ -93,6 +97,14 @@ ThumbnailZoomPlus.Pages.Facebook = {
     return imageSource;
   },
   getZoomImage : function(aImageSrc) {
+    // Handle externally-linked images.
+    let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
+    if (rexExternal.test(aImageSrc)) {
+      let image = aImageSrc.replace(rexExternal, "$1");
+      image = decodeURIComponent(image);
+      return image;
+    }
+
     // Check the thumbnail against rex1; we exclude _n type so we
     // don't popup for the main photo in a Theater-mode photo page.
     let rex1 = new RegExp(/_[qsta]\./);
@@ -145,14 +157,17 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg)/);
     
     /*
-     * Change resolutions to "large".  Another option is "full", which is bigger,
+     * We could resolutions to "large".  Another option is "full", which is bigger,
      * but the server seems quite slow and "full" could take several seconds to
      * load even on a high-speed connection.
+     * But some images have "full" size but not "large" size.
+     * Ideally we'd try "large" but if it fails, try "full".
+     * For now we use "full" to assure we get something, but it may be slow.
      */
     let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
-                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-large.") : 
-                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/large/") : 
-                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=l") :
+                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
+                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
+                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=f") :
                 rexNoModNecessary.test(aImageSrc) ? aImageSrc :
                 null;
     if (image == null) {
@@ -306,8 +321,14 @@ ThumbnailZoomPlus.Pages.Wikipedia = {
  * DeviantART
  */
 ThumbnailZoomPlus.Pages.DeviantART = {
-  // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg becomes
+  // Change
+  // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg to
   // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
+  //
+  // Note: doesn't currently work for gifs since multiple parts of their URLS change and
+  // I don't know how to predict that, e.g.
+  //   http://fc06.deviantart.net/fs70/i/2011/331/1/4/charmander_the_stray_by_brittanytucker-d4hijn7.gif to
+  //   http://fc04.deviantart.net/fs70/f/2011/331/b/3/charmander_the_stray_by_brittanytucker-d4hijn7.gif
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
@@ -452,9 +473,12 @@ ThumbnailZoomPlus.Pages.Google = {
     if (null != imageHref) {
       let imageIndex = imageHref.indexOf("imgurl=");
       if (-1 < imageIndex) {
-        imageSource = imageHref.substring(
-          imageIndex + 7, imageHref.indexOf("&", imageIndex));
-
+        imageSource = imageHref.substring(imageIndex + 7);
+        imageIndex = imageSource.indexOf("&");
+        if (-1 < imageIndex) {
+          imageSource = imageSource.substring(0, imageIndex);
+        }
+        
         ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: before decode URI=" + imageSource);
 
         // The image URL is double-encoded; for example, a space is represented as "%2520".
@@ -599,7 +623,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
   
-  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$|" +
+  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
                       "tumblr.com/photo/|" +
                       "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
                       "www\\.youtube\\.com/|" +
@@ -608,6 +632,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "qkme.me/|" +
                       "(.*\\.)?twitpic.com|" +
                       "https?://twitter.com/.*\\?url=|" +
+                      "[\?&]img_?url=|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
 
@@ -644,12 +669,6 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
-    // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
-    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
-    if (twitterEx.test(aImageSrc)) {
-      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
-    }
-
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
@@ -661,29 +680,55 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
+    // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
+    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
+    if (twitterEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitter.key)) {
+        return ""; // Twitter support is disabled by user preference.
+      }
+      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
+    }
+    
+    // For links to twitpic pages, chage
+    // http://twitpic.com/10l4j4.jpg to
+    // http://twitpic.com/show/full/10l4j4  (or .../large/...)
+    let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
+    if (twitpicEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitpic.key)) {
+        return ""; // Twitter support is disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
+    }
+    
+    // For google images links, images.yandex.ru, and some others, get URL from
+    // imgurl=... part.
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+      aImageSrc = decodeURIComponent(aImageSrc);
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
     let youtubeEx = new RegExp(/(?:www\.youtube\.com|youtu.be).*(?:v=|\/)([^&#!\/]+)[^\/]*$/);
     if (youtubeEx.test(aImageSrc)) {
-        aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
+        return ""; // YouTube support disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
     }
-    
-    // For links to twitpic pages, chage
-    // http://twitpic.com/10l4j4.jpg to
-    // http://twitpic.com/show/full/10l4j4
-    let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
-    this._logger.debug("ThumbnailPreview: twitpic ex " + twitpicEx);
-    this._logger.debug("ThumbnailPreview: twitpic ex matches: " +  (twitpicEx.test(aImageSrc)));
-    aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
     aImageSrc = aImageSrc.replace(imgurRex, "$1$3");
 
-    let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|qkme\.me)\/([^\/\?]+).*/);
-    aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1.jpg");
+    let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
+    aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
         
     // For sites other than tumblr, if there is no image suffix, add .jpg.
     let rex = new RegExp("(tumblr\\.com/.*|" + 

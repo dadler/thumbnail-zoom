@@ -34,7 +34,6 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
   background-color: #FFF !important;
-  background-image: none !important;
   padding: 5px;
   cursor: none !important;
   z-index: 10100;
@@ -44,11 +43,10 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   border: none !important;
 }
 #thumbnailzoomplus-panel-image {
-  /* This background image appears as our "working" indicator, showing when
-     the window is a very small 'working' indicator and at the bottom-left
-     of the full-size image until enough of the image has loaded to cover it.
+  /* 
+     The background-image is set dynamically as our "working" indicator, 
+     and status/error indicators.
   */
-  background-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png") !important;
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
 }
