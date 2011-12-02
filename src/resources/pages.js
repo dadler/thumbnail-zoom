@@ -105,9 +105,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return image;
     }
 
-    // Check the thumbnail against rex1; we exclude _n type so we
-    // don't popup for the main photo in a Theater-mode photo page.
-    let rex1 = new RegExp(/_[qsta]\./);
+    // Check the thumbnail against rex1
+    let rex1 = new RegExp(/_[qstan]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
     // Apply replacement for rex1 or rex2; reject if neither matches.
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_n.") :
