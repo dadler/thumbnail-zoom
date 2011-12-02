@@ -148,7 +148,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.|\/])?(twimg[.0-9-].*|twitpic\.com|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
+    /^(.*[.|\/])?(twimg[.0-9-].*|twitpic\.com\/(?!(upload))([a-z0-9A-Z]+)$|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
@@ -175,9 +175,11 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     }
     
     // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
-    let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr);
+    // But not for profile_images, which actually sometimes don't have a suffix.
+    let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr, "i");
     if (/twitpic\.com|twimg/.test(image) &&
-        ! suffixRegex.test(image)) {
+        ! suffixRegex.test(image) &&
+        ! /\/profile_images\//.test(image)) {
       image += ".jpg";
     }
     
@@ -626,12 +628,11 @@ ThumbnailZoomPlus.Pages.Others = {
   imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
                       "tumblr.com/photo/|" +
                       "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
-                      "www\\.youtube\\.com/|" +
-                      "youtu.be/|" +
+                      "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
-                      "(.*\\.)?twitpic.com|" +
-                      "https?://twitter.com/.*\\?url=|" +
+                      "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
+                      "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
@@ -681,7 +682,7 @@ ThumbnailZoomPlus.Pages.Others = {
     }
 
     // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
-    let twitterEx = new RegExp("^https?://twitter.com/.*\?url=([^&]+)(&.*)?$");
+    let twitterEx = new RegExp("^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$");
     if (twitterEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitter.key)) {
         return ""; // Twitter support is disabled by user preference.
@@ -714,7 +715,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
-    let youtubeEx = new RegExp(/(?:www\.youtube\.com|youtu.be).*(?:v=|\/)([^&#!\/]+)[^\/]*$/);
+    let youtubeEx = new RegExp("(?:www\\.youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.

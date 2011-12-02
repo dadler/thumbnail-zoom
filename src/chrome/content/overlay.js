@@ -413,6 +413,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * image based on the 'page' of the image's URL, even if that's different
    * than the 'page' of the html doc.
    *
+   * TODO: not sure if this needs to run for iframes; currently it does.
+   * can detect as if(event.originalTarget.defaultView.frameElement)...
+   *
    * @param aEvent the event object.
    */
   _handlePageLoaded : function(aEvent) {
