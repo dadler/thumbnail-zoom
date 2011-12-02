@@ -84,6 +84,8 @@
         name="extensions.thumbnailzoomplus.google.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-googleplus-pref"
         name="extensions.thumbnailzoomplus.googleplus.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-gmail-pref"
+        name="extensions.thumbnailzoomplus.gmail.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-youtube-pref"
         name="extensions.thumbnailzoomplus.youtube.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-dailymile-pref"
@@ -176,6 +178,9 @@
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
+          <checkbox label="GMail"
+            preference="thumbnailzoomplus-options-gmail-pref" />
+
           <checkbox label="Google+"
             preference="thumbnailzoomplus-options-googleplus-pref" />
 
@@ -191,11 +196,11 @@
           <checkbox label="Imgur"
             preference="thumbnailzoomplus-options-imgur-pref" />
 
-          <checkbox label="Last.fm"
-            preference="thumbnailzoomplus-options-lastfm-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Last.fm"
+            preference="thumbnailzoomplus-options-lastfm-pref" />
 
           <checkbox label="LinkedIn"
             preference="thumbnailzoomplus-options-linkedin-pref" />
@@ -212,11 +217,11 @@
           <checkbox label="Picasa"
             preference="thumbnailzoomplus-options-picasa-pref" />
 
-          <checkbox label="Tagged"
-            preference="thumbnailzoomplus-options-tagged-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Tagged"
+            preference="thumbnailzoomplus-options-tagged-pref" />
 
           <checkbox label="Twitpic"
             preference="thumbnailzoomplus-options-twitpic-pref" />
@@ -229,8 +234,6 @@
 
           <checkbox label="Wikipedia"
             preference="thumbnailzoomplus-options-wikipedia-pref" />
-
-          <spacer flex="1" />
 
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />

@@ -49,21 +49,22 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.Engadget,
     ThumbnailZoomPlus.Pages.Facebook,
     ThumbnailZoomPlus.Pages.Flickr, // 5
+    ThumbnailZoomPlus.Pages.GMail, // before Google so it takes priority.
     ThumbnailZoomPlus.Pages.GooglePlus, // before Google so it takes priority.
     ThumbnailZoomPlus.Pages.Google,
     ThumbnailZoomPlus.Pages.Hi5,
     ThumbnailZoomPlus.Pages.IMDb,
-    ThumbnailZoomPlus.Pages.Imgur, // 10
+    ThumbnailZoomPlus.Pages.Imgur, // 11
     ThumbnailZoomPlus.Pages.LastFM,
     ThumbnailZoomPlus.Pages.LinkedIn,
     ThumbnailZoomPlus.Pages.MySpace,
     ThumbnailZoomPlus.Pages.PhotoBucket,
-    ThumbnailZoomPlus.Pages.Photosight, // 15
+    ThumbnailZoomPlus.Pages.Photosight, // 16
     ThumbnailZoomPlus.Pages.Picasa,
     ThumbnailZoomPlus.Pages.Tagged,
     ThumbnailZoomPlus.Pages.Twitpic,
     ThumbnailZoomPlus.Pages.Twitter,
-    ThumbnailZoomPlus.Pages.YouTube, // 20
+    ThumbnailZoomPlus.Pages.YouTube, // 21
     ThumbnailZoomPlus.Pages.Wikipedia,
     ThumbnailZoomPlus.Pages.Others // last; lowest priority
   ],

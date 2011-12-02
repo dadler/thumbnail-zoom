@@ -456,6 +456,27 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
 };
 
 /**
+ * Gmail
+ */
+ThumbnailZoomPlus.Pages.GMail = {
+  key: "gmail",
+  name: "GMail",
+  host: /^(.*\.)?mail\.google\.com$/,
+  imageRegExp: /\/mail.google.com\/mail\/.*&view=att.*&disp=thd/,
+  
+  getZoomImage : function(aImageSrc) {
+    // change:
+    // https://mail.google.com/mail/u/0/?ui=2&ik=4ed1eeeaae&view=att&th=133f51e77a267265&attid=0.1&disp=thd&realattid=f_gvmhze0k1&zw to
+    // https://mail.google.com/mail/u/0/?ui=2&ik=4ed1eeeaae&view=att&th=133f51e77a267265&attid=0.1&disp=inline&realattid=f_gvmhze0k1&zw
+    let rex1 = new RegExp(/(.*)&disp=thd(.*)/);
+    if (rex1.test(aImageSrc)) {
+      return aImageSrc.replace(rex1, "$1&disp=inline$2");
+    }
+    return null;
+  }
+};
+
+/**
  * Google (Google Images)
  */
 ThumbnailZoomPlus.Pages.Google = {
@@ -702,13 +723,15 @@ ThumbnailZoomPlus.Pages.Others = {
     
     // For google images links, images.yandex.ru, and some others, get URL from
     // imgurl=... part.
-    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
-    if (imgurlEx.test(aImageSrc)) {
-      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
-      if (! /^https?:\/\/./.test(aImageSrc)) {
-        aImageSrc = "http://" + aImageSrc;
+    if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
+      let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+      if (imgurlEx.test(aImageSrc)) {
+        aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+        if (! /^https?:\/\/./.test(aImageSrc)) {
+          aImageSrc = "http://" + aImageSrc;
+        }
+        aImageSrc = decodeURIComponent(aImageSrc);
       }
-      aImageSrc = decodeURIComponent(aImageSrc);
     }
 
     // For youtube links, change 
