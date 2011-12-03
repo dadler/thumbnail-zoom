@@ -408,19 +408,18 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
   key: "googleplus",
   name: "Google+",
   host: /^(.*\.)?plus\.google\.com$/,
-  imageRegExp: /\.(ggpht|googleusercontent)\.com/,
+
+  // Note: the sz=48 or 32 or 24 case is the tiny thumb for which Google already has a popup which
+  // shows a medium thumb and Add To Circles; we don't want our popup from that tiny one.
+  // Also exclude */s-24c/photo.jpg, the profile menu button.
+  imageRegExp: /\.(ggpht|googleusercontent)\.com\/(?!.*photo\.jpg\?sz=(24|32|48))(?!.*\/s24-c\/photo\.jpg).*/,
+  
   _logger: ThumbnailZoomPlus.Pages._logger,
+  
   getZoomImage : function(aImageSrc) {
 
     // example profile pic link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg?sz=80
     // example image link: https://lh3.googleusercontent.com/-TouICNeczXY/AAAAAAAAAAI/AAAAAAAAAf8/eS42KCD74YM/photo.jpg
-    // Note: the sz=48 or 32 or 24 case is the tiny thumb for which Google already has a popup which
-    // shows a medium thumb and Add To Circles; we don't want our popup from that tiny one.
-    let rex_prohibit = new RegExp(/\/photo\.jpg\?sz=(24|32|48)$/);
-    if (rex_prohibit.test(aImageSrc)) {
-      this._logger.debug("matched google+ tiny profile pic, from which we won't popup");
-      return null;
-    }
 
     let rex3 = new RegExp(/\/photo\.jpg\?sz=([0-9]+)$/);
     if (rex3.test(aImageSrc)) {
@@ -445,9 +444,9 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
     if (rex2.test(aImageSrc)) {
       // Extract the image's URL, which also needs to be url-unescaped.
       this._logger.debug("matched google+ shared URL");
-      image = aImageSrc.replace(rex2, "$1");
-      image = unescape(image);
-      return image;
+      aImageSrc = aImageSrc.replace(rex2, "$1");
+      aImageSrc = unescape(aImageSrc);
+      return aImageSrc;
     }
     
     this._logger.debug("didn't match any google+ URL");
