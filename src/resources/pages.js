@@ -333,10 +333,11 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
-  imageRegExp: /(th[0-9]+|s).deviantart.(net|com)/,
+  imageRegExp: /(th[0-9]+|[as]).deviantart.(net|com)/,
   getZoomImage : function(aImageSrc) {
-    let rex = new RegExp(/(fs\d+\/)\w+\/([fiop])/);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
+    let picRex = new RegExp(/((?:fs)?\d+\/)\w+\/([fiop])/);
+    let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
+                 null);
     return image;
   }
 };
@@ -653,6 +654,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
                       "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
+                      "(https?)://(?!www\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
 
@@ -722,15 +724,16 @@ ThumbnailZoomPlus.Pages.Others = {
     
     // For google images links, images.yandex.ru, and some others, get URL from
     // imgurl=... part.
-    if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
-      let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
-      if (imgurlEx.test(aImageSrc)) {
-        aImageSrc = aImageSrc.replace(imgurlEx, "$1");
-        if (! /^https?:\/\/./.test(aImageSrc)) {
-          aImageSrc = "http://" + aImageSrc;
-        }
-        aImageSrc = decodeURIComponent(aImageSrc);
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
+        return ""; // Google Images support is disabled by user preference.
       }
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+      aImageSrc = decodeURIComponent(aImageSrc);
     }
 
     // For youtube links, change 
@@ -742,6 +745,19 @@ ThumbnailZoomPlus.Pages.Others = {
         return ""; // YouTube support disabled by user preference.
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
+    }
+    
+    // Deviantart profile links:
+    // Change link
+    // http://truong-abcdef.deviantart.com/ to
+    // http://a.deviantart.net/avatars/t/r/truong-san.jpg?1 (/t/r/ are from the 1st 2 letters)
+    // We unfortunately have to assume either jpg or gif.
+    let deviantProfileRex = new RegExp("(https?)://([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com.*");
+    if (deviantProfileRex.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
+        return ""; // DeviantART support disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
     }
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
