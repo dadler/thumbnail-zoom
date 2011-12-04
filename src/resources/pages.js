@@ -325,6 +325,11 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   // Change
   // https://s.deviantart.com/th/fs70/150/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg to
   // https://s.deviantart.com/th/fs70/i/2011/244/0/2/they__ll_name_a_city_after_us_by_majdear-d48jvmu.jpg
+  // and
+  // http://th06.deviantart.net/images/150/i/2003/47/c/5/aaa.jpg to
+  // http://th06.deviantart.net/images/i/2003/47/c/5/aaa.jpg
+  // Also
+  // http://th06.deviantart.net/fs70/300W/f/2011/279/a/e/aaa.jpg
   //
   // Note: doesn't currently work for gifs since multiple parts of their URLS change and
   // I don't know how to predict that, e.g.
@@ -335,8 +340,8 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   host: /^(.*\.)?deviantart\.com$/,
   imageRegExp: /(th[0-9]+|[as]).deviantart.(net|com)/,
   getZoomImage : function(aImageSrc) {
-    let picRex = new RegExp(/((?:fs)?\d+\/)\w+\/([fiop])/);
-    let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
+    let picRex = new RegExp(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/);
+    let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1") : 
                  null);
     return image;
   }
@@ -647,14 +652,16 @@ ThumbnailZoomPlus.Pages.Others = {
   
   imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
                       "tumblr.com/photo/|" +
-                      "imgur\\.com/(gallery/)?[^/&]+(&.*)?$|" +
+                      "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
+                          "[^/&\\?]+(&.*)?$|" +
                       "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
                       "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
-                      "(https?)://(?!www\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
+                      "(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)" +
+                          "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
                       "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
                       "i"),
 
@@ -691,6 +698,19 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   getZoomImage : function(aImageSrc) {
+    /*
+       The rules here transform various kinds of link URLs into links to images.
+       The simplest case is a link which already refers directly to a *.jgp or
+       other image.
+       
+       Cases which are tested first is cases which transform a URL into a
+       different URL, which may be the URL of an image or a URL which can
+       be processed by the rules after it to produce an image.  An 
+       example is a stumbleupon link or deviantart link which refers to
+       a YouTube video.  The stumbleupon rule turns it into a youtube URL,
+       and then the youtube rule turns it into a jpg.
+     */
+    
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
@@ -702,6 +722,45 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
+    // For google images links, images.yandex.ru, and some others, get URL from
+    // imgurl=... part.
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
+        return ""; // Google Images support is disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+      aImageSrc = decodeURIComponent(aImageSrc);
+    }
+
+    // Deviantart external links: change
+    // http://www.deviantart.com/users/outgoing?http://www.youtube.com/watch?v=DLQBAOomHzq to
+    // http://www.youtube.com/watch?v=DLQBAOomHzq
+    let deviantOutgoingRex = new RegExp("https?://[^\\.]+\\.deviantart\\.com/.*/outgoing\\?(.*)");
+    if (deviantOutgoingRex.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
+        return ""; // DeviantART support disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(deviantOutgoingRex, "$1");
+      this._logger.debug("ThumbnailPreview: after deviantArt outgoing rule: " + aImageSrc);
+    }
+
+    // Deviantart profile links:
+    // Change link
+    // http://truong-abcdef.deviantart.com/ to
+    // http://a.deviantart.net/avatars/t/r/truong-san.jpg?1 (/t/r/ are from the 1st 2 letters)
+    // We unfortunately have to assume either jpg or gif.
+    let deviantProfileRex = new RegExp("(https?)://([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$");
+    if (deviantProfileRex.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
+        return ""; // DeviantART support disabled by user preference.
+      }
+      aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
+    }
+    
     // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
     let twitterEx = new RegExp("^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$");
     if (twitterEx.test(aImageSrc)) {
@@ -722,20 +781,6 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     }
     
-    // For google images links, images.yandex.ru, and some others, get URL from
-    // imgurl=... part.
-    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
-    if (imgurlEx.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
-        return ""; // Google Images support is disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
-      if (! /^https?:\/\/./.test(aImageSrc)) {
-        aImageSrc = "http://" + aImageSrc;
-      }
-      aImageSrc = decodeURIComponent(aImageSrc);
-    }
-
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -745,19 +790,6 @@ ThumbnailZoomPlus.Pages.Others = {
         return ""; // YouTube support disabled by user preference.
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
-    }
-    
-    // Deviantart profile links:
-    // Change link
-    // http://truong-abcdef.deviantart.com/ to
-    // http://a.deviantart.net/avatars/t/r/truong-san.jpg?1 (/t/r/ are from the 1st 2 letters)
-    // We unfortunately have to assume either jpg or gif.
-    let deviantProfileRex = new RegExp("(https?)://([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com.*");
-    if (deviantProfileRex.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
-        return ""; // DeviantART support disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
     }
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
