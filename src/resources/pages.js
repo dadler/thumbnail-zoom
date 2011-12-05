@@ -673,10 +673,13 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   getImageNode : function(aNode, nodeName, nodeClass) {
+    let imgNode = null;
     let imgNodeURL = null;
     if (aNode.localName.toLowerCase() == "img") {
+      imgNode = aNode;
       imgNodeURL = aNode.getAttribute("src");
     }
+
     // try to find an enclosing <a> (link) tag.
     while (aNode != null && 
            aNode.localName != null && 
@@ -692,7 +695,32 @@ ThumbnailZoomPlus.Pages.Others = {
       // as the thumbnail itself since the thumbnail may be shown at
       // smaller size (eg with explicit width attribute).
     }
-    this._logger.debug("ThumbnailPreview: Others: returning " + aNode);
+    this._logger.debug("ThumbnailPreview: Others: found node " + aNode);
+
+    // Special hack for tumblr: tumblr often uses thumbs which have links, where
+    // the thumb itself could be shown larger and the link may point to
+    // a non-image such as another tumblr's blog.  So we'd rather use the 
+    // thumb's image itself as our node than its link.  This is especially
+    // useful when the images are larger than the embedded size, e.g. when
+    // viewing tumblr zoomed out.
+    //
+    // TODO: The more general way to handle this would be to return both the
+    // link's node and the image's node, but the framework doesn't currently
+    // let us return multiple.  The general approach would let us remove the
+    // tumblr-specific code and work better on all sites.
+    let tumblrPhotoRegExp = new RegExp("\\.tumblr\\.com/photo/.*|(.*" + 
+                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr 
+                                  + ")", "i");
+    if (/\.tumblr\.com\//.test(imgNodeURL) &&
+        // We disallow assets.tumblr.com, e.g. the "dashboard" button.
+        ! /assets\.tumblr\.com/.test(imgNodeURL) &&
+        // test the link node's URL to see if it's an image:
+        (aNode == null || ! tumblrPhotoRegExp.test(String(aNode))) ) {
+      this._logger.debug("ThumbnailPreview: Others: detected tumblr; using thumb as image, node "
+                        + imgNode + " " + imgNodeURL);
+
+      return imgNode;
+    }
 
     return aNode;
   },
