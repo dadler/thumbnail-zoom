@@ -74,8 +74,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
      Example image URLs:
      https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
      https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
+     
+     https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\.(fbcdn|akamaihd)\.net\//,
+  imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/,
   getImageNode : function(aNode, aNodeName, aNodeClass) {
     let image = ("i" == aNodeName ? aNode : ("a" == aNodeName &&
       "album_link" == aNodeClass ? aNode.parentNode : null));
@@ -96,6 +98,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     }
     return imageSource;
   },
+  
   getZoomImage : function(aImageSrc) {
     // Handle externally-linked images.
     let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
@@ -105,6 +108,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return image;
     }
 
+    let appRex = /.*\/app_full_proxy.php\?.*&src=([^&]+)$/;
+    if (appRex.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(appRex, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      return aImageSrc;
+    }
+    
     // Check the thumbnail against rex1
     let rex1 = new RegExp(/_[qstan]\./);
     let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
