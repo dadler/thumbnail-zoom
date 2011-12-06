@@ -32,6 +32,45 @@ Verify that popup disappears.
 Set in about:config general.useragent.locale, with intl.locale.matchOS=false.
 </ul>
 
+<h2>Direct Links To Images</h2>
+Note: Thumbnail Zoom Plus doesn't work on file:// links (it's a
+security restriction).  So to test these links, you must either:
+<ul>
+<li>temporarily set enableFileProtocol=true in filterService.js; or
+<li>Run <kbd>python -m SimpleHTTPServer &</kbd> in .../thumbnail-zoom/src to
+create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
+from your machine over http</a>
+</ul>
+Tests:
+<ul>
+<li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
+should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
+YouTube videos should work too.
+<li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
+hosted on tumblr.com; those links should show popups.
+<li>Examples of direct links to images:
+
+<li>Regular existing image:<br>&nbsp;&nbsp;
+<a href="http://imgur.com/KFC9m">text part of link
+<img src="http://d.thumbs.redditmedia.com/Z4st3vIRrgG81YQ-.jpg" />
+</a>
+
+<li>Big gif image; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
+<a href="http://imgur.com/7ZFpN">text part of link
+<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
+</a>
+
+<li><a href="non-existing-image.jpg">Non-existent image URL on existing host</a> (fast error)
+<li>Image on non-existent host (use to make sure there are no exceptions; may take a couple minutes
+to timeout):<br>&nbsp;&nbsp;
+<a href="http://1.0.0.0/non-existent-server.jpg">
+[http://1.0.0.0/non-existent-server.jpg]
+</a>
+<li>A <a href="gradient.jpg">gradiet image</a> and a 
+<a href="gradient_corrupt.jpg">corrupt gradient image</a>.
+</ul>
+</ul>
+
 
 <h2>Facebook</h2>
 <ul>
@@ -47,6 +86,8 @@ Verify that popup dismisses.  Verify that popups work on the page you now have l
 </ul>
 <li><a href="https://www.facebook.com/Levis?sk=videos">Facebook: Levi's: Videos</a>.  
 Hover a video and make sure a popup appears.
+<li>Also try a variety of hovers on your own wall, including posts from apps
+and shared links.
 </li>
 </ul>
 
@@ -138,6 +179,8 @@ site to test popup positioning.  Try with Maximize Image Size By Overlapping Thu
 are positioned with an edge neary touching the thumb, and opposite edge touching the edge
 of the browser (assuming it's a large image).  Test on horizontal and vertical aspect
 images.  Test with page zoomed in and out.
+<li>Hovering over a profile link should show a small popup if the profile has a 
+jpg profile pic (but not if it's gif unfortunately).
 </ul>
 </ul>
 
@@ -166,44 +209,6 @@ Oreos product page</a>: hover product image and its icon for bigger image.
 <li><a href="http://www.lastfm.es/charts">In Spanish</a>
 </ul>
 
-<h2>Direct Links To Images</h2>
-<ul>
-<li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
-should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
-YouTube videos should work too.
-<li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
-hosted on tumblr.com; those links should show popups.
-<li>Examples of direct links to images:
-
-<ul>
-<li>Note: Thumbnail Zoom Plus doesn't work on file:// links (it's a
-security restriction).  So to test these links, you must either:
-<ul>
-<li>temporarily set enableFileProtocol=true in filterService.js; or
-<li>Run "python -m SimpleHTTPServer" in .../thumbnail-zoom/src/test to
-create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
-from your machine over http</a>
-</ul>
-<li>Regular existing image:<br>&nbsp;&nbsp;
-<a href="http://imgur.com/KFC9m">text part of link
-<img src="http://d.thumbs.redditmedia.com/Z4st3vIRrgG81YQ-.jpg" />
-</a>
-
-<li>Big gif image; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
-<a href="http://imgur.com/7ZFpN">text part of link
-<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
-</a>
-
-<li><a href="non-existing-image.jpg">Non-existent image URL on existing host</a> (fast error)
-<li>Image on non-existent host (use to make sure there are no exceptions; may take a couple minutes
-to timeout):<br>&nbsp;&nbsp;
-<a href="http://1.0.0.0/non-existent-server.jpg">
-[http://1.0.0.0/non-existent-server.jpg]
-</a>
-<li>A <a href="gradient.jpg">gradiet image</a> and a 
-<a href="gradient_corrupt.jpg">corrupt gradient image</a>.
-</ul>
-</ul>
 <h2>Hi5</h2>
 
 
@@ -231,7 +236,58 @@ to timeout):<br>&nbsp;&nbsp;
 <h2>Photosight.ru</h2>
 
 
-
+<h2>Memory Usage</h2>
+Make sure Thumbnail Zoom Plus isn't leaking memory and that the memory it does use
+is garbage-collected easily.  You can check memory usage in the about:memory page.
+<br>
+To Setup The Test Conditions:
+<ol>
+<li>Close all browser tabs and windows.
+<li>Open a single window and open the default page of deviantart.com 
+(a good site for testing since it tends to have high-res images). 
+Set the view mode to Popular All-Time, so the images shown won't change during the test.
+<li>Open a second window and open about:memory?verbose . 
+Arrange the windows side-by-side.
+<li>Turn off AutoPager (if it was on) so its loading doesn't affect memory.
+</ol>
+To Perform A Test:
+<ol>
+<li>Restart the browser (to clear memory to a consistent state)
+<li>After the windows finish loading, click "GC" and note the total memory size under <kdb>explicit<kbr>
+and especially the size used by images in <kbd>images</kbd> (you can use Find and Highight All to find it).
+<li>Hover over each thumbnail to see its popup image, for at 16 images.
+<li>Press "GC" in the about window to update.  Re-check <kdb>explicit<kbr> and <kbd>images</kbd> memory usage.
+<li>Press "CC" in the about window.  Re-check <kdb>explicit<kbr> and <kbd>images</kbd> memory usage.
+<li>Press "Minimize memory" in the about window.  Re-check <kdb>explicit<kbr> and <kbd>images</kbd> memory usage.
+<li>Then repeat the test (without restarting); memory usage shouldn't be much more.
+<li>When it's working well, size after "CC" after hovering should be about same as size after GC 
+but before hovering.  And size after Minimize should be about the same.
+<li>Example results (1.6.0beta3 2011-12-, Firefox 8.0.1 OSX):
+<ul>
+<li>before: 10.8M
+<li>after GC after hovering 12 images: 14.5M
+<li>after CC: 10.8M
+<li>after Minimize memory: 10.8M
+</ul>
+<li>In Thumbnail Zoom (not Plus) 1.4.3, memory usage was 36M even after "Minimize memory".
+</ol>
+<h2>Speed</h2>
+Do a regression test to compare the speed of an old version of the add-on with a new version.  
+Test each version and compare.  Measuremeans are only meaningful within a short time of
+each other since conditions vary.  It may take multple tests to get a reliable
+result.<br>
+<ol>
+<li>To test, load the deviantart home page.  
+<li>Clear the browser cache (of Everything -- all time).
+<li>Using a stopwatch with 100th of a second, hover on an image and 
+time how long it takes from when you enter the thumb to when the image appears.
+Do this for 12 images, accumulating the time into a timer.
+</ol>
+Examples:
+<ul>
+<li>TZP 1.5.8: 8.4, 8.0, 8.7 seconds
+<li>TZP 1.6.0beta3 2011-12-04: 8.7, 8.6, 10.3
+<br>
 (end)
 </body>
 </html>
