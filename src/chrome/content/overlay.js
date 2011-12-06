@@ -431,6 +431,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  // _addEventListenersToDoc adds listeners to the specified document
+  // for mouseover events.  Keep in mind the different contexts:
+  // the document itself persists even when a tab is moved to a different window,
+  // until the document is closed or reloaded.  The window stays associated
+  // with its original window, and doesn't change when a tab is dragged.
+  //
+  // The listener we register ends up being bound to both the window and the doc,
+  // since "this" belongs to the window.  That causes complications, like the
+  // popup appearing in the old window when a tab is dragged to a new window.
   _addEventListenersToDoc: function(doc) {
     this._logger.trace("_addEventListenersToDoc");
 
@@ -457,18 +466,28 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Try to detect if we're already registered, e.g. so we don't
       // reregister due to autopager. 
       if ("undefined" == typeof(doc.ThumbnailZoomPlus)) {
-        doc.ThumbnailZoomPlus = {addedListeners: false};
+        doc.ThumbnailZoomPlus = {addedListeners: null};
       }
       this._logger.debug("_addEventListenersToDoc: addedListeners=" +
                          doc.ThumbnailZoomPlus.addedListeners); 
 
-      if (doc.ThumbnailZoomPlus.addedListeners) {
+      if (doc.ThumbnailZoomPlus.addedListeners == this) {
         this._logger.debug("_addEventListenersToDoc: Already has handlers; returning."); 
         return;
+      } else if (doc.ThumbnailZoomPlus.addedListeners != null) {
+        // We'd like to unregister the existing listeners on doc and
+        // doc.ThumbnailZoomPlus.addedListeners, so the popup won't keep
+        // appearing in the old window after dragging a tab to a new window.
+        // But I'm not sure how to unregister it since it was created with an
+        // implicit function (a closure).  Instead we effectively disable its mouseover
+        // using bbox (making bbox cover everywhere).
+        this._logger.debug("_addEventListenersToDoc: A different window has handlers; disabling them."); 
+        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.xMin = -99999;
+        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.xMax =  99999;
+        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.yMin = -99999;
+        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.yMax =  99999;
       }
-      doc.ThumbnailZoomPlus.addedListeners = true;
-      this._logger.debug("_addEventListenersToDoc: addedListeners=" +
-                         doc.ThumbnailZoomPlus.addedListeners); 
+      doc.ThumbnailZoomPlus.addedListeners = this;
 
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc, 0);
       this._logger.debug("_addEventListenersToDoc: *** currently, cw=" + 
@@ -495,6 +514,30 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _insideThumbBBox : function(doc, x,y) {
+    // TODO: this is used to prevent re-showing a popup after we get
+    // an event in the doc's window when the user dismisses a popup which is
+    // covering the mouse via Escape or mouse-click.  The problem is that 
+    // this also prevents us from triggering a new popup when the user moves
+    // the mouse onto a different element which is enclosed by the original
+    // popup element, e.g. in the "themanatli" tumblr theme, 
+    // http://safe.tumblr.com/theme/preview/9540
+    //
+    // Another problem is that moving out of a <a> link which spans a line
+    // may not trigger a pop-down.  That's because when moving out of it,
+    // the mouse may still be within the bbox (since the link goes down to a
+    // second line, but not horizonally where the mouse is).  When the mouse
+    // later leaves the bbox, there is no hover even since it's still in the
+    // same paragraph of text.
+    //
+    // A better alternative might be to ignore
+    // mouse over events for 0.1 seconds after an Escape or click which pops
+    // down a popup.  Note that after Esc, multiple events may be sent if
+    // multiple elements are stacked under the mouse position, complicating
+    // bbox checks.  Or check the URL if the image we would popup, and 
+    // suppress if it's the same image and within a short duration of the pop-
+    // down.  Or always popdown without looking at bbox if the newly entered
+    // element doesn't correspond to something we'd popup for.
+    
     var viewportElement = doc.documentElement;  
     var scrollLeft = viewportElement.scrollLeft;
     var scrollTop = viewportElement.scrollTop;
@@ -532,7 +575,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_insideThumbBBox: adj=" +
                        adj.xMin + ".." + adj.xMax + "," +
                        adj.yMin + ".." + adj.yMax +
-                       " vs " + x + ".." + y + ": " +
+                       " vs " + x + "," + y + ": " +
                        (inside ? "inside" : "outside") );
     return inside;
   },
