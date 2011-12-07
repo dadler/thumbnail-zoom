@@ -348,7 +348,7 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
-  imageRegExp: /(th[0-9]+|[as]).deviantart.(net|com)/,
+  imageRegExp: /(th[0-9]+|[as]).deviantart.(net|com)\/.*\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/,
   getZoomImage : function(aImageSrc) {
     let picRex = new RegExp(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1") : 
@@ -822,7 +822,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
-    let youtubeEx = new RegExp("(?:www\\.youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*$");
+    let youtubeEx = new RegExp("(?:youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
