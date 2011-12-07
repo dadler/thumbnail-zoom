@@ -670,7 +670,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "tumblr.com/photo/|" +
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
                           "[^/&\\?]+(&.*)?$|" +
-                      "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*$|" +
+                      "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
@@ -828,12 +828,12 @@ ThumbnailZoomPlus.Pages.Others = {
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
-    let youtubeEx = new RegExp("(?:youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*$");
+    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
       }
-      aImageSrc = aImageSrc.replace(youtubeEx, "i3.ytimg.com/vi/$1/hqdefault.jpg");
+      aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
