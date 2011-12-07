@@ -680,7 +680,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Try to find another matching page.
       aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
     }
-    if (foundAnyImageSource) {
+    if (false && foundAnyImageSource) {
+      // Originally I thought it'd be helpful to indicate a recognized site
+      // whose particular link we don't recognize.  But it turns out to just be
+      // distracting to the user, and forces the developer to make more specific
+      // imageRegExp patterns which are redundant with getZoomImage().
+      // So this code is disabled.
       this._logger.debug("_findPageAndShowImage: show noMatchingRule icon briefly " +
                          "since mouse not in recognized URL or site disabled");
       this._showStatusIconBriefly(node, "noMatchingRule16.png", 32);      

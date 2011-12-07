@@ -157,7 +157,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.|\/])?(twimg[.0-9-].*|twitpic\.com\/(?!(upload))([a-z0-9A-Z]+)$|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)\//,
+    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)/,
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
@@ -182,14 +182,20 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     if (image == null) {
       return null;
     }
-    
-    // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
-    // But not for profile_images, which actually sometimes don't have a suffix.
-    let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr, "i");
-    if (/twitpic\.com|twimg/.test(image) &&
-        ! suffixRegex.test(image) &&
-        ! /\/profile_images\//.test(image)) {
-      image += ".jpg";
+
+    if (false) {
+      // This is disabled because while it may sometimes help, more often it 
+      // fails, adding .jpg where the image actually shouldn't have any suffix.
+      // If we could return multiple filenames, we could use this logic.
+      
+      // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
+      // But not for profile_images, which actually sometimes don't have a suffix.
+      let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr, "i");
+      if (/twitpic\.com|twimg/.test(image) &&
+          ! suffixRegex.test(image) &&
+          ! /\/profile_images\//.test(image)) {
+        image += ".jpg";
+      }
     }
     
     return image;
@@ -838,10 +844,11 @@ ThumbnailZoomPlus.Pages.Others = {
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
         
-    // For sites other than tumblr, if there is no image suffix, add .jpg.
-    let rex = new RegExp("(tumblr\\.com/.*|" + 
+    // For sites other than tumblr and twitpic, if there is no image suffix, add .jpg.
+    let rex = new RegExp("tumblr\\.com/.*|" + 
+                         "twimg[.0-9-]|twitpic\\.com|(" +
                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr + 
-                         ")(\\?.*)?$", "i");
+                         "(\\?.*)?$)", "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
