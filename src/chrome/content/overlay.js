@@ -952,7 +952,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // while loading.  This normally appears only briefly (or not at all)
       // since we show the full image size as soon as enough of the image is
       // loaded to know its dimensions.
-      this._showStatusIcon(aImageNode, "icon16.png", 16);      
+      this._showStatusIcon(aImageNode, "working.png", 16);      
     }
     
     if (image.width > 0 && image.height > 0) {
