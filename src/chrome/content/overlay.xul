@@ -79,7 +79,7 @@
     <panel id="thumbnailzoomplus-panel" noautofocus="true" noautohide="true">
       <vbox align="center" pack="center">
         <image id="thumbnailzoomplus-panel-image" />
-        <label id="thumbnailzoomplus-panel-caption" />
+        <label id="thumbnailzoomplus-panel-caption" style="color: black" />
       </vbox>
     </panel>
   </window>
