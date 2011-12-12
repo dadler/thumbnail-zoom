@@ -40,6 +40,7 @@
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para exibir a imagem:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">
+<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Adicionar imagens a história do browser">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nenhuma">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Geral">

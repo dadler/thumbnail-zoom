@@ -45,6 +45,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
@@ -792,6 +793,12 @@ ThumbnailZoomPlusChrome.Overlay = {
    * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode) {
+    let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
+    allowCaption = allowCaption && allowCaption.value;
+    if (!allowCaption) {
+      return;
+    }
+    
     let caption = this._getEffectiveTitle(aImageNode);
     this._logger.debug("_findPageAndShowImage: image title='" + 
                        caption + "'");
