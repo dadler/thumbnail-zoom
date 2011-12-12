@@ -585,14 +585,30 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _getEffectiveTitle : function(aNode) {
+    let title = "";
     while (aNode != null && aNode.localName.toLowerCase() != "body") {
-      if (aNode.title != undefined && aNode.title != "") {
-        return aNode.title;
+      if (aNode.title != undefined && 
+          aNode.title != "" ) {
+        title = aNode.title;
+        break;
       }
-      this._logger.debug("_getEffectiveTitle: trying parent of " + aNode);
+      if (aNode.textContent != undefined && 
+          aNode.textContent != "" ) {
+        // return text of <a href=..>text</a>
+        title = aNode.textContent;
+        break;
+      }
+      this._logger.debug("_getEffectiveTitle: trying parent of " + aNode +
+                        ": " + aNode.parentNode);
       aNode = aNode.parentNode;
     }
-    return "";
+    this._logger.debug("_getEffectiveTitle: initial title='" + title + "'");
+    
+    // Fix for sites like tumblr which sets title to lots of spaces;
+    // also compacts multiples for better display.
+    title = title.replace(/\s+/, " ", "g");
+    this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
+    return title;
   },
   
   /**
@@ -768,6 +784,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._showPanel(aImageNode, zoomImageSrc, aEvent);
   },
 
+
   /*
    * Sets the popup's caption from aImageNode's (or its ancestor's) and
    * clears the title from the node so we don't see a tooltip.
@@ -781,7 +798,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption.value = caption;
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
     aImageNode.title = " "; // suppress tooltip
-  }
+  },
   
   
   /**
@@ -834,10 +851,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelCaption.hidden = true;
       
       // restore original title / tooltip:
-      this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = this._panelCaption.value;
+      if (this._panelCaption.value != "") {
+        this._logger.debug("_closePanel: restoring title to " + 
+                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
+                           + ": " + 
+                           this._panelCaption.value);
+
+        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = this._panelCaption.value;
+      }
       this._panelCaption.value = "";
     } catch (e) {
-      this._logger.debug("_closePanel: exception: " + e);
+      this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
   },
 
@@ -1142,7 +1166,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._addListenersWhenPopupShown();
     this._setImageSize(aImageSrc, imageSize);
-    this._panelCaption.hidden = (this._panelCaption.value == "");
+    this._panelCaption.hidden = (this._panelCaption.value == "" ||
+                                 this._panelCaption.value == " ");
     this._addToHistory(aImageSrc);
 
     // We prefer above/below thumb to avoid tooltip.
