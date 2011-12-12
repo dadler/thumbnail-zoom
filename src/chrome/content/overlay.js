@@ -681,11 +681,6 @@ ThumbnailZoomPlusChrome.Overlay = {
           } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
-            let caption = this._getEffectiveTitle(node);
-       	    this._logger.debug("_findPageAndShowImage: image title='" + 
-            	                 caption + "'");
-    	      this._panelCaption.value = caption;
-
             this._currentWindow = aDocument.defaultView.top;
             this._originalURI = this._currentWindow.document.documentURI;
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
@@ -773,7 +768,22 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._showPanel(aImageNode, zoomImageSrc, aEvent);
   },
 
-
+  /*
+   * Sets the popup's caption from aImageNode's (or its ancestor's) and
+   * clears the title from the node so we don't see a tooltip.
+   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
+   * before this gets called, so it isn't suppressed.
+   */
+  _setupCaption : function(aImageNode) {
+    let caption = this._getEffectiveTitle(aImageNode);
+    this._logger.debug("_findPageAndShowImage: image title='" + 
+                       caption + "'");
+    this._panelCaption.value = caption;
+    this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
+    aImageNode.title = " "; // suppress tooltip
+  }
+  
+  
   /**
    * Shows the panel.
    * @param aImageNode the image node.
@@ -787,6 +797,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
+    
+    this._setupCaption(aImageNode);
     
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -821,9 +833,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelImage.removeAttribute("src");
       this._panelCaption.hidden = true;
       
-      // note: we don't clear this._panelCaption.value since
-      // _closePanel() gets called after caption is set but before
-      // popup is displayed.
+      // restore original title / tooltip:
+      this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = this._panelCaption.value;
+      this._panelCaption.value = "";
     } catch (e) {
       this._logger.debug("_closePanel: exception: " + e);
     }
