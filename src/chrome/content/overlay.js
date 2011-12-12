@@ -682,9 +682,9 @@ ThumbnailZoomPlusChrome.Overlay = {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
             let caption = this._getEffectiveTitle(node);
-       	    this._logger.debug("_handleMouseOver: image title='" + 
+       	    this._logger.debug("_findPageAndShowImage: image title='" + 
             	                 caption + "'");
-    	    this._panelCaption.value = caption;
+    	      this._panelCaption.value = caption;
 
             this._currentWindow = aDocument.defaultView.top;
             this._originalURI = this._currentWindow.document.documentURI;
@@ -819,6 +819,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // collector:
       this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
+      this._panelCaption.hidden = true;
+      
+      // note: we don't clear this._panelCaption.value since
+      // _closePanel() gets called after caption is set but before
+      // popup is displayed.
     } catch (e) {
       this._logger.debug("_closePanel: exception: " + e);
     }
@@ -1125,6 +1130,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._addListenersWhenPopupShown();
     this._setImageSize(aImageSrc, imageSize);
+    this._panelCaption.hidden = (this._panelCaption.value == "");
     this._addToHistory(aImageSrc);
 
     // We prefer above/below thumb to avoid tooltip.
@@ -1393,6 +1399,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minWidth = aScale.width + "px";
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
+    this._panelCaption.style.maxWidth = aScale.width + "px";
   },
 
 

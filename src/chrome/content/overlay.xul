@@ -75,11 +75,14 @@
   </toolbarpalette>
 
   <!-- Panel -->
-  <window id="main-window">
-    <panel id="thumbnailzoomplus-panel" noautofocus="true" noautohide="true">
-      <vbox align="center" pack="center">
+  <window id="main-window"> 
+    <panel id="thumbnailzoomplus-panel" 
+           noautofocus="true" noautohide="true" >
+      <vbox id="thumbnailzoomplus-panel-vbox" 
+            align="center" pack="center" >
         <image id="thumbnailzoomplus-panel-image" />
-        <label id="thumbnailzoomplus-panel-caption" style="color: black" />
+        <label id="thumbnailzoomplus-panel-caption" 
+               hidden="true" crop="right" />
       </vbox>
     </panel>
   </window>
