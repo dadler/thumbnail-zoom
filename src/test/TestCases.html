@@ -242,7 +242,7 @@ Oreos product page</a>: hover product image and its icon for bigger image.
 <h2>Photosight.ru</h2>
 
 
-<h2>Memory Usage</h2>
+<h2>Memory Usage: Images Area</h2>
 Make sure Thumbnail Zoom Plus isn't leaking memory and that the memory it does use
 is garbage-collected easily.  You can check memory usage in the about:memory page.
 <br>
@@ -277,6 +277,24 @@ but before hovering.  And size after Minimize should be about the same.
 </ul>
 <li>In Thumbnail Zoom (not Plus) 1.4.3, memory usage was 36M even after "Minimize memory".
 </ol>
+
+<h2>Memory Usage: Zombie Document Compartments</h2>
+To test:
+<ul>
+<li>Close all windows and tabs except one, which has a page to be tested, 
+such as <a href="http://0.0.0.0:8000/test/TestCases.html">http://0.0.0.0:8000/test/TestCases.html</a> .
+<li>Open about:memory?verbose in another tab.
+<li>Restart the browser.
+<li>Hover over each of the links in the "Direct Links To Images" section,
+including the ones for non-existent links.
+<li>Load google.com into the tag which was showing the test page.
+<li>In the memory window, press Minimize Memory Use.
+<li>Look for "compartment(http://0.0.0.0:8000/test/TestCases.html)".
+<li>If you find it, it indicates a zombie compartment, which is a problem.  But if it goes
+away after a couple minutes, it may just be waiting for the
+connection to non-existent server to timeout.
+<li>If it looks clean, try the same test with facebook.com instead of the TestCases page.
+<li>This issue is seen in TZP 1.5.8 and 1.6.0beta3.
 <h2>Speed</h2>
 Do a regression test to compare the speed of an old version of the add-on with a new version.  
 Test each version and compare.  Measuremeans are only meaningful within a short time of
@@ -288,6 +306,7 @@ result.<br>
 <li>Using a stopwatch with 100th of a second, hover on an image and 
 time how long it takes from when you enter the thumb to when the image appears.
 Do this for 12 images, accumulating the time into a timer.
+<li>Press Back in the google.com tab if you want to restart and repeat the test.
 </ol>
 Examples:
 <ul>
