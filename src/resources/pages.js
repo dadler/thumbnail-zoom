@@ -332,11 +332,25 @@ ThumbnailZoomPlus.Pages.Wikipedia = {
   key: "wikipedia",
   name: "Wikipedia",
   host: /^(.*\.)?wikipedia\.org$/,
-  imageRegExp: /upload\.wikimedia\.org\/wikipedia\/commons/,
+  
+  /*
+     Examples:
+       http://upload.wikimedia.org/wikipedia/en/thumb/e/ef/Indus_River_Delta.jpg/100px-Indus_River_Delta.jpg becomes
+       http://upload.wikimedia.org/wikipedia/en/e/ef/Indus_River_Delta.jpg
+       
+       http://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Ernest_Hemingway_Kenya_safari_1954.png/100px-Ernest_Hemingway_Kenya_safari_1954.png becomes
+       http://upload.wikimedia.org/wikipedia/commons/3/3f/Ernest_Hemingway_Kenya_safari_1954.png
+
+       http://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Haute-Vienne-Position.svg/250px-Haute-Vienne-Position.svg.png becomes
+       http://upload.wikimedia.org/wikipedia/commons/e/e6/Haute-Vienne-Position.svg   
+   */
+  imageRegExp: new RegExp("upload\\.wikimedia\\.org/wikipedia/.*" +
+                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr + 
+                          "(/.*)?$", "i"),
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/\/thumb\//);
-    let rex2 = new RegExp(/(\.[a-z]+)\/\d+px-.+\.[a-z]+/i);
-    let rex3 = new RegExp(/\.svg/);
+    let rex2 = new RegExp(/(\.[a-z]+)\/\d+px-.+\.[a-z.]+/i);
+    let rex3 = new RegExp(/\.svg$/i);
     let image =
       (rex1.test(aImageSrc) && rex2.test(aImageSrc) && !rex3.test(aImageSrc) ?
        aImageSrc.replace(rex1, "/").replace(rex2,"$1") : null);
