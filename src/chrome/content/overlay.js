@@ -513,7 +513,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
 
-      // Try to detect if we're already registered, e.g. so we don't
+      // Try to detect if our listeners are already registered, e.g. so we don't
       // reregister due to autopager. 
       if ("undefined" == typeof(doc.ThumbnailZoomPlus)) {
         doc.ThumbnailZoomPlus = {addedListeners: null};
@@ -841,8 +841,11 @@ ThumbnailZoomPlusChrome.Overlay = {
           } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
+            // Enabling this creates the zombie compartment bug.
+            if (0) {
             this._currentWindow = aDocument.defaultView.top;
-            this._originalURI = this._currentWindow.document.documentURI;
+            }
+            this._originalURI = aDocument.defaultView.top.document.documentURI;
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                                this._originalURI);
             
@@ -1007,7 +1010,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
     this._closePanel();
 
+    // Enabling this creates the zombie compartment bug:
+    if (0) {
     this._originalURI = this._currentWindow.document.documentURI;
+    }
     this._currentImage = aImageSrc;
     
     this._setupCaption(aImageNode);
