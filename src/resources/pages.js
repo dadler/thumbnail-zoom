@@ -223,9 +223,19 @@ ThumbnailZoomPlus.Pages.Amazon = {
   name: "Amazon",
   // Work on amazon.com, amazon.cn, etc.
   host: /^(.*\.)?amazon\.[a-z]+$/,
-  imageRegExp: /\/(g-)?ecx\.images\-amazon\.com\/images/,
+  
+  // Product images seem to come from exc.images-amazon.com.  Static graphics
+  // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com.
+  // The latter don't seem to have larger versions, so don't popup for them.
+  imageRegExp: /\/ecx\.images\-amazon\.com\/images/,
+
   getZoomImage : function(aImageSrc) {
-    return aImageSrc.replace(/\._[a-z].+_\./i, ".");
+    let ex = /\._[a-z].+_\./i;
+    if (ex.test(aImageSrc)) {
+      return aImageSrc.replace(ex, ".");
+    } else {
+      return null;
+    }
   }
 };
 
