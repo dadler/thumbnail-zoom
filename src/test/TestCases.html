@@ -59,15 +59,14 @@ hosted on tumblr.com; those links should show popups.
 <a href="http://imgur.com/7ZFpN">text part of link
 <img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
 </a>
-
+<li>A <a href="gradient.jpg">gradiet image</a> and a 
+<a href="gradient_corrupt.jpg">corrupt gradient image</a>.
 <li><a href="non-existing-image.jpg">Non-existent image URL on existing host</a> (fast error)
 <li>Image on non-existent host (use to make sure there are no exceptions; may take a couple minutes
 to timeout):<br>&nbsp;&nbsp;
 <a href="http://1.0.0.0/non-existent-server.jpg">
 [http://1.0.0.0/non-existent-server.jpg]
 </a>
-<li>A <a href="gradient.jpg">gradiet image</a> and a 
-<a href="gradient_corrupt.jpg">corrupt gradient image</a>.
 </ul>
 </ul>
 
@@ -279,6 +278,9 @@ but before hovering.  And size after Minimize should be about the same.
 </ol>
 
 <h2>Memory Usage: Zombie Document Compartments</h2>
+Background: <a href="https://github.com/dadler/thumbnail-zoom/issues/24">
+github issue 24</a>
+<br>
 To test:
 <ul>
 <li>Close all windows and tabs except one, which has a page to be tested, 
@@ -287,7 +289,7 @@ such as <a href="http://0.0.0.0:8000/test/TestCases.html">http://0.0.0.0:8000/te
 <li>Restart the browser.
 <li>Hover over each of the links in the "Direct Links To Images" section,
 including the ones for non-existent links.
-<li>Load google.com into the tag which was showing the test page.
+<li>Close the tab of the test page.
 <li>In the memory window, press Minimize Memory Use.
 <li>Look for "compartment(http://0.0.0.0:8000/test/TestCases.html)".
 <li>If you find it, it indicates a zombie compartment, which is a problem.  But if it goes
@@ -295,6 +297,10 @@ away after a couple minutes, it may just be waiting for the
 connection to non-existent server to timeout.
 <li>If it looks clean, try the same test with facebook.com instead of the TestCases page.
 <li>This issue is seen in TZP 1.5.8 and 1.6.0beta3.
+<li>Press Back in the google.com tab if you want to restart and repeat the test.
+
+
+
 <h2>Speed</h2>
 Do a regression test to compare the speed of an old version of the add-on with a new version.  
 Test each version and compare.  Measuremeans are only meaningful within a short time of
@@ -306,7 +312,6 @@ result.<br>
 <li>Using a stopwatch with 100th of a second, hover on an image and 
 time how long it takes from when you enter the thumb to when the image appears.
 Do this for 12 images, accumulating the time into a timer.
-<li>Press Back in the google.com tab if you want to restart and repeat the test.
 </ol>
 Examples:
 <ul>
