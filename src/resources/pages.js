@@ -695,6 +695,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
                           "[^/&\\?]+(&.*)?$|" +
                       "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
+                      "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
@@ -852,6 +853,8 @@ ThumbnailZoomPlus.Pages.Others = {
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
+    // http://youtu.be/kuX2lI84YRQ to
+    // http://i3.ytimg.com/vi/kuX2lI84YRQ/hqdefault.jpg
     let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
