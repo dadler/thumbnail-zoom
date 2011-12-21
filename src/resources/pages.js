@@ -691,7 +691,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // image named similarly to the link.
   
   imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
-                      "tumblr.com/photo/|" +
+                      "tumblr.com/(photo/|tumblr_)|" +
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
                           "[^/&\\?]+(&.*)?$|" +
                       "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
@@ -738,31 +738,48 @@ ThumbnailZoomPlus.Pages.Others = {
     }
     this._logger.debug("ThumbnailPreview: Others: found node " + aNode);
 
-    // Special hack for tumblr: tumblr often uses thumbs which have links, where
-    // the thumb itself could be shown larger and the link may point to
-    // a non-image such as another tumblr's blog.  So we'd rather use the 
-    // thumb's image itself as our node than its link.  This is especially
-    // useful when the images are larger than the embedded size, e.g. when
-    // viewing tumblr zoomed out.
-    //
-    // TODO: The more general way to handle this would be to return both the
-    // link's node and the image's node, but the framework doesn't currently
-    // let us return multiple.  The general approach would let us remove the
-    // tumblr-specific code and work better on all sites.
-    let tumblrPhotoRegExp = new RegExp("\\.tumblr\\.com/photo/.*|(.*" + 
-                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr 
-                                  + ")", "i");
-    if (/\.tumblr\.com\//.test(imgNodeURL) &&
-        // We disallow assets.tumblr.com, e.g. the "dashboard" button.
-        ! /assets\.tumblr\.com/.test(imgNodeURL) &&
-        // test the link node's URL to see if it's an image:
-        (aNode == null || ! tumblrPhotoRegExp.test(String(aNode))) ) {
-      this._logger.debug("ThumbnailPreview: Others: detected tumblr; using thumb as image, node "
-                        + imgNode + " " + imgNodeURL);
-
-      return imgNode;
+    // For tumblr.com:
+    let tumblrRegExp = new RegExp("\\.tumblr\\.com/(photo/|tumblr_)", "i");
+    if (tumblrRegExp.test(imgNodeURL)) {
+        // Tumblr dashboard when Full Images is off doesn't link to the full-size
+        // images.  The img node has id="thumbnail_photo_1234567890", and
+        // the <a> node linking to the high-res image has id="high_res_link_1234567890"
+        let id=imgNode.id;
+        id = id.replace("thumbnail_photo_", "high_res_link_");
+        let related = imgNode.ownerDocument.getElementById(id);
+        this._logger.debug("ThumbnailPreview: Others: related ID=" + id + "; related=" +
+                           String(related));
+        if (related && related.getAttribute("href") != "") {
+            imgNodeURL = related.getAttribute("href");
+            aNode = related;
+            this._logger.debug("ThumbnailPreview: Others: detected tumblr high-rez link " +
+                               String(aNode));
+        }
+        
+        // Special hack for tumblr: tumblr often uses thumbs which have links, where
+        // the thumb itself could be shown larger and the link may point to
+        // a non-image such as another tumblr's blog.  So we'd rather use the 
+        // thumb's image itself as our node than its link.  This is especially
+        // useful when the images are larger than the embedded size, e.g. when
+        // viewing tumblr zoomed out.
+        //
+        // TODO: The more general way to handle this would be to return both the
+        // link's node and the image's node, but the framework doesn't currently
+        // let us return multiple.  The general approach would let us remove the
+        // tumblr-specific code and work better on all sites.
+        let tumblrOrPhotoRegExp = new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*|(.*" + 
+                                    ThumbnailZoomPlus.Pages._imageTypesRegExpStr 
+                                    + ")", "i");
+        if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
+            ! /assets\.tumblr\.com/.test(imgNodeURL) &&
+            // test the link node's URL to see if it's an image:
+            (aNode == null || ! tumblrOrPhotoRegExp.test(String(aNode))) ) {
+          this._logger.debug("ThumbnailPreview: Others: detected tumblr; using thumb as image, node "
+                             + imgNode + " " + imgNodeURL);
+          
+          return imgNode;
+        }
     }
-
     return aNode;
   },
   
