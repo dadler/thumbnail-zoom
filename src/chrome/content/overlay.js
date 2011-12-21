@@ -1177,6 +1177,15 @@ ThumbnailZoomPlusChrome.Overlay = {
                                  this._panelCaption.value == " ");
     this._addToHistory(aImageSrc);
 
+
+
+    // EXPERIMENTAL POSSIBLE FIX FOR LINUX
+    this._logger.debug("_openAndPositionPopup: forcing absolute positioning (possible Linux fix)");
+    available.width = 0;
+    available.height = 0;
+
+    
+    
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
       // Position the popup horizontally flush with the right of the window or
@@ -1204,7 +1213,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._panel.openPopup(aImageNode, "before_start", popupXOffset, -this._pad, false, false);
       }
     } else if (imageSize.width <= available.width) {
-      // We prefer left-of thumb over right-of thumb since tooltip
+      // We prefer left-of thumb to right-of thumb since tooltip
       // typically extends to the right.
       
       // Position the popup vertically flush with the bottom of the window or
@@ -1235,7 +1244,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._panel.openPopup(aImageNode, "end_before", this._pad, popupYOffset, false, false);
       }
     } else {
-      this._logger.debug("_openAndPositionPopup: display in upper-left of window (overlap thumb)"); 
+      this._logger.debug("_openAndPositionPopup: display at absolute position (overlap thumb)"); 
       this._panel.openPopup(null, "overlap", 0, 0, false, false);
     }
   },
