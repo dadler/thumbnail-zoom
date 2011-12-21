@@ -46,6 +46,8 @@
         name="extensions.thumbnailzoomplus.panel.border" type="bool"/>
       <preference id="thumbnailzoomplus-options-large-image-pref"
         name="extensions.thumbnailzoomplus.panel.largeimage" type="bool"/>
+      <preference id="thumbnailzoomplus-options-caption-pref"
+        name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
       <preference id="thumbnailzoomplus-options-key-pref"
@@ -144,6 +146,8 @@
               label="&thumbnailzoomplus.options.largeimage.checkbox.label;" />
           </hbox>
           <row align="center">
+            <checkbox preference="thumbnailzoomplus-options-caption-pref"
+              label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
           </row>

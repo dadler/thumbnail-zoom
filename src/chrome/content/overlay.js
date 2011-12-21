@@ -45,6 +45,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
@@ -67,6 +68,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   _panel : null,
   /* The floating panel image. */
   _panelImage : null,
+  /* The floating panel caption (a label). */
+  _panelCaption : null,
   /* The current image source. */
   _currentImage : null,
   /* Context download image menu item */
@@ -110,6 +113,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
+    this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
@@ -134,6 +138,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._panelCaption = null;
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
@@ -580,6 +585,33 @@ ThumbnailZoomPlusChrome.Overlay = {
     return inside;
   },
   
+  _getEffectiveTitle : function(aNode) {
+    let title = "";
+    while (aNode != null && aNode.localName.toLowerCase() != "body") {
+      if (aNode.title != undefined && 
+          aNode.title != "" ) {
+        title = aNode.title;
+        break;
+      }
+      if (aNode.textContent != undefined && 
+          aNode.textContent != "" ) {
+        // return text of <a href=..>text</a>
+        title = aNode.textContent;
+        break;
+      }
+      this._logger.debug("_getEffectiveTitle: trying parent of " + aNode +
+                        ": " + aNode.parentNode);
+      aNode = aNode.parentNode;
+    }
+    this._logger.debug("_getEffectiveTitle: initial title='" + title + "'");
+    
+    // Fix for sites like tumblr which sets title to lots of spaces;
+    // also compacts multiples for better display.
+    title = title.replace(/\s+/, " ", "g");
+    this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
+    return title;
+  },
+  
   /**
    * Handles the mouse over event.
    * @param aEvent the event object.
@@ -754,6 +786,28 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
 
+  /*
+   * Sets the popup's caption from aImageNode's (or its ancestor's) and
+   * clears the title from the node so we don't see a tooltip.
+   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
+   * before this gets called, so it isn't suppressed.
+   */
+  _setupCaption : function(aImageNode) {
+    let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
+    allowCaption = allowCaption && allowCaption.value;
+    if (!allowCaption) {
+      return;
+    }
+    
+    let caption = this._getEffectiveTitle(aImageNode);
+    this._logger.debug("_findPageAndShowImage: image title='" + 
+                       caption + "'");
+    this._panelCaption.value = caption;
+    this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
+    aImageNode.title = " "; // suppress tooltip
+  },
+  
+  
   /**
    * Shows the panel.
    * @param aImageNode the image node.
@@ -767,6 +821,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
+    
+    this._setupCaption(aImageNode);
     
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -799,8 +855,20 @@ ThumbnailZoomPlusChrome.Overlay = {
       // collector:
       this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
+      this._panelCaption.hidden = true;
+      
+      // restore original title / tooltip:
+      if (this._panelCaption.value != "") {
+        this._logger.debug("_closePanel: restoring title to " + 
+                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
+                           + ": " + 
+                           this._panelCaption.value);
+
+        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = this._panelCaption.value;
+      }
+      this._panelCaption.value = "";
     } catch (e) {
-      this._logger.debug("_closePanel: exception: " + e);
+      this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
   },
 
@@ -1105,6 +1173,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._addListenersWhenPopupShown();
     this._setImageSize(aImageSrc, imageSize);
+    this._panelCaption.hidden = (this._panelCaption.value == "" ||
+                                 this._panelCaption.value == " ");
     this._addToHistory(aImageSrc);
 
     // We prefer above/below thumb to avoid tooltip.
@@ -1373,6 +1443,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minWidth = aScale.width + "px";
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
+    this._panelCaption.style.maxWidth = aScale.width + "px";
   },
 
 
