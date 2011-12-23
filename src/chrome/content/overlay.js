@@ -830,6 +830,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._preloadImage(aImageNode, aImageSrc, aEvent);
   },
 
+  _hideThePopup : function() {
+      
+      
+      
+      // hack for linux:
+      this._panel.moveTo(9999, 9999);
+      let tiny = {width: 0, height: 0};
+      this._setImageSize(tiny);
+      this._panel.sizeTo(0,0);
+      return;
+      
+      
+      
+      if (this._panel.state != "closed") {
+        this._panel.hidePopup();
+      }
+  },
+  
   /**
    * Closes the panel.
    */
@@ -847,9 +865,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
       this._originalURI = "";
-      if (this._panel.state != "closed") {
-        this._panel.hidePopup();
-      }
+      this._hideThePopup();
+      
       // We no longer need the image contents, and don't want them to show
       // next time we show the working dialog.  This also helps the garbage 
       // collector:
@@ -1168,24 +1185,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Close and (probably) re-open the panel so we can reposition it to
     // display the image. 
     this._logger.debug("_openAndPositionPopup: hidePopup");
-    this._panel.hidePopup();
+    this._hideThePopup();
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
     this._addListenersWhenPopupShown();
-    this._setImageSize(aImageSrc, imageSize);
+    this._setImageSize(imageSize);
     this._panelCaption.hidden = (this._panelCaption.value == "" ||
                                  this._panelCaption.value == " ");
+                                 
+                                 
+    
+    // Set the size (redundantly) on the panel itself as a possible workaround
+    // for the popup appearing very narrow on Linux:
+    this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
+    // Move panel on-screen in case we moved it off-screen to hide it.
+    this._panel.moveTo(0, 0);
+    
+    
     this._addToHistory(aImageSrc);
-
-
-
-    // EXPERIMENTAL POSSIBLE FIX FOR LINUX
-    this._logger.debug("_openAndPositionPopup: forcing absolute positioning (possible Linux fix)");
-    available.width = 0;
-    available.height = 0;
-
-    
-    
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
       // Position the popup horizontally flush with the right of the window or
@@ -1440,10 +1457,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   /**
    * Shows the image at its full size in the panel.
    * Assumes the popup and image itself are already visible.
-   * @param aImageSrc the image source.
-   * @param aScale the scale dimmensions.
+   * @param aScale the scale dimensions.
    */
-  _setImageSize : function(aImageSrc, aScale) {
+  _setImageSize : function(aScale) {
     this._logger.trace("_setImageSize");
 
     this._logger.debug("_setImageSize: setting size to " +

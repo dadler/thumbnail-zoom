@@ -68,8 +68,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       //
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       //
-      let enableDebug = false;
-      let enableTrace = false;
+      let enableDebug = true;
+      let enableTrace = true;
       
             
       // The basic formatter will output lines like:
