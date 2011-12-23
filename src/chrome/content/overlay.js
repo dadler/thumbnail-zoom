@@ -832,7 +832,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _hideThePopup : function() {
       
-      
+if (0) {      
       
       // hack for linux:
       this._panel.moveTo(9999, 9999);
@@ -840,7 +840,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._setImageSize(tiny);
       this._panel.sizeTo(0,0);
       return;
-      
+}
       
       
       if (this._panel.state != "closed") {
