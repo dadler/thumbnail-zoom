@@ -832,8 +832,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _hideThePopup : function() {
       
-if (1) {      
-      
+if (0) {      
       // hack for linux:
       this._panel.moveTo(9999, 9999);
       let tiny = {width: 0, height: 0};
@@ -1195,7 +1194,7 @@ if (1) {
                                  
         
                                                           
-if (0) {    
+if (1) {    
     // Set the size (redundantly) on the panel itself as a possible workaround
     // for the popup appearing very narrow on Linux:
     this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
