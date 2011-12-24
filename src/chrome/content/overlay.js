@@ -989,6 +989,9 @@ if (0) {
     this._panelImage.style.minWidth = iconWidth + "px";
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
+    // Set the size (redundantly) on the panel itself as a possible workaround
+    // for the popup appearing very narrow on Linux:
+    this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
 
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
@@ -1188,10 +1191,9 @@ if (0) {
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
     this._addListenersWhenPopupShown();
-    this._setImageSize(imageSize);
     this._panelCaption.hidden = (this._panelCaption.value == "" ||
                                  this._panelCaption.value == " ");
-                                 
+    this._setImageSize(imageSize);                                 
         
                                                           
 if (1) {    
@@ -1200,7 +1202,7 @@ if (1) {
     this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
 }
     // Move panel on-screen in case we moved it off-screen to hide it.
-    this._panel.moveTo(0, 0);
+    // this._panel.moveTo(0, 0);
 
     
     this._addToHistory(aImageSrc);
