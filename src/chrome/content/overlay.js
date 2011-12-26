@@ -47,6 +47,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
+  PREF_PANEL_NEVER_POPDOWN : ThumbnailZoomPlus.PrefBranch + "panel.neverpopdown",
   PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
@@ -832,18 +833,19 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _hideThePopup : function() {
       
-if (0) {      
-      // hack for linux:
+    if (! this._allowPopdown()) {      
+      // workaround for some linux (eg Gnome3)
+      // Instead of closing panel, move it to the lower right corner and
+      // make it tiny.
       this._panel.moveTo(9999, 9999);
       let tiny = {width: 0, height: 0};
       this._setImageSize(tiny);
-      this._panel.sizeTo(0,0);
+      this._panel.sizeTo(0, 0);
       return;
-}
-      
-      
-      if (this._panel.state != "closed") {
-        this._panel.hidePopup();
+    }
+
+    if (this._panel.state != "closed") {
+      this._panel.hidePopup();
       }
   },
   
@@ -989,10 +991,14 @@ if (0) {
     this._panelImage.style.minWidth = iconWidth + "px";
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
-    // Set the size (redundantly) on the panel itself as a possible workaround
-    // for the popup appearing very narrow on Linux:
-    this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
-
+    
+    if (! this._allowPopdown()) {
+      // Set the size (redundantly) on the panel itself as a possible workaround
+      // for the popup appearing very narrow on Linux:
+      this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
+      // TODO: this._panel.moveTo(...);
+    }
+          
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
@@ -1178,7 +1184,14 @@ if (0) {
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
-
+  _allowPopdown : function() {
+    let pref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_NEVER_POPDOWN);
+    if (!pref) {
+      return true;
+    }
+    return ! pref.value;
+  },
+  
   /**
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
@@ -1193,18 +1206,16 @@ if (0) {
     this._addListenersWhenPopupShown();
     this._panelCaption.hidden = (this._panelCaption.value == "" ||
                                  this._panelCaption.value == " ");
+    if (! this._allowPopdown()) {    
+      // Set the size (redundantly) on the panel itself as a possible workaround
+      // for the popup appearing very narrow on Linux:
+      this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
+     
+      // Move panel on-screen in case we moved it off-screen to hide it.
+      this._panel.moveTo(0, 0);
+    }
     this._setImageSize(imageSize);                                 
-        
-                                                          
-if (1) {    
-    // Set the size (redundantly) on the panel itself as a possible workaround
-    // for the popup appearing very narrow on Linux:
-    this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
-}
-    // Move panel on-screen in case we moved it off-screen to hide it.
-    // this._panel.moveTo(0, 0);
 
-    
     this._addToHistory(aImageSrc);
     // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {

@@ -42,6 +42,7 @@
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximize image size by overlapping thumbnail">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Add images to browser history">
+<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "Linux workaround">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "None">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Enable or disable per site">

@@ -50,10 +50,15 @@
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
+      <preference id="thumbnailzoomplus-options-neverpopdown-pref"
+        name="extensions.thumbnailzoomplus.panel.neverpopdown" type="bool"/>
       <preference id="thumbnailzoomplus-options-key-pref"
         name="extensions.thumbnailzoomplus.panel.key" type="int"/>
       <preference id="thumbnailzoomplus-options-opacity-pref"
         name="extensions.thumbnailzoomplus.panel.opacity" type="int"/>
+
+      <!-- site-specific checkboxes -->
+      
       <preference id="thumbnailzoomplus-options-twitter-pref"
         name="extensions.thumbnailzoomplus.twitter.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-twitpic-pref"
@@ -150,6 +155,8 @@
               label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
+            <checkbox preference="thumbnailzoomplus-options-neverpopdown-pref"
+              label="&thumbnailzoomplus.options.neverpopdown.checkbox.label;" />
           </row>
         </rows>
       </grid>

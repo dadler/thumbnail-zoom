@@ -30,6 +30,11 @@
 // Note: this file cannot "use strict"; it prevents default preferences
 // from taking effect.
 
+// Returns "WINNT" on Windows Vista, XP, 2000, and NT systems;  
+// "Linux" on GNU/Linux; and "Darwin" on Mac OS X.  
+let ThumbnailZoomPlusOsString = Components.classes["@mozilla.org/xre/app-info;1"]  
+                                  .getService(Components.interfaces.nsIXULRuntime).OS;  
+
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
@@ -38,6 +43,7 @@ pref("extensions.thumbnailzoomplus.panel.border",       true);
 pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
 pref("extensions.thumbnailzoomplus.panel.caption",      false);
 pref("extensions.thumbnailzoomplus.panel.history",      false);
+pref("extensions.thumbnailzoomplus.panel.neverpopdown", ThumbnailZoomPlusOsString == "Linux");
 pref("extensions.thumbnailzoomplus.panel.opacity",      100);
 
 // Site preferences.
