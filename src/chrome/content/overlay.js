@@ -163,6 +163,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
       preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
     }
+    
+    if (! ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_NEVER_POPDOWN)) {
+      // Set default preference for PREF_PANEL_NEVER_POPDOWN (aka Linux Workaround).
+      // Returns "WINNT" on Windows Vista, XP, 2000, and NT systems;  
+      // "Linux" on GNU/Linux; and "Darwin" on Mac OS X.  
+      let os = Components.classes["@mozilla.org/xre/app-info;1"]  
+                .getService(Components.interfaces.nsIXULRuntime).OS;
+      let neverPopdown = (os == "Linux");
+      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_NEVER_POPDOWN, 
+                                                   neverPopdown);
+    }
   },
 
 
@@ -995,7 +1006,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (! this._allowPopdown()) {
       // Set the size (redundantly) on the panel itself as a possible workaround
       // for the popup appearing very narrow on Linux:
-      this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
+      // TODO: may need this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
       // TODO: this._panel.moveTo(...);
     }
           
