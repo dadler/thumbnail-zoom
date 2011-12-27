@@ -780,6 +780,12 @@ ThumbnailZoomPlus.Pages.Others = {
           return imgNode;
         }
     }
+    
+    if (aNode == null) {
+      // If we didn't find a link node at all, use the thumbnail image node.
+      // Useful e.g. with feedly.com.
+      return imgNode;
+    }
     return aNode;
   },
   
