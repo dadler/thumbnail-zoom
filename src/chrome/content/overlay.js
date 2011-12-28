@@ -1391,9 +1391,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getScaleDimensions : function(aImage, available, thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
 
-    // When enabled, we allow showing images larger 
-    // than would fit entirely to the left or right of
-    // the thumbnail by using the full page width
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let pageWidth = content.window.innerWidth * pageZoom - this._widthAddon - 2;
     let pageHeight = content.window.innerHeight * pageZoom - this._widthAddon - 2;
@@ -1401,7 +1398,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
-    let scale = { width: imageWidth, height: imageHeight, allow: true };
+    
+    // If the page is zoomed up to greater than 100%, allow the popup to
+    // be zoomed up that much too.
+    let scaleUpBy = (pageZoom > 1.0 ? pageZoom : 1.0);
+    let scale = { width: imageWidth * scaleUpBy, 
+                  height: imageHeight * scaleUpBy, 
+                  allow: true };
 
     // Make sure scale.width, height is not larger than the window size.
     if (scale.height > pageHeight) {
@@ -1439,10 +1442,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       sideScale.height = sideScale.width / scaleRatio;
     }
 
-    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_LARGE_IMAGE);
+    // When this.PREF_PANEL_LARGE_IMAGE is enabled, we allow showing images  
+    // larger than would fit entirely to the left or right of
+    // the thumbnail by using the full page width, covering the thumb.
+    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
+                                              get(this.PREF_PANEL_LARGE_IMAGE);
     allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
-
-    // Check whether to allow popup to cover thumb.
     if (! allowCoverThumb) {
       this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
       scale = sideScale;
