@@ -77,6 +77,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _contextMenu : null,
   /* File Picker. */
   _filePicker : null,
+  
   /* _thumbBBox is the bounding box of the thumbnail or link which caused
      the popup to launch, in screen coordinates. 
      refScroll{Left,Top} are the window scroll amounts implicit in the bbox
@@ -85,7 +86,17 @@ ThumbnailZoomPlusChrome.Overlay = {
      (as _insideThumbBBox does). */
   _thumbBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
                  refScrollLeft: 0, refScrollTop: 0},
-  
+                 
+  /*
+    _ignoreBBox is very similar to _thumbBBox, but it's used as the region
+    within which hover events are ignored, to avoid accidentally re-triggering
+    the popup when the window regains focus.  Unlike _thumbBBox, 
+    _ignoreBBox sometimes gets invalidated, when we no longer need to
+    ignore a region.
+   */
+  _ignoreBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
+                 refScrollLeft: 0, refScrollTop: 0},
+                  
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
   
@@ -421,7 +432,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handleTabSelected: other win=" + that._currentWindow);
     that._addEventListenersToDoc(gBrowser.contentDocument);
 
-    this._thumbBBox.xMax = -999; // don't reject next move as trivial.
+    this._ignoreBBox.xMax = -999; // don't reject next move as trivial.
     this._logger.debug("_handleTabSelected: _closePanel since tab selected");
     this._closePanel();
   },
@@ -464,7 +475,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _addEventListenersToDoc: function(doc) {
     this._logger.trace("_addEventListenersToDoc");
 
-    this._thumbBBox.xMax = -999;
+    this._ignoreBBox.xMax = -999;
 
     let that = this;
 
@@ -503,10 +514,10 @@ ThumbnailZoomPlusChrome.Overlay = {
         // implicit function (a closure).  Instead we effectively disable its mouseover
         // using bbox (making bbox cover everywhere).
         this._logger.debug("_addEventListenersToDoc: A different window has handlers; disabling them."); 
-        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.xMin = -99999;
-        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.xMax =  99999;
-        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.yMin = -99999;
-        doc.ThumbnailZoomPlus.addedListeners._thumbBBox.yMax =  99999;
+        doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.xMin = -99999;
+        doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.xMax =  99999;
+        doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMin = -99999;
+        doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMax =  99999;
       }
       doc.ThumbnailZoomPlus.addedListeners = this;
 
@@ -573,7 +584,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    var adj = this._thumbBBox;
+    var adj = this._ignoreBBox;
     // Adjust the bounding box to account for scrolling.  Note that the box's
     // position on-screen moves the opposite direction than the scroll amount.
     var xOffset = (adj.refScrollLeft - scrollLeft) * pageZoom; 
@@ -651,7 +662,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     
-    this._thumbBBox.xMax = -999;
+    // Mouse entered a different region; clear the previous 'ignore' region
+    // so a future mouse move can re-enter it and re-popup.
+    this._ignoreBBox.xMax = -999;
     
     if (! this._isKeyActive(aEvent)) {
       this._logger.debug("_handleMouseOver: _closePanel since hot key not down");
@@ -687,6 +700,12 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
     this._logger.trace("_findPageAndShowImage"); 
+    
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
+    let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
+    this._thumbBBox = this._calcThumbBBox(node, 
+                          clientToScreenX, clientToScreenY);
 
     /*
      * Try each maching page (rule), starting with the one we found for the
@@ -916,18 +935,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     let x = aEvent.screenX;
     let y = aEvent.screenY;
 
-    if (x >= this._thumbBBox.xMin &&
-        x <= this._thumbBBox.xMax &&
-        y >= this._thumbBBox.yMin &&
-        y <= this._thumbBBox.yMax) {
+    if (x >= this._ignoreBBox.xMin &&
+        x <= this._ignoreBBox.xMax &&
+        y >= this._ignoreBBox.yMin &&
+        y <= this._ignoreBBox.yMax) {
       // Mouse is still over the thumbnail.  Ignore the move and don't
       // dismiss since the thumb would immediately receive an 'over' event
       // and retrigger the popup to display.
       this._logger.debug("_handlePopupMove: ignoring since mouse at " +
                          x + "," + y +
                          " is within thumb " +
-                         this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
-                         this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
+                         this._ignoreBBox.xMin + ".." + this._ignoreBBox.xMax + "," +
+                         this._ignoreBBox.yMin + ".." + this._ignoreBBox.yMax);
       return;
     }
     // moved outside bbox of thumb; dismiss popup.
@@ -998,27 +1017,29 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showStatusIcon : function(aImageNode, iconName, iconWidth) {
     this._logger.trace("_showStatusIcon");
     
-    this._logger.debug("_showStatusIcon: showing " + iconName);
-
     this._panelImage.style.backgroundImage =
       "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
     this._panelImage.style.maxWidth = iconWidth + "px";
     this._panelImage.style.minWidth = iconWidth + "px";
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
-    
-    if (! this._allowPopdown()) {
-      // Set the size (redundantly) on the panel itself as a possible workaround
-      // for the popup appearing very narrow on Linux:
-      // TODO: may need this._panel.sizeTo(iconWidth + this._pad, 16 + this._pad);
-      // TODO: this._panel.moveTo(...);
-    }
-          
+    this._panel.sizeTo(iconWidth, 16);
+
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
       this._addListenersWhenPopupShown();
     }
+
+    let x = this._thumbBBox.xMax + this._pad;
+    let y = this._thumbBBox.yMin;
+    this._logger.debug("_showStatusIcon: showing " + iconName +
+                       " at " + x + "," + y + 
+                       " size " + iconWidth + ", 16");
+
+    // Explicitly position it in case the popup was already displayed,
+    // e.g. when ! this._allowPopdown()
+    this._panel.moveTo(x, y);
   },
   
   _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
@@ -1043,7 +1064,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                               clientToScreenX, clientToScreenY,
                                image)
   {
     this._logger.trace("_checkIfImageLoaded");
@@ -1052,16 +1072,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
 
-    if (this._panel.state != "open") {
-      // Show the panel even without its image so the user will at
-      // least see our icon and know it's being loaded.
-      this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-      // Set to our status icon as a "working" indicator
-      // while loading.  This normally appears only briefly (or not at all)
-      // since we show the full image size as soon as enough of the image is
-      // loaded to know its dimensions.
-      this._showStatusIcon(aImageNode, "working.png", 16);      
-    }
+    // Set to our status icon as a "working" indicator
+    // while loading.  This normally appears only briefly (or not at all)
+    // since we show the full image size as soon as enough of the image is
+    // loaded to know its dimensions.
+    this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
+    this._showStatusIcon(aImageNode, "working.png", 16);      
     
     if (image.width > 0 && image.height > 0) {
       this._logger.debug("_checkIfImageLoaded: delayed-calling _imageOnLoad since have size.");
@@ -1077,7 +1093,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                             clientToScreenX, clientToScreenY,
                              image);
           }
          }, 0.7 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
@@ -1092,7 +1107,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                               clientToScreenX, clientToScreenY,
                                image)
   {
     this._logger.trace("_imageOnLoad");
@@ -1112,8 +1126,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
-    this._updateThumbBBox(aImageNode, 
-                          clientToScreenX, clientToScreenY);
+    this._ignoreBBox.xMin = this._thumbBBox.xMin;
+    this._ignoreBBox.xMax = this._thumbBBox.xMax;
+    this._ignoreBBox.yMin = this._thumbBBox.yMin;
+    this._ignoreBBox.yMax = this._thumbBBox.yMax;
+    this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
+    this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
+    
     let available = this._getAvailableSizeOutsideThumb(aImageNode);
     let thumbWidth = aImageNode.offsetWidth * pageZoom;
     let thumbHeight = aImageNode.offsetHeight * pageZoom;
@@ -1165,8 +1184,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     let image = new Image();
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
-    let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
 
     // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
     // object so we can delete it if we load different image (so it doesn't
@@ -1181,7 +1198,6 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, 
-                             clientToScreenX, clientToScreenY,
                              image)
     };
 
@@ -1199,7 +1215,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                             clientToScreenX, clientToScreenY,
                              image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
@@ -1229,10 +1244,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_openAndPositionPopup");
     let pos = this._calcPopupPosition(imageSize, available);
 
-    if (this._allowPopdown()) {
-      this._logger.debug("_openAndPositionPopup: hidePopup");
-      this._hideThePopup();
-    }
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
     this._addListenersWhenPopupShown();
@@ -1242,49 +1253,55 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Set the size (redundantly) on the panel itself as a possible workaround
       // for the popup appearing very narrow on Linux:
       this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
-     
-      // Move panel on-screen in case we moved it off-screen to hide it.
-      this._panel.moveTo(pos.x, pos.y);
     }
     this._setImageSize(imageSize);                                 
     
-    this._addToHistory(aImageSrc);
+    // Explicitly move panel since if it was already popped-up, openPopupAtScreen
+    // won't do anything.
+    this._panel.moveTo(pos.x, pos.y);
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
+
+    this._addToHistory(aImageSrc);
   },
   
   
   /**
-   * Updates this._thumbBBox to indicate the range of DOM coordinates spanned
-   * by the thumb or link.
+   * Calculates a bounding box like this._thumbBBox or this._ignoreBBox
+   * to indicate the range of DOM coordinates spanned by 
+   * the thumb or link.  The bounding box is returned
+   * as the function result; has no side-effects.
    */
-  _updateThumbBBox : function(aImageNode, xOffset, yOffset) {
-    this._logger.trace("_updateThumbBBox");
-    			
+  _calcThumbBBox : function(aImageNode, xOffset, yOffset) {
+    this._logger.trace("_calcThumbBBox");
+    let result = {};
+    
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     var box = aImageNode.getBoundingClientRect();
 
-    this._logger.debug("_updateThumbBBox: x,y offset = " +
+    this._logger.debug("_calcThumbBBox: x,y offset = " +
                        xOffset + "," + yOffset);
 
-    this._thumbBBox.xMin = Math.round(xOffset + box.left * pageZoom);
-		this._thumbBBox.yMin = Math.round(yOffset + box.top  * pageZoom);
+    result.xMin = Math.round(xOffset + box.left * pageZoom);
+		result.yMin = Math.round(yOffset + box.top  * pageZoom);
     
-    this._thumbBBox.xMax = Math.round(this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom);
-    this._thumbBBox.yMax = Math.round(this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom);
+    result.xMax = Math.round(result.xMin + aImageNode.offsetWidth * pageZoom);
+    result.yMax = Math.round(result.yMin + aImageNode.offsetHeight * pageZoom);
     
     var viewportElement = gBrowser.selectedBrowser.contentWindow;  
     var scrollLeft = viewportElement.scrollX;
-    var scrollTop = viewportElement.scrollY;
-    this._thumbBBox.refScrollLeft = Math.round(scrollLeft);
-    this._thumbBBox.refScrollTop = Math.round(scrollTop);
-    this._logger.debug("_updateThumbBBox: tabbed browser = " +gBrowser + "; browser=" + gBrowser.selectedBrowser +
+    var scrollTop  = viewportElement.scrollY;
+    result.refScrollLeft = Math.round(scrollLeft);
+    result.refScrollTop = Math.round(scrollTop);
+    this._logger.debug("_calcThumbBBox: tabbed browser = " +gBrowser + "; browser=" + gBrowser.selectedBrowser +
                        "; win=" + gBrowser.selectedBrowser.contentWindow);
-    this._logger.debug("_updateThumbBBox: ref scroll = " +
+    this._logger.debug("_calcThumbBBox: ref scroll = " +
                        scrollLeft + "," + scrollTop);
     
-    this._logger.debug("_updateThumbBBox: bbox = " +
-                       this._thumbBBox.xMin + ".." + this._thumbBBox.xMax + "," +
-                       this._thumbBBox.yMin + ".." + this._thumbBBox.yMax);
+    this._logger.debug("_calcThumbBBox: bbox = " +
+                       result.xMin + ".." + result.xMax + "," +
+                       result.yMin + ".." + result.yMax);
+                       
+    return result;
   },  
   
   
@@ -1488,6 +1505,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let pageHeight = content.window.innerHeight * pageZoom;
     let windowStartX = content.window.mozInnerScreenX * pageZoom;
     let windowStartY = content.window.mozInnerScreenY * pageZoom;
+    this._logger.debug("_calcPopupPosition: pageZoom=" +
+                       pageZoom + "; innerHeight=" + 
+                       content.window.innerHeight + 
+                       "; pageHeight=" + pageHeight);
 
     if (imageSize.height <= available.height) {
       // We prefer above/below thumb to avoid tooltip.
