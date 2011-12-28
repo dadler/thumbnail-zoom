@@ -92,6 +92,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   // _widthAddon is additional image width due to border if enabled:
   // 0 or _borderWidth*2.
   _widthAddon : 0,
+  
+  // pad is the blank space (in pixels) between the thumbnail and a popup
+  // to be shown adjacenetly to it, and between the popup and the window
+  // edge.  This is unrelated to the border preference.
   _pad : 5,
   
   // _currentWindow is the window from which the current popup was launched.
@@ -1210,6 +1214,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   /**
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
+   * @param aImageNode: the thumb or link from which we're popping up
+   * @param aImageSrc: 
+   * @param: imageSize: the size of the image itself as we'll be displaying it
+   *                    (i.e. reduced to fit as appropriate)
+   * @param: available: the available space in .left, .right, .top, .bottom, 
+   *                          .width, .height
    */
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
     // Close and (probably) re-open the panel so we can reposition it to
@@ -1230,7 +1240,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panel.moveTo(0, 0);
     }
     this._setImageSize(imageSize);                                 
-
+    let pos = this._calcPopupPosition(imageSize, available)
+    
     this._addToHistory(aImageSrc);
     if (imageSize.height <= available.height) {
       // We prefer above/below thumb to avoid tooltip.
@@ -1339,7 +1350,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    * above/below the thumbnail without overlapping it.
    *
    * @param aImageNode the image node.
-   * @return An object with .left, .right, .top, .bottom, .width and .height 
+   * @return An object with .left, .right, .top, .bottom, .windowWidth, and
+   *    .windowHeight.  .width and .height are the min of .left, .right and
+   *    .top, .bottom, respectively.  All sizes are reduced by padding
+   *    so that they reflect possible image size, not entire popup size.
    * fields.
    */
   _getAvailableSizeOutsideThumb : function(aImageNode) {
@@ -1362,6 +1376,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let pageWidth = content.window.innerWidth * pageZoom;
     let pageHeight = content.window.innerHeight * pageZoom;
 
+    available.windowWidth = pageWidth;
+    available.windowHeight = pageHeight;
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
@@ -1376,6 +1392,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.right -= adjustment;
     available.top -= adjustment;
     available.bottom -= adjustment;
+    available.windowWidth -= adjustment;
+    available.windowHeight -= adjustment;
     
     available.width = Math.max(available.left, available.right);
     available.height = Math.max(available.top, available.bottom);
@@ -1383,17 +1401,85 @@ ThumbnailZoomPlusChrome.Overlay = {
     return available;
   },
 
-
+  /**
+   * Returns the desired position of the popup, in screen coords, as fields:
+   * {x, y}
+   */
+  _calcPopupPosition : function(imageSize, available) {
+    let pos = {};
+    if (imageSize.height <= available.height) {
+      // We prefer above/below thumb to avoid tooltip.
+      // Position the popup horizontally flush with the right of the window or
+      // left-aligned with the left of the thumbnail, whichever is left-most.
+      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      let windowStartX = content.window.mozInnerScreenX * pageZoom;
+      let pageWidth = content.window.innerWidth * pageZoom;
+      let popupXPageCoords = pageWidth - (imageSize.width + this._widthAddon);
+      let popupXScreenCoords = popupXPageCoords + windowStartX;
+      if (popupXScreenCoords > this._thumbBBox.xMin) {
+        popupXScreenCoords = this._thumbBBox.xMin;
+      }
+      pos.x = popupXScreenCoords;
+      this._logger.debug("_calcPopupPosition: " +
+                         "windowStartX=" + windowStartX +
+                         "; pageWidth=" + pageWidth +
+                         "; popupXPageCoords=" + popupXPageCoords +
+                         "; popupXScreenCoords=" + popupXScreenCoords);
+      if (imageSize.height <= available.bottom) {
+        this._logger.debug("_calcPopupPosition: display below thumb"); 
+        pos.y = this._thumbBBox.yMax + this._pad;
+      } else {
+        this._logger.debug("_calcPopupPosition: display above thumb"); 
+        pos.y = this._thumbBBox.yMin - imageSize.y - this._widthAddon - this._pad;
+      }
+    } else if (imageSize.width <= available.width) {
+      // We prefer left-of thumb to right-of thumb since tooltip
+      // typically extends to the right.
+      
+      // Position the popup vertically flush with the bottom of the window or
+      // top-aligned with the top of the thumbnail, whichever is higher.
+      // We don't simply use a 0 offset and rely on Firefox's logic since
+      // on Windows that can position the thumb under an always-on-top
+      // Windows task bar.
+      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      let windowStartY = content.window.mozInnerScreenY * pageZoom;
+      let pageHeight = content.window.innerHeight * pageZoom;
+      let popupYPageCoords = pageHeight - (imageSize.height + this._widthAddon);
+      let popupYScreenCoords = popupYPageCoords + windowStartY;
+      if (popupYScreenCoords > this._thumbBBox.yMin) {
+        popupYScreenCoords = this._thumbBBox.yMin;
+      }
+      pos.y = popupYScreenCoords;
+      this._logger.debug("_calcPopupPosition: " +
+                         "windowStartY=" + windowStartY +
+                         "; pageHeight=" + pageHeight +
+                         "; popupYPageCoords=" + popupYPageCoords +
+                         "; popupYScreenCoords=" + popupYScreenCoords);
+      if (imageSize.width <= available.left) {
+        this._logger.debug("_calcPopupPosition: display to left of thumb"); 
+        pos.x = this._thumbBBox.xMin - this._pad - (imageSize.width - this._widthAddon);
+      } else {
+        this._logger.debug("_calcPopupPosition: display to right of thumb"); 
+        pos.x = this._thumbBBox.xMax + this._pad;
+      }
+    } else {
+      this._logger.debug("_calcPopupPosition: display at absolute position (overlap thumb)"); 
+      pos.x = 0;
+      pos.y = 0;
+    }
+    return pos;
+  },
+  
   /**
    * Gets the image scale dimensions to fit the window and the position
    * at which it should be displayed.
    * @param aImage the image info.
-   * @param available: contains (width, height, left, right, top, bottom):
+   * @param available: contains (width, height, left, right, top, bottom, 
+   *                             windowWidth, windowHeight):
    *   the max space available to the left or right and top or bottom of the thumb.
    * @return the scale dimensions and position in these fields:
    *   {width: displayed width of image
    *    height: displayed height of image 
-   *    (in the future: x, y: displayed position of image in screen coords)
    *    allow: boolean; true if we allow the popup; false if disallowed since
    *           would be too small.
    *   }
@@ -1401,35 +1487,39 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getScaleDimensions : function(aImage, available, thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
 
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let pageWidth = content.window.innerWidth * pageZoom - this._widthAddon - 2;
-    let pageHeight = content.window.innerHeight * pageZoom - this._widthAddon - 2;
-    
     let imageWidth = aImage.width;
     let imageHeight = aImage.height;
     let scaleRatio = (imageWidth / imageHeight);
     
     // If the page is zoomed up to greater than 100%, allow the popup to
     // be zoomed up that much too.
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let scaleUpBy = (pageZoom > 1.0 ? pageZoom : 1.0);
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
-                  x: 0, y: 0,
                   allow: true };
 
+    // Calc in 'scale' positioning if we used entire window.
     // Make sure scale.width, height is not larger than the window size.
-    if (scale.height > pageHeight) {
-      scale.height = pageHeight;
+    if (scale.height > available.windowHeight) {
+      // reduce image size to fit page vertically.
+      scale.height = available.windowHeight;
       scale.width = scale.height * scaleRatio;
     }
-    if (scale.width > pageWidth) {
-      scale.width = pageWidth;
+    if (scale.width > available.windowWidth) {
+      // reduce image size to fit page horizontally.
+      scale.width = available.windowWidth;
       scale.height = scale.width / scaleRatio;
     }
 
     // Calc sideScale as the biggest size we can use for the image without
-    // overlapping the thumb.
+    // overlapping the thumb.  Start out with large size and reduce to fit.
     let sideScale = {width: scale.width, height: scale.height, allow: true};
+
+    // Now reduce sideScale.width, .height to the largest size which
+    // fits in one of above, below, left, or right of thumb.  Note that
+    // we don't require it to fit e.g. both left and below thumb; once it
+    // fits in one dimension, the other can use the entire window width or height.
     if (imageHeight > available.height) {
       // Try fitting the image's height to available.height (and scaling
       // width proportionally); this corresponds to showing the
@@ -1444,15 +1534,22 @@ ThumbnailZoomPlusChrome.Overlay = {
       sideScale.width = Math.min(available.width, imageWidth);
       sideScale.height = sideScale.width / scaleRatio;
     }
-    if (sideScale.height > pageHeight) {
-      sideScale.height = pageHeight;
+
+    // Make sure the dimension which isn't being fit to the side of the
+    // thumb fits in the entire window size.
+    if (sideScale.height > available.windowHeight) {
+      sideScale.height = available.windowHeight;
       sideScale.width = scale.height * scaleRatio;
     }
-    if (sideScale.width > pageWidth) {
-      sideScale.width = pageWidth;
+    if (sideScale.width > available.windowWidth) {
+      sideScale.width = available.windowWidth;
       sideScale.height = sideScale.width / scaleRatio;
     }
 
+    // 
+    // Choose between covering thumb or not, and decide whether to
+    //
+    
     // When this.PREF_PANEL_LARGE_IMAGE is enabled, we allow showing images  
     // larger than would fit entirely to the left or right of
     // the thumbnail by using the full page width, covering the thumb.
