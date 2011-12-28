@@ -1109,45 +1109,47 @@ ThumbnailZoomPlusChrome.Overlay = {
     // was due to the timer.
     image.onload = null;
     
-      this._timer.cancel();
-      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    this._timer.cancel();
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    
+    this._updateThumbBBox(aImageNode, 
+                          clientToScreenX, clientToScreenY);
+    let available = this._getAvailableSizeOutsideThumb(aImageNode);
+    let thumbWidth = aImageNode.offsetWidth * pageZoom;
+    let thumbHeight = aImageNode.offsetHeight * pageZoom;
+    
+    // Get the popup image's display size, which is the largest we
+    // can display the image (without magnifying it and without it
+    // being too big to fit on-screen).
+    let imageSize = this._getScaleDimensions(image, available,
+                                             thumbWidth, thumbHeight);
+    
+    this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
+                       "/" + available.left + 
+                       "/" + available.right +
+                       "; h/t/b:" + available.height + 
+                       "/" + available.top + 
+                       "/" + available.bottom + 
+                       "; adj windowWidth, Height: " + 
+                       available.windowWidth + "," + available.windowHeight);
+    this._logger.debug("_imageOnLoad: " + 
+                       "win width=" + content.window.innerWidth*pageZoom +
+                       "; win height=" + content.window.innerHeight*pageZoom +
+                       "; full-size image=["+image.width + "," + image.height + 
+                       "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
+    
+    if (! imageSize.allow) {
+      this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
       
-      this._updateThumbBBox(aImageNode, 
-                            clientToScreenX, clientToScreenY);
-      let available = this._getAvailableSizeOutsideThumb(aImageNode);
-      let thumbWidth = aImageNode.offsetWidth * pageZoom;
-      let thumbHeight = aImageNode.offsetHeight * pageZoom;
-
-      // Get the popup image's display size, which is the largest we
-      // can display the image (without magnifying it and without it
-      // being too big to fit on-screen).
-      let imageSize = this._getScaleDimensions(image, available,
-                                               thumbWidth, thumbHeight);
-      
-      this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
-                         "/" + available.left + 
-                         "/" + available.right +
-                         "; h/t/b:" + available.height + 
-                         "/" + available.top + 
-                         "/" + available.bottom);
-      this._logger.debug("_imageOnLoad: " + 
-                         "win width=" + content.window.innerWidth*pageZoom +
-                         "; win height=" + content.window.innerHeight*pageZoom +
-                         "; full-size image=["+image.width + "," + image.height + 
-                         "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
-      
-      if (! imageSize.allow) {
-        this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
-
-        return;
-      }
-      
-      this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
-      
-      // Help the garbage collector reclaim memory quickly.
-      // (Test by watching "images" size in about:memory.)
-      image.src = null;
-      image = null;
+      return;
+    }
+    
+    this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
+    
+    // Help the garbage collector reclaim memory quickly.
+    // (Test by watching "images" size in about:memory.)
+    image.src = null;
+    image = null;
   },
   
   /**
@@ -1224,8 +1226,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
     // Close and (probably) re-open the panel so we can reposition it to
     // display the image. 
-    this._logger.debug("_openAndPositionPopup: hidePopup");
-    this._hideThePopup();
+    this._logger.trace("_openAndPositionPopup");
+    let pos = this._calcPopupPosition(imageSize, available);
+
+    if (this._allowPopdown()) {
+      this._logger.debug("_openAndPositionPopup: hidePopup");
+      this._hideThePopup();
+    }
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
     this._addListenersWhenPopupShown();
@@ -1237,73 +1244,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
      
       // Move panel on-screen in case we moved it off-screen to hide it.
-      this._panel.moveTo(0, 0);
+      this._panel.moveTo(pos.x, pos.y);
     }
     this._setImageSize(imageSize);                                 
-    let pos = this._calcPopupPosition(imageSize, available)
     
     this._addToHistory(aImageSrc);
-    if (imageSize.height <= available.height) {
-      // We prefer above/below thumb to avoid tooltip.
-      // Position the popup horizontally flush with the right of the window or
-      // left-aligned with the left of the thumbnail, whichever is left-most.
-      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-      let windowStartX = content.window.mozInnerScreenX * pageZoom;
-      let pageWidth = content.window.innerWidth * pageZoom;
-      let popupXPageCoords = pageWidth - (imageSize.width + this._widthAddon);
-      let popupXScreenCoords = popupXPageCoords + windowStartX;
-      let popupXOffset = popupXScreenCoords - this._thumbBBox.xMin;
-      this._logger.debug("_openAndPositionPopup: " +
-                         "windowStartX=" + windowStartX +
-                         "; pageWidth=" + pageWidth +
-                         "; popupXPageCoords=" + popupXPageCoords +
-                         "; popupXScreenCoords=" + popupXScreenCoords +
-                         "; popupXOffset=" + popupXOffset);
-      if (popupXOffset > 0) {
-        popupXOffset = 0;
-      }
-      if (imageSize.height <= available.bottom) {
-        this._logger.debug("_openAndPositionPopup: display below thumb"); 
-        this._panel.openPopup(aImageNode, "after_start", popupXOffset, this._pad, false, false);
-      } else {
-        this._logger.debug("_openAndPositionPopup: display above thumb"); 
-        this._panel.openPopup(aImageNode, "before_start", popupXOffset, -this._pad, false, false);
-      }
-    } else if (imageSize.width <= available.width) {
-      // We prefer left-of thumb to right-of thumb since tooltip
-      // typically extends to the right.
-      
-      // Position the popup vertically flush with the bottom of the window or
-      // top-aligned with the top of the thumbnail, whichever is higher.
-      // We don't simply use a 0 offset and rely on Firefox's logic since
-      // on Windows that can position the thumb under an always-on-top
-      // Windows task bar.
-      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-      let windowStartY = content.window.mozInnerScreenY * pageZoom;
-      let pageHeight = content.window.innerHeight * pageZoom;
-      let popupYPageCoords = pageHeight - (imageSize.height + this._widthAddon);
-      let popupYScreenCoords = popupYPageCoords + windowStartY;
-      let popupYOffset = popupYScreenCoords - this._thumbBBox.yMin;
-      this._logger.debug("_openAndPositionPopup: " +
-                         "windowStartY=" + windowStartY +
-                         "; pageHeight=" + pageHeight +
-                         "; popupYPageCoords=" + popupYPageCoords +
-                         "; popupYScreenCoords=" + popupYScreenCoords +
-                         "; popupYOffset=" + popupYOffset);
-      if (popupYOffset > 0) {
-        popupYOffset = 0;
-      }
-      if (imageSize.width <= available.left) {
-        this._logger.debug("_openAndPositionPopup: display to left of thumb"); 
-        this._panel.openPopup(aImageNode, "start_before", -this._pad, popupYOffset, false, false);
-      } else {
-        this._logger.debug("_openAndPositionPopup: display to right of thumb"); 
-        this._panel.openPopup(aImageNode, "end_before", this._pad, popupYOffset, false, false);
-      }
-    } else {
-      this._logger.debug("_openAndPositionPopup: display at absolute position (overlap thumb)"); 
-      this._panel.openPopup(null, "overlap", 0, 0, false, false);
-    }
+    this._panel.openPopupAtScreen(pos.x, pos.y, false);
   },
   
   
@@ -1320,17 +1266,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_updateThumbBBox: x,y offset = " +
                        xOffset + "," + yOffset);
 
-    this._thumbBBox.xMin = xOffset + box.left * pageZoom;
-		this._thumbBBox.yMin = yOffset + box.top  * pageZoom;
+    this._thumbBBox.xMin = Math.round(xOffset + box.left * pageZoom);
+		this._thumbBBox.yMin = Math.round(yOffset + box.top  * pageZoom);
     
-    this._thumbBBox.xMax = this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom;
-    this._thumbBBox.yMax = this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom;
+    this._thumbBBox.xMax = Math.round(this._thumbBBox.xMin + aImageNode.offsetWidth * pageZoom);
+    this._thumbBBox.yMax = Math.round(this._thumbBBox.yMin + aImageNode.offsetHeight * pageZoom);
     
     var viewportElement = gBrowser.selectedBrowser.contentWindow;  
     var scrollLeft = viewportElement.scrollX;
     var scrollTop = viewportElement.scrollY;
-    this._thumbBBox.refScrollLeft = scrollLeft;
-    this._thumbBBox.refScrollTop = scrollTop;
+    this._thumbBBox.refScrollLeft = Math.round(scrollLeft);
+    this._thumbBBox.refScrollTop = Math.round(scrollTop);
     this._logger.debug("_updateThumbBBox: tabbed browser = " +gBrowser + "; browser=" + gBrowser.selectedBrowser +
                        "; win=" + gBrowser.selectedBrowser.contentWindow);
     this._logger.debug("_updateThumbBBox: ref scroll = " +
@@ -1398,78 +1344,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.width = Math.max(available.left, available.right);
     available.height = Math.max(available.top, available.bottom);
 
+    available.left = Math.round(available.left);
+    available.right = Math.round(available.right);
+    available.top = Math.round(available.top);
+    available.bottom = Math.round(available.bottom);
+    available.width = Math.round(available.width);
+    available.height = Math.round(available.height);
+    available.windowWidth = Math.round(available.windowWidth);
+    available.windowHeight = Math.round(available.windowHeight);
+    
     return available;
   },
 
-  /**
-   * Returns the desired position of the popup, in screen coords, as fields:
-   * {x, y}
-   */
-  _calcPopupPosition : function(imageSize, available) {
-    let pos = {};
-    if (imageSize.height <= available.height) {
-      // We prefer above/below thumb to avoid tooltip.
-      // Position the popup horizontally flush with the right of the window or
-      // left-aligned with the left of the thumbnail, whichever is left-most.
-      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-      let windowStartX = content.window.mozInnerScreenX * pageZoom;
-      let pageWidth = content.window.innerWidth * pageZoom;
-      let popupXPageCoords = pageWidth - (imageSize.width + this._widthAddon);
-      let popupXScreenCoords = popupXPageCoords + windowStartX;
-      if (popupXScreenCoords > this._thumbBBox.xMin) {
-        popupXScreenCoords = this._thumbBBox.xMin;
-      }
-      pos.x = popupXScreenCoords;
-      this._logger.debug("_calcPopupPosition: " +
-                         "windowStartX=" + windowStartX +
-                         "; pageWidth=" + pageWidth +
-                         "; popupXPageCoords=" + popupXPageCoords +
-                         "; popupXScreenCoords=" + popupXScreenCoords);
-      if (imageSize.height <= available.bottom) {
-        this._logger.debug("_calcPopupPosition: display below thumb"); 
-        pos.y = this._thumbBBox.yMax + this._pad;
-      } else {
-        this._logger.debug("_calcPopupPosition: display above thumb"); 
-        pos.y = this._thumbBBox.yMin - imageSize.y - this._widthAddon - this._pad;
-      }
-    } else if (imageSize.width <= available.width) {
-      // We prefer left-of thumb to right-of thumb since tooltip
-      // typically extends to the right.
-      
-      // Position the popup vertically flush with the bottom of the window or
-      // top-aligned with the top of the thumbnail, whichever is higher.
-      // We don't simply use a 0 offset and rely on Firefox's logic since
-      // on Windows that can position the thumb under an always-on-top
-      // Windows task bar.
-      let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-      let windowStartY = content.window.mozInnerScreenY * pageZoom;
-      let pageHeight = content.window.innerHeight * pageZoom;
-      let popupYPageCoords = pageHeight - (imageSize.height + this._widthAddon);
-      let popupYScreenCoords = popupYPageCoords + windowStartY;
-      if (popupYScreenCoords > this._thumbBBox.yMin) {
-        popupYScreenCoords = this._thumbBBox.yMin;
-      }
-      pos.y = popupYScreenCoords;
-      this._logger.debug("_calcPopupPosition: " +
-                         "windowStartY=" + windowStartY +
-                         "; pageHeight=" + pageHeight +
-                         "; popupYPageCoords=" + popupYPageCoords +
-                         "; popupYScreenCoords=" + popupYScreenCoords);
-      if (imageSize.width <= available.left) {
-        this._logger.debug("_calcPopupPosition: display to left of thumb"); 
-        pos.x = this._thumbBBox.xMin - this._pad - (imageSize.width - this._widthAddon);
-      } else {
-        this._logger.debug("_calcPopupPosition: display to right of thumb"); 
-        pos.x = this._thumbBBox.xMax + this._pad;
-      }
-    } else {
-      this._logger.debug("_calcPopupPosition: display at absolute position (overlap thumb)"); 
-      pos.x = 0;
-      pos.y = 0;
-    }
-    return pos;
-  },
-  
   /**
    * Gets the image scale dimensions to fit the window and the position
    * at which it should be displayed.
@@ -1572,7 +1458,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                            ") isn't at least 20% bigger than thumb (" +
                            thumbWidth + " x " + thumbHeight + ")");
     }
-    if (scale.allow &&
+    if (scale.allow && allowCoverThumb &&
         scale.width < sideScale.width * 1.20 &&
         sideScale.width > thumbWidth * 1.20) {
       // Disallow covering thumb if it doesn't make the image at least 20%
@@ -1591,6 +1477,133 @@ ThumbnailZoomPlusChrome.Overlay = {
     return scale;
   },
 
+  /**
+   * Returns the desired position of the popup, in screen coords, as fields:
+   * {x, y}
+   */
+  _calcPopupPosition : function(imageSize, available) {
+    let pos = {};
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageWidth = content.window.innerWidth * pageZoom;
+    let pageHeight = content.window.innerHeight * pageZoom;
+    let windowStartX = content.window.mozInnerScreenX * pageZoom;
+    let windowStartY = content.window.mozInnerScreenY * pageZoom;
+
+    if (imageSize.height <= available.height) {
+      // We prefer above/below thumb to avoid tooltip.
+      // Position the popup horizontally flush with the right of the window or
+      // left-aligned with the left of the thumbnail, whichever is left-most.
+      let popupXPageCoords = pageWidth - (imageSize.width + this._widthAddon + this._pad);
+      let popupXScreenCoords = popupXPageCoords + windowStartX;
+      if (popupXScreenCoords > this._thumbBBox.xMin) {
+        popupXScreenCoords = this._thumbBBox.xMin;
+      }
+      pos.x = popupXScreenCoords;
+      this._logger.debug("_calcPopupPosition: " +
+                         "windowStartX=" + windowStartX +
+                         "; pageWidth=" + pageWidth +
+                         "; popupXPageCoords=" + popupXPageCoords +
+                         "; popupXScreenCoords=" + popupXScreenCoords);
+      if (imageSize.height <= available.top) {
+        this._logger.debug("_calcPopupPosition: display above thumb"); 
+        pos.y = this._thumbBBox.yMin - this._pad - imageSize.height - this._widthAddon;
+      } else {
+        this._logger.debug("_calcPopupPosition: display below thumb"); 
+        pos.y = this._thumbBBox.yMax + this._pad;
+      }
+    } else if (imageSize.width <= available.width) {
+      // We prefer left-of thumb to right-of thumb since tooltip
+      // typically extends to the right.
+      
+      // Position the popup vertically flush with the bottom of the window or
+      // top-aligned with the top of the thumbnail, whichever is higher.
+      // We don't simply use a 0 offset and rely on Firefox's logic since
+      // on Windows that can position the thumb under an always-on-top
+      // Windows task bar.
+      let popupYPageCoords = pageHeight - (imageSize.height + this._widthAddon + this._pad);
+      let popupYScreenCoords = popupYPageCoords + windowStartY;
+      if (popupYScreenCoords > this._thumbBBox.yMin) {
+        popupYScreenCoords = this._thumbBBox.yMin;
+      }
+      pos.y = popupYScreenCoords;
+      this._logger.debug("_calcPopupPosition: " +
+                         "windowStartY=" + windowStartY +
+                         "; pageHeight=" + pageHeight +
+                         "; popupYPageCoords=" + popupYPageCoords +
+                         "; popupYScreenCoords=" + popupYScreenCoords);
+      if (imageSize.width <= available.left) {
+        this._logger.debug("_calcPopupPosition: display to left of thumb"); 
+        pos.x = this._thumbBBox.xMin - this._pad - imageSize.width - this._widthAddon;
+      } else {
+        this._logger.debug("_calcPopupPosition: display to right of thumb"); 
+        pos.x = this._thumbBBox.xMax + this._pad;
+      }
+    } else {
+      // cover thumb (at least partially).  Center in window for any dimensions
+      // where the thumb will be totally covered.  For any which only parially
+      // cover it, allow thumb to be partially visible.
+
+      // First calc centered position:
+      pos.x = windowStartX + (available.windowWidth - imageSize.width) / 2;
+      pos.y = windowStartY + (available.windowHeight - imageSize.height) / 2;
+
+      this._logger.debug("_calcPopupPosition: " +
+                         "overlap thumb.  Centered x,y = " +
+                         pos.x + "," + pos.y);
+
+      let openSize = available.windowWidth - imageSize.width;
+      this._logger.debug("_calcPopupPosition: " +
+                         "available.width = " + available.width +
+                         " vs openSize width = " + openSize);
+      if (available.left  < openSize ||
+          available.right < openSize) {
+        // Part of the thumb could be visible horizontally.  Make it so.
+        // Typically happens with horizontally-long links, e.g. on reddit.com
+        if (available.left < available.right) {
+          // There is left free space to the left of the thumb; thus the
+          // thumb is closer to the left edge of the window, and
+          // we should position against right edge of window
+          pos.x = windowStartX + (available.windowWidth - imageSize.width);
+          this._logger.debug("_calcPopupPosition: " +
+                             "position against right edge of window.  x = " +
+                              pos.x);
+        } else {
+          // position against left edge of window.
+          pos.x = windowStartX + this._pad;
+          this._logger.debug("_calcPopupPosition: " +
+                             "position against left edge of window.  x = " +
+                              pos.x);
+        }
+      }
+      
+      openSize = available.windowHeight - imageSize.height;
+      this._logger.debug("_calcPopupPosition: " +
+                         "available.height = " + available.height +
+                         " vs openSize height = " + openSize);
+      if (available.top  < openSize ||
+          available.bottom < openSize) {
+        // Part of the thumb could be visible vertically.  Make it so.
+        // Typically happens with vertically-long thumbs, e.g. on reddit.com
+        if (available.top < available.bottom) {
+          // There is left free space to the top of the thumb; thus the
+          // thumb is closer to the top edge of the window, and
+          // we should position against bottom edge of window
+          pos.y = windowStartY + (available.windowHeight - imageSize.height);
+          this._logger.debug("_calcPopupPosition: " +
+                             "position against bottom edge of window.  y = " +
+                              pos.y);
+        } else {
+          // position against top edge of window.
+          pos.y = windowStartY + this._pad;
+          this._logger.debug("_calcPopupPosition: " +
+                             "position against top edge of window.  y = " +
+                              pos.y);
+        }
+      }
+    }
+    return pos;
+  },
+  
 
   /**
    * Shows the image at its full size in the panel.
