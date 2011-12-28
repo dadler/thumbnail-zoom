@@ -1093,14 +1093,19 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     this._logger.trace("_imageOnLoad");
 
+    if (this._currentImage != aImageSrc) {
+      // A different image than our current one finished loading; ignore it.
+      return;
+    }
+
+    // This is the image URL we're currently loading (not another previously
+    // image we had started loading).
+
     // Make sure we don't get called again as an onLoad, if current call
     // was due to the timer.
     image.onload = null;
-
-    if (this._currentImage == aImageSrc) {
+    
       this._timer.cancel();
-      // This is the image URL we're currently loading (not another previously
-      // image we had started loading).
       let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
       
       this._updateThumbBBox(aImageNode, 
@@ -1139,7 +1144,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       // (Test by watching "images" size in about:memory.)
       image.src = null;
       image = null;
-    }
   },
   
   /**
@@ -1228,8 +1232,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._setImageSize(imageSize);                                 
 
     this._addToHistory(aImageSrc);
-    // We prefer above/below thumb to avoid tooltip.
     if (imageSize.height <= available.height) {
+      // We prefer above/below thumb to avoid tooltip.
       // Position the popup horizontally flush with the right of the window or
       // left-aligned with the left of the thumbnail, whichever is left-most.
       let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
@@ -1381,12 +1385,18 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Gets the image scale dimensions to fit the window.
+   * Gets the image scale dimensions to fit the window and the position
+   * at which it should be displayed.
    * @param aImage the image info.
-   * @param available: contains (width, height) of the max space available
-   * to the left or right and top or bottom of the thumb.
-   * @return the scale dimensions in these fields:
-   *   {width, height, allow}
+   * @param available: contains (width, height, left, right, top, bottom):
+   *   the max space available to the left or right and top or bottom of the thumb.
+   * @return the scale dimensions and position in these fields:
+   *   {width: displayed width of image
+   *    height: displayed height of image 
+   *    (in the future: x, y: displayed position of image in screen coords)
+   *    allow: boolean; true if we allow the popup; false if disallowed since
+   *           would be too small.
+   *   }
    */
   _getScaleDimensions : function(aImage, available, thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
@@ -1404,6 +1414,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let scaleUpBy = (pageZoom > 1.0 ? pageZoom : 1.0);
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
+                  x: 0, y: 0,
                   allow: true };
 
     // Make sure scale.width, height is not larger than the window size.
