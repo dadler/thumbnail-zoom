@@ -698,6 +698,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
+                      "/index.php\?.*module=attach|" + // eg rootzwiki.com
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
                       "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
