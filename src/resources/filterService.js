@@ -252,6 +252,7 @@ ThumbnailZoomPlus.FilterService = {
         }
       }
     }
+    imageSource = this._applyBaseURI(aDocument, imageSource);
     this._logger.debug("ThumbnailPreview: using image source       " + imageSource);
                                              
     return imageSource;
