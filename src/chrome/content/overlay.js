@@ -104,6 +104,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   // 0 or _borderWidth*2.
   _widthAddon : 0,
   
+  // _panelWidthAddon is how much wider the entire panel is than the image
+  // and its border.
+  // Used when calling sizeTo().  Effect may be different on mac than Windows.
+  _panelWidthAddon : 10,
+  _panelHeightAddon : 1,
+  
   // pad is the blank space (in pixels) between the thumbnail and a popup
   // to be shown adjacenetly to it, and between the popup and the window
   // edge.  This is unrelated to the border preference.
@@ -874,7 +880,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panel.moveTo(9999, 9999);
       let tiny = {width: 0, height: 0};
       this._setImageSize(tiny);
-      this._panel.sizeTo(0, 0);
       return;
     }
 
@@ -1023,7 +1028,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minWidth = iconWidth + "px";
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
-    this._panel.sizeTo(iconWidth, 16);
+    this._panel.sizeTo(iconWidth + this._widthAddon + this._panelWidthAddon,
+                       16 + this._widthAddon + this._panelHeightAddon);
 
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
@@ -1249,11 +1255,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._addListenersWhenPopupShown();
     this._panelCaption.hidden = (this._panelCaption.value == "" ||
                                  this._panelCaption.value == " ");
-    if (! this._allowPopdown()) {    
-      // Set the size (redundantly) on the panel itself as a possible workaround
-      // for the popup appearing very narrow on Linux:
-      this._panel.sizeTo(imageSize.width + this._pad, imageSize.height + this._pad);
-    }
     this._setImageSize(imageSize);                                 
     
     // Explicitly move panel since if it was already popped-up, openPopupAtScreen
@@ -1641,6 +1642,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
     this._panelCaption.style.maxWidth = aScale.width + "px";
+    
+    // Set the size (redundantly) on the panel itself as a possible workaround
+    // for the popup appearing very narrow on Linux:
+    this._panel.sizeTo(aScale.width + this._widthAddon + this._panelWidthAddon, 
+                       aScale.height + this._widthAddon + this._panelHeightAddon +
+                       this._panelCaption.height);
   },
 
 
