@@ -719,23 +719,21 @@ ThumbnailZoomPlusChrome.Overlay = {
      * an image URL.
      */
 
-    let foundAnyImageSource = false;
     while (aPage >= 0) {
       this._logger.debug("... _findPageAndShowImage: Trying page '" + 
                          ThumbnailZoomPlus.FilterService.pageList[aPage].key +
                          "'");
 
-      let imageSource = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
+      let imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
+      let imageSource = imageSourceInfo.imageURL;
       
       if (null != imageSource) {      
         if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
             ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
           // Found a matching page!
-          foundAnyImageSource = true;
           let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
           if (zoomImageSrc == "") {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
-            foundAnyImageSource = false;
           } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
@@ -744,7 +742,8 @@ ThumbnailZoomPlusChrome.Overlay = {
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                                this._originalURI);
             
-            this._showZoomImage(zoomImageSrc, node, aPage, aEvent);
+            this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
+                                node, aPage, aEvent);
             return;
           }
         }
@@ -752,16 +751,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       
       // Try to find another matching page.
       aPage = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(aDocument, aPage+1);
-    }
-    if (false && foundAnyImageSource) {
-      // Originally I thought it'd be helpful to indicate a recognized site
-      // whose particular link we don't recognize.  But it turns out to just be
-      // distracting to the user, and forces the developer to make more specific
-      // imageRegExp patterns which are redundant with getZoomImage().
-      // So this code is disabled.
-      this._logger.debug("_findPageAndShowImage: show noMatchingRule icon briefly " +
-                         "since mouse not in recognized URL or site disabled");
-      this._showStatusIconBriefly(node, "noMatchingRule16.png", 32);      
     }
   },
   
@@ -821,9 +810,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node
    * @param aPage the page constant
    */
-  _showZoomImage : function(zoomImageSrc, aImageNode, aPage, aEvent) {
+  _showZoomImage : function(zoomImageSrc, noTooSmallWarning, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
-    this._showPanel(aImageNode, zoomImageSrc, aEvent);
+    this._showPanel(aImageNode, zoomImageSrc, noTooSmallWarning, aEvent);
   },
 
 
@@ -854,7 +843,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
    */
-  _showPanel : function(aImageNode, aImageSrc, aEvent) {
+  _showPanel : function(aImageNode, aImageSrc, noTooSmallWarning, aEvent) {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
@@ -868,7 +857,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
     this._contextMenu.hidden = false;
-    this._preloadImage(aImageNode, aImageSrc, aEvent);
+    this._preloadImage(aImageNode, aImageSrc, noTooSmallWarning, aEvent);
   },
 
   _hideThePopup : function() {
@@ -1070,7 +1059,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                               image)
+                                 noTooSmallWarning, image)
   {
     this._logger.trace("_checkIfImageLoaded");
     if (this._currentImage != aImageSrc) {
@@ -1099,7 +1088,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                             image);
+                              noTooSmallWarning, image);
           }
          }, 0.7 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
@@ -1113,7 +1102,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                               image)
+                          noTooSmallWarning, image)
   {
     this._logger.trace("_imageOnLoad");
 
@@ -1164,7 +1153,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
     
     if (! imageSize.allow) {
-      this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
+      if (! noTooSmallWarning) {
+        this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
+      } else {
+        this._logger.debug("_imageOnLoad: too small (but noTooSmallWarning)");
+      }
       
       return;
     }
@@ -1183,7 +1176,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageSrc the image source.
    * @param aEvent the mouse event which caused us to preload the image.
    */
-  _preloadImage : function(aImageNode, aImageSrc, aEvent) {
+  _preloadImage : function(aImageNode, aImageSrc, noTooSmallWarning, aEvent) {
     this._logger.trace("_preloadImage");
 
     let that = this;
@@ -1203,8 +1196,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     };
 
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, 
-                             image)
+      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image)
     };
 
     this._panelImage.src = aImageSrc;
@@ -1221,7 +1213,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                             image);
+                                     noTooSmallWarning, image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
