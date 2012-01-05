@@ -600,10 +600,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     adj.yMin += yOffset;
     adj.yMax += yOffset;
 
-    var inside = (x >= adj.xMin &&
-                  x <= adj.xMax &&
-                  y >= adj.yMin &&
-                  y <= adj.yMax);
+    var inside = (x > adj.xMin &&
+                  x < adj.xMax &&
+                  y > adj.yMin &&
+                  y < adj.yMax);
     if (0) this._logger.debug("_insideThumbBBox: orig scroll=" +
                        adj.refScrollLeft + "," + adj.refScrollTop +
                       "; cur scroll=" +
@@ -1282,11 +1282,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_calcThumbBBox: x,y offset = " +
                        xOffset + "," + yOffset);
 
-    result.xMin = Math.round(xOffset + box.left * pageZoom);
-		result.yMin = Math.round(yOffset + box.top  * pageZoom);
-    
-    result.xMax = Math.round(result.xMin + aImageNode.offsetWidth * pageZoom);
-    result.yMax = Math.round(result.yMin + aImageNode.offsetHeight * pageZoom);
+    result.xMin = Math.ceil(xOffset + box.left * pageZoom);
+		result.yMin = Math.ceil(yOffset + box.top  * pageZoom);
+    result.xMax = Math.floor(xOffset + box.right * pageZoom);
+    result.yMax = Math.floor(yOffset + box.bottom * pageZoom);
     
     var viewportElement = gBrowser.selectedBrowser.contentWindow;  
     var scrollLeft = viewportElement.scrollX;
@@ -1362,14 +1361,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.width = Math.max(available.left, available.right);
     available.height = Math.max(available.top, available.bottom);
 
-    available.left = Math.round(available.left);
-    available.right = Math.round(available.right);
-    available.top = Math.round(available.top);
-    available.bottom = Math.round(available.bottom);
-    available.width = Math.round(available.width);
-    available.height = Math.round(available.height);
-    available.windowWidth = Math.round(available.windowWidth);
-    available.windowHeight = Math.round(available.windowHeight);
+    available.left = Math.floor(available.left);
+    available.right = Math.floor(available.right);
+    available.top = Math.floor(available.top);
+    available.bottom = Math.floor(available.bottom);
+    available.width = Math.floor(available.width);
+    available.height = Math.floor(available.height);
+    available.windowWidth = Math.floor(available.windowWidth);
+    available.windowHeight = Math.floor(available.windowHeight);
     
     return available;
   },
@@ -1489,8 +1488,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale = sideScale;
     }
     
-    scale.width = Math.round(scale.width);
-    scale.height = Math.round(scale.height);
+    scale.width = Math.floor(scale.width);
+    scale.height = Math.floor(scale.height);
     
     return scale;
   },
