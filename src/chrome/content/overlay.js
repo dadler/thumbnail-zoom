@@ -618,7 +618,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     return inside;
   },
   
+  
+  /**
+   * _getEffectiveTitle gets the text to be shown in the caption when
+   * showing a popupfor aNode.
+   */
   _getEffectiveTitle : function(aNode) {
+    // Search ancestors for a node with non-blank textContent.
     let title = "";
     while (aNode != null && aNode.localName.toLowerCase() != "body") {
       if (aNode.title != undefined && 
@@ -833,6 +839,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_findPageAndShowImage: image title='" + 
                        caption + "'");
     this._panelCaption.value = caption;
+    this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
     aImageNode.title = " "; // suppress tooltip
   },
@@ -910,7 +917,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                            + ": " + 
                            this._panelCaption.value);
 
-        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = this._panelCaption.value;
+        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
+                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
       }
       this._panelCaption.value = "";
     } catch (e) {
