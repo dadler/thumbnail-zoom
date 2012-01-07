@@ -622,6 +622,35 @@ ThumbnailZoomPlusChrome.Overlay = {
   /**
    * _getEffectiveTitle gets the text to be shown in the caption when
    * showing a popupfor aNode.
+   *
+   * Here are some situations this wants to work in:
+   * - image with 'title' text
+   * - deviantart.com; Facebook image on wall:
+   *   <a> link with title attr, surrounding an img node
+   * - reddit textual link associated with image:
+   *   <a> link enclosing doc text.
+   * - reddit thumb:
+   *   <div><p class="title"><a> enclosing doc text, where <div> is a peer of 
+   *   the <a> which encloses the <img> of the thumb.
+   * - facebook external video embed.:
+   *   title is doc text in <div><strong><a> where <div> is a peer of the <a> 
+   *   which is the parent of the thumb img.
+   * - Google Images popup:
+   *   title in doc text in <div class="rg_hx"><p class="..."> or 
+   *   <div><p><a>, where <div class="rg_hx"> is a peer
+   *   of the <a> which is parent of the img thumb.  There are several <p>
+   *   with different classes and IDs, for resolution and orig doc title (rg_hn st), 
+   *   image filename (rg_ht), original domain (rg_hr kv), exif data, etc.  
+   * - twitpic.com "What's Trending?" images:
+   *   alt tag of <img> has tweet text;
+   *   <p><a> enclosing text has tweet user, where <p> is peer of <a> enclosing
+   *   <img>.
+   * - flickr.com:
+   *   title is in both <img>'s alt attr and parent <a>'s title attr.
+   * - youtube.com:
+   *   img is <div><a><span><span><img>, but has a useless alt tag ("Thumbnail").
+   *   peer of that <div> is <div><div><h4><a class="title">, which encloses the
+   *   doc text title.
    */
   _getEffectiveTitle : function(aNode) {
     // Search ancestors for a node with non-blank textContent.
@@ -632,6 +661,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         title = aNode.title;
         break;
       }
+      let alt = aNode.getAttribute("alt");
+      if (alt != undefined && alt != "" &&
+          /^Thumbnail$/i.test(alt)) {
+        // use alt text; useful e.g. with twitpic.
+        title = alt;
+        break;
+      }      
       if (aNode.textContent != undefined && 
           aNode.textContent != "" ) {
         // return text of <a href=..>text</a>
@@ -646,7 +682,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Fix for sites like tumblr which sets title to lots of spaces;
     // also compacts multiples for better display.
-    title = title.replace(/\s+/, " ", "g");
+    title = title.replace(/\s+/gm, " ");
+    title = title.replace(/^ *(.*?) *$/, "$1");
     this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
     return title;
   },
