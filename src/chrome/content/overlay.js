@@ -663,27 +663,67 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       let alt = aNode.getAttribute("alt");
       if (alt != undefined && alt != "" &&
-          /^Thumbnail$/i.test(alt)) {
-        // use alt text; useful e.g. with twitpic.
+          ! /^\s*Thumbnail\s*$/i.test(alt)) {
+        // use alt text; useful e.g. with twitpic.  Exclusion for youtube.com.
+        this._logger.debug("_getEffectiveTitle: got title from alt: '" +
+                           alt + "'");
         title = alt;
         break;
-      }      
-      if (aNode.textContent != undefined && 
-          aNode.textContent != "" ) {
-        // return text of <a href=..>text</a>
-        title = aNode.textContent;
-        break;
+      }
+
+      // Look for document text enclosed by aNode (or its descendents).
+      let text = aNode.textContent
+      if (text != undefined && text != "") {
+        // change newlines to spaces to simplify the next test.
+        text = text.replace(/\s+/gm, " ");
+        let exp = /^ ?[0-9]+:[0-9]+ ?Add to ?$/m;
+        if (exp.test(text) || text == "Add to ") {
+          this._logger.debug("_getEffectiveTitle: ignoring youtube element: " +
+                             "node=" + aNode + "; textContent='" + text + "'");
+        } if (aNode.className == "tagWrapper") {
+          // skip Facebook theater image level which just says "Already tagged"
+          // so we can traverse up higher.
+          this._logger.debug("_getEffectiveTitle: skipping tagWrapper (eg facebook)");
+        } else {
+          // note: the exclusion test above is for youtube.com.
+          title = text;
+          this._logger.debug("_getEffectiveTitle: found with className " + aNode.className);
+          break;
+        }
       }
       this._logger.debug("_getEffectiveTitle: trying parent of " + aNode +
                         ": " + aNode.parentNode);
       aNode = aNode.parentNode;
+      if (aNode.localName.toLowerCase() == "ul") {
+        // don't traverse up to a "<ul>" since it's likely to
+        // contain other links too and we may get the wrong title.
+        // Needed e.g. for youtube Spotlight area.
+        break;
+      }
     }
-    this._logger.debug("_getEffectiveTitle: initial title='" + title + "'");
+    this._logger.debug("_getEffectiveTitle: initial title='" + title + 
+                       "' from node " + aNode);
     
     // Fix for sites like tumblr which sets title to lots of spaces;
     // also compacts multiples for better display.
     title = title.replace(/\s+/gm, " ");
     title = title.replace(/^ *(.*?) *$/, "$1");
+    
+    // reddit text ends up having vote counts at the start, e.g.
+    // "1294812I'm linking this".  Detect reddit by looking for
+    // ")submitted".  Remove the number and "submitted" and what follows.
+    title = title.replace(/^[0-9]+(.*\))submitted .*/, "$1");
+    
+    // youtube fix: extract title from something like
+    // 'GFormLLC uploaded 1 day ago 2:20 Add to iPad Survives 100,000+ Foot Fall From Space Near Area 51 (High-Res) http://g-form.com -- G-Form, a company etc.  solely... GFormLLC 629,027 views'
+    title = title.replace(/^.* ago [0-9]+:[0-9]+ Add to /, '');
+    title = title.replace(/^[0-9]+:[0-9]+ ?Add to /, '');
+
+    if (title == "Already tagged") {
+      // Facebook theater photos w/o titles end up as "Already tagged".
+      title = "";
+    }
+
     this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
     return title;
   },
