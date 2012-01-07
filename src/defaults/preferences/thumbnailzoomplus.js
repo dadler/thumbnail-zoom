@@ -36,7 +36,13 @@ pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
 pref("extensions.thumbnailzoomplus.panel.key",          0);
 pref("extensions.thumbnailzoomplus.panel.border",       true);
 pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
+pref("extensions.thumbnailzoomplus.panel.caption",      false);
 pref("extensions.thumbnailzoomplus.panel.history",      false);
+
+// Note: we set extensions.thumbnailzoomplus.panel.neverpopdown in
+// verlay.js::_updatePreferenceFix() since we can't set conditional
+// defaults here.
+                
 pref("extensions.thumbnailzoomplus.panel.opacity",      100);
 
 // Site preferences.

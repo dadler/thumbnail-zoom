@@ -40,7 +40,9 @@
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tasto per visualizzare l'immagine:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra bordo bianco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Massimizzare la dimensione immagine di sovrapposti delle miniature">
+<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Aggiungere immagini alla storia browser">
+<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "Linux workaround">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nessuno">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Generale">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Attivare o disattivare per sito">

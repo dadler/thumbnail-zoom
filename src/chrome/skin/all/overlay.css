@@ -33,7 +33,6 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
-  background-color: #FFF !important;
   padding: 5px;
   cursor: none !important;
   z-index: 10100;
@@ -49,6 +48,13 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   */
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
+  background-color: white !important;
+}
+#thumbnailzoomplus-panel-vbox {
+  background-color: #AAA !important;
+}
+#thumbnailzoomplus-panel-caption {
+  color: black;
 }
 
 .thumbnailzoomplus-options-pages-column {

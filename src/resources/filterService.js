@@ -204,32 +204,41 @@ ThumbnailZoomPlus.FilterService = {
    * Gets the image source, handle special cases.
    * @param aNode the html node.
    * @param aPage the page constant.
-   * @return the image source, null if not apply.
+   * @return object with fields:
+   *     imageURL: string (null if not apply);
+   *     noTooSmallWarning: boolean
    */
   getImageSource : function(aDocument, aNode, aPage) {
+    let result = {imageURL: null, noTooSmallWarning: false};
     let pageInfo = this.pageList[aPage];
-    this._logger.debug("getImageSource page " + aPage + " " + pageInfo.key);
+    this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
 
     let nodeName = aNode.localName.toLowerCase();
-    this._logger.debug("ThumbnailPreview node name: " + nodeName + "; src: " +
+    this._logger.debug("getImageSource: node name: " + nodeName + "; src: " +
                        aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
     let imageSource =  null;
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
       imageSource = this._applyBaseURI(aDocument, imageSource);
-      this._logger.debug("ThumbnailPreview node name: canonical URL: " + imageSource);
+      this._logger.debug("getImageSource: node name: canonical URL: " + imageSource);
     }
 
     // check special cases
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
+      this._logger.debug("getImageSource: node name: getSpecialSource reutrned " + imageSource);
     }
     
     // check other image nodes.
     if (null == imageSource && pageInfo.getImageNode) {
       let nodeClass = aNode.getAttribute("class");
       let imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);
-
+      if (imageNode == aNode && "img" == nodeName) {
+        // the image source is the thumb itself; don't warn if the image
+        // is too small since we'd see too many warnings.
+        result.noTooSmallWarning = true;
+      }
+      
       if (imageNode) {
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");
@@ -252,9 +261,15 @@ ThumbnailZoomPlus.FilterService = {
         }
       }
     }
-    this._logger.debug("ThumbnailPreview: using image source       " + imageSource);
-                                             
-    return imageSource;
+    if (imageSource != null) {
+      imageSource = this._applyBaseURI(aDocument, imageSource);
+    }
+    this._logger.debug("getImageSource: using image source       " + imageSource +
+                       "; noTooSmallWarning=" + result.noTooSmallWarning);
+    
+    result.imageURL = imageSource;
+    
+    return result;
   },
 
   /**

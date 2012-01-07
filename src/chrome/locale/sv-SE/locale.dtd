@@ -42,7 +42,9 @@
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tangent för bildvisning:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
+<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till bilder i webbläsarhistoriken">
+<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "Linux workaround">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ingen">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Aktivera/inaktivera för följande webbplatser">
