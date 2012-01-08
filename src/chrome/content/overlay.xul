@@ -82,7 +82,7 @@
             align="center" pack="center" >
         <image id="thumbnailzoomplus-panel-image" />
         <label id="thumbnailzoomplus-panel-caption" 
-               hidden="true" crop="right" />
+               hidden="true" crop="right" height="14px" />
       </vbox>
     </panel>
   </window>
