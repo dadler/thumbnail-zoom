@@ -403,9 +403,9 @@ ThumbnailZoomPlusChrome.Overlay = {
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
      */
-    doc.addEventListener("keyup", this._handleKeyUp, true);
+    doc.addEventListener("keydown", this._handleKey, true);
+    doc.addEventListener("keyup", this._handleIgnoreKey, true);
     doc.addEventListener("keypress", this._handleIgnoreKey, true);
-    doc.addEventListener("keydown", this._handleIgnoreKey, true);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -427,9 +427,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
                        doc);
-    doc.removeEventListener("keyup", this._handleKeyUp, true);
+    doc.removeEventListener("keydown", this._handleKey, true);
+    doc.removeEventListener("keyup", this._handleIgnoreKey, true);
     doc.removeEventListener("keypress", this._handleIgnoreKey, true);
-    doc.removeEventListener("keydown", this._handleIgnoreKey, true);
       
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -1061,11 +1061,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel();
   },
   
-  _handleKeyUp : function(aEvent) {
+  _handleKey : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeyUp for code "  + aEvent.keyCode );
+    that._logger.debug("_handleKey for code "  + aEvent.keyCode );
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE /* Escape key */) {
-      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
+      that._logger.debug("_handleKey: _closePanel since pressed Esc key");
       that._closePanel();
       
       aEvent.stopPropagation(); // the web page should ignore the key.
