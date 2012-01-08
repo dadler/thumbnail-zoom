@@ -965,19 +965,21 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _hideThePopup : function() {
       
+    // As a workaround for some linux (eg Gnome3),
+    // instead of closing panel, move it to the lower right corner and
+    // make it tiny.  Actually we'll do this on all platforms,
+    // but then also really close the panel except when
+    // ! _allowPopdown (typically on Linux).
+    let tiny = {width: 0, height: 0};
+    this._setImageSize(tiny);
+    this._panel.moveTo(9999, 9999);
     if (! this._allowPopdown()) {      
-      // workaround for some linux (eg Gnome3)
-      // Instead of closing panel, move it to the lower right corner and
-      // make it tiny.
-      this._panel.moveTo(9999, 9999);
-      let tiny = {width: 0, height: 0};
-      this._setImageSize(tiny);
       return;
     }
 
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
-      }
+    }
   },
   
   /**
@@ -1251,7 +1253,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Allow scaling up to 4x larger.
     this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
                                       this._origImageWidth, this._origImageHeight,
-                                      4.);
+                                      3.0);
   },
   
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
@@ -1333,7 +1335,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let maxScaleUpBy = 1.0;
     if (aEvent.shiftKey) {
-      maxScaleUpBy = 4.0;
+      maxScaleUpBy = 3.0;
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy)
@@ -1388,8 +1390,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Explicitly move panel since if it was already popped-up, openPopupAtScreen
     // won't do anything.
-    this._panel.moveTo(pos.x, pos.y);
     this._setImageSize(imageSize);
+    this._panel.moveTo(pos.x, pos.y);
     this._addListenersWhenPopupShown();
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
@@ -1783,20 +1785,24 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _setImageSize : function(aScale) {
     this._logger.trace("_setImageSize");
-
     this._logger.debug("_setImageSize: setting size to " +
                        aScale.width + " x " + aScale.height);
+
     this._panelImage.style.maxWidth = aScale.width + "px";
     this._panelImage.style.minWidth = aScale.width + "px";
     this._panelImage.style.maxHeight = aScale.height + "px";
     this._panelImage.style.minHeight = aScale.height + "px";
     this._panelCaption.style.maxWidth = aScale.width + "px";
-    
+
     // Set the size (redundantly) on the panel itself as a possible workaround
     // for the popup appearing very narrow on Linux:
-    this._panel.sizeTo(aScale.width + this._widthAddon + this._panelWidthAddon, 
-                       aScale.height + this._widthAddon + this._panelHeightAddon +
-                       (this._panelCaption.hidden ? 0 : this._captionHeight));
+    if (aScale.width == 0) {
+      this._panel.sizeTo(0, 0);
+    } else {
+      this._panel.sizeTo(aScale.width + this._widthAddon + this._panelWidthAddon, 
+                         aScale.height + this._widthAddon + this._panelHeightAddon +
+                         (this._panelCaption.hidden ? 0 : this._captionHeight));
+    }
   },
 
 
