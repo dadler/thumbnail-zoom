@@ -1070,7 +1070,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
-    } else if (aEvent.keyCode == aEvent.DOM_VK_PERIOD) {
+    } else if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
       that._maximizePopupSize();
     }
   },
@@ -1079,7 +1079,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-        aEvent.keyCode == aEvent.DOM_VK_PERIOD) {
+        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
       that._logger.debug("_handleIgnoreKey: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1167,7 +1167,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                                 noTooSmallWarning, image)
+                                 noTooSmallWarning, image, maxScaleUpBy)
   {
     this._logger.trace("_checkIfImageLoaded");
     if (this._currentImage != aImageSrc) {
@@ -1196,7 +1196,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                              noTooSmallWarning, image);
+                              noTooSmallWarning, image, maxScaleUpBy);
           }
          }, 0.7 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
@@ -1211,7 +1211,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                          noTooSmallWarning, image)
+                          noTooSmallWarning, image, maxScaleUpBy)
   {
     this._logger.trace("_imageOnLoad");
 
@@ -1236,7 +1236,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
                                       noTooSmallWarning, 
                                       this._origImageWidth, this._origImageHeight,
-                                      1.0);
+                                      maxScaleUpBy);
 
     // Help the garbage collector reclaim memory quickly.
     // (Test by watching "images" size in about:memory.)
@@ -1278,7 +1278,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
                                              thumbWidth, thumbHeight, maxScaleUpBy);
     
-    this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
+    this._logger.debug("_sizePositionAndDisplayPopup: available w/l/r:" + available.width + 
                        "/" + available.left + 
                        "/" + available.right +
                        "; h/t/b:" + available.height + 
@@ -1286,7 +1286,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "/" + available.bottom + 
                        "; adj windowWidth, Height: " + 
                        available.windowWidth + "," + available.windowHeight);
-    this._logger.debug("_imageOnLoad: " + 
+    this._logger.debug("_sizePositionAndDisplayPopup: " + 
+                       "maxScaleUpBy=" + maxScaleUpBy +
                        "win width=" + content.window.innerWidth*pageZoom +
                        "; win height=" + content.window.innerHeight*pageZoom +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
@@ -1296,7 +1297,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (! noTooSmallWarning) {
         this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
       } else {
-        this._logger.debug("_imageOnLoad: too small (but noTooSmallWarning)");
+        this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
       }
       
       return;
@@ -1330,8 +1331,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
+    let maxScaleUpBy = 1.0;
+    if (aEvent.shiftKey) {
+      maxScaleUpBy = 4.0;
+    }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image)
+      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy)
     };
 
     this._panelImage.src = aImageSrc;
@@ -1348,7 +1353,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                                     noTooSmallWarning, image);
+                                     noTooSmallWarning, image, maxScaleUpBy);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
