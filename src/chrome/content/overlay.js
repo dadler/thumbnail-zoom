@@ -65,19 +65,32 @@ ThumbnailZoomPlusChrome.Overlay = {
    *     image.
    */
   _timer : null,
+
   /* The floating panel. */
   _panel : null,
+
   /* The floating panel image. */
   _panelImage : null,
+
   /* The floating panel caption (a label). */
   _panelCaption : null,
-  /* The current image source. */
-  _currentImage : null,
-  /* Context download image menu item */
+
+  /* Context menu's download image menu item */
   _contextMenu : null,
+
   /* File Picker. */
   _filePicker : null,
   
+  /* The current image source (URL). */
+  _currentImage : null,
+
+  /* The thumb image or link which triggered the current popup */
+  _currentThumb : null,
+
+  /* The dimensions of the 1:1 resolution of the popup's image. */
+  _origImageWidth : 0,
+  _origImageHeight : 0,
+
   /* _thumbBBox is the bounding box of the thumbnail or link which caused
      the popup to launch, in screen coordinates. 
      refScroll{Left,Top} are the window scroll amounts implicit in the bbox
@@ -391,8 +404,8 @@ ThumbnailZoomPlusChrome.Overlay = {
      * This is only active while the pop-up is displayed.
      */
     doc.addEventListener("keyup", this._handleKeyUp, true);
-    doc.addEventListener("keypress", this._handleIgnoreEsc, true);
-    doc.addEventListener("keydown", this._handleIgnoreEsc, true);
+    doc.addEventListener("keypress", this._handleIgnoreKey, true);
+    doc.addEventListener("keydown", this._handleIgnoreKey, true);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -415,8 +428,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("_removeListenersWhenPopupHidden for " +
                        doc);
     doc.removeEventListener("keyup", this._handleKeyUp, true);
-    doc.removeEventListener("keypress", this._handleIgnoreEsc, true);
-    doc.removeEventListener("keydown", this._handleIgnoreEsc, true);
+    doc.removeEventListener("keypress", this._handleIgnoreKey, true);
+    doc.removeEventListener("keydown", this._handleIgnoreKey, true);
       
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -991,6 +1004,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // collector:
       this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
+      this._currentThumb = null;
       this._panelCaption.hidden = true;
       
       // restore original title / tooltip:
@@ -1049,21 +1063,24 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handleKeyUp : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeyUp for "  + aEvent.keyCode );
-    if (aEvent.keyCode == 27 /* Escape key */) {
+    that._logger.debug("_handleKeyUp for code "  + aEvent.keyCode );
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE /* Escape key */) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
       
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
+    } else if (aEvent.keyCode == aEvent.DOM_VK_PERIOD) {
+      that._maximizePopupSize();
     }
   },
   
-  _handleIgnoreEsc : function(aEvent) {
+  _handleIgnoreKey : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleIgnoreEsc for "  + aEvent.keyCode );
-    if (aEvent.keyCode == 27 /* Escape key */) {
-      that._logger.debug("_handleIgnoreEsc: ignoring Esc key");
+    that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+        aEvent.keyCode == aEvent.DOM_VK_PERIOD) {
+      that._logger.debug("_handleIgnoreKey: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
     }
@@ -1185,6 +1202,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     } 
   },
 
+
   /**
    * _imageOnLoad displays the full-size image (if it's called on the
    * appropriate image's window).
@@ -1210,6 +1228,37 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onload = null;
     
     this._timer.cancel();
+    
+    
+    this._currentThumb = aImageNode;
+    this._origImageWidth = image.width;
+    this._origImageHeight = image.height;
+    this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
+                                      noTooSmallWarning, 
+                                      this._origImageWidth, this._origImageHeight,
+                                      1.0);
+
+    // Help the garbage collector reclaim memory quickly.
+    // (Test by watching "images" size in about:memory.)
+    image.src = null;
+    image = null;
+  },
+
+  _maximizePopupSize : function()
+  {
+    this._logger.trace("_maximizePopupSize");
+
+    // Allow scaling up to 4x larger.
+    this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
+                                      this._origImageWidth, this._origImageHeight,
+                                      4.);
+  },
+  
+  _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
+                                          noTooSmallWarning, 
+                                          imageWidth, imageHeight,
+                                          maxScaleUpBy)
+  {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
     this._ignoreBBox.xMin = this._thumbBBox.xMin;
@@ -1226,8 +1275,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Get the popup image's display size, which is the largest we
     // can display the image (without magnifying it and without it
     // being too big to fit on-screen).
-    let imageSize = this._getScaleDimensions(image, available,
-                                             thumbWidth, thumbHeight);
+    let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
+                                             thumbWidth, thumbHeight, maxScaleUpBy);
     
     this._logger.debug("_imageOnLoad: available w/l/r:" + available.width + 
                        "/" + available.left + 
@@ -1240,7 +1289,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_imageOnLoad: " + 
                        "win width=" + content.window.innerWidth*pageZoom +
                        "; win height=" + content.window.innerHeight*pageZoom +
-                       "; full-size image=["+image.width + "," + image.height + 
+                       "; full-size image=["+imageWidth + "," + imageHeight + 
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
     
     if (! imageSize.allow) {
@@ -1254,11 +1303,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
-    
-    // Help the garbage collector reclaim memory quickly.
-    // (Test by watching "images" size in about:memory.)
-    image.src = null;
-    image = null;
   },
   
   /**
@@ -1467,9 +1511,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   /**
-   * Gets the image scale dimensions to fit the window and the position
-   * at which it should be displayed.
-   * @param aImage the image info.
+   * Gets the image scale dimensions to fit the window and whether it should
+   *   be allowed to display the popup.
+   * @param imageWidth, imageHeight: the dimensions of the full-sized image.
    * @param available: contains (width, height, left, right, top, bottom, 
    *                             windowWidth, windowHeight):
    *   the max space available to the left or right and top or bottom of the thumb.
@@ -1480,17 +1524,27 @@ ThumbnailZoomPlusChrome.Overlay = {
    *           would be too small.
    *   }
    */
-  _getScaleDimensions : function(aImage, available, thumbWidth, thumbHeight) {
+  _getScaleDimensions : function(imageWidth, imageHeight, available, 
+                                 thumbWidth, thumbHeight, maxScaleUpBy) {
     this._logger.trace("_getScaleDimensions");
 
-    let imageWidth = aImage.width;
-    let imageHeight = aImage.height;
+    // When this.PREF_PANEL_LARGE_IMAGE is enabled, we allow showing images  
+    // larger than would fit entirely to the left or right of
+    // the thumbnail by using the full page width, covering the thumb.
+    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
+                                              get(this.PREF_PANEL_LARGE_IMAGE);
+    allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
+
     let scaleRatio = (imageWidth / imageHeight);
     
     // If the page is zoomed up to greater than 100%, allow the popup to
     // be zoomed up that much too.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let scaleUpBy = (pageZoom > 1.0 ? pageZoom : 1.0);
+    if (maxScaleUpBy > 1.0) {
+      scaleUpBy *= maxScaleUpBy;
+      allowCoverThumb = true;
+    }
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
                   allow: true };
@@ -1545,13 +1599,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     // 
     // Choose between covering thumb or not, and decide whether to
     //
-    
-    // When this.PREF_PANEL_LARGE_IMAGE is enabled, we allow showing images  
-    // larger than would fit entirely to the left or right of
-    // the thumbnail by using the full page width, covering the thumb.
-    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
-                                              get(this.PREF_PANEL_LARGE_IMAGE);
-    allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
     if (! allowCoverThumb) {
       this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
       scale = sideScale;
@@ -1570,7 +1617,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     if (scale.allow && allowCoverThumb &&
         scale.width < sideScale.width * 1.20 &&
-        sideScale.width > thumbWidth * 1.20) {
+        sideScale.width > thumbWidth * 1.20 &&
+        maxScaleUpBy <= 1.0) {
       // Disallow covering thumb if it doesn't make the image at least 20%
       // bigger -- but do allow covering even then, if not covering
       // would make the popup less than 20% bigger than the thumb.
@@ -1581,8 +1629,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale = sideScale;
     }
     
-    scale.width = Math.floor(scale.width);
-    scale.height = Math.floor(scale.height);
+    scale.width = Math.round(scale.width);
+    scale.height = Math.round(scale.height);
     
     return scale;
   },
