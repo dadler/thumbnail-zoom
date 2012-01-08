@@ -127,7 +127,7 @@ $(xpi_file): $(build_dir) $(xpi_built)
 	@cd $(build_dir); $(ZIP) ../$(xpi_file) $(xpi_built_no_dir)
 	@cp -f $(xpi_file) $(xpi_file_date)
 	@cp -f $(xpi_file) $(xpi_file_uuid)
-	@echo "Creating XPI files. Done!"
+	@echo "Created XPI files $(xpi_file) $(xpi_file_date) $(xpi_file_uuid)"
 
 $(build_dir)/$(chrome_dir)/%: $(chrome_dir)/% $(build_dir)/$(chrome_dir)
 	@if [ ! -x $(dir $@) ]; \
