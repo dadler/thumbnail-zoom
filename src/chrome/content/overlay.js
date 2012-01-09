@@ -134,6 +134,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   // in overlay.xul
   _captionHeight : 14 + 4,
   
+  // _currentScaleBy is an additional scale factor beyond 1:1 scale
+  // which we'll try to zoom pop-ups to.
+  _currentScaleBy : 1.0,
+  
+  // _maximizingMaxScaleBy is the maximum amount of additional scaling applied
+  // when the user requests to view a pop-up maximized.
+  _maximizingMaxScaleBy : 3.0,
+
   // _currentWindow is the window from which the current popup was launched.
   // We use this to detect when a different document has been loaded into that
   // window (as opposed to a different window).
@@ -1067,10 +1075,36 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
     
-    // Handle Shift-to-maximize in key down event since the user expects
-    // Shift key action to take place immediately.
+    if (aEvent.keyCode == aEvent.DOM_VK_P) {
+      that._logger.debug("_handleKeyUp: openPreferences since pressed p key");
+      that.openPreferences();
+    }
     if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
-      that._maximizePopupSize();
+      that._maximizePopupSize(that._maximizingMaxScaleBy);
+    }
+    if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+        aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
+      let factor = 1.21; // scale 2x as fast as Firefox's 1.1.
+      if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
+        factor = 1.0 / factor;
+      }
+      that._currentScaleBy *= factor;
+      that._logger.debug("_handleKeyUp: _currentScaleBy *= " +
+                         factor + " gives " + that._currentScaleBy);
+      that._maximizePopupSize(that._currentScaleBy);
+    }
+    if (aEvent.keyCode == aEvent.DOM_VK_0) {
+      that._currentScaleBy = 1.0;
+      that._logger.debug("_handleKeyUp: reset _currentScaleBy = 1.0");
+      that._maximizePopupSize(that._currentScaleBy);
+    }
+
+    if (true || 
+        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+      that._logger.debug("_handleKeyDown: ignoring key event");
+      aEvent.stopPropagation(); // the web page should ignore the key.
+      aEvent.preventDefault();
     }
   },
   
@@ -1082,11 +1116,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE /* Escape key */) {
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
     }
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+    if (true || 
+        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
       that._logger.debug("_handleKeyUp: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
@@ -1097,7 +1132,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleIgnoreKey : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+    if (true || 
+        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
       that._logger.debug("_handleIgnoreKey: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
@@ -1266,15 +1302,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     image = null;
   },
 
-  _maximizePopupSize : function()
+  _maximizePopupSize : function(maxScaleUpBy)
   {
     this._logger.trace("_maximizePopupSize");
 
-    // Allow scaling up to 4x larger.
     if (this._currentThumb != null) {
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
                                         this._origImageWidth, this._origImageHeight,
-                                        3.0);
+                                        maxScaleUpBy);
     }
   },
   
@@ -1311,7 +1346,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; adj windowWidth, Height: " + 
                        available.windowWidth + "," + available.windowHeight);
     this._logger.debug("_sizePositionAndDisplayPopup: " + 
-                       "maxScaleUpBy=" + maxScaleUpBy +
+                       "; maxScaleUpBy=" + maxScaleUpBy +
                        "win width=" + content.window.innerWidth*pageZoom +
                        "; win height=" + content.window.innerHeight*pageZoom +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
@@ -1355,9 +1390,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    let maxScaleUpBy = 1.0;
+    let maxScaleUpBy = this._currentScaleBy;
     if (aEvent.shiftKey) {
-      maxScaleUpBy = 3.0;
+      maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy)
@@ -1569,9 +1604,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     // If the page is zoomed up to greater than 100%, allow the popup to
     // be zoomed up that much too.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let scaleUpBy = (pageZoom > 1.0 ? pageZoom : 1.0);
+    let scaleUpBy = Math.max(1.0, pageZoom);
+    scaleUpBy *= maxScaleUpBy;
     if (maxScaleUpBy > 1.0) {
-      scaleUpBy *= maxScaleUpBy;
       allowCoverThumb = true;
     }
     let scale = { width: imageWidth * scaleUpBy, 
@@ -1599,7 +1634,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // fits in one of above, below, left, or right of thumb.  Note that
     // we don't require it to fit e.g. both left and below thumb; once it
     // fits in one dimension, the other can use the entire window width or height.
-    if (imageHeight > available.height) {
+    if (sideScale.height > available.height) {
       // Try fitting the image's height to available.height (and scaling
       // width proportionally); this corresponds to showing the
       // popup above or below the thumb.
@@ -1610,7 +1645,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // We can show the image larger by fitting its width to available.width
       // rather than fitting its height; this allows it to appear to
       // the left or right of the thumb.
-      sideScale.width = Math.min(available.width, imageWidth);
+      sideScale.width = Math.min(available.width, sideScale.width);
       sideScale.height = sideScale.width / scaleRatio;
     }
 
