@@ -1127,24 +1127,27 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.minWidth = iconWidth + "px";
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
+    this._panelCaption.hidden = true;
     this._panel.sizeTo(iconWidth + this._widthAddon + this._panelWidthAddon,
                        16 + this._widthAddon + this._panelHeightAddon);
-
-    if (this._panel.state != "open") {
-      this._logger.debug("_showStatusIcon: popping up to show " + iconName);
-      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
-      this._addListenersWhenPopupShown();
-    }
 
     let x = this._thumbBBox.xMax + this._pad;
     let y = this._thumbBBox.yMin;
     this._logger.debug("_showStatusIcon: showing " + iconName +
                        " at " + x + "," + y + 
-                       " size " + iconWidth + ", 16");
+                       " size " + iconWidth + ", 16; state=" +
+                       this._panel.state);
 
-    // Explicitly position it in case the popup was already displayed,
-    // e.g. when ! this._allowPopdown()
-    this._panel.moveTo(x, y);
+    if (this._panel.state != "open") {
+      this._logger.debug("_showStatusIcon: popping up to show " + iconName);
+      this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
+    } 
+    if (! this._allowPopdown()) {
+      // Explicitly position it in case the popup was already displayed,
+      // e.g. when ! this._allowPopdown()
+      this._panel.moveTo(x, y);
+    }
+    this._addListenersWhenPopupShown();
   },
   
   _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
@@ -1379,17 +1382,17 @@ ThumbnailZoomPlusChrome.Overlay = {
    *                          .width, .height
    */
   _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
-    // Close and (probably) re-open the panel so we can reposition it to
-    // display the image. 
     this._logger.trace("_openAndPositionPopup");
-    this._panelCaption.hidden = (this._panelCaption.value == "" ||
-                                 this._panelCaption.value == " ");
-    let pos = this._calcPopupPosition(imageSize, available);
+    
+    let wantCaption = (this._panelCaption.value != "" &&
+                       this._panelCaption.value != " ")
+    let pos = this._calcPopupPosition(imageSize, wantCaption, available);
     
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
     // Explicitly move panel since if it was already popped-up, openPopupAtScreen
     // won't do anything.
+    this._panelCaption.hidden = ! wantCaption;
     this._setImageSize(imageSize);
     this._panel.moveTo(pos.x, pos.y);
     this._addListenersWhenPopupShown();
@@ -1646,7 +1649,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Returns the desired position of the popup, in screen coords, as fields:
    * {x, y}
    */
-  _calcPopupPosition : function(imageSize, available) {
+  _calcPopupPosition : function(imageSize, wantCaption, available) {
     let pos = {};
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let pageWidth = content.window.innerWidth * pageZoom;
@@ -1659,7 +1662,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; pageHeight=" + pageHeight);
     let popupWidth = imageSize.width + this._widthAddon;
     let popupHeight = imageSize.height + this._widthAddon;
-    if (! this._panelCaption.hidden)
+    if (wantCaption)
       popupHeight += this._captionHeight;
 
     if (imageSize.height <= available.height) {
