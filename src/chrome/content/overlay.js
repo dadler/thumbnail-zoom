@@ -403,8 +403,8 @@ ThumbnailZoomPlusChrome.Overlay = {
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
      */
-    doc.addEventListener("keydown", this._handleKey, true);
-    doc.addEventListener("keyup", this._handleIgnoreKey, true);
+    doc.addEventListener("keydown", this._handleKeyDown, true);
+    doc.addEventListener("keyup", this._handleKeyUp, true);
     doc.addEventListener("keypress", this._handleIgnoreKey, true);
       
     /*
@@ -427,8 +427,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
                        doc);
-    doc.removeEventListener("keydown", this._handleKey, true);
-    doc.removeEventListener("keyup", this._handleIgnoreKey, true);
+    doc.removeEventListener("keydown", this._handleKeyDown, true);
+    doc.removeEventListener("keyup", this._handleKeyUp, true);
     doc.removeEventListener("keypress", this._handleIgnoreKey, true);
       
     window.removeEventListener(
@@ -1063,17 +1063,34 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel();
   },
   
-  _handleKey : function(aEvent) {
+  _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKey for code "  + aEvent.keyCode );
+    that._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
+    
+    // Handle Shift-to-maximize in key down event since the user expects
+    // Shift key action to take place immediately.
+    if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+      that._maximizePopupSize();
+    }
+  },
+  
+  _handleKeyUp : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("_handleKeyUp for code "  + aEvent.keyCode );
+
+    // Handle Escape to cancel popup in key-up.  We couldn't do it in
+    // key-down because key-down would then unregister key listeners,
+    // and escape key-up would go through to the web page, which we
+    // don't want.
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE /* Escape key */) {
-      that._logger.debug("_handleKey: _closePanel since pressed Esc key");
+      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
-      
+    }
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+      that._logger.debug("_handleKeyUp: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
-    } else if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
-      that._maximizePopupSize();
     }
   },
   
@@ -1254,9 +1271,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_maximizePopupSize");
 
     // Allow scaling up to 4x larger.
-    this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
-                                      this._origImageWidth, this._origImageHeight,
-                                      3.0);
+    if (this._currentThumb != null) {
+      this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
+                                        this._origImageWidth, this._origImageHeight,
+                                        3.0);
+    }
   },
   
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
