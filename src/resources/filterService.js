@@ -208,31 +208,42 @@ ThumbnailZoomPlus.FilterService = {
    *     imageURL: string (null if not apply);
    *     noTooSmallWarning: boolean
    */
-  getImageSource : function(aDocument, aNode, aPage) {
+  getImageSource : function(aDocument, aNode, aPage, forceUseImgNode) {
     let result = {imageURL: null, noTooSmallWarning: false};
     let pageInfo = this.pageList[aPage];
-    this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
+    this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key + 
+                       ", forceUseImgNode=" + forceUseImgNode);
 
     let nodeName = aNode.localName.toLowerCase();
     this._logger.debug("getImageSource: node name: " + nodeName + "; src: " +
                        aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
     let imageSource =  null;
+    let imgImageSource = null;
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
       imageSource = this._applyBaseURI(aDocument, imageSource);
+      imgImageSource = imageSource;
       this._logger.debug("getImageSource: node name: canonical URL: " + imageSource);
     }
 
     // check special cases
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
-      this._logger.debug("getImageSource: node name: getSpecialSource reutrned " + imageSource);
+      this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
     }
     
     // check other image nodes.
-    if (null == imageSource && pageInfo.getImageNode) {
+    if (forceUseImgNode) {
+      if (aNode.localName.toLowerCase() == "img") {
+        imageSource = imgImageSource;
+        result.noTooSmallWarning = true;
+      } else {
+        imageSource = null;
+      }
+    } else if (null == imageSource && pageInfo.getImageNode) {
       let nodeClass = aNode.getAttribute("class");
-      let imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);
+      let imageNode = null;
+      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);
       if (imageNode == aNode && "img" == nodeName) {
         // the image source is the thumb itself; don't warn if the image
         // is too small since we'd see too many warnings.

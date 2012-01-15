@@ -834,12 +834,21 @@ ThumbnailZoomPlusChrome.Overlay = {
                          ThumbnailZoomPlus.FilterService.pageList[aPage].key +
                          "'");
 
-      let imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage);
+      let imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage, false);
       let imageSource = imageSourceInfo.imageURL;
       
-      if (null != imageSource) {      
-        if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage) &&
-            ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+      if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage)) {
+        if (null != imageSource) {    
+          if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+            imageSource = null;
+          }
+        }
+        if (null == imageSource &&
+            ThumbnailZoomPlus.FilterService.getPageName(aPage) == "others") {
+          imageSourceInfo = ThumbnailZoomPlus.FilterService.getImageSource(aDocument, node, aPage, true);
+          imageSource = imageSourceInfo.imageURL;
+        }
+        if (null != imageSource) {
           // Found a matching page!
           let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
           if (zoomImageSrc == "") {
@@ -1071,6 +1080,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel();
   },
   
+  _recognizedKey : function(aEvent) {
+    return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+            aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
+            aEvent.keyCode == aEvent.DOM_VK_P ||
+            aEvent.keyCode == aEvent.DOM_VK_0);
+  },
+  
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
@@ -1099,9 +1115,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._maximizePopupSize(that._currentScaleBy);
     }
 
-    if (true || 
-        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+    if (that._recognizedKey()) {
       that._logger.debug("_handleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1120,9 +1134,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
     }
-    if (true || 
-        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+    if (that._recognizedKey()) {
       that._logger.debug("_handleKeyUp: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1132,9 +1144,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleIgnoreKey : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
-    if (true || 
-        aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-        aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+    if (that._recognizedKey()) {
       that._logger.debug("_handleIgnoreKey: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
