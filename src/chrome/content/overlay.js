@@ -1109,6 +1109,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _recognizedKey : function(aEvent) {
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+            aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_P ||
             aEvent.keyCode == aEvent.DOM_VK_C ||
@@ -1142,6 +1143,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._maximizePopupSize(that._maximizingMaxScaleBy);
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+               aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
                aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
       let factor = 1.20; // scale about 2x as fast as Firefox's 1.1.
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
