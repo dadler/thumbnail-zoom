@@ -1138,10 +1138,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       let scale = that._getCurrentScaleBy();
       that._maximizePopupSize(scale);
 
-    } else if (that._isKeyActive(that.PREF_PANEL_MAX_KEY, aEvent)) {
-      that._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      that._maximizePopupSize(that._maximizingMaxScaleBy);
-      
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
                aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
@@ -1160,7 +1156,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._setCurrentScaleBy(1.0);
       that._logger.debug("_handleKeyDown: reset scale = 1.0");
       that._maximizePopupSize(1.0);
-    }
+    } else if (that._isKeyActive(that.PREF_PANEL_MAX_KEY, aEvent)) {
+      that._logger.debug("_handleKeyDown: maximize image since max-key is down");
+      that._maximizePopupSize(that._maximizingMaxScaleBy);
+    }      
 
     if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleKeyDown: ignoring key event");
