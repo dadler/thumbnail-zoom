@@ -38,6 +38,7 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
 <!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Maximum Zoom (percent): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para exibir a imagem:">
+<!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">

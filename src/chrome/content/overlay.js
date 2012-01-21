@@ -40,7 +40,8 @@ Cu.import("resource://thumbnailzoomplus/uninstallService.js");
  */
 ThumbnailZoomPlusChrome.Overlay = {
   /* UI preference keys. */
-  PREF_PANEL_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_MAX_KEY : ThumbnailZoomPlus.PrefBranch + "panel.maxkey",
   PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
@@ -765,7 +766,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // so a future mouse move can re-enter it and re-popup.
     this._ignoreBBox.xMax = -999;
     
-    if (! this._isKeyActive(aEvent)) {
+    if (! this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, aEvent)) {
       this._logger.debug("_handleMouseOver: _closePanel since hot key not down");
       this._closePanel();
       return;
@@ -861,26 +862,38 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aEvent the event object.
    * @return true if active, false otherwise.
    */
-  _isKeyActive : function(aEvent) {
+  _isKeyActive : function(prefName, aEvent) {
     this._logger.trace("_isKeyActive");
 
     let active = false;
-    let keyPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_KEY);
+    let keyPref = ThumbnailZoomPlus.Application.prefs.get(prefName);
     if (! keyPref) {
+      this._logger.debug("_isKeyActive: pref not defined so return true");
       return true;
     }
     switch (keyPref.value) {
       case 1:
-        active = aEvent.ctrlKey;
+        active = aEvent.ctrlKey || 
+                 (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_CONTROL);
+        this._logger.debug("_isKeyActive: based on 'control key', return " 
+                           + active);
         break;
       case 2:
-        active = aEvent.shiftKey;
+        active = aEvent.shiftKey || 
+                 (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_SHIFT);
+        this._logger.debug("_isKeyActive: based on 'shift key', return " 
+                           + active);
         break;
       case 3:
-        active = aEvent.altKey;
+        active = aEvent.altKey || 
+                 (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_ALT);
+        this._logger.debug("_isKeyActive: based on 'alt key', return " 
+                           + active);
         break;
       default:
         active = true;
+        this._logger.debug("_isKeyActive: based on 'None key', return " 
+                           + active);
         break;
     }
 
@@ -1124,8 +1137,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       let scale = that._getCurrentScaleBy();
       that._maximizePopupSize(scale);
 
-    } else if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
-      that._logger.debug("_handleKeyUp: maximize image since Shift is down");
+    } else if (that._isKeyActive(that.PREF_PANEL_MAX_KEY, aEvent)) {
+      that._logger.debug("_handleKeyDown: maximize image since max-key is down");
       that._maximizePopupSize(that._maximizingMaxScaleBy);
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
@@ -1433,7 +1446,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     };
 
     let maxScaleUpBy = this._getCurrentScaleBy();
-    if (aEvent.shiftKey) {
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
     }
     image.onload = function() {

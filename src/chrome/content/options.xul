@@ -54,6 +54,8 @@
         name="extensions.thumbnailzoomplus.panel.neverpopdown" type="bool"/>
       <preference id="thumbnailzoomplus-options-key-pref"
         name="extensions.thumbnailzoomplus.panel.key" type="int"/>
+      <preference id="thumbnailzoomplus-options-max-key-pref"
+        name="extensions.thumbnailzoomplus.panel.maxkey" type="int"/>
       <preference id="thumbnailzoomplus-options-maxzoom-pref"
         name="extensions.thumbnailzoomplus.panel.maxzoom" type="int"/>
 
@@ -138,6 +140,16 @@
               <menupopup>
                 <menuitem value="0"
                   label="&thumbnailzoomplus.options.key.none.label;" />
+                <menuitem value="1" label="CTRL" />
+                <menuitem value="2" label="SHIFT" />
+                <menuitem value="3" label="ALT" />
+              </menupopup>
+            </menulist>
+          </row>
+          <row align="center">
+            <label value="&thumbnailzoomplus.options.maxkey.selection.label;" />
+            <menulist preference="thumbnailzoomplus-options-max-key-pref">
+              <menupopup>
                 <menuitem value="1" label="CTRL" />
                 <menuitem value="2" label="SHIFT" />
                 <menuitem value="3" label="ALT" />
