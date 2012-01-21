@@ -48,7 +48,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_NEVER_POPDOWN : ThumbnailZoomPlus.PrefBranch + "panel.neverpopdown",
-  PREF_PANEL_OPACITY : ThumbnailZoomPlus.PrefBranch + "panel.opacity",
+  PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.maxzoom",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 
@@ -133,11 +133,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // Set the fist number in this sum the same as thumbnailzoomplus-panel-caption 
   // in overlay.xul
   _captionHeight : 14 + 4,
-  
-  // _currentScaleBy is an additional scale factor beyond 1:1 scale
-  // which we'll try to zoom pop-ups to.
-  _currentScaleBy : 1.0,
-  
+    
   // _maximizingMaxScaleBy is the maximum amount of additional scaling applied
   // when the user requests to view a pop-up maximized.
   _maximizingMaxScaleBy : 3.0,
@@ -173,7 +169,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._installToolbarButton();
     this._showPanelBorder();
     this._preferencesService.addObserver(this.PREF_PANEL_BORDER, this, false);
-    this._preferencesService.addObserver(this.PREF_PANEL_OPACITY, this, false);
     this._addPreferenceObservers(true);
     this._addEventListeners();
   },
@@ -191,7 +186,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
-    this._preferencesService.removeObserver(this.PREF_PANEL_OPACITY, this);
     this._addPreferenceObservers(false);
   },
 
@@ -210,17 +204,6 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
       preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
-    }
-    
-    if (! ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_NEVER_POPDOWN)) {
-      // Set default preference for PREF_PANEL_NEVER_POPDOWN (aka Linux Workaround).
-      // Returns "WINNT" on Windows Vista, XP, 2000, and NT systems;  
-      // "Linux" on GNU/Linux; and "Darwin" on Mac OS X.  
-      let os = Components.classes["@mozilla.org/xre/app-info;1"]  
-                .getService(Components.interfaces.nsIXULRuntime).OS;
-      let neverPopdown = (os == "Linux");
-      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_NEVER_POPDOWN, 
-                                                   neverPopdown);
     }
   },
 
@@ -922,6 +905,28 @@ ThumbnailZoomPlusChrome.Overlay = {
     return hoverTime;
   },
 
+  // _getCurrentScaleBy returns an additional scale factor beyond 1:1 scale
+  // which we'll try to zoom pop-ups to.
+  _getCurrentScaleBy : function() {
+    this._logger.trace("_getCurrentScaleBy");
+
+    let result = 0.0;
+    let pref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_MAX_ZOOM);
+
+    if (pref && !isNaN(pref.value)) {
+      result = 0.01 * pref.value;
+    }
+
+    return result;
+  },
+ 
+  _setCurrentScaleBy : function(value) {
+    this._logger.trace("_setCurrentScaleBy(" + value + ")");
+    value = Math.round(value * 100);
+    this._logger.trace("_setCurrentScaleBy: setting pref to '" + value + "'");
+    ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_MAX_ZOOM,
+                                                 value);
+  },
 
   /**
    * Shows the zoom image panel.
@@ -944,7 +949,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   _setupCaption : function(aImageNode) {
     let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
     allowCaption = allowCaption && allowCaption.value;
+    this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
     if (!allowCaption) {
+      this._hideCaption();
       return;
     }
     
@@ -999,6 +1006,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _hideCaption : function() {
+      this._logger.trace("_hideCaption");
+      this._panelCaption.hidden = true;
+      // restore original title / tooltip:
+      if (this._panelCaption.value != "") {
+        this._logger.debug("_hideCaption: restoring title to " + 
+                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
+                           + ": " + 
+                           this._panelCaption.value);
+        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
+                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+        }
+      }
+      this._panelCaption.value = "";
+  },
+  
   /**
    * Closes the panel.
    */
@@ -1024,19 +1049,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
       this._currentThumb = null;
-      this._panelCaption.hidden = true;
       
-      // restore original title / tooltip:
-      if (this._panelCaption.value != "") {
-        this._logger.debug("_closePanel: restoring title to " + 
-                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
-                           + ": " + 
-                           this._panelCaption.value);
-
-        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
-                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
-      }
-      this._panelCaption.value = "";
+      this._hideCaption();
     } catch (e) {
       this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
@@ -1084,6 +1098,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_P ||
+            aEvent.keyCode == aEvent.DOM_VK_C ||
             aEvent.keyCode == aEvent.DOM_VK_0);
   },
   
@@ -1094,28 +1109,45 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
       that._logger.debug("_handleKeyUp: openPreferences since pressed p key");
       that.openPreferences();
-    }
-    if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
+      let allowCaption = ThumbnailZoomPlus.Application.prefs.get(that.PREF_PANEL_CAPTION);
+      allowCaption = allowCaption && allowCaption.value;
+      that._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
+                         " since pressed c key");      
+      ThumbnailZoomPlus.Application.prefs.setValue(that.PREF_PANEL_CAPTION,
+                                                   ! allowCaption);
+      // redisplay to update displayed caption.
+      if (that._currentThumb) {
+        that._setupCaption(that._currentThumb);
+      }
+      let scale = that._getCurrentScaleBy();
+      that._maximizePopupSize(scale);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_SHIFT) {
+      that._logger.debug("_handleKeyUp: maximize image since Shift is down");
       that._maximizePopupSize(that._maximizingMaxScaleBy);
-    }
-    if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
-        aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
-      let factor = 1.21; // scale 2x as fast as Firefox's 1.1.
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+               aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
+      let factor = 1.20; // scale about 2x as fast as Firefox's 1.1.
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
         factor = 1.0 / factor;
       }
-      that._currentScaleBy *= factor;
-      that._logger.debug("_handleKeyUp: _currentScaleBy *= " +
-                         factor + " gives " + that._currentScaleBy);
-      that._maximizePopupSize(that._currentScaleBy);
-    }
-    if (aEvent.keyCode == aEvent.DOM_VK_0) {
-      that._currentScaleBy = 1.0;
-      that._logger.debug("_handleKeyUp: reset _currentScaleBy = 1.0");
-      that._maximizePopupSize(that._currentScaleBy);
+      let scale = that._getCurrentScaleBy();
+      scale *= factor;
+      that._setCurrentScaleBy(scale);
+      that._logger.debug("_handleKeyDown: scale *= " +
+                         factor + " gives " + scale);
+      that._maximizePopupSize(scale);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
+      that._setCurrentScaleBy(1.0);
+      that._logger.debug("_handleKeyDown: reset scale = 1.0");
+      that._maximizePopupSize(1.0);
     }
 
-    if (that._recognizedKey()) {
+    if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1134,7 +1166,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
       that._closePanel();
     }
-    if (that._recognizedKey()) {
+    if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleKeyUp: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1144,7 +1176,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleIgnoreKey : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
-    if (that._recognizedKey()) {
+    if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleIgnoreKey: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
@@ -1400,7 +1432,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    let maxScaleUpBy = this._currentScaleBy;
+    let maxScaleUpBy = this._getCurrentScaleBy();
     if (aEvent.shiftKey) {
       maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
     }
@@ -1965,20 +1997,6 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Updates the panel opacity based in the preference value.
-   */
-  _updatePanelOpacity : function() {
-    this._logger.trace("_updatePanelOpacity");
-
-    let panelOpacity = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_OPACITY);
-
-    if (panelOpacity && panelOpacity.value) {
-      this._panel.style.opacity = panelOpacity.value / 100;
-    }
-  },
-
-
-  /**
    * Observes the authentication topic.
    * @param aSubject The object related to the change.
    * @param aTopic The topic being observed.
@@ -2001,9 +2019,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         switch (aData) {
           case this.PREF_PANEL_BORDER:
             this._showPanelBorder();
-            break;
-          case this.PREF_PANEL_OPACITY:
-            this._updatePanelOpacity();
             break;
         }
       }

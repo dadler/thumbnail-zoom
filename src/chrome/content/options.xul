@@ -54,8 +54,8 @@
         name="extensions.thumbnailzoomplus.panel.neverpopdown" type="bool"/>
       <preference id="thumbnailzoomplus-options-key-pref"
         name="extensions.thumbnailzoomplus.panel.key" type="int"/>
-      <preference id="thumbnailzoomplus-options-opacity-pref"
-        name="extensions.thumbnailzoomplus.panel.opacity" type="int"/>
+      <preference id="thumbnailzoomplus-options-maxzoom-pref"
+        name="extensions.thumbnailzoomplus.panel.maxzoom" type="int"/>
 
       <!-- site-specific checkboxes -->
       
@@ -127,10 +127,10 @@
               decimalplaces="2" increment="0.1" />
           </row>
           <row align="center">
-            <label value="&thumbnailzoomplus.options.opacity.selection.label;" />
-            <textbox preference="thumbnailzoomplus-options-opacity-pref" type="number"
-              size="4" maxlength="4" min="1" max="100" width="50"
-              increment="1" />
+            <label value="&thumbnailzoomplus.options.maxzoom.selection.label;" />
+            <textbox preference="thumbnailzoomplus-options-maxzoom-pref" type="number"
+              size="4" maxlength="4" min="10" max="999" width="50"
+              increment="10" />
           </row>
           <row align="center">
             <label value="&thumbnailzoomplus.options.key.selection.label;" />
@@ -150,14 +150,14 @@
             <checkbox preference="thumbnailzoomplus-options-large-image-pref"
               label="&thumbnailzoomplus.options.largeimage.checkbox.label;" />
           </hbox>
-          <row align="center">
+          <hbox>
             <checkbox preference="thumbnailzoomplus-options-caption-pref"
               label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-neverpopdown-pref"
               label="&thumbnailzoomplus.options.neverpopdown.checkbox.label;" />
-          </row>
+          </hbox>
         </rows>
       </grid>
     </groupbox>

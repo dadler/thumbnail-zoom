@@ -37,13 +37,9 @@ pref("extensions.thumbnailzoomplus.panel.key",          0);
 pref("extensions.thumbnailzoomplus.panel.border",       true);
 pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
 pref("extensions.thumbnailzoomplus.panel.caption",      false);
-pref("extensions.thumbnailzoomplus.panel.history",      false);
-
-// Note: we set extensions.thumbnailzoomplus.panel.neverpopdown in
-// verlay.js::_updatePreferenceFix() since we can't set conditional
-// defaults here.
-                
-pref("extensions.thumbnailzoomplus.panel.opacity",      100);
+pref("extensions.thumbnailzoomplus.panel.history",      false);                
+pref("extensions.thumbnailzoomplus.panel.neverpopdown", false);
+pref("extensions.thumbnailzoomplus.panel.maxzoom",      100);
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);

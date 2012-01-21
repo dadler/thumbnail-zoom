@@ -36,13 +36,13 @@
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferencias">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
-<!ENTITY thumbnailzoomplus.options.opacity.selection.label       "Transparencia de las imágenes:">
+<!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Maximum Zoom (percent): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para visualizar la imagen:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Añadir imágenes a la historia del navegador">
-<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "Linux workaround">
+<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "OS Bug Workaround">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o deshabilitar por sitio">
