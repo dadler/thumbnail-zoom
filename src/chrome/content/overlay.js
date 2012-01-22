@@ -841,11 +841,8 @@ ThumbnailZoomPlusChrome.Overlay = {
           } else if (zoomImageSrc == null) {
             this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
           } else {
-            // Enabling this creates the zombie compartment bug.
-            if (0) {
             this._currentWindow = aDocument.defaultView.top;
-            }
-            this._originalURI = aDocument.defaultView.top.document.documentURI;
+            this._originalURI = this._currentWindow.document.documentURI;
             this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                                this._originalURI);
             
@@ -1008,12 +1005,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
-    this._closePanel();
 
-    // Enabling this creates the zombie compartment bug:
-    if (0) {
+    // Close the panel to ensure that we can popup the new panel at a specified
+    // location.  Note that we temporarily save _currentWindow since _closePanel
+    // clears it.
+    let currentWindow = this._currentWindow;
+    this._closePanel();
+    this._currentWindow = currentWindow;
+    
     this._originalURI = this._currentWindow.document.documentURI;
-    }
     this._currentImage = aImageSrc;
     
     this._setupCaption(aImageNode);
@@ -1073,11 +1073,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       // silently ignore exceptions here.
       this._logger.trace("_closePanel");
       
-      this._currentImage = null;
       this._contextMenu.hidden = true;
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
+
+      // Clearing _currentWindow prevents a zombie compartment
+      // leak (issue #24).
+      this._currentWindow = null;
       this._originalURI = "";
+      this._currentImage = null;
       this._hideThePopup();
       
       // We no longer need the image contents, and don't want them to show
