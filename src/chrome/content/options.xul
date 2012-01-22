@@ -42,6 +42,8 @@
     <preferences>
       <preference id="thumbnailzoomplus-options-delay-pref"
         name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
+      <preference id="thumbnailzoomplus-options-partialloadwait-pref"
+        name="extensions.thumbnailzoomplus.panel.partialloadwait" type="string"/>
       <preference id="thumbnailzoomplus-options-border-pref"
         name="extensions.thumbnailzoomplus.panel.border" type="bool"/>
       <preference id="thumbnailzoomplus-options-large-image-pref"
@@ -126,7 +128,13 @@
             <label value="&thumbnailzoomplus.options.delay.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-delay-pref" type="number"
               size="4" maxlength="4" min="0" max="60" width="50"
-              decimalplaces="2" increment="0.1" />
+              decimalplaces="1" increment="0.1" />
+          </row>
+          <row align="center">
+            <label value="&thumbnailzoomplus.options.partialloadwait.selection.label;" />
+            <textbox preference="thumbnailzoomplus-options-partialloadwait-pref" type="number"
+              size="4" maxlength="4" min="0" max="60" width="50"
+              decimalplaces="1" increment="0.1" />
           </row>
           <row align="center">
             <label value="&thumbnailzoomplus.options.maxzoom.selection.label;" />

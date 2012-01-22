@@ -43,6 +43,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
   PREF_PANEL_MAX_KEY : ThumbnailZoomPlus.PrefBranch + "panel.maxkey",
   PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
+  PREF_PANEL_PARTIAL_LOAD_WAIT: ThumbnailZoomPlus.PrefBranch + "panel.partialloadwait",
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
@@ -903,12 +904,12 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /**
    * Gets the hover time.
-   * @return the hover time, 0 by default.
+   * @return the hover time, 100 ms by default.
    */
   _getHoverTime : function() {
     this._logger.trace("_getHoverTime");
 
-    let hoverTime = 0;
+    let hoverTime = 100;
     let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_WAIT);
 
     if (delayPref && !isNaN(delayPref.value)) {
@@ -916,6 +917,23 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     return hoverTime;
+  },
+
+  /**
+   * Gets the hover time in ms.
+   * @return the hover time, 100 ms by default.
+   */
+  _getPartialLoadTime : function() {
+    this._logger.trace("_getPartialLoadTime");
+    
+    let time = 100;
+    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_PARTIAL_LOAD_WAIT);
+
+    if (delayPref && !isNaN(delayPref.value)) {
+      time = 1000 * delayPref.value;
+    }
+
+    return time;
   },
 
   // _getCurrentScaleBy returns an additional scale factor beyond 1:1 scale
@@ -1297,7 +1315,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._showStatusIcon(aImageNode, "working.png", 16);      
     
     if (image.width > 0 && image.height > 0) {
-      this._logger.debug("_checkIfImageLoaded: delayed-calling _imageOnLoad since have size.");
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
@@ -1306,13 +1323,21 @@ ThumbnailZoomPlusChrome.Overlay = {
        */
       this._timer.cancel();
       let that = this;
+      let delay = this._getPartialLoadTime();
+      if (/\.gif$/.test(aImageSrc)) {
+        // Animated gif's can take much longer to load than the time when
+        // they could first be dispalyed, so override the user's setting.
+        delay = Math.min(delay, 0.5);
+      }
+      this._logger.debug("_checkIfImageLoaded: calling _imageOnLoad since have size, delayed "
+                         + delay + " ms");
       this._timer.initWithCallback(
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
                               noTooSmallWarning, image, maxScaleUpBy);
           }
-         }, 0.7 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+         }, delay, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
   },
 

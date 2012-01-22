@@ -33,6 +33,7 @@
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
+pref("extensions.thumbnailzoomplus.panel.partialloadwait", "1.0"); // seconds
 pref("extensions.thumbnailzoomplus.panel.key",          0);
 pref("extensions.thumbnailzoomplus.panel.maxkey",       2); // SHIFT
 pref("extensions.thumbnailzoomplus.panel.border",       true);

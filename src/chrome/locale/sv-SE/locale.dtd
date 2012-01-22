@@ -38,6 +38,7 @@
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Inställningar">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
+<!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (s):">
 <!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Maximum Zoom (percent): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tangent för bildvisning:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">

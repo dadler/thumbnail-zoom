@@ -36,6 +36,7 @@
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferences">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying image (sec):">
+<!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Maximum Zoom (percent): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Key to display the image:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
