@@ -396,9 +396,9 @@ ThumbnailZoomPlusChrome.Overlay = {
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
      */
-    doc.addEventListener("keydown", this._handleKeyDown, true);
-    doc.addEventListener("keyup", this._handleKeyUp, true);
-    doc.addEventListener("keypress", this._handleIgnoreKey, true);
+    doc.addEventListener("keydown", this._handleKeyDown, false);
+    doc.addEventListener("keyup", this._handleKeyUp, false);
+    doc.addEventListener("keypress", this._handleIgnoreKey, false);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -420,9 +420,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let doc = content.document.documentElement;
     that._logger.debug("_removeListenersWhenPopupHidden for " +
                        doc);
-    doc.removeEventListener("keydown", this._handleKeyDown, true);
-    doc.removeEventListener("keyup", this._handleKeyUp, true);
-    doc.removeEventListener("keypress", this._handleIgnoreKey, true);
+    doc.removeEventListener("keydown", this._handleKeyDown, false);
+    doc.removeEventListener("keyup", this._handleKeyUp, false);
+    doc.removeEventListener("keypress", this._handleIgnoreKey, false);
       
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
