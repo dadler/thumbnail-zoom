@@ -59,6 +59,7 @@ pref("extensions.thumbnailzoomplus.twitter.enable",     true);
 pref("extensions.thumbnailzoomplus.youtube.enable",     true);
 pref("extensions.thumbnailzoomplus.twitpic.enable",     true);
 pref("extensions.thumbnailzoomplus.myspace.enable",     true);
+pref("extensions.thumbnailzoomplus.okcupid.enable",     true);
 pref("extensions.thumbnailzoomplus.facebook.enable",    true);
 pref("extensions.thumbnailzoomplus.linkedin.enable",    true);
 pref("extensions.thumbnailzoomplus.dailymile.enable",   true);

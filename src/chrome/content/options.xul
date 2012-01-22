@@ -105,6 +105,8 @@
         name="extensions.thumbnailzoomplus.imdb.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-imgur-pref"
         name="extensions.thumbnailzoomplus.imgur.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-okcupid-pref"
+        name="extensions.thumbnailzoomplus.okcupid.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-photosight-pref"
         name="extensions.thumbnailzoomplus.photosight.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-engadget-pref"
@@ -239,17 +241,20 @@
           <checkbox label="MySpace"
             preference="thumbnailzoomplus-options-myspace-pref" />
 
+          <checkbox label="okCupid"
+            preference="thumbnailzoomplus-options-okcupid-pref" />
+
           <checkbox label="PhotoBucket"
             preference="thumbnailzoomplus-options-photobucket-pref" />
 
           <checkbox label="Photosight"
             preference="thumbnailzoomplus-options-photosight-pref" />
 
-          <checkbox label="Picasa"
-            preference="thumbnailzoomplus-options-picasa-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Picasa"
+            preference="thumbnailzoomplus-options-picasa-pref" />
 
           <checkbox label="Tagged"
             preference="thumbnailzoomplus-options-tagged-pref" />
@@ -266,9 +271,11 @@
           <checkbox label="Wikipedia"
             preference="thumbnailzoomplus-options-wikipedia-pref" />
 
+
+        </vbox>
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
-
         </vbox>
       </hbox>
     </groupbox>

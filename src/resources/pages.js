@@ -378,10 +378,29 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
-  imageRegExp: /(th[0-9]+|[as]).deviantart.(net|com)\/.*\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/,
+  imageRegExp: /(th[0-9]+|[as])\.deviantart\.(net|com)\/.*\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/,
   getZoomImage : function(aImageSrc) {
     let picRex = new RegExp(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1") : 
+                 null);
+    return image;
+  }
+};
+
+/**
+ * OkCuid
+ */
+ThumbnailZoomPlus.Pages.OkCupid = {
+  // Change http://ak3.okccdn.com/php/load_okc_image.php/images/60x60/60x60/531x24/1092x585/2/4433975072448026333.jpeg
+  // to     http://ak3.okccdn.com/php/load_okc_image.php/images/4433975072448026333.jpeg
+  key: "okcupid",
+  name: "okCupid",
+  host: /^.*\.okcupid\.com$/,
+  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.jpeg$/,
+  getZoomImage : function(aImageSrc) {
+    // http://ak1.okccdn.com/php/load_okc_image.php/images/160x160/160x160/189x210/687x708/2/17985133630795268990.jpeg
+    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.jpeg)$/);
+    let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
                  null);
     return image;
   }
