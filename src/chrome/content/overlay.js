@@ -86,6 +86,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The current image source (URL). */
   _currentImage : null,
 
+  // The image object which is currently being loaded (as in new Image ...)
+  _imageObjectBeingLoaded : null,
+  
   /* The thumb image or link which triggered the current popup */
   _currentThumb : null,
 
@@ -145,7 +148,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   // window (as opposed to a different window).
   _currentWindow : null,
   
-  // _originalURI is the URL _currentWindow had when we last showed the popup.
+  // _originalURI is the URL _currentWindow (not the image) had when we last 
+  // showed the popup.
   _originalURI : "",
   
   /**
@@ -1080,6 +1084,19 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Clearing _currentWindow prevents a zombie compartment
       // leak (issue #24).
       this._currentWindow = null;
+
+      if (this._imageObjectBeingLoaded) {
+        // Make sure if we pop down while trying to load the image, we stop
+        // trying to load it and clear out the registered handlers so we
+        // don't end up with a Zombie Compartment leak (e.g. when trying
+        // to load an image on a non-responsive site).
+        this._logger.debug("_closePanel: clearing image onload & onerror\n");
+        this._imageObjectBeingLoaded.src = null;
+        this._imageObjectBeingLoaded.onload = null;
+        this._imageObjectBeingLoaded.onerror = null;
+        this._imageObjectBeingLoaded = null;
+      }
+
       this._originalURI = "";
       this._currentImage = null;
       this._hideThePopup();
@@ -1318,9 +1335,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     // Set to our status icon as a "working" indicator
-    // while loading.  This normally appears only briefly (or not at all)
+    // while loading.  This hopefully appears only briefly (or not at all)
     // since we show the full image size as soon as enough of the image is
-    // loaded to know its dimensions.
+    // loaded to know its dimensions; but it may appear for a while if the
+    // image loads slowly.
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
     this._showStatusIcon(aImageNode, "working.png", 16);      
     
@@ -1467,6 +1485,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let that = this;
     let image = new Image();
+    that._imageObjectBeingLoaded = image;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
@@ -1478,6 +1497,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (that._currentImage == aImageSrc) {
         that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
         that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
+        that._imageObjectBeingLoaded = null;
       }
     };
 
@@ -1486,7 +1506,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
     }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy)
+      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy);
+      that._imageObjectBeingLoaded = null;
     };
 
     this._panelImage.src = aImageSrc;
