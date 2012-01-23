@@ -1181,7 +1181,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         that._setupCaption(that._currentThumb);
       }
       let scale = that._getCurrentScaleBy();
-      that._maximizePopupSize(scale);
+      that._redisplayPopup(scale);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
@@ -1195,15 +1195,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._setCurrentScaleBy(scale);
       that._logger.debug("_handleKeyDown: scale *= " +
                          factor + " gives " + scale);
-      that._maximizePopupSize(scale);
+      that._redisplayPopup(scale);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
       that._setCurrentScaleBy(1.0);
       that._logger.debug("_handleKeyDown: reset scale = 1.0");
-      that._maximizePopupSize(1.0);
+      that._redisplayPopup(1.0);
     } else if (that._isKeyActive(that.PREF_PANEL_MAX_KEY, aEvent)) {
       that._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      that._maximizePopupSize(that._maximizingMaxScaleBy);
+      that._redisplayPopup(that._maximizingMaxScaleBy);
     }      
 
     if (that._recognizedKey(aEvent)) {
@@ -1400,22 +1400,33 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentThumb = aImageNode;
     this._origImageWidth = image.width;
     this._origImageHeight = image.height;
-    this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
-                                      noTooSmallWarning, 
-                                      this._origImageWidth, this._origImageHeight,
-                                      maxScaleUpBy);
-
+    let displayed =
+      this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
+                                        noTooSmallWarning, 
+                                        this._origImageWidth, this._origImageHeight,
+                                        maxScaleUpBy);
+    if (displayed) {
+      this._addListenersWhenPopupShown();
+      this._addToHistory(aImageSrc);
+    }
     // Help the garbage collector reclaim memory quickly.
     // (Test by watching "images" size in about:memory.)
     image.src = null;
     image = null;
   },
 
-  _maximizePopupSize : function(maxScaleUpBy)
+  _redisplayPopup : function(maxScaleUpBy)
   {
-    this._logger.trace("_maximizePopupSize");
+    this._logger.trace("_redisplayPopup");
 
     if (this._currentThumb != null) {
+      // Close the panel to ensure that we can popup the new panel at a specified
+      // location. 
+      if (this._allowPopdown()) {      
+        if (this._panel.state != "closed") {
+          this._panel.hidePopup();
+        }
+      }
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
                                         this._origImageWidth, this._origImageHeight,
                                         maxScaleUpBy);
@@ -1468,10 +1479,11 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
       }
       
-      return;
+      return false;
     }
     
     this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
+    return true;
   },
   
   /**
@@ -1561,11 +1573,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption.hidden = ! wantCaption;
     this._setImageSize(imageSize);
     this._panel.moveTo(pos.x, pos.y);
-    this._addListenersWhenPopupShown();
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
-
-    this._addToHistory(aImageSrc);
   },
   
   
