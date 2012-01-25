@@ -1467,7 +1467,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        available.windowWidth + "," + available.windowHeight);
     this._logger.debug("_sizePositionAndDisplayPopup: " + 
                        "; maxScaleUpBy=" + maxScaleUpBy +
-                       "win width=" + content.window.innerWidth*pageZoom +
+                       "; win width=" + content.window.innerWidth*pageZoom +
                        "; win height=" + content.window.innerHeight*pageZoom +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
@@ -1666,7 +1666,9 @@ ThumbnailZoomPlusChrome.Overlay = {
         
     this._logger.debug("_getAvailableSizeOutsideThumb: " +
                        "available.left,right before adjustment = " + 
-                       available.left + "," + available.top +
+                       available.left + "," + available.right +
+                       "; available.top,bottom before adjustment = " + 
+                       available.top + "," + available.bottom +
                        "; _pad=" + this._pad + 
                        "; _widthAddon=" + this._widthAddon +
                        "; haveCaption=" + haveCaption + 
@@ -1746,6 +1748,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale.width = available.windowWidth;
       scale.height = scale.width / scaleRatio;
     }
+    this._logger.debug("_getScaleDimensions: after w/h limiting, display size = " +
+                       scale.width + "x" + scale.height);
 
     // Calc sideScale as the biggest size we can use for the image without
     // overlapping the thumb.  Start out with large size and reduce to fit.
@@ -1766,7 +1770,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // We can show the image larger by fitting its width to available.width
       // rather than fitting its height; this allows it to appear to
       // the left or right of the thumb.
-      sideScale.width = Math.min(available.width, sideScale.width);
+      sideScale.width = Math.min(available.width, scale.width);
       sideScale.height = sideScale.width / scaleRatio;
     }
 
