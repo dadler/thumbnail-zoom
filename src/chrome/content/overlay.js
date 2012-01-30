@@ -1163,25 +1163,29 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
+    that._doHandleKeyDown(aEvent);
+  },
+  
+  _doHandleKeyDown : function(aEvent) {
+    this._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
     
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
-      that._logger.debug("_handleKeyUp: openPreferences since pressed p key");
-      that.openPreferences();
+      this._logger.debug("_handleKeyUp: openPreferences since pressed p key");
+      this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
-      let allowCaption = ThumbnailZoomPlus.Application.prefs.get(that.PREF_PANEL_CAPTION);
+      let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
       allowCaption = allowCaption && allowCaption.value;
-      that._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
+      this._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
                          " since pressed c key");      
-      ThumbnailZoomPlus.Application.prefs.setValue(that.PREF_PANEL_CAPTION,
+      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_CAPTION,
                                                    ! allowCaption);
       // redisplay to update displayed caption.
-      if (that._currentThumb) {
-        that._setupCaption(that._currentThumb);
+      if (this._currentThumb) {
+        this._setupCaption(this._currentThumb);
       }
-      let scale = that._getCurrentScaleBy();
-      that._redisplayPopup(scale);
+      let scale = this._getCurrentScaleBy();
+      this._redisplayPopup(scale);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
@@ -1190,24 +1194,27 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
         factor = 1.0 / factor;
       }
-      let scale = that._getCurrentScaleBy();
+      let scale = this._getCurrentScaleBy();
       scale *= factor;
-      that._setCurrentScaleBy(scale);
-      that._logger.debug("_handleKeyDown: scale *= " +
+      this._setCurrentScaleBy(scale);
+      this._logger.debug("_handleKeyDown: scale *= " +
                          factor + " gives " + scale);
-      that._redisplayPopup(scale);
+      this._redisplayPopup(scale);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
-      that._setCurrentScaleBy(1.0);
-      that._logger.debug("_handleKeyDown: reset scale = 1.0");
-      that._redisplayPopup(1.0);
-    } else if (that._isKeyActive(that.PREF_PANEL_MAX_KEY, aEvent)) {
-      that._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      that._redisplayPopup(that._maximizingMaxScaleBy);
-    }      
+      this._setCurrentScaleBy(1.0);
+      this._logger.debug("_handleKeyDown: reset scale = 1.0");
+      this._redisplayPopup(1.0);
+    } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
+      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
+      let maxScaleUpBy = this._getCurrentScaleBy();
+      maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
+      maxScaleUpBy *= -1.; // indicate to force allowing to cover thumb.
+      this._redisplayPopup(maxScaleUpBy);
+    }
 
-    if (that._recognizedKey(aEvent)) {
-      that._logger.debug("_handleKeyDown: ignoring key event");
+    if (this._recognizedKey(aEvent)) {
+      this._logger.debug("_handleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
     }
@@ -1516,9 +1523,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     let maxScaleUpBy = this._getCurrentScaleBy();
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
+      maxScaleUpBy *= -1.; // indicate to force allowing to cover thumb.
     }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, maxScaleUpBy);
+      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, 
+                        maxScaleUpBy);
       that._imageObjectBeingLoaded = null;
     };
 
@@ -1704,6 +1713,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param available: contains (width, height, left, right, top, bottom, 
    *                             windowWidth, windowHeight):
    *   the max space available to the left or right and top or bottom of the thumb.
+   * @maxScaleUpBy: the max factor by which to magnify the image; negative
+   *   if we should force allowing popup to cover thumb.
    * @return the scale dimensions and position in these fields:
    *   {width: displayed width of image
    *    height: displayed height of image 
@@ -1721,6 +1732,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
                                               get(this.PREF_PANEL_LARGE_IMAGE);
     allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
+    if (maxScaleUpBy < 0.0) {
+      // negative maxScaleUpBy means to force allowCoverThumb on.
+      allowCoverThumb = true;
+      maxScaleUpBy *= -1.;
+    }
 
     let scaleRatio = (imageWidth / imageHeight);
     
@@ -1729,9 +1745,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let scaleUpBy = Math.max(1.0, pageZoom);
     scaleUpBy *= maxScaleUpBy;
-    if (maxScaleUpBy > 1.0) {
-      allowCoverThumb = true;
-    }
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
                   allow: true };
