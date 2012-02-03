@@ -221,16 +221,18 @@ ThumbnailZoomPlus.Pages.LinkedIn = {
 ThumbnailZoomPlus.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
-  // Work on amazon.com, amazon.cn, etc.
-  host: /^(.*\.)?(images-)?amazon\.[a-z]+$/,
+  // Work on amazon.com, amazon.cn, https://amazon.co.uk, etc.
+  // examples:
+  // https://images-eu.ssl-images-amazon.com/images/I/51aYWCfdQkL._SL135_.jpg
+  host: /^(.*\.)?((ssl-)?images-)?amazon\.(co\.)?[a-z]+$/,
   
   // Product images seem to come from exc.images-amazon.com.  Static graphics
   // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com.
   // The latter don't seem to have larger versions, so don't popup for them.
-  imageRegExp: /\/ecx\.images\-amazon\.com\/images/,
+  imageRegExp: /(.*\.)(ssl-)?images\-amazon\.com\/images/,
 
   getZoomImage : function(aImageSrc) {
-    let ex = /\._[a-z].+_\./i;
+    let ex = /\._[a-z0-9].+_\./i;
     if (ex.test(aImageSrc)) {
       return aImageSrc.replace(ex, ".");
     } else {
