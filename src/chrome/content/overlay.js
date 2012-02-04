@@ -95,7 +95,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The dimensions of the 1:1 resolution of the popup's image. */
   _origImageWidth : 0,
   _origImageHeight : 0,
-
+  
   /* _thumbBBox is the bounding box of the thumbnail or link which caused
      the popup to launch, in screen coordinates. 
      refScroll{Left,Top} are the window scroll amounts implicit in the bbox
@@ -138,10 +138,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   // Set the fist number in this sum the same as thumbnailzoomplus-panel-caption 
   // in overlay.xul
   _captionHeight : 14 + 4,
-    
+
+  _currentMaxScaleBy : 1.0,
+
   // _maximizingMaxScaleBy is the maximum amount of additional scaling applied
-  // when the user requests to view a pop-up maximized.
-  _maximizingMaxScaleBy : 3.0,
+  // when the user requests to view a pop-up maximized.  Constant.
+  _maximizingMaxScaleBy : 2.0,
 
   // _currentWindow is the window from which the current popup was launched.
   // We use this to detect when a different document has been loaded into that
@@ -1007,6 +1009,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _showZoomImage : function(zoomImageSrc, noTooSmallWarning, aImageNode, aPage, aEvent) {
     this._logger.trace("_showZoomImage");
+    
+    // Popping up a new image; reset zoom to the preference value.
+    this._currentMaxScaleBy = this._getCurrentScaleBy();
+
     this._showPanel(aImageNode, zoomImageSrc, noTooSmallWarning, aEvent);
   },
 
@@ -1230,12 +1236,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
         factor = 1.0 / factor;
       }
-      let scale = this._getCurrentScaleBy();
-      scale *= factor;
-      scale = this._setCurrentScaleBy(scale);
+      this._currentMaxScaleBy *= factor;
       this._logger.debug("_handleKeyDown: scale *= " +
-                         factor + " gives " + scale);
-      this._redisplayPopup(scale);
+                         factor + " gives " + this._currentMaxScaleBy);
+      this._redisplayPopup(this._currentMaxScaleBy);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
       this._setCurrentScaleBy(1.0);
@@ -1243,10 +1247,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._redisplayPopup(1.0);
     } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       this._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      let maxScaleUpBy = this._getCurrentScaleBy();
-      maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
-      maxScaleUpBy *= -1.; // indicate to force allowing to cover thumb.
-      this._redisplayPopup(maxScaleUpBy);
+      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
+      // negate to indicate to force allowing to cover thumb.
+      this._redisplayPopup(-this._currentMaxScaleBy);
     }
 
     if (this._recognizedKey(aEvent)) {
@@ -1567,10 +1570,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    let maxScaleUpBy = this._getCurrentScaleBy();
+    let maxScaleUpBy = this._currentMaxScaleBy;
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
-      maxScaleUpBy = Math.max(maxScaleUpBy, this._maximizingMaxScaleBy);
-      maxScaleUpBy *= -1.; // indicate to force allowing to cover thumb.
+      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
+      maxScaleUpBy = -this._currentMaxScaleBy; // negate indicate to force allowing to cover thumb.
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, 
