@@ -395,7 +395,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let doc = content.document.documentElement;
     this._logger.debug("_addListenersWhenPopupShown: for " +
-                       doc);
+                       doc + " " + content.document.documentURI);
     
     /*
      * Add key listeners so the "Escape" key can hide the popup.
@@ -1228,11 +1228,23 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       let scale = this._getCurrentScaleBy();
       this._redisplayPopup(scale);
-
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
+      let tab = gBrowser.addTab(this._currentImage);
+      gBrowser.selectedTab = tab;
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_N) {
+      window.open(this._currentImage, 
+                  "ThumbnailZoomPlusImageWindow",
+                  "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
+      
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
                aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
-      let factor = 1.20; // scale about 2x as fast as Firefox's 1.1.
+      // scale about 2x as fast as Firefox's 1.1, and bigger than the 1.20 
+      // checks used to decide if a size is enough larger to be worth covering
+      // the thumb.
+      let factor = 1.201; 
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
         factor = 1.0 / factor;
       }
@@ -1480,11 +1492,27 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  _showImageInfo : function(displayedImageWidth, rawImageWidth)
+  _updateForActualScale : function(displayedImageWidth, rawImageWidth)
+  /**
+    Calculates the actual image scale (actual size / raw image size)
+    and sets _currentMaxScaleBy to it and displays it as text overlaid on
+    the image.
+   */
   {
-    let percent = Math.round(100 * displayedImageWidth / rawImageWidth);
-    this._panelInfo.value = percent + "%";
-    this._panelInfo.hidden = false;
+    let actualScale = displayedImageWidth / rawImageWidth;
+    let percent = Math.round(100 * actualScale);
+
+    // Set the actual scale to what we ended up with, so the user won't
+    // increase the requested scale beyond what we're able to fit.
+    this._currentMaxScaleBy = actualScale;
+
+    if (displayedImageWidth > 60) {
+      // Display the actual size % unless it would cover too much of the image.
+      this._panelInfo.value = " " + percent + "% ";
+      this._panelInfo.hidden = false;
+    } else {
+      this._panelInfo.hidden = true;
+    }
   },
   
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
@@ -1538,7 +1566,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
 
-    this._showImageInfo(imageSize.width, imageWidth);
+    this._updateForActualScale(imageSize.width, imageWidth);
     
     return true;
   },
