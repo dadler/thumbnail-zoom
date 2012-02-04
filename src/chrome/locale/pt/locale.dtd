@@ -33,11 +33,12 @@
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opções...">
 
 <!-- Settings dialog -->
+<!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferências">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (seg):">
-<!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Maximum Zoom (percent): ">
+<!ENTITY thumbnailzoomplus.options.maxzoom.selection.label       "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para exibir a imagem:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">

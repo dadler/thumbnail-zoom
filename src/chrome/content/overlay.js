@@ -976,26 +976,27 @@ ThumbnailZoomPlusChrome.Overlay = {
     return time;
   },
 
-  // _getCurrentScaleBy returns an additional scale factor beyond 1:1 scale
+  // _getDefaultScalePref returns an additional scale factor beyond 1:1 scale
   // which we'll try to zoom pop-ups to.
-  _getCurrentScaleBy : function() {
-    this._logger.trace("_getCurrentScaleBy");
+  _getDefaultScalePref : function() {
+    this._logger.trace("_getDefaultScalePref");
 
     let result = 0.0;
     let pref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_MAX_ZOOM);
 
     if (pref && !isNaN(pref.value)) {
       result = 0.01 * pref.value;
+      // min 1% zoom.
+      result = Math.max(0.01, result);
     }
 
     return result;
   },
  
-  _setCurrentScaleBy : function(value) {
-    this._logger.trace("_setCurrentScaleBy(" + value + ")");
-    value = Math.max(1, value);
+  _setDefaultScalePref : function(value) {
+    this._logger.trace("_setDefaultScalePref(" + value + ")");
     let percent = Math.round(value * 100);
-    this._logger.trace("_setCurrentScaleBy: setting pref to '" + percent + "'");
+    this._logger.trace("_setDefaultScalePref: setting pref to '" + percent + "'");
     ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_MAX_ZOOM,
                                                  percent);
     return value;
@@ -1011,7 +1012,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_showZoomImage");
     
     // Popping up a new image; reset zoom to the preference value.
-    this._currentMaxScaleBy = this._getCurrentScaleBy();
+    this._currentMaxScaleBy = this._getDefaultScalePref();
 
     this._showPanel(aImageNode, zoomImageSrc, noTooSmallWarning, aEvent);
   },
@@ -1196,10 +1197,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _recognizedKey : function(aEvent) {
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
-            aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
+            aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
-            aEvent.keyCode == aEvent.DOM_VK_P ||
+            aEvent.keyCode == aEvent.DOM_VK_A ||
             aEvent.keyCode == aEvent.DOM_VK_C ||
+            aEvent.keyCode == aEvent.DOM_VK_D ||
+            aEvent.keyCode == aEvent.DOM_VK_P ||
+            aEvent.keyCode == aEvent.DOM_VK_N ||
+            aEvent.keyCode == aEvent.DOM_VK_T ||
             aEvent.keyCode == aEvent.DOM_VK_0);
   },
   
@@ -1212,10 +1217,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
     
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
+      // open preferences
       this._logger.debug("_handleKeyUp: openPreferences since pressed p key");
       this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
+      // toggle caption
       let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
       allowCaption = allowCaption && allowCaption.value;
       this._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
@@ -1226,14 +1233,18 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._currentThumb) {
         this._setupCaption(this._currentThumb);
       }
-      let scale = this._getCurrentScaleBy();
+      let scale = this._currentMaxScaleBy;
       this._redisplayPopup(scale);
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
+      // open image in new tab
+      this._logger.debug("_handleKeyUp: open in new tab");
       let tab = gBrowser.addTab(this._currentImage);
       gBrowser.selectedTab = tab;
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_N) {
+      // open image in new browser window
+      this._logger.debug("_handleKeyUp: open in new window");
       window.open(this._currentImage, 
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
@@ -1254,9 +1265,34 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._redisplayPopup(this._currentMaxScaleBy);
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
-      this._setCurrentScaleBy(1.0);
+      this._currentMaxScaleBy = 1.0;
       this._logger.debug("_handleKeyDown: reset scale = 1.0");
       this._redisplayPopup(1.0);
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
+      // Set default scale based on current scale.
+      this._logger.debug("_handleKeyUp: set default zoom pref");
+      this._setDefaultScalePref(this._currentMaxScaleBy);
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
+      this._logger.debug("_handleKeyUp: toggle allow-covering-thumb pref");
+      let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
+                                              get(this.PREF_PANEL_LARGE_IMAGE);
+      allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
+      allowCoverThumb = !allowCoverThumb;
+      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_LARGE_IMAGE,
+                                                   allowCoverThumb);
+      if (allowCoverThumb) {
+        // Size may have been limited by disallowing covering, but if it's off
+        // now we may need a larger size.  Allow for that.
+        this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy,
+                                           this._getDefaultScalePref());
+      }
+      this._logger.debug("_handleKeyDown: set allowCoverThumb = " +
+                         allowCoverThumb + 
+                         "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
+      this._redisplayPopup(this._currentMaxScaleBy);
+
     } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       this._logger.debug("_handleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
@@ -1506,7 +1542,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // increase the requested scale beyond what we're able to fit.
     this._currentMaxScaleBy = actualScale;
 
-    if (displayedImageWidth > 60) {
+    if (displayedImageWidth > 90) {
       // Display the actual size % unless it would cover too much of the image.
       this._panelInfo.value = " " + percent + "% ";
       this._panelInfo.hidden = false;
