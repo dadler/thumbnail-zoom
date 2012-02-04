@@ -165,6 +165,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
+    this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
     this._filePicker =
@@ -189,6 +190,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel = null;
     this._panelImage = null;
     this._panelCaption = null;
+    this._panelInfo = null;
     this._currentImage = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
@@ -989,10 +991,12 @@ ThumbnailZoomPlusChrome.Overlay = {
  
   _setCurrentScaleBy : function(value) {
     this._logger.trace("_setCurrentScaleBy(" + value + ")");
-    value = Math.round(value * 100);
-    this._logger.trace("_setCurrentScaleBy: setting pref to '" + value + "'");
+    value = Math.max(1, value);
+    let percent = Math.round(value * 100);
+    this._logger.trace("_setCurrentScaleBy: setting pref to '" + percent + "'");
     ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_MAX_ZOOM,
-                                                 value);
+                                                 percent);
+    return value;
   },
 
   /**
@@ -1228,7 +1232,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       let scale = this._getCurrentScaleBy();
       scale *= factor;
-      this._setCurrentScaleBy(scale);
+      scale = this._setCurrentScaleBy(scale);
       this._logger.debug("_handleKeyDown: scale *= " +
                          factor + " gives " + scale);
       this._redisplayPopup(scale);
@@ -1321,6 +1325,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelImage.style.maxHeight = "16px";
     this._panelImage.style.minHeight = "16px";
     this._panelCaption.hidden = true;
+    this._panelInfo.hidden = true;
     this._panel.sizeTo(iconWidth + this._widthAddon + this._panelWidthAddon,
                        16 + this._widthAddon + this._panelHeightAddon);
 
@@ -1472,6 +1477,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _showImageInfo : function(displayedImageWidth, rawImageWidth)
+  {
+    let percent = Math.round(100 * displayedImageWidth / rawImageWidth);
+    this._panelInfo.value = percent + "%";
+    this._panelInfo.hidden = false;
+  },
+  
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
                                           noTooSmallWarning, 
                                           imageWidth, imageHeight,
@@ -1522,6 +1534,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
+
+    this._showImageInfo(imageSize.width, imageWidth);
+    
     return true;
   },
   

@@ -80,7 +80,17 @@
            noautofocus="true" noautohide="true" >
       <vbox id="thumbnailzoomplus-panel-vbox" 
             align="center" pack="center" >
-        <image id="thumbnailzoomplus-panel-image" />
+        <stack>
+          <image id="thumbnailzoomplus-panel-image" />
+          <vbox>
+            <spacer flex="1" />
+            <hbox>
+              <spacer flex="1" />
+              <label id="thumbnailzoomplus-panel-info" 
+                   hidden="true" height="14px"/>
+            </hbox>
+          </vbox>
+        </stack>
         <label id="thumbnailzoomplus-panel-caption" 
                hidden="true" crop="right" height="14px" />
       </vbox>

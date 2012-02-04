@@ -141,7 +141,7 @@
           <row align="center">
             <label value="&thumbnailzoomplus.options.maxzoom.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-maxzoom-pref" type="number"
-              size="4" maxlength="4" min="10" max="999" width="50"
+              size="4" maxlength="4" min="100" max="999" width="50"
               increment="10" />
           </row>
           <row align="center">
