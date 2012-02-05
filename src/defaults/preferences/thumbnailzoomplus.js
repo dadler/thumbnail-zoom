@@ -69,3 +69,4 @@ pref("extensions.thumbnailzoomplus.photosight.enable",  true);
 pref("extensions.thumbnailzoomplus.photobucket.enable", true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
 pref("extensions.thumbnailzoomplus.others.enable",      true);
+pref("extensions.thumbnailzoomplus.thumbnail.enable",   true);

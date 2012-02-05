@@ -698,7 +698,9 @@ ThumbnailZoomPlus.Pages.Engadget = {
 };
 
 /**
- * Others
+ * Others: this is for arbitrary sites which link directly to image files
+ * and other situations for which we can determine an image linked from
+ * an arbitrary site.
  */
 ThumbnailZoomPlus.Pages.Others = {
   key: "others",
@@ -925,4 +927,29 @@ ThumbnailZoomPlus.Pages.Others = {
 
     return aImageSrc;
   }
+};
+
+/**
+ * Thumbnail: returns the thumbnail itself as the image source.
+ */
+ThumbnailZoomPlus.Pages.Thumbnail = {
+  key: "thumbnail",
+  name: "", // Set in ENTITYthumbnail.
+  host: /.*/,
+  
+  imageRegExp: /.*/,
+  
+  getImageNode : function(aNode, nodeName, nodeClass) {
+    // We provide a trivial getImageNode() function to enable logic in
+    // fiterService.
+    if (! aNode.hasAttribute("src") && aNode.hasAttribute("href")) {
+      // We don't want to return aNode if it's just an href since we need
+      // it to be an actual image.  (The Others rule already handles hrefs.)
+      return null;
+    }
+    return aNode;
+  },
+  
+  getZoomImage : function(aImageSrc) { return aImageSrc; }
+
 };

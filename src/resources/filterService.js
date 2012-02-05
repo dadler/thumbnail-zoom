@@ -67,7 +67,10 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.Twitter,
     ThumbnailZoomPlus.Pages.YouTube, // 22
     ThumbnailZoomPlus.Pages.Wikipedia,
-    ThumbnailZoomPlus.Pages.Others // last; lowest priority
+    
+    // The next two must be last so they are lower priority.
+    ThumbnailZoomPlus.Pages.Others,
+    ThumbnailZoomPlus.Pages.Thumbnail
   ],
 
   /* Logger for this object. */
@@ -100,7 +103,6 @@ ThumbnailZoomPlus.FilterService = {
     // getImageSource up so we can properly find the image/link URL
     // even before we know the page.  Or else call getImageSource on
     // each aPage, if that's not too slow.
-    
     let protocol = null;
     let host = null;
     if (aDocument.location) {
@@ -108,11 +110,10 @@ ThumbnailZoomPlus.FilterService = {
       protocol = aDocument.location.protocol;
     }
     if (! host || !protocol) {
-      this._logger.debug("    testPageConstantByDoc: trying loc from img.src");
       let imageSource = aDocument.src;
       if (imageSource) {
-        this._logger.debug("    testPageConstantByDoc: trying loc from img.src "
-                           + imageSource);
+        // this._logger.debug("    testPageConstantByDoc: trying loc from aDocument.src "
+        //                   + imageSource);
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                             .getService(Components.interfaces.nsIIOService);
         var uri = ioService.newURI(imageSource, aDocument.characterSet, null);
@@ -133,7 +134,7 @@ ThumbnailZoomPlus.FilterService = {
          (enableFileProtocol && "file:" == protocol))) {
       let hostRegExp = this.pageList[aPage].host;
       if (hostRegExp.test(host)) {
-          this._logger.debug("    testPageConstantByDoc: FOUND  '" +
+        this._logger.debug("    testPageConstantByDoc: FOUND  '" +
                        this.pageList[aPage].key + "' (" + aPage + ") for " + 
                        host +
                        " based on regexp " + this.pageList[aPage].host );
@@ -218,7 +219,7 @@ ThumbnailZoomPlus.FilterService = {
    * @return true if the page is enabled, false otherwise.
    */
   isPageEnabled : function(aPage) {
-    this._logger.debug("isPageEnabled " + aPage);
+    // this._logger.debug("isPageEnabled " + aPage);
 
     let pageEnable = false;
     let pageName = this.getPageName(aPage);
@@ -263,11 +264,10 @@ ThumbnailZoomPlus.FilterService = {
    *     imageURL: string (null if not apply);
    *     noTooSmallWarning: boolean
    */
-  getImageSource : function(aDocument, aNode, aPage, forceUseImgNode) {
+  getImageSource : function(aDocument, aNode, aPage) {
     let result = {imageURL: null, noTooSmallWarning: false};
     let pageInfo = this.pageList[aPage];
-    this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key + 
-                       ", forceUseImgNode=" + forceUseImgNode);
+    this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
 
     let nodeName = aNode.localName.toLowerCase();
     this._logger.debug("getImageSource: node name: " + nodeName + "; src: " +
@@ -288,23 +288,14 @@ ThumbnailZoomPlus.FilterService = {
     }
     
     // check other image nodes.
-    if (forceUseImgNode) {
-      if (aNode.localName.toLowerCase() == "img") {
-        imageSource = imgImageSource;
-        result.noTooSmallWarning = true;
-      } else {
-        imageSource = null;
-      }
-    } else if (null == imageSource && pageInfo.getImageNode) {
+    // TODO: perhaps we should change this to put the conditional
+    // only around the call to getImageNode(), and if pageInfo doesn't
+    // have getImageNode, use aNode itself as the imageNode.getImageSource
+    // which detects background images.
+    if (null == imageSource && pageInfo.getImageNode) {
       let nodeClass = aNode.getAttribute("class");
       let imageNode = null;
-      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);
-      if (imageNode == aNode && "img" == nodeName) {
-        // the image source is the thumb itself; don't warn if the image
-        // is too small since we'd see too many warnings.
-        result.noTooSmallWarning = true;
-      }
-      
+      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
       if (imageNode) {
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");

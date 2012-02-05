@@ -70,7 +70,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       //
       let enableDebug = false;
       let enableTrace = false;
-      
             
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)

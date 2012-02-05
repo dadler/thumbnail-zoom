@@ -68,6 +68,7 @@
          -->
         <XXXENTITYREF id="thumbnailzoomplus-options-page-names"
            ENTITYothers="&thumbnailzoomplus.pages.names.others;" 
+           ENTITYthumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
            ENTITYgoogle="&thumbnailzoomplus.pages.names.google;" 
            />
       </menupopup>

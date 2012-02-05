@@ -113,6 +113,8 @@
         name="extensions.thumbnailzoomplus.engadget.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-others-pref"
         name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-thumbnail-pref"
+        name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
     </preferences>
 
     <!-- General -->
@@ -276,6 +278,8 @@
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
+          <checkbox label="&thumbnailzoomplus.pages.names.thumbnail;"
+            preference="thumbnailzoomplus-options-thumbnail-pref" />
         </vbox>
       </hbox>
     </groupbox>

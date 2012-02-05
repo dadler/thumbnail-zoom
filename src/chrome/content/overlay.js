@@ -825,26 +825,29 @@ ThumbnailZoomPlusChrome.Overlay = {
     @return true iff it finds a valid site (and thus shows its image).
    */
   _tryImageSource : function(aDocument, pageMatchNode, aEvent, aPage, node) {
-    if (! ThumbnailZoomPlus.FilterService.testPageConstantByDoc(pageMatchNode, aPage)) {
-      return false;
-    }
-    
-    let imageSourceInfo = ThumbnailZoomPlus.FilterService
-                                .getImageSource(aDocument, node, aPage, false);
-    let imageSource = imageSourceInfo.imageURL;
-    
     if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage)) {
+      this._logger.debug("... _tryImageSource: Trying " +
+                         (aDocument == pageMatchNode ? "page " : "image") +
+                         " against '" + 
+                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                         "'");
+      if (! ThumbnailZoomPlus.FilterService.testPageConstantByDoc(pageMatchNode, aPage)) {
+        return false;
+      }
+          
+      let imageSourceInfo = ThumbnailZoomPlus.FilterService
+                                .getImageSource(aDocument, node, aPage);
+      let imageSource = imageSourceInfo.imageURL;
+      
       if (null != imageSource) {    
         if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
           imageSource = null;
         }
       }
-      if (null == imageSource &&
-          ThumbnailZoomPlus.FilterService.getPageName(aPage) == "others") {
-        // Couldn't get image source from link; use the thumb itself as source.
-        imageSourceInfo = ThumbnailZoomPlus.FilterService
-                                  .getImageSource(aDocument, node, aPage, true);
-        imageSource = imageSourceInfo.imageURL;
+      if (ThumbnailZoomPlus.FilterService.getPageName(aPage) == "thumbnail") {
+        // Using the thumb itself as source; don't annoy the user with
+        // "too small" warnings, which would be quite common.
+        imageSourceInfo.noTooSmallWarning = true;
       }
       if (null != imageSource) {
         // Found a matching page with an image source!
@@ -891,18 +894,11 @@ ThumbnailZoomPlusChrome.Overlay = {
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
     
-      if (aPage >= minFullPageNum) {
-        this._logger.debug("... _findPageAndShowImage: Trying page  against '" + 
-                           ThumbnailZoomPlus.FilterService.pageList[aPage].key +
-                           "'");
-        
+      if (aPage >= minFullPageNum) {        
         if (this._tryImageSource(aDocument, aDocument, aEvent, aPage, node)) {
           return;
         }
       }
-      this._logger.debug("... _findPageAndShowImage: Trying image against '" + 
-                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
-                         "'");
       if (this._tryImageSource(aDocument, node, aEvent, aPage, node)) {
         return;
       }
@@ -1271,10 +1267,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
                aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
-      // scale about 2x as fast as Firefox's 1.1, and bigger than the 1.20 
+      // scale about 2x as fast as Firefox's 1.1, and bigger than the 1.12
       // checks used to decide if a size is enough larger to be worth covering
       // the thumb.
-      let factor = 1.201; 
+      let factor = 1.20; 
       if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
         factor = 1.0 / factor;
       }
@@ -1922,27 +1918,27 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; _getDefaultScalePref()=" + this._getDefaultScalePref() +
                        "; so changedScaleTemporarily=" + changedScaleTemporarily);
     if (! changedScaleTemporarily) {
-      // Allow showing the popup only if popup size is at least 20% bigger
+      // Allow showing the popup only if popup size is at least 12% bigger
       // than thumb.
-      scale.allow = (scale.width >= thumbWidth * 1.20 ||
-                     scale.height >= thumbHeight * 1.20);
+      scale.allow = (scale.width >= thumbWidth * 1.12 ||
+                     scale.height >= thumbHeight * 1.12);
       sideScale.allow = scale.allow;
       if (! scale.allow) {
         this._logger.debug("_getScaleDimensions: skipping: popup image size (" +
                            scale.width + " x " + scale.height + 
-                           ") isn't at least 20% bigger than thumb (" +
+                           ") isn't at least 12% bigger than thumb (" +
                            thumbWidth + " x " + thumbHeight + ")");
       }
       if (scale.allow && 
           this._currentAllowCoverThumb &&
-          scale.width < sideScale.width * 1.20 &&
-          sideScale.width > thumbWidth * 1.20) {
-        // Disallow covering thumb if it doesn't make the image at least 20%
+          scale.width < sideScale.width * 1.12 &&
+          sideScale.width > thumbWidth * 1.12) {
+        // Disallow covering thumb if it doesn't make the image at least 12%
         // bigger -- but do allow covering even then, if not covering
-        // would make the popup less than 20% bigger than the thumb.
+        // would make the popup less than 12% bigger than the thumb.
         this._logger.debug("_getScaleDimensions: disallowing covering " + 
                            "thumb because covering width " + scale.width +
-                           " isn't at least 20% bigger than uncovered width " +
+                           " isn't at least 12% bigger than uncovered width " +
                            sideScale.width);
         scale = sideScale;
       }
