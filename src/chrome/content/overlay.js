@@ -139,8 +139,19 @@ ThumbnailZoomPlusChrome.Overlay = {
   // in overlay.xul
   _captionHeight : 14 + 4,
 
+  // _currentMaxScaleBy is the current image scale factor.  When a popup
+  // is displayed, we initialize this based on the defalt zoom preference
+  // PREF_PANEL_MAX_ZOOM.  Then we adjust _currentMaxScaleBy (but not
+  // the preferences) as the user uses hotkeys to zoom in or out.
   _currentMaxScaleBy : 1.0,
 
+  // _currentAllowCoverThumb is true if the popup is allowed to cover the
+  // thumbnail for the current popup.  When a popup is displayed, we initialize
+  // this based on preference PREF_PANEL_LARGE_IMAGE.  Its value may
+  // be changed during the current popup by pressing the hotkey to
+  // maximize popup size or the hotkey to toggle allow-cover-thumb.
+  _currentAllowCoverThumb : false,
+  
   // _maximizingMaxScaleBy is the maximum amount of additional scaling applied
   // when the user requests to view a pop-up maximized.  Constant.
   _maximizingMaxScaleBy : 2.0,
@@ -1002,6 +1013,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     return value;
   },
 
+  _getAllowCoverThumbPref : function() {
+      let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
+                                              get(this.PREF_PANEL_LARGE_IMAGE);
+      allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
+
+      return allowCoverThumb;
+  },
+
   /**
    * Shows the zoom image panel.
    * @param aImageSrc the image source
@@ -1013,7 +1032,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Popping up a new image; reset zoom to the preference value.
     this._currentMaxScaleBy = this._getDefaultScalePref();
-
+    this._currentAllowCoverThumb = this._getAllowCoverThumbPref();
+    
     this._showPanel(aImageNode, zoomImageSrc, noTooSmallWarning, aEvent);
   },
 
@@ -1233,8 +1253,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._currentThumb) {
         this._setupCaption(this._currentThumb);
       }
-      let scale = this._currentMaxScaleBy;
-      this._redisplayPopup(scale);
+      this._redisplayPopup();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
       // open image in new tab
@@ -1262,12 +1281,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._currentMaxScaleBy *= factor;
       this._logger.debug("_handleKeyDown: scale *= " +
                          factor + " gives " + this._currentMaxScaleBy);
-      this._redisplayPopup(this._currentMaxScaleBy);
+      this._redisplayPopup();
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
       this._currentMaxScaleBy = 1.0;
       this._logger.debug("_handleKeyDown: reset scale = 1.0");
-      this._redisplayPopup(1.0);
+      this._redisplayPopup();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
       // Set default scale based on current scale.
@@ -1276,28 +1295,25 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
       this._logger.debug("_handleKeyUp: toggle allow-covering-thumb pref");
-      let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
-                                              get(this.PREF_PANEL_LARGE_IMAGE);
-      allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
-      allowCoverThumb = !allowCoverThumb;
+      this._currentAllowCoverThumb = ! this._getAllowCoverThumbPref();
       ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_LARGE_IMAGE,
-                                                   allowCoverThumb);
-      if (allowCoverThumb) {
+                                                   this._currentAllowCoverThumb);
+      if (this._currentAllowCoverThumb) {
         // Size may have been limited by disallowing covering, but if it's off
         // now we may need a larger size.  Allow for that.
         this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy,
                                            this._getDefaultScalePref());
       }
       this._logger.debug("_handleKeyDown: set allowCoverThumb = " +
-                         allowCoverThumb + 
+                         this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
-      this._redisplayPopup(this._currentMaxScaleBy);
+      this._redisplayPopup();
 
     } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       this._logger.debug("_handleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
-      // negate to indicate to force allowing to cover thumb.
-      this._redisplayPopup(-this._currentMaxScaleBy);
+      this._currentAllowCoverThumb = true;
+      this._redisplayPopup();
     }
 
     if (this._recognizedKey(aEvent)) {
@@ -1421,7 +1437,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                                 noTooSmallWarning, image, maxScaleUpBy)
+                                 noTooSmallWarning, image)
   {
     this._logger.trace("_checkIfImageLoaded");
     if (this._currentImage != aImageSrc) {
@@ -1458,7 +1474,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                              noTooSmallWarning, image, maxScaleUpBy);
+                              noTooSmallWarning, image);
           }
          }, delay, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
@@ -1473,7 +1489,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                          noTooSmallWarning, image, maxScaleUpBy)
+                          noTooSmallWarning, image)
   {
     this._logger.trace("_imageOnLoad");
 
@@ -1498,8 +1514,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let displayed =
       this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
                                         noTooSmallWarning, 
-                                        this._origImageWidth, this._origImageHeight,
-                                        maxScaleUpBy);
+                                        this._origImageWidth, this._origImageHeight);
     if (displayed) {
       this._addListenersWhenPopupShown();
       this._addToHistory(aImageSrc);
@@ -1510,7 +1525,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     image = null;
   },
 
-  _redisplayPopup : function(maxScaleUpBy)
+  _redisplayPopup : function()
   {
     this._logger.trace("_redisplayPopup");
 
@@ -1523,8 +1538,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
       }
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
-                                        this._origImageWidth, this._origImageHeight,
-                                        maxScaleUpBy);
+                                        this._origImageWidth, this._origImageHeight);
     }
   },
   
@@ -1553,8 +1567,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
                                           noTooSmallWarning, 
-                                          imageWidth, imageHeight,
-                                          maxScaleUpBy)
+                                          imageWidth, imageHeight)
   {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
@@ -1573,7 +1586,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // can display the image (without magnifying it and without it
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
-                                             thumbWidth, thumbHeight, maxScaleUpBy);
+                                             thumbWidth, thumbHeight);
     
     this._logger.debug("_sizePositionAndDisplayPopup: available w/l/r:" + available.width + 
                        "/" + available.left + 
@@ -1584,7 +1597,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; adj windowWidth, Height: " + 
                        available.windowWidth + "," + available.windowHeight);
     this._logger.debug("_sizePositionAndDisplayPopup: " + 
-                       "; maxScaleUpBy=" + maxScaleUpBy +
+                       "; _currentMaxScaleBy=" + this._currentMaxScaleBy +
                        "; win width=" + content.window.innerWidth*pageZoom +
                        "; win height=" + content.window.innerHeight*pageZoom +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
@@ -1634,14 +1647,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    let maxScaleUpBy = this._currentMaxScaleBy;
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
-      maxScaleUpBy = -this._currentMaxScaleBy; // negate indicate to force allowing to cover thumb.
+      this._currentAllowCoverThumb = true;
     }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image, 
-                        maxScaleUpBy);
+      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image);
       that._imageObjectBeingLoaded = null;
     };
 
@@ -1659,7 +1670,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                                     noTooSmallWarning, image, maxScaleUpBy);
+                                     noTooSmallWarning, image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
@@ -1827,8 +1838,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param available: contains (width, height, left, right, top, bottom, 
    *                             windowWidth, windowHeight):
    *   the max space available to the left or right and top or bottom of the thumb.
-   * @maxScaleUpBy: the max factor by which to magnify the image; negative
-   *   if we should force allowing popup to cover thumb.
    * @return the scale dimensions and position in these fields:
    *   {width: displayed width of image
    *    height: displayed height of image 
@@ -1837,20 +1846,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    *   }
    */
   _getScaleDimensions : function(imageWidth, imageHeight, available, 
-                                 thumbWidth, thumbHeight, maxScaleUpBy) {
+                                 thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
-
-    // When this.PREF_PANEL_LARGE_IMAGE is enabled, we allow showing images  
-    // larger than would fit entirely to the left or right of
-    // the thumbnail by using the full page width, covering the thumb.
-    let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
-                                              get(this.PREF_PANEL_LARGE_IMAGE);
-    allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
-    if (maxScaleUpBy < 0.0) {
-      // negative maxScaleUpBy means to force allowCoverThumb on.
-      allowCoverThumb = true;
-      maxScaleUpBy *= -1.;
-    }
 
     let scaleRatio = (imageWidth / imageHeight);
     
@@ -1858,7 +1855,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // be zoomed up that much too.
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let scaleUpBy = Math.max(1.0, pageZoom);
-    scaleUpBy *= maxScaleUpBy;
+    scaleUpBy *= this._currentMaxScaleBy;
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
                   allow: true };
@@ -1915,36 +1912,41 @@ ThumbnailZoomPlusChrome.Overlay = {
     // 
     // Choose between covering thumb or not, and decide whether to
     //
-    if (! allowCoverThumb) {
+    if (! this._currentAllowCoverThumb) {
       this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
       scale = sideScale;
     } 
 
-    // Allow showing the popup if popup size is at least 20% bigger
-    // than thumb.
-    scale.allow = (scale.width >= thumbWidth * 1.20 ||
-                   scale.height >= thumbHeight * 1.20);
-    sideScale.allow = scale.allow;
-    if (! scale.allow) {
+    let changedScaleTemporarily = this._currentMaxScaleBy != this._getDefaultScalePref();
+    this._logger.debug("_getScaleDimensions: _currentMaxScaleBy=" + this._currentMaxScaleBy +
+                       "; _getDefaultScalePref()=" + this._getDefaultScalePref() +
+                       "; so changedScaleTemporarily=" + changedScaleTemporarily);
+    if (! changedScaleTemporarily) {
+      // Allow showing the popup only if popup size is at least 20% bigger
+      // than thumb.
+      scale.allow = (scale.width >= thumbWidth * 1.20 ||
+                     scale.height >= thumbHeight * 1.20);
+      sideScale.allow = scale.allow;
+      if (! scale.allow) {
         this._logger.debug("_getScaleDimensions: skipping: popup image size (" +
                            scale.width + " x " + scale.height + 
                            ") isn't at least 20% bigger than thumb (" +
                            thumbWidth + " x " + thumbHeight + ")");
-    }
-    if (scale.allow && allowCoverThumb &&
-        scale.width < sideScale.width * 1.20 &&
-        sideScale.width > thumbWidth * 1.20 &&
-        maxScaleUpBy <= 1.0) {
-      // Disallow covering thumb if it doesn't make the image at least 20%
-      // bigger -- but do allow covering even then, if not covering
-      // would make the popup less than 20% bigger than the thumb.
-      this._logger.debug("_getScaleDimensions: disallowing covering " + 
-                         "thumb because covering width " + scale.width +
-                         " isn't at least 20% bigger than uncovered width " +
-                         sideScale.width);
-      scale = sideScale;
-    }
-    
+      }
+      if (scale.allow && 
+          this._currentAllowCoverThumb &&
+          scale.width < sideScale.width * 1.20 &&
+          sideScale.width > thumbWidth * 1.20) {
+        // Disallow covering thumb if it doesn't make the image at least 20%
+        // bigger -- but do allow covering even then, if not covering
+        // would make the popup less than 20% bigger than the thumb.
+        this._logger.debug("_getScaleDimensions: disallowing covering " + 
+                           "thumb because covering width " + scale.width +
+                           " isn't at least 20% bigger than uncovered width " +
+                           sideScale.width);
+        scale = sideScale;
+      }
+    }     
     scale.width = Math.round(scale.width);
     scale.height = Math.round(scale.height);
     
