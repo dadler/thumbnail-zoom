@@ -82,6 +82,12 @@ ThumbnailZoomPlus.FilterService = {
   _init : function() {
     this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.FilterService");
     this._logger.trace("_init");
+    
+    let pageCount = this.pageList.length;
+    
+    for (let i = 0; i < pageCount; i++) {
+      this.pageList[i].aPage = i;
+    }
   },
 
   /**
@@ -182,7 +188,7 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   /**
-   * Gets the page constant by name.
+   * Gets the page constant (index of pageList) by name.
    * @param aPageName the page name.
    * @return the page constant.
    */

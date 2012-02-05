@@ -64,7 +64,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // your profile dir, e.g. on Mac OSX it might be
       // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
       // To debug, set enableDebug above to true and monitor the log file
-      // in a terminal using "tail -f log.txt".
+      // in a terminal using this command:
+      // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
       //
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       //

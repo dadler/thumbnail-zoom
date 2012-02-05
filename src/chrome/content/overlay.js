@@ -825,7 +825,22 @@ ThumbnailZoomPlusChrome.Overlay = {
     @return true iff it finds a valid site (and thus shows its image).
    */
   _tryImageSource : function(aDocument, pageMatchNode, aEvent, aPage, node) {
-    if (ThumbnailZoomPlus.FilterService.isPageEnabled(aPage)) {
+    let requireImageBiggerThanThumb = false;
+    let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
+    let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
+    if (! allow &&
+        pageName == "thumbnail" &&
+        ThumbnailZoomPlus.FilterService.isPageEnabled(ThumbnailZoomPlus.Pages.Others.aPage)) {
+      // This is the "thumbnails" page, the "thumbnails" page is disabled, and
+      // the "others" page is enabled.  Allow processing this under the "thumbnails"
+      // page, but only if the actual raw image has higher resolution than the
+      // thumbnal.  That allows the user to have Others on, Thumbnail off, and
+      // still see popups for large images which are embedded as smaller
+      // thumbs or images, as happens on tumblr for example.
+      allow = true;
+      requireImageBiggerThanThumb = true;
+    }
+    if (allow) {
       this._logger.debug("... _tryImageSource: Trying " +
                          (aDocument == pageMatchNode ? "page " : "image") +
                          " against '" + 
@@ -844,7 +859,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           imageSource = null;
         }
       }
-      if (ThumbnailZoomPlus.FilterService.getPageName(aPage) == "thumbnail") {
+      if (pageName == "thumbnail") {
         // Using the thumb itself as source; don't annoy the user with
         // "too small" warnings, which would be quite common.
         imageSourceInfo.noTooSmallWarning = true;
@@ -863,7 +878,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                              this._originalURI);
           
           this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
-                              node, aPage, aEvent);
+                              requireImageBiggerThanThumb, node, aPage, aEvent);
           return true;
         }
       }
@@ -1023,14 +1038,17 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node
    * @param aPage the page constant
    */
-  _showZoomImage : function(zoomImageSrc, noTooSmallWarning, aImageNode, aPage, aEvent) {
+  _showZoomImage : function(zoomImageSrc, noTooSmallWarning, 
+                            requireImageBiggerThanThumb, aImageNode, 
+                            aPage, aEvent) {
     this._logger.trace("_showZoomImage");
     
     // Popping up a new image; reset zoom to the preference value.
     this._currentMaxScaleBy = this._getDefaultScalePref();
     this._currentAllowCoverThumb = this._getAllowCoverThumbPref();
     
-    this._showPanel(aImageNode, zoomImageSrc, noTooSmallWarning, aEvent);
+    this._showPanel(aImageNode, zoomImageSrc, 
+                    noTooSmallWarning, requireImageBiggerThanThumb, aEvent);
   },
 
 
@@ -1064,7 +1082,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
    */
-  _showPanel : function(aImageNode, aImageSrc, noTooSmallWarning, aEvent) {
+  _showPanel : function(aImageNode, aImageSrc, 
+                        noTooSmallWarning, requireImageBiggerThanThumb, aEvent) {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
@@ -1084,7 +1103,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
     this._contextMenu.hidden = false;
-    this._preloadImage(aImageNode, aImageSrc, noTooSmallWarning, aEvent);
+    this._preloadImage(aImageNode, aImageSrc, 
+                       noTooSmallWarning, requireImageBiggerThanThumb, aEvent);
   },
 
   _hideThePopup : function() {
@@ -1433,7 +1453,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                                 noTooSmallWarning, image)
+                                 noTooSmallWarning, requireImageBiggerThanThumb,
+                                 image)
   {
     this._logger.trace("_checkIfImageLoaded");
     if (this._currentImage != aImageSrc) {
@@ -1470,7 +1491,8 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                              noTooSmallWarning, image);
+                              noTooSmallWarning, requireImageBiggerThanThumb, 
+                              image);
           }
          }, delay, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
@@ -1485,7 +1507,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                          noTooSmallWarning, image)
+                          noTooSmallWarning, requireImageBiggerThanThumb, image)
   {
     this._logger.trace("_imageOnLoad");
 
@@ -1503,17 +1525,34 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._timer.cancel();
     
-    
-    this._currentThumb = aImageNode;
-    this._origImageWidth = image.width;
-    this._origImageHeight = image.height;
-    let displayed =
-      this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
-                                        noTooSmallWarning, 
-                                        this._origImageWidth, this._origImageHeight);
-    if (displayed) {
-      this._addListenersWhenPopupShown();
-      this._addToHistory(aImageSrc);
+    let thumbWidth = aImageNode.clientWidth;
+    let thumbHeight = aImageNode.clientHeight;
+    if (requireImageBiggerThanThumb &&
+        (thumbWidth  >= image.width ||
+         thumbHeight >= image.height) ) {
+      // skip
+      this._logger.debug("_imageOnLoad: skipping popup since requireImageBiggerThanThumb" +
+                         " and thumb is " + thumbWidth + "x" + thumbHeight +
+                         " which is >= than raw image " +
+                         image.width + "x" + image.height);
+    } else {
+      if (requireImageBiggerThanThumb) {
+        this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
+                         " and thumb is " + thumbWidth + "x" + thumbHeight +
+                         " which is < raw image " +
+                         image.width + "x" + image.height);
+      }
+      this._currentThumb = aImageNode;
+      this._origImageWidth = image.width;
+      this._origImageHeight = image.height;
+      let displayed =
+        this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
+                                          noTooSmallWarning, 
+                                          this._origImageWidth, this._origImageHeight);
+      if (displayed) {
+        this._addListenersWhenPopupShown();
+        this._addToHistory(aImageSrc);
+      }
     }
     // Help the garbage collector reclaim memory quickly.
     // (Test by watching "images" size in about:memory.)
@@ -1548,6 +1587,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let actualScale = displayedImageWidth / rawImageWidth;
     let percent = Math.round(100 * actualScale);
 
+    
     // Set the actual scale to what we ended up with, so the user won't
     // increase the requested scale beyond what we're able to fit.
     this._currentMaxScaleBy = actualScale;
@@ -1622,7 +1662,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageSrc the image source.
    * @param aEvent the mouse event which caused us to preload the image.
    */
-  _preloadImage : function(aImageNode, aImageSrc, noTooSmallWarning, aEvent) {
+  _preloadImage : function(aImageNode, aImageSrc, 
+                           noTooSmallWarning, requireImageBiggerThanThumb, 
+                           aEvent) {
     this._logger.trace("_preloadImage");
 
     let that = this;
@@ -1648,7 +1690,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._currentAllowCoverThumb = true;
     }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, noTooSmallWarning, image);
+      that._imageOnLoad(aImageNode, aImageSrc, 
+                        noTooSmallWarning, requireImageBiggerThanThumb, image);
       that._imageObjectBeingLoaded = null;
     };
 
@@ -1666,7 +1709,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                                     noTooSmallWarning, image);
+                                     noTooSmallWarning, requireImageBiggerThanThumb,
+                                     image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
@@ -1845,13 +1889,19 @@ ThumbnailZoomPlusChrome.Overlay = {
                                  thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
 
+    let changedScaleTemporarily = this._currentMaxScaleBy != this._getDefaultScalePref();
     let scaleRatio = (imageWidth / imageHeight);
     
-    // If the page is zoomed up to greater than 100%, allow the popup to
-    // be zoomed up that much too.
+    let scaleUpBy = this._currentMaxScaleBy;
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let scaleUpBy = Math.max(1.0, pageZoom);
-    scaleUpBy *= this._currentMaxScaleBy;
+    if (pageZoom > 1.0 &&
+        pageZoom > scaleUpBy &&
+        ! changedScaleTemporarily) {
+      // If the page is zoomed up to greater than 100%, allow the popup to
+      // be zoomed up that much too.  TODO: is this logic needed, or can
+      // the user accomplish that by increasing TZP's zoom preference?
+      scaleUpBy = pageZoom;
+    }
     let scale = { width: imageWidth * scaleUpBy, 
                   height: imageHeight * scaleUpBy, 
                   allow: true };
@@ -1913,7 +1963,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale = sideScale;
     } 
 
-    let changedScaleTemporarily = this._currentMaxScaleBy != this._getDefaultScalePref();
     this._logger.debug("_getScaleDimensions: _currentMaxScaleBy=" + this._currentMaxScaleBy +
                        "; _getDefaultScalePref()=" + this._getDefaultScalePref() +
                        "; so changedScaleTemporarily=" + changedScaleTemporarily);

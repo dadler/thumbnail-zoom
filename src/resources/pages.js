@@ -59,6 +59,34 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
 
 ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 
+/***********
+  Define rules for each page.
+  
+  Each page is an object such as ThumbnailZoomPlus.Pages.Facebook, which
+  is stored as an element in ThumbnailZoomPlus.FilterService.pageList[].
+
+  Fields:
+
+    * key: doc TODO...
+
+    * name
+
+    * host
+
+    * imageRegExp
+
+    * getImageNode:
+
+    * getSpecialSource:
+
+    * getZoomImage:
+
+    * aPage: the index of this page in 
+          ThumbnailZoomPlus.FilterService.pageList[] (assigned in 
+          filterService.js)
+
+ ***********/
+
 /**
  * Facebook
  */
