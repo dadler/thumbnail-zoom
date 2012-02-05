@@ -1273,8 +1273,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
       // open image in new tab
-      this._logger.debug("_handleKeyUp: open in new tab");
-      let tab = gBrowser.addTab(this._currentImage);
+      this._logger.debug("_handleKeyUp: open in new tab " +this._currentImage +
+                         " referrer " + document.documentURIObject);
+      let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
+      let tab = openUILinkIn(this._currentImage, "tab", options);
       gBrowser.selectedTab = tab;
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_N) {
