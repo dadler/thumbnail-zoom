@@ -822,14 +822,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     _tryImageSource tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
     make the popup appear later).
-    @return true iff it finds a valid site (and thus shows its image).
+    @return "disabled", 
+            "rejectedPageMatchNode", 
+            "rejectedNode",
+            "launced".
    */
-  _tryImageSource : function(aDocument, pageMatchNode, aEvent, aPage, node) {
+  _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
+                             aEvent, aPage, node) {
     let requireImageBiggerThanThumb = false;
     let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
-    let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
     if (! allow &&
-        pageName == "thumbnail" &&
+        aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage &&
         ThumbnailZoomPlus.FilterService.isPageEnabled(ThumbnailZoomPlus.Pages.Others.aPage)) {
       // This is the "thumbnails" page, the "thumbnails" page is disabled, and
       // the "others" page is enabled.  Allow processing this under the "thumbnails"
@@ -840,50 +843,51 @@ ThumbnailZoomPlusChrome.Overlay = {
       allow = true;
       requireImageBiggerThanThumb = true;
     }
-    if (allow) {
-      this._logger.debug("... _tryImageSource: Trying " +
-                         (aDocument == pageMatchNode ? "page " : "image") +
-                         " against '" + 
-                         ThumbnailZoomPlus.FilterService.pageList[aPage].key +
-                         "'");
-      if (! ThumbnailZoomPlus.FilterService.testPageConstantByDoc(pageMatchNode, aPage)) {
-        return false;
-      }
-          
-      let imageSourceInfo = ThumbnailZoomPlus.FilterService
-                                .getImageSource(aDocument, node, aPage);
-      let imageSource = imageSourceInfo.imageURL;
-      
-      if (null != imageSource) {    
-        if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-          imageSource = null;
-        }
-      }
-      if (pageName == "thumbnail") {
-        // Using the thumb itself as source; don't annoy the user with
-        // "too small" warnings, which would be quite common.
-        imageSourceInfo.noTooSmallWarning = true;
-      }
-      if (null != imageSource) {
-        // Found a matching page with an image source!
-        let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
-        if (zoomImageSrc == "") {
-          this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
-        } else if (zoomImageSrc == null) {
-          this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
-        } else {
-          this._currentWindow = aDocument.defaultView.top;
-          this._originalURI = this._currentWindow.document.documentURI;
-          this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
-                             this._originalURI);
-          
-          this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
-                              requireImageBiggerThanThumb, node, aPage, aEvent);
-          return true;
-        }
-      }
+    if (! allow) {
+      // The rule for aPage is disabled in preferences.
+      return "disabled";
     }
-    return false;
+    
+    this._logger.debug("... _tryImageSource: Trying " +
+                       (aDocument == pageMatchNode ? "page " : "image") +
+                       " against '" + 
+                       ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                       "'");
+    if (! ThumbnailZoomPlus.FilterService.testPageConstantByHost(pageMatchHost, aPage)) {
+      return "rejectedPageMatchNode";
+    }
+    
+    let imageSourceInfo = ThumbnailZoomPlus.FilterService
+    .getImageSource(aDocument, node, aPage);
+    let imageSource = imageSourceInfo.imageURL;
+    
+    if (null == imageSource ||     
+        ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+      return "rejectedNode";
+    }
+    if (aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage) {
+      // Using the thumb itself as source; don't annoy the user with
+      // "too small" warnings, which would be quite common.
+      imageSourceInfo.noTooSmallWarning = true;
+    }
+    // Found a matching page with an image source!
+    let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
+    if (zoomImageSrc == "") {
+      this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
+      return "rejectedNode";
+    }
+    if (zoomImageSrc == null) {
+      this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
+      return "rejectedNode";
+    }
+    this._currentWindow = aDocument.defaultView.top;
+    this._originalURI = this._currentWindow.document.documentURI;
+    this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
+                       this._originalURI);
+    
+    this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
+                        requireImageBiggerThanThumb, node, aPage, aEvent);
+    return "launched";
   },
 
 
@@ -904,18 +908,36 @@ ThumbnailZoomPlusChrome.Overlay = {
      *
      * For the page test, we don't test page rules smaller than minFullPageNum,
      * the first matching page determined in onLoad.
+     *
+     * As a speed optimization, we avoid trying rules we know won't pass.
+     * That's important since this routine is called whenever the users moves
+     * the mouse pointer into a different element -- even a different paragraph.
      */
+    let docHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(aDocument);
+    let nodeHost = docHost;
+    if (aDocument != node) {
+      nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
+    }
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
     
-      if (aPage >= minFullPageNum) {        
-        if (this._tryImageSource(aDocument, aDocument, aEvent, aPage, node)) {
+      let status="notTried";
+      if (aPage >= minFullPageNum && docHost != null) {        
+        status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node);
+        if (status == "launched") {
           return;
         }
       }
-      if (this._tryImageSource(aDocument, node, aEvent, aPage, node)) {
-        return;
+      
+      if ((status == "notTried" || status == "rejectedPageMatchNode") &&
+          nodeHost != null && nodeHost != docHost) {
+        // The try above failed due to rejecting aDocument as the pageMatchNode.
+        // Try again using the thumb itself as pageMatchNode
+        status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node);
+        if (status == "launched") {
+          return;
+        }
       }
     }
   },

@@ -91,13 +91,13 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   /**
-   * Tests whether the specified document is compatible with the specified page.
-   * @param aDocument the document object, which could be the document
-   * of the entire web page or an image node or <a href=...> node.
-   * @param aPage: the page constant to be tested
-   * @return true iff they are compatible.
+   * Gets the host of the specified document (if it has one and the
+   * protocol is supported by TZP); otherwise returns null.
+   *
+   * Caution: this routine is somewhat slow; avoid calling it more than
+   * necessary.
    */
-  testPageConstantByDoc : function(aDocument, aPage) {
+  getHostOfDoc : function(aDocument) {
     // If enableFileProtocol, then the add-on is enabled for file:// URLs
     // (typically used with the Others page type).  This is useful during
     // debugging, but we don't normally enable it in the released version
@@ -118,7 +118,7 @@ ThumbnailZoomPlus.FilterService = {
     if (! host || !protocol) {
       let imageSource = aDocument.src;
       if (imageSource) {
-        // this._logger.debug("    testPageConstantByDoc: trying loc from aDocument.src "
+        // this._logger.debug("    getHostOfDoc: trying loc from aDocument.src "
         //                   + imageSource);
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                             .getService(Components.interfaces.nsIIOService);
@@ -129,32 +129,34 @@ ThumbnailZoomPlus.FilterService = {
       }
     }
     if (! host || !protocol) {
-      this._logger.debug("    testPageConstantByDoc: Reject '" +
-                         this.pageList[aPage].key + "' (" + aPage + "); couldn't get loc from " + 
+      this._logger.debug("    getHostOfDoc: Reject; couldn't get host from " + 
                          aDocument + "; got " + protocol + "//" + host);
-      return false;
+      return null;
     }
 
     if (("http:" == protocol ||
          "https:" == protocol ||
          (enableFileProtocol && "file:" == protocol))) {
-      let hostRegExp = this.pageList[aPage].host;
-      if (hostRegExp.test(host)) {
-        this._logger.debug("    testPageConstantByDoc: FOUND  '" +
+      return host;
+    }
+    this._logger.debug("    getHostOfDoc: Reject by protocol for " + 
+                       protocol + "//" + host);
+    return null;
+  },
+
+  testPageConstantByHost : function(host, aPage) {
+    let hostRegExp = this.pageList[aPage].host;
+    if (hostRegExp.test(host)) {
+      this._logger.debug("    testPageConstantByHost: FOUND  '" +
+                         this.pageList[aPage].key + "' (" + aPage + ") for " + 
+                         host +
+                         " based on regexp " + this.pageList[aPage].host );
+      return true;
+    }
+    this._logger.debug("    testPageConstantByHost: Reject '" +
                        this.pageList[aPage].key + "' (" + aPage + ") for " + 
                        host +
                        " based on regexp " + this.pageList[aPage].host );
-        return true;
-      }
-      this._logger.debug("    testPageConstantByDoc: Reject '" +
-                   this.pageList[aPage].key + "' (" + aPage + ") for " + 
-                   host +
-                   " based on regexp " + this.pageList[aPage].host );
-      return false;
-    }
-    this._logger.debug("    testPageConstantByDoc: Reject '" +
-                 this.pageList[aPage].key + "' (" + aPage + ") by protocol for " + 
-                 protocol + "//" + host);
     return false;
   },
 
@@ -162,22 +164,20 @@ ThumbnailZoomPlus.FilterService = {
    * Detects and gets the page constant.
    * @param aDocument the document object, which could be the document
    * of the entire web page or an image node or <a href=...> node.
-   * @return the page constant.
+   * @return the page constant or -1 if none matches.
    */
   getPageConstantByDoc : function(aDocument, startFromPage) {
-    // If enableFileProtocol, then the add-on is enabled for file:// URLs
-    // (typically used with the Others page type).  This is useful during
-    // debugging, but we don't normally enable it in the released version
-    // since we aren't sure if there might be subtle security risks.
-    let enableFileProtocol = false;
-
     let pageConstant = -1;
     let name = "?";
     
+    let host = this.getHostOfDoc(aDocument);
+    if (host == null) {
+      return pageConstant;
+    }
     let pageCount = this.pageList.length;
     
     for (let i = startFromPage; i < pageCount; i++) {
-      if (this.testPageConstantByDoc(aDocument, i)) {
+      if (this.testPageConstantByHost(host, i)) {
         pageConstant = i;
         name = this.pageList[i].key;
         break;
