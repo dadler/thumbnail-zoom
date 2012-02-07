@@ -1263,6 +1263,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_P ||
             aEvent.keyCode == aEvent.DOM_VK_N ||
             aEvent.keyCode == aEvent.DOM_VK_T ||
+            aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
             aEvent.keyCode == aEvent.DOM_VK_0);
   },
   
