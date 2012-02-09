@@ -51,6 +51,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     /* Logger for this object (common.js itself). */
     _logger : null,
 
+    // Prefs caches preferences for faster retrieval.
+    _prefs : {},
+    
     /**
      * Initialize this object.
      */
@@ -154,7 +157,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      * @return the id of this extension.
      */
     get ExtensionId() { 
-      // return "{E10A6337-382E-4FE6-96DE-936ADC34DD04}"; 
       return "thumbnailZoom@dadler.github.com"; 
     },
 
@@ -195,6 +197,62 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     get PrefBranch() { return "extensions.thumbnailzoomplus."; },
 
     /**
+     * getPref returns the value of the named key, or defaultValue if
+     * the key doesn't exist in the preferences system.  This defult is a
+     * fallback of last resort; the preference should already be registered
+     * (see thumbnailzoomplus.js) and that registration provides the normal
+     * default.
+     *
+     * Note that the value is returned directly; do not try to do
+     * result.value.
+     *
+     * This function caches preferences in this._prefs, which is an important
+     * speed optimization.
+     */
+    getPref : function(key, defaultValue) {
+      if (key in this._prefs) {
+        var value = this._prefs[key];
+        this._logger.debug("getPref: cache hit: prefs['" + key + "'] = " + value);
+      } else {
+        var pref = ThumbnailZoomPlus.Application.prefs.get(key);
+        if (pref) {
+          var value = pref.value;
+        } else {
+          // pref doesn't exist so use hard-coded default.  This shouldn't
+          // normally happen, but would if you specified a preference not defined
+          // in thumbnailzoomplus.js.
+          this._logger.debug("getPref: WARNING: using hard-coded default for prefs['" + key + "']");
+          var value = defaultValue;
+        }
+        // update cache
+        this._prefs[key] = value;
+        this._logger.debug("getPref: cache miss: prefs['" + key + "'] = " + value);
+      }
+      return value;
+    },
+    
+    /// clear the cache of the specified pref key; called when TZP
+    /// observes that the pref has changed values.
+    clearPrefCacheItem : function(key) {
+      this._logger.debug("clearPrefCacheItem: delete cache prefs['" + key + "']");
+
+      delete this._prefs[key];
+    },
+    
+    /// Updates the pref cache (but not the Firefox preference itself).
+    setPrefCache : function(key, value) {
+      this._logger.debug("setPrefCache: set cache prefs['" + key + "'] = " + value);
+      this._prefs[key] = value;
+    },
+    
+    /// Sets the specified preference to the specified value and updates the
+    /// cache accordingly.
+    setPref : function(key, value) {
+      this.Application.prefs.setValue(key, value);
+      this.setPrefCache(key, value);
+    },
+    
+    /**
      * Verify if the page is enabled.
      * @param aPage the page key (string).
      * @return true if the page is enabled, false otherwise.
@@ -202,15 +260,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     isNamedPageEnabled : function(key) {
       this._logger.debug("isNamedPageEnabled " + key);
 
-      let pageEnable = false;
-
-      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";
-      
-      if (ThumbnailZoomPlus.Application.prefs.get(pagePrefKey))
-        pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
-      
-      return pageEnable;
-    },
+      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";      
+      return ThumbnailZoomPlus.getPref(pagePrefKey, false);
+    }
 
   };
 

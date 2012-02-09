@@ -247,10 +247,10 @@ ThumbnailZoomPlus.FilterService = {
     let pageName = this.getPageName(aPage);
 
     if (null != pageName) {
-      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
-      let pageEnable = ThumbnailZoomPlus.Application.prefs.get(pagePrefKey).value;
+      let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
 
-      ThumbnailZoomPlus.Application.prefs.setValue(pagePrefKey, !pageEnable);
+      let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
+      ThumbnailZoomPlus.setPref(pagePrefKey, !pageEnable);
     }
   },
 

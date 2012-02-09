@@ -56,8 +56,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /* Logger for this object. */
   _logger : null,
+  
   /* Preferences service. */
-  _preferencesService : null,
+  _preferencesService : null, // TODO: same as ThumbnailZoomPlus.Application.prefs?
 
   /* The timer, which is used:
    *   - for the user-configured delay from when the user hovers until
@@ -161,7 +162,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // window (as opposed to a different window).
   _currentWindow : null,
   
-  // _originalURI is the URL _currentWindow (not the image) had when we last 
+  // _originalURI is the document URL (not the image) _currentWindow had when we last 
   // showed the popup.
   _originalURI : "",
   
@@ -185,11 +186,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
 
-    this._updatePreferenceFix();
     this._installToolbarButton();
     this._showPanelBorder();
-    this._preferencesService.addObserver(this.PREF_PANEL_BORDER, this, false);
-    this._addPreferenceObservers(true);
+    this._preferencesService.addObserver(ThumbnailZoomPlus.PrefBranch, this, false);
     this._addEventListeners();
   },
 
@@ -206,26 +205,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelInfo = null;
     this._currentImage = null;
     this._contextMenu = null;
-    this._preferencesService.removeObserver(this.PREF_PANEL_BORDER, this);
-    this._addPreferenceObservers(false);
-  },
-
-
-  /**
-   * Updates preference fix.
-   */
-  _updatePreferenceFix : function() {
-    this._logger.trace("_updatePreferenceFix");
-
-    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_DELAY);
-    if (delayPref) {
-      let preferenceService =
-        Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
-      let delayValue = String(delayPref.value);
-
-      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_WAIT, delayValue);
-      preferenceService.clearUserPref(this.PREF_PANEL_DELAY);
-    }
+    this._preferencesService.removeObserver(ThumbnailZoomPlus.PrefBranch, this);
   },
 
 
@@ -236,7 +216,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_installToolbarButton");
 
     let buttonInstalled =
-      ThumbnailZoomPlus.Application.prefs.get(this.PREF_TOOLBAR_INSTALLED).value;
+      ThumbnailZoomPlus.getPref(this.PREF_TOOLBAR_INSTALLED, false);
 
     if (!buttonInstalled) {
       let toolbarId =
@@ -258,31 +238,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         BrowserToolboxCustomizeDone(true);
       } catch (e) { }
 
-      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_TOOLBAR_INSTALLED, true);
-    }
-  },
-
-
-  /**
-   * Adds the preference observers.
-   * @param aValue true if adding, false when removing.
-   */
-  _addPreferenceObservers : function(aValue) {
-    this._logger.debug("_addPreferenceObservers");
-
-    let pageCount = ThumbnailZoomPlus.FilterService.pageList.length;
-    let preference = null;
-    let pageInfo = null;
-
-    for (let i = 0; i < pageCount; i++) {
-      pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
-      preference = ThumbnailZoomPlus.PrefBranch + pageInfo.key + ".enable";
-
-      if (aValue) {
-        this._preferencesService.addObserver(preference, this, false);
-      } else {
-        this._preferencesService.removeObserver(preference, this);
-      }
+      ThumbnailZoomPlus.setPref(this.PREF_TOOLBAR_INSTALLED, true);
     }
   },
 
@@ -550,6 +506,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // But I'm not sure how to unregister it since it was created with an
         // implicit function (a closure).  Instead we effectively disable its mouseover
         // using bbox (making bbox cover everywhere).
+        // TODO: maybe we could do it using arguments.callee.
         this._logger.debug("_addEventListenersToDoc: A different window has handlers; disabling them."); 
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.xMin = -99999;
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.xMax =  99999;
@@ -607,6 +564,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     // down.  Or always popdown without looking at bbox if the newly entered
     // element doesn't correspond to something we'd popup for.
     
+    if (this._ignoreBBox.xMax = -999) {
+      // passed the quick test for "no bbox".
+      return false;
+    }
+      
     var viewportElement = doc.documentElement;  
     var scrollLeft = viewportElement.scrollLeft;
     var scrollTop = viewportElement.scrollTop;
@@ -746,7 +708,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     title = title.replace(/^[0-9]+(.*\))submitted .*/, "$1");
     
     // youtube fix: extract title from something like
-    // 'GFormLLC uploaded 1 day ago 2:20 Add to iPad Survives 100,000+ Foot Fall From Space Near Area 51 (High-Res) http://g-form.com -- G-Form, a company etc.  solely... GFormLLC 629,027 views'
+    // 'GFormLLC uploaded 1 day ago 2:20 Add to iPad Survives http://g-form.com -- G-Form, a company etc.  solely... GFormLLC 629,027 views'
     title = title.replace(/^.* ago [0-9]+:[0-9]+ Add to /, '');
     title = title.replace(/^[0-9]+:[0-9]+ ?Add to /, '');
 
@@ -764,15 +726,25 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aEvent the event object.
    * @param aPage the filtered page.
    */
-  _handleMouseOver : function(aDocument, aEvent, aPage) {
+  _handleMouseOver : function (aDocument, aEvent, aPage) {
+    let times = 1; // Set to 1 normally, or to 100 when timing.
+    
+    for (let i = 0; i < times; i++) {
+      this._handleMouseOverImpl(aDocument, aEvent, aPage);
+    }
+  },
+  
+  _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
+  
     this._logger.debug("___________________________");
     this._logger.trace("_handleMouseOver");
-
+    
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
       this._closePanel();
       return;
     }
+    
     let x = aEvent.screenX;
     let y = aEvent.screenY;
     if (this._insideThumbBBox(aDocument, x, y)) {
@@ -791,7 +763,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._closePanel();
       return;
     }
-    
+
     this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
     let node = aEvent.target;
 
@@ -807,7 +779,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_handleMouseOver: event.target.localName=null; ignoring");
       return;
     }
-
+    
     // Start a timer to try to load the image after the configured
     // hover delay time. 
     let that = this;
@@ -951,12 +923,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_isKeyActive");
 
     let active = false;
-    let keyPref = ThumbnailZoomPlus.Application.prefs.get(prefName);
-    if (! keyPref) {
-      this._logger.debug("_isKeyActive: pref not defined so return true");
-      return true;
-    }
-    switch (keyPref.value) {
+    let keyPref = ThumbnailZoomPlus.getPref(prefName, 2);
+    switch (keyPref) {
       case 1:
         active = aEvent.ctrlKey || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_CONTROL);
@@ -994,10 +962,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getHoverTime");
 
     let hoverTime = 100;
-    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_WAIT);
+    let delayPref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_WAIT, 0.1);
 
-    if (delayPref && !isNaN(delayPref.value)) {
-      hoverTime = 1000 * delayPref.value;
+    if (!isNaN(delayPref)) {
+      hoverTime = 1000 * delayPref;
     }
 
     return hoverTime;
@@ -1010,11 +978,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getPartialLoadTime : function() {
     this._logger.trace("_getPartialLoadTime");
     
-    let time = 100;
-    let delayPref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_PARTIAL_LOAD_WAIT);
+    let time = 1000;
+    let delayPref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_PARTIAL_LOAD_WAIT, 1.0);
 
-    if (delayPref && !isNaN(delayPref.value)) {
-      time = 1000 * delayPref.value;
+    if (!isNaN(delayPref)) {
+      time = 1000 * delayPref;
     }
 
     return time;
@@ -1026,10 +994,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getDefaultScalePref");
 
     let result = 0.0;
-    let pref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_MAX_ZOOM);
+    let value = ThumbnailZoomPlus.getPref(this.PREF_PANEL_MAX_ZOOM, 2.0);
 
-    if (pref && !isNaN(pref.value)) {
-      result = 0.01 * pref.value;
+    if (!isNaN(value)) {
+      result = 0.01 * value;
       // min 1% zoom.
       result = Math.max(0.01, result);
     }
@@ -1041,17 +1009,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_setDefaultScalePref(" + value + ")");
     let percent = Math.round(value * 100);
     this._logger.trace("_setDefaultScalePref: setting pref to '" + percent + "'");
-    ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_MAX_ZOOM,
-                                                 percent);
+    ThumbnailZoomPlus.setPref(this.PREF_PANEL_MAX_ZOOM, percent);
     return value;
   },
 
   _getAllowCoverThumbPref : function() {
-      let allowCoverThumb = ThumbnailZoomPlus.Application.prefs.
-                                              get(this.PREF_PANEL_LARGE_IMAGE);
-      allowCoverThumb = allowCoverThumb && allowCoverThumb.value;
-
-      return allowCoverThumb;
+      return ThumbnailZoomPlus.getPref(this.PREF_PANEL_LARGE_IMAGE, false);
   },
 
   /**
@@ -1081,8 +1044,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode) {
-    let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
-    allowCaption = allowCaption && allowCaption.value;
+    let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
     this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
     if (!allowCaption) {
       this._hideCaption();
@@ -1090,7 +1052,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     let caption = this._getEffectiveTitle(aImageNode);
-    this._logger.debug("_findPageAndShowImage: image title='" + 
+    this._logger.debug("_setupCaption: image title='" + 
                        caption + "'");
     this._panelCaption.value = caption;
     this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
@@ -1282,12 +1244,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
       // toggle caption
-      let allowCaption = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_CAPTION);
-      allowCaption = allowCaption && allowCaption.value;
+      let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
       this._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
                          " since pressed c key");      
-      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_CAPTION,
-                                                   ! allowCaption);
+      ThumbnailZoomPlus.setPref(this.PREF_PANEL_CAPTION, ! allowCaption);
       // redisplay to update displayed caption.
       if (this._currentThumb) {
         this._setupCaption(this._currentThumb);
@@ -1337,8 +1297,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
       this._logger.debug("_handleKeyUp: toggle allow-covering-thumb pref");
       this._currentAllowCoverThumb = ! this._getAllowCoverThumbPref();
-      ThumbnailZoomPlus.Application.prefs.setValue(this.PREF_PANEL_LARGE_IMAGE,
-                                                   this._currentAllowCoverThumb);
+      ThumbnailZoomPlus.setPref(this.PREF_PANEL_LARGE_IMAGE,
+                                this._currentAllowCoverThumb);
       if (this._currentAllowCoverThumb) {
         // Size may have been limited by disallowing covering, but if it's off
         // now we may need a larger size.  Allow for that.
@@ -1741,11 +1701,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _allowPopdown : function() {
-    let pref = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_NEVER_POPDOWN);
-    if (!pref) {
-      return true;
-    }
-    return ! pref.value;
+    let value = ThumbnailZoomPlus.getPref(this.PREF_PANEL_NEVER_POPDOWN, false);
+    return ! value;
   },
   
   /**
@@ -2266,9 +2223,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanelBorder : function() {
     this._logger.trace("_showPanelBorder");
 
-    let panelBorder = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_BORDER);
+    let panelBorder = ThumbnailZoomPlus.getPref(this.PREF_PANEL_BORDER, true);
 
-    if (panelBorder && panelBorder.value) {
+    if (panelBorder) {
       this._panel.removeAttribute("panelnoborder");
       this._widthAddon = this._borderWidth * 2;
     } else {
@@ -2279,22 +2236,27 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Observes the authentication topic.
+   * Observes preference changes.
    * @param aSubject The object related to the change.
    * @param aTopic The topic being observed.
    * @param aData The data related to the change.
    */
   observe : function(aSubject, aTopic, aData) {
-    this._logger.debug("observe");
+    this._logger.debug("observe: " + aTopic + " " + aData);
 
     if ("nsPref:changed" == aTopic &&
         -1 != aData.indexOf(ThumbnailZoomPlus.PrefBranch)) {
+      // This is a preferences changed notification.
+      ThumbnailZoomPlus.clearPrefCacheItem(aData);
+
       if (-1 != aData.indexOf(".enable")) {
+        // Get the page name of this page-enable preference.
         let page =
           aData.replace(ThumbnailZoomPlus.PrefBranch, "").replace(".enable", "");
         let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByName(page);
 
         if (-1 != pageConstant) {
+          // Update the tool menu for this item.
           this._updatePagesMenu(pageConstant);
         }
       } else {
@@ -2309,9 +2271,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   
   _addToHistory : function(url) {
-    let allowRecordingHistory = ThumbnailZoomPlus.Application.prefs.get(this.PREF_PANEL_HISTORY);
-    if (! allowRecordingHistory || !allowRecordingHistory.value) {
-    this._logger.debug("_addToHistory: history pref is off.");  
+    let allowRecordingHistory = ThumbnailZoomPlus.getPref(this.PREF_PANEL_HISTORY, false);
+    if (! allowRecordingHistory) {
+      this._logger.debug("_addToHistory: history pref is off.");  
       return;
     }
     
