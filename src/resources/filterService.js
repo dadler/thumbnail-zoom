@@ -214,9 +214,9 @@ ThumbnailZoomPlus.FilterService = {
    * @return the page constant name.
    */
   getPageName : function(aPageConstant) {
-    this._logger.debug("getPageName");
-
-    return this.pageList[aPageConstant].key;
+    let name = this.pageList[aPageConstant].key;
+    this._logger.debug("getPageName " + aPageConstant + " = " + name);
+    return name;
   },
 
   /**

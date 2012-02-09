@@ -84,6 +84,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* File Picker. */
   _filePicker : null,
   
+  // true if we've populated the tool button with page names:
+  _populateToolbarMenu : false,
+  
   /* The current image source (URL). */
   _currentImage : null,
 
@@ -166,6 +169,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   // showed the popup.
   _originalURI : "",
   
+  // observe is the function called when preferences change.
+  observe : null,
+  
   /**
    * Initializes the object.
    */
@@ -188,6 +194,15 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._installToolbarButton();
     this._showPanelBorder();
+    
+    // setup the preferences change observe.  We define a local function which
+    // calls this.observePrefChange() to ensure that it gets the same 'this'
+    // as us (otherwise it'd get some other 'this' and toolbar menu updates 
+    // wouldn't work).
+    let that = this;
+    this.observe = function(aSubject, aTopic, aData) { 
+      that.observePrefChange(aSubject, aTopic, aData);
+    }
     this._preferencesService.addObserver(ThumbnailZoomPlus.PrefBranch, this, false);
     this._addEventListeners();
   },
@@ -247,10 +262,13 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Adds the menu items.
    */
   addMenuItems : function() {
-    this._logger.debug("addMenuItems");
+    this._logger.trace("addMenuItems");
+    if (this._populateToolbarMenu) {
+      return;
+    }
+    this._populateToolbarMenu = true;
 
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
-
     if (menuPopup) {
       let menuSeparator =
         document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
@@ -284,7 +302,7 @@ ThumbnailZoomPlusChrome.Overlay = {
               true );
         }
         menuPopup.insertBefore(menuItem, menuSeparator);
-        this._updatePagesMenu(i);
+        this._updatePagesMenuItem(i);
       }
     }
   },
@@ -2203,15 +2221,16 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Updates the pages menu.
    * @param aPage the page constant.
    */
-  _updatePagesMenu : function(aPage) {
-    this._logger.trace("_updatePagesMenu");
+  _updatePagesMenuItem : function(aPage) {
+    this._logger.trace("_updatePagesMenuItem " + aPage);
 
     let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
-    let pageEnable = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
+    let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
     let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
 
     if (null != menuItem) {
+      this._logger.trace("_updatePagesMenuItem " + aPage + " item " + menuItemId + " to " + pageEnable);
       menuItem.setAttribute("checked", pageEnable);
     }
   },
@@ -2241,8 +2260,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aTopic The topic being observed.
    * @param aData The data related to the change.
    */
-  observe : function(aSubject, aTopic, aData) {
+  observePrefChange : function(aSubject, aTopic, aData) {
     this._logger.debug("observe: " + aTopic + " " + aData);
+    this._logger.debug("observe: this._originalURI = " + this._originalURI);
 
     if ("nsPref:changed" == aTopic &&
         -1 != aData.indexOf(ThumbnailZoomPlus.PrefBranch)) {
@@ -2257,7 +2277,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
         if (-1 != pageConstant) {
           // Update the tool menu for this item.
-          this._updatePagesMenu(pageConstant);
+          this._updatePagesMenuItem(pageConstant);
         }
       } else {
         switch (aData) {

@@ -50,8 +50,7 @@
       class="toolbarbutton-1 chromeclass-toolbar-additional ">
       
       <menupopup id="thumbnailzoomplus-toolbar-menu"
-        onpopupshown="ThumbnailZoomPlusChrome.Overlay.addMenuItems();"
-        onpopuphidden="ThumbnailZoomPlusChrome.Overlay.removeMenuItems();">
+        onpopupshowing="ThumbnailZoomPlusChrome.Overlay.addMenuItems();">
       
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
