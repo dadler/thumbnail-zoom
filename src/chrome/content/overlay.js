@@ -582,8 +582,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     // down.  Or always popdown without looking at bbox if the newly entered
     // element doesn't correspond to something we'd popup for.
     
-    if (this._ignoreBBox.xMax = -999) {
+    if (this._ignoreBBox.xMax == -999) {
       // passed the quick test for "no bbox".
+     this._logger.debug("_insideThumbBBox: returning true since _ignoreBBox.xMax == -999");
       return false;
     }
       
@@ -1056,10 +1057,13 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /*
-   * Sets the popup's caption from aImageNode's (or its ancestor's) and
-   * clears the title from the node so we don't see a tooltip.
+   * Sets the popup's caption from aImageNode's (or its ancestor's).
    * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
    * before this gets called, so it isn't suppressed.
+   * Note that the tooltip doen't get unhidden until we popup,
+   * and the node's title doesn't get cleared (to hide the tooltip)
+   * until just after we dispaly, so we don't clear the tooltip
+   * if we end up not displaying it.
    */
   _setupCaption : function(aImageNode) {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
@@ -1075,7 +1079,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption.value = caption;
     this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
-    aImageNode.title = " "; // suppress tooltip
   },
   
   
@@ -1553,6 +1556,9 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           noTooSmallWarning, 
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
+        if (! this._panelCaption.hidden) {
+          aImageNode.title = " "; // suppress tooltip
+        }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
       }
@@ -1742,10 +1748,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._panelImage.style.backgroundImage = ""; // hide status icon
     
-    // Explicitly move panel since if it was already popped-up, openPopupAtScreen
-    // won't do anything.
     this._panelCaption.hidden = ! wantCaption;
     this._setImageSize(imageSize);
+    // Explicitly move panel since if it was already popped-up, openPopupAtScreen
+    // won't do anything.
     this._panel.moveTo(pos.x, pos.y);
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
