@@ -932,7 +932,7 @@ ThumbnailZoomPlus.Pages.Others = {
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
-    
+        
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
@@ -986,6 +986,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     return aNode;
   },
   
-  getZoomImage : function(aImageSrc) { return aImageSrc; }
+  getZoomImage : function(aImageSrc) {
+    // for some sites where /images/thumb/(digits) changes thumb to full.
+    // This really belongs more in the Others rule, but it often wouldn't
+    // work since it'd instead follow the <a> link around the image.
+    let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
+    aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
+    return aImageSrc; 
+  }
 
 };
