@@ -84,9 +84,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* File Picker. */
   _filePicker : null,
   
-  // true if we've populated the tool button with page names:
-  _populateToolbarMenu : false,
-  
   /* The current image source (URL). */
   _currentImage : null,
 
@@ -263,10 +260,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   addMenuItems : function() {
     this._logger.trace("addMenuItems");
-    if (this._populateToolbarMenu) {
-      return;
-    }
-    this._populateToolbarMenu = true;
 
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
     if (menuPopup) {
@@ -278,31 +271,37 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       for (let i = 0; i < pageCount; i++) {
         pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
-        menuItem = document.createElement("menuitem");
-        menuItem.setAttribute("id", 
-                              "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key);
-        
-        let name = pageInfo.name;
-        if (name == "") {
-          // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
-          // this is how we get localized names based on locale.dtd entity
-          // definitions.
-          name = document.getElementById("thumbnailzoomplus-options-page-names")
-                           .getAttribute("ENTITY" + pageInfo.key);
+        let id = "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key;
+        menuItem = document.getElementById(id);
+        if (menuItem) {
+          this._updatePagesMenuItem(i);
+        } else {
+          // Item doesn't exist so create it.
+          menuItem = document.createElement("menuitem");
+          menuItem.setAttribute("id", id);
+          
+          let name = pageInfo.name;
+          if (name == "") {
+            // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
+            // this is how we get localized names based on locale.dtd entity
+            // definitions.
+            name = document.getElementById("thumbnailzoomplus-options-page-names")
+            .getAttribute("ENTITY" + pageInfo.key);
             this._logger.debug("addMenuItems: name from entity=" + name);
             ThumbnailZoomPlus.FilterService.pageList[i].name = name;
+          }
+          this._logger.debug("addMenuItems: name=" + name);
+          menuItem.setAttribute("label", name);
+          menuItem.setAttribute("type", "checkbox");
+          { 
+            let aPage = i;
+            menuItem.addEventListener("command",
+                                      function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
+                                      true );
+          }
+          this._updatePagesMenuItemElement(pageInfo.key, menuItem);
+          menuPopup.insertBefore(menuItem, menuSeparator);
         }
-        this._logger.debug("addMenuItems: name=" + name);
-        menuItem.setAttribute("label", name);
-        menuItem.setAttribute("type", "checkbox");
-        { 
-          let aPage = i;
-          menuItem.addEventListener("command",
-              function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
-              true );
-        }
-        menuPopup.insertBefore(menuItem, menuSeparator);
-        this._updatePagesMenuItem(i);
       }
     }
   },
@@ -2228,20 +2227,27 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Updates the pages menu.
    * @param aPage the page constant.
    */
+  _updatePagesMenuItemElement : function(pageName, menuItem) {
+      let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
+      this._logger.trace("_updatePagesMenuItemElement " + pageName + " to " + pageEnable);
+      menuItem.setAttribute("checked", pageEnable);
+  },
+
+  /**
+   * Updates the pages menu.
+   * @param aPage the page constant.
+   */
   _updatePagesMenuItem : function(aPage) {
     this._logger.trace("_updatePagesMenuItem " + aPage);
 
     let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
-    let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
     let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
 
     if (null != menuItem) {
-      this._logger.trace("_updatePagesMenuItem " + aPage + " item " + menuItemId + " to " + pageEnable);
-      menuItem.setAttribute("checked", pageEnable);
+      this._updatePagesMenuItemElement(pageName, menuItem);
     }
   },
-
 
   /**
    * Shows the panel border based in the preference value.
