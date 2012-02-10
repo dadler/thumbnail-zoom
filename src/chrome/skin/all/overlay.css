@@ -49,6 +49,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
   background-color: white !important;
+  background-position: top left !important;
 }
 #thumbnailzoomplus-panel-vbox {
   background-color: #AAA !important;

@@ -1108,6 +1108,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
     this._contextMenu.hidden = false;
+    this._panelInfo.hidden = true;
+
     this._preloadImage(aImageNode, aImageSrc, 
                        noTooSmallWarning, requireImageBiggerThanThumb, aEvent);
   },
@@ -1409,14 +1411,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._panelImage.style.backgroundImage =
       "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
+    let imageHeight = 16 + (this._panelInfo.hidden ? 0 : 20);
     this._panelImage.style.maxWidth = iconWidth + "px";
     this._panelImage.style.minWidth = iconWidth + "px";
-    this._panelImage.style.maxHeight = "16px";
-    this._panelImage.style.minHeight = "16px";
+    this._panelImage.style.maxHeight = imageHeight + "px";
+    this._panelImage.style.minHeight = imageHeight + "px";
     this._panelCaption.hidden = true;
-    this._panelInfo.hidden = true;
+    let panelHeight = imageHeight + this._widthAddon + this._panelHeightAddon;
     this._panel.sizeTo(iconWidth + this._widthAddon + this._panelWidthAddon,
-                       16 + this._widthAddon + this._panelHeightAddon);
+                       panelHeight);
 
     let x = this._thumbBBox.xMax + this._pad;
     let y = this._thumbBBox.yMin;
@@ -1650,6 +1653,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     if (! imageSize.allow) {
       if (! noTooSmallWarning) {
+        // show the thumb's size as a % of raw image's size, so the user
+        // can tell if it's worth opening the image in a tab to
+        // see it bigger than could fit in the window.
+        this._updateForActualScale(thumbWidth, imageWidth);
         this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
       } else {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
