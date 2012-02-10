@@ -588,9 +588,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
       
-    var viewportElement = doc.documentElement;  
-    var scrollLeft = viewportElement.scrollLeft;
-    var scrollTop = viewportElement.scrollTop;
+    var win = doc.defaultView;  
+    var scrollLeft = win.scrollX;
+    var scrollTop = win.scrollY;
     if (typeof(gBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
@@ -616,8 +616,9 @@ ThumbnailZoomPlusChrome.Overlay = {
                   x < adj.xMax &&
                   y > adj.yMin &&
                   y < adj.yMax);
-    if (0) this._logger.debug("_insideThumbBBox: orig scroll=" +
-                       adj.refScrollLeft + "," + adj.refScrollTop +
+    if (0) this._logger.debug("_insideThumbBBox: zoom=" + pageZoom + 
+                      "; orig scroll=" +
+                      adj.refScrollLeft + "," + adj.refScrollTop +
                       "; cur scroll=" +
                       scrollLeft + "," + scrollTop +
                       "; scaled diff = " + xOffset+
