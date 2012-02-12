@@ -41,7 +41,7 @@ pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.neverpopdown", false);
-pref("extensions.thumbnailzoomplus.panel.maxzoom",      100);
+pref("extensions.thumbnailzoomplus.panel.maxzoom",      144);
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);
@@ -69,4 +69,4 @@ pref("extensions.thumbnailzoomplus.photosight.enable",  true);
 pref("extensions.thumbnailzoomplus.photobucket.enable", true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
 pref("extensions.thumbnailzoomplus.others.enable",      true);
-pref("extensions.thumbnailzoomplus.thumbnail.enable",   true);
+pref("extensions.thumbnailzoomplus.thumbnail.enable",   false); // disabled by default since could be annoying.
