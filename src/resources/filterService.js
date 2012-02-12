@@ -60,12 +60,13 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.MySpace,
     ThumbnailZoomPlus.Pages.OkCupid,
     ThumbnailZoomPlus.Pages.PhotoBucket,
-    ThumbnailZoomPlus.Pages.Photosight, // 17
+    ThumbnailZoomPlus.Pages.Pinterest,
+    ThumbnailZoomPlus.Pages.Photosight, // 18
     ThumbnailZoomPlus.Pages.Picasa,
     ThumbnailZoomPlus.Pages.Tagged,
     ThumbnailZoomPlus.Pages.Twitpic,
     ThumbnailZoomPlus.Pages.Twitter,
-    ThumbnailZoomPlus.Pages.YouTube, // 22
+    ThumbnailZoomPlus.Pages.YouTube, // 23
     ThumbnailZoomPlus.Pages.Wikipedia,
     
     // The next two must be last so they are lower priority.

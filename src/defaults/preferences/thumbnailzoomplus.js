@@ -67,6 +67,7 @@ pref("extensions.thumbnailzoomplus.wikipedia.enable",   true);
 pref("extensions.thumbnailzoomplus.deviantart.enable",  true);
 pref("extensions.thumbnailzoomplus.photosight.enable",  true);
 pref("extensions.thumbnailzoomplus.photobucket.enable", true);
+pref("extensions.thumbnailzoomplus.pinterest.enable",   true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
 pref("extensions.thumbnailzoomplus.others.enable",      true);
 pref("extensions.thumbnailzoomplus.thumbnail.enable",   false); // disabled by default since could be annoying.

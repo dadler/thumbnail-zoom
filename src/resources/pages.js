@@ -57,7 +57,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   ThumbnailZoomPlus.Pages._init();
 };
 
-ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
+ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 
 /***********
   Define rules for each page.
@@ -451,6 +451,30 @@ ThumbnailZoomPlus.Pages.PhotoBucket = {
     let rex = new RegExp(/\/th_/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/") : null);
     return image;
+  }
+};
+
+/**
+ * Pinterest
+ */
+ThumbnailZoomPlus.Pages.Pinterest = {
+  key: "pinterest",
+  name: "Pinterest",
+  host: /^(.*\.)?pinterest\.com$/,
+  imageRegExp: /.*\/media-cdn\.pinterest\.com\/(upload|avatars)\/.*/,
+  getZoomImage : function(aImageSrc) {
+    // for images:
+    let rex = new RegExp("([0-9_a-zA-Z]+_)b(" + 
+                         ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+    aImageSrc = aImageSrc.replace(rex, "$1f$2");
+
+    // for avatars:
+    // http://media-cdn.pinterest.com/avatars/ohjoy-18.jpg becomes
+    // http://media-cdn.pinterest.com/avatars/ohjoy-18_o.jpg
+    rex = new RegExp("(/avatars/.*)(\\.jpg)$")
+    aImageSrc = aImageSrc.replace(rex, "$1_o$2");
+    
+    return aImageSrc;
   }
 };
 

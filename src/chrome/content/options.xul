@@ -87,6 +87,8 @@
         name="extensions.thumbnailzoomplus.deviantart.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-photobucket-pref"
         name="extensions.thumbnailzoomplus.photobucket.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-pinterest-pref"
+        name="extensions.thumbnailzoomplus.pinterest.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-tagged-pref"
         name="extensions.thumbnailzoomplus.tagged.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-lastfm-pref"
@@ -249,11 +251,14 @@
           <checkbox label="PhotoBucket"
             preference="thumbnailzoomplus-options-photobucket-pref" />
 
-          <checkbox label="Photosight"
-            preference="thumbnailzoomplus-options-photosight-pref" />
+          <checkbox label="Pinterest"
+            preference="thumbnailzoomplus-options-pinterest-pref" />
 
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Photosight"
+            preference="thumbnailzoomplus-options-photosight-pref" />
 
           <checkbox label="Picasa"
             preference="thumbnailzoomplus-options-picasa-pref" />
@@ -270,16 +275,18 @@
           <checkbox label="YouTube"
             preference="thumbnailzoomplus-options-youtube-pref" />
 
+        </vbox>
+        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
           <checkbox label="Wikipedia"
             preference="thumbnailzoomplus-options-wikipedia-pref" />
 
-
-        </vbox>
-        <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
+
           <checkbox label="&thumbnailzoomplus.pages.names.thumbnail;"
             preference="thumbnailzoomplus-options-thumbnail-pref" />
+
         </vbox>
       </hbox>
     </groupbox>
