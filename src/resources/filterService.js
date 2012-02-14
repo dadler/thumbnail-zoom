@@ -212,7 +212,7 @@ ThumbnailZoomPlus.FilterService = {
   /**
    * Gets the page name.
    * @param aPageConstant the page constant.
-   * @return the page constant name.
+   * @return the page constant name ("key").
    */
   getPageName : function(aPageConstant) {
     let name = this.pageList[aPageConstant].key;

@@ -274,34 +274,34 @@ ThumbnailZoomPlusChrome.Overlay = {
         let id = "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key;
         menuItem = document.getElementById(id);
         if (menuItem) {
-          this._updatePagesMenuItem(i);
-        } else {
-          // Item doesn't exist so create it.
-          menuItem = document.createElement("menuitem");
-          menuItem.setAttribute("id", id);
-          
-          let name = pageInfo.name;
-          if (name == "") {
-            // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
-            // this is how we get localized names based on locale.dtd entity
-            // definitions.
-            name = document.getElementById("thumbnailzoomplus-options-page-names")
-            .getAttribute("ENTITY" + pageInfo.key);
-            this._logger.debug("addMenuItems: name from entity=" + name);
-            ThumbnailZoomPlus.FilterService.pageList[i].name = name;
-          }
-          this._logger.debug("addMenuItems: name=" + name);
-          menuItem.setAttribute("label", name);
-          menuItem.setAttribute("type", "checkbox");
-          { 
-            let aPage = i;
-            menuItem.addEventListener("command",
-                                      function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
-                                      true );
-          }
-          this._updatePagesMenuItemElement(pageInfo.key, menuItem);
-          menuPopup.insertBefore(menuItem, menuSeparator);
+          // I couldn't get Firefox to consistently update the state of
+          // existing checkboxes correctly, so instead we always
+          // delete and recreate checkboxes when re-showing the menu.
+          menuPopup.removeChild(menuPopup.firstChild);
+        } 
+        // Item doesn't exist so create it.
+        menuItem = document.createElement("menuitem");
+        menuItem.setAttribute("id", id);
+        
+        let name = pageInfo.name;
+        if (name == "") {
+          // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
+          // this is how we get localized names based on locale.dtd entity
+          // definitions.
+          name = document.getElementById("thumbnailzoomplus-options-page-names")
+                         .getAttribute("ENTITY" + pageInfo.key);
+          ThumbnailZoomPlus.FilterService.pageList[i].name = name;
         }
+        menuItem.setAttribute("label", name);
+        menuItem.setAttribute("type", "checkbox");
+        { 
+          let aPage = i;
+          menuItem.addEventListener("command",
+                                    function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
+                                    true );
+        }
+        this._updatePagesMenuItemElement(pageInfo.key, menuItem);
+        menuPopup.insertBefore(menuItem, menuSeparator);
       }
     }
   },
@@ -2224,36 +2224,36 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aPage the page constant.
    */
   togglePreference : function(aPage) {
-    this._logger.debug("togglePreference");
-
-    ThumbnailZoomPlus.FilterService.togglePageEnable(aPage);
-  },
-
-
-  /**
-   * Updates the pages menu.
-   * @param aPage the page constant.
-   */
-  _updatePagesMenuItemElement : function(pageName, menuItem) {
-      let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageName);
-      this._logger.trace("_updatePagesMenuItemElement " + pageName + " to " + pageEnable);
-      menuItem.setAttribute("checked", pageEnable);
-  },
-
-  /**
-   * Updates the pages menu.
-   * @param aPage the page constant.
-   */
-  _updatePagesMenuItem : function(aPage) {
-    this._logger.trace("_updatePagesMenuItem " + aPage);
-
+    this._logger.trace("togglePreference");
     let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
     let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
+    // get the new state
+    // note: menuItem checkbox getting and setting is very subtle;
+    // see Firefox docs https://developer.mozilla.org/en/XUL/PopupGuide/MenuItems
+    let checked = menuItem.getAttribute("checked") == "true";
 
-    if (null != menuItem) {
-      this._updatePagesMenuItemElement(pageName, menuItem);
-    }
+    let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
+    this._logger.debug("set pref " + pagePrefKey + " to " + checked);
+    ThumbnailZoomPlus.setPref(pagePrefKey, checked);
+  },
+
+
+  /**
+   * Updates the pages menu.
+   * @param aPage the page constant.
+   */
+  _updatePagesMenuItemElement : function(pageKey, menuItem) {
+      let pageEnable = ThumbnailZoomPlus.isNamedPageEnabled(pageKey);
+      this._logger.trace("_updatePagesMenuItemElement " + pageKey + " to " + pageEnable);
+      // note: menuItem checkbox getting and setting is very subtle;
+      // see Firefox docs https://developer.mozilla.org/en/XUL/PopupGuide/MenuItems
+      if (pageEnable) {
+        menuItem.setAttribute("checked", "true");
+      } else {
+        menuItem.setAttribute("checked", "false");
+        menuItem.removeAttribute("checked");
+      }
   },
 
   /**
@@ -2289,22 +2289,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       // This is a preferences changed notification.
       ThumbnailZoomPlus.clearPrefCacheItem(aData);
 
-      if (-1 != aData.indexOf(".enable")) {
-        // Get the page name of this page-enable preference.
-        let page =
-          aData.replace(ThumbnailZoomPlus.PrefBranch, "").replace(".enable", "");
-        let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByName(page);
-
-        if (-1 != pageConstant) {
-          // Update the tool menu for this item.
-          this._updatePagesMenuItem(pageConstant);
-        }
-      } else {
-        switch (aData) {
-          case this.PREF_PANEL_BORDER:
-            this._showPanelBorder();
-            break;
-        }
+      switch (aData) {
+        case this.PREF_PANEL_BORDER:
+          this._showPanelBorder();
+          break;
       }
     }
   },
