@@ -41,7 +41,7 @@ pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.neverpopdown", false);
-pref("extensions.thumbnailzoomplus.panel.maxzoom",      144);
+pref("extensions.thumbnailzoomplus.panel.defaultzoom",      144);
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);

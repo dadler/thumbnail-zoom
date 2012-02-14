@@ -50,7 +50,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_NEVER_POPDOWN : ThumbnailZoomPlus.PrefBranch + "panel.neverpopdown",
-  PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.maxzoom",
+  PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 

@@ -58,8 +58,8 @@
         name="extensions.thumbnailzoomplus.panel.key" type="int"/>
       <preference id="thumbnailzoomplus-options-max-key-pref"
         name="extensions.thumbnailzoomplus.panel.maxkey" type="int"/>
-      <preference id="thumbnailzoomplus-options-maxzoom-pref"
-        name="extensions.thumbnailzoomplus.panel.maxzoom" type="int"/>
+      <preference id="thumbnailzoomplus-options-defaultzoom-pref"
+        name="extensions.thumbnailzoomplus.panel.defaultzoom" type="int"/>
 
       <!-- site-specific checkboxes -->
       
@@ -143,8 +143,8 @@
               decimalplaces="1" increment="0.1" />
           </row>
           <row align="center">
-            <label value="&thumbnailzoomplus.options.maxzoom.selection.label;" />
-            <textbox preference="thumbnailzoomplus-options-maxzoom-pref" type="number"
+            <label value="&thumbnailzoomplus.options.defaultzoom.selection.label;" />
+            <textbox preference="thumbnailzoomplus-options-defaultzoom-pref" type="number"
               size="4" maxlength="8" width="50"
               increment="10" />
           </row>
