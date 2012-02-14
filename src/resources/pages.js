@@ -1000,8 +1000,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           ")).*", "i"),
   
   getImageNode : function(aNode, nodeName, nodeClass) {
-    // We provide a trivial getImageNode() function to enable logic in
-    // fiterService.
+    if ("html" == nodeName) {
+      // Don't consider the source of an html doc embedded in an iframe to
+      // be a thumbnail (eg gmail compose email body area).
+      return null;
+    } 
     if (! aNode.hasAttribute("src") && aNode.hasAttribute("href")) {
       // We don't want to return aNode if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
