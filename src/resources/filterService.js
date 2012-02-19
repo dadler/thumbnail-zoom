@@ -124,8 +124,17 @@ ThumbnailZoomPlus.FilterService = {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                             .getService(Components.interfaces.nsIIOService);
         var uri = ioService.newURI(imageSource, aDocument.characterSet, null);
-        host = uri.host;
-        protocol = uri.scheme + ":";
+        try {
+          host = uri.host;
+          protocol = uri.scheme + ":";
+        } catch (e) {
+          // uri.host throws an exception when the thumb's image data is
+          // embedded in the URL, e.g. from Google Images for very small images
+          // (eg size 'icon') or from flickr.com thumbs on main page when 
+          // not logged in, e.g.
+          // data:image/jpeg;base64,/9j...
+          this._logger.debug("getHostOfDoc: unable to get host or protocol: " + e);
+        }
         uri = null;
       }
     }
@@ -260,6 +269,7 @@ ThumbnailZoomPlus.FilterService = {
                       .getService(Components.interfaces.nsIIOService);
     var baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
     var uri = ioService.newURI(url, aDocument.characterSet, baseUri);
+    this._logger.debug("_applyBaseURI(, " + url + ") = " + uri.spec);
     return uri.spec;
   },
   
@@ -306,11 +316,13 @@ ThumbnailZoomPlus.FilterService = {
       if (imageNode) {
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");
+          this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
         } else if (imageNode.hasAttribute("href")) {
           // for an <a href=> node, use javascript string conversion rather
           // than retrieving the html attribute so it'll apply the base
           // document's URL for missing components of the URL (eg domain).
           imageSource = String(imageNode);
+          this._logger.debug("getImageSource: got image source from href of " + imageNode);
           if (/^https?:\/\/t\.co\//.test(imageSource)) {
 			      // Special case for twitter http://t.co links; the actual
 			      // URL is in the link's tooltip.
@@ -319,7 +331,8 @@ ThumbnailZoomPlus.FilterService = {
         } else {
           let backImage = imageNode.style.backgroundImage;
 
-          if (backImage && "" != backImage) {
+          if (backImage && "" != backImage && ! /none/i.test(backImage)) {
+            this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
             imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, "");
           }
         }

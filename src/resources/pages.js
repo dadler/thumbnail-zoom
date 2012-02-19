@@ -992,7 +992,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // We basically match any image, but exclude some which are annoying to
   // show.  
   imageRegExp: new RegExp("^(?![^/]*//(" +
-                          "(www.google.com?[.a-z]*/(.*/)?images/)|" + // google logos
+                          "(.*\.google\.com?[.a-z]*/(.*/)?images/)|" + // google logos
                           "([a-z0-9]+\.google.com?[.a-z]*/.*[/?]lyrs=.*)|" + // google maps tiles
                           "(maps\.google\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
                           "(maps.gstatic.com?[.a-z]*/.*)|" + // google maps button images
