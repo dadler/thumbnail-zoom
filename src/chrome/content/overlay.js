@@ -377,10 +377,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _addListenersWhenPopupShown : function() {
     this._logger.trace("_addListenersWhenPopupShown");
-
-    let doc = content.document.documentElement;
-    this._logger.debug("_addListenersWhenPopupShown: for " +
-                       doc + " " + content.document.documentURI);
     
     /*
      * Add key listeners so the "Escape" key can hide the popup.
@@ -389,9 +385,10 @@ ThumbnailZoomPlusChrome.Overlay = {
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
      */
-    doc.addEventListener("keydown", this._handleKeyDown, false);
-    doc.addEventListener("keyup", this._handleKeyUp, false);
-    doc.addEventListener("keypress", this._handleIgnoreKey, false);
+    let useCapture = false;
+    window.addEventListener("keydown", this._handleKeyDown, useCapture);
+    window.addEventListener("keyup", this._handleKeyUp, useCapture);
+    window.addEventListener("keypress", this._handleIgnoreKey, useCapture);
       
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -410,12 +407,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _removeListenersWhenPopupHidden : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    let doc = content.document.documentElement;
-    that._logger.debug("_removeListenersWhenPopupHidden for " +
-                       doc);
-    doc.removeEventListener("keydown", this._handleKeyDown, false);
-    doc.removeEventListener("keyup", this._handleKeyUp, false);
-    doc.removeEventListener("keypress", this._handleIgnoreKey, false);
+    that._logger.debug("_removeListenersWhenPopupHidden");
+    window.removeEventListener("keydown", this._handleKeyDown, false);
+    window.removeEventListener("keyup", this._handleKeyUp, false);
+    window.removeEventListener("keypress", this._handleIgnoreKey, false);
       
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -707,7 +702,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_getEffectiveTitle: trying parent of " + aNode +
                         ": " + aNode.parentNode);
       aNode = aNode.parentNode;
-      if (aNode.localName.toLowerCase() == "ul") {
+      if (aNode.localName && aNode.localName.toLowerCase() == "ul") {
         // don't traverse up to a "<ul>" since it's likely to
         // contain other links too and we may get the wrong title.
         // Needed e.g. for youtube Spotlight area.
