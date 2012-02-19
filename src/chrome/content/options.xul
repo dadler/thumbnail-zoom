@@ -48,6 +48,8 @@
         name="extensions.thumbnailzoomplus.panel.border" type="bool"/>
       <preference id="thumbnailzoomplus-options-large-image-pref"
         name="extensions.thumbnailzoomplus.panel.largeimage" type="bool"/>
+      <preference id="thumbnailzoomplus-options-show-percent-pref"
+        name="extensions.thumbnailzoomplus.panel.showpercent" type="bool"/>
       <preference id="thumbnailzoomplus-options-caption-pref"
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
@@ -175,6 +177,8 @@
               label="&thumbnailzoomplus.options.border.checkbox.label;    " />
             <checkbox preference="thumbnailzoomplus-options-large-image-pref"
               label="&thumbnailzoomplus.options.largeimage.checkbox.label;" />
+            <checkbox preference="thumbnailzoomplus-options-show-percent-pref"
+              label="&thumbnailzoomplus.options.showpercent.checkbox.label;" />
           </hbox>
           <hbox>
             <checkbox preference="thumbnailzoomplus-options-caption-pref"

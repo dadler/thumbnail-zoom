@@ -43,6 +43,7 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">
+<!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Show &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Add images to browser history">
 <!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "OS Bug Workaround">

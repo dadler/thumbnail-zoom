@@ -47,6 +47,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_NEVER_POPDOWN : ThumbnailZoomPlus.PrefBranch + "panel.neverpopdown",
@@ -1603,8 +1604,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Set the actual scale to what we ended up with, so the user won't
     // increase the requested scale beyond what we're able to fit.
     this._currentMaxScaleBy = actualScale;
-
-    if (displayedImageWidth > 90) {
+    
+    let showPercent = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SHOW_PERCENT, true);
+    if (showPercent && displayedImageWidth > 90) {
       // Display the actual size % unless it would cover too much of the image.
       this._panelInfo.value = " " + percent + "% ";
       this._panelInfo.hidden = false;
