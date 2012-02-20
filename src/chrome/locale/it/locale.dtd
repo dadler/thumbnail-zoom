@@ -46,7 +46,6 @@
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Show &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Aggiungere immagini alla storia browser">
-<!ENTITY thumbnailzoomplus.options.neverpopdown.checkbox.label   "OS Bug Workaround">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nessuno">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Generale">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Attivare o disattivare per sito">

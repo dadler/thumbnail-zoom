@@ -54,8 +54,6 @@
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
-      <preference id="thumbnailzoomplus-options-neverpopdown-pref"
-        name="extensions.thumbnailzoomplus.panel.neverpopdown" type="bool"/>
       <preference id="thumbnailzoomplus-options-key-pref"
         name="extensions.thumbnailzoomplus.panel.key" type="int"/>
       <preference id="thumbnailzoomplus-options-max-key-pref"
@@ -185,8 +183,6 @@
               label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
-            <checkbox preference="thumbnailzoomplus-options-neverpopdown-pref"
-              label="&thumbnailzoomplus.options.neverpopdown.checkbox.label;" />
           </hbox>
         </rows>
       </grid>

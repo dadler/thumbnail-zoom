@@ -50,7 +50,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
-  PREF_PANEL_NEVER_POPDOWN : ThumbnailZoomPlus.PrefBranch + "panel.neverpopdown",
   PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
@@ -1112,18 +1111,12 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _hideThePopup : function() {
       
-    // As a workaround for some linux (eg Gnome3),
-    // instead of closing panel, move it to the lower right corner and
-    // make it tiny.  Actually we'll do this on all platforms,
-    // but then also really close the panel except when
-    // ! _allowPopdown (typically on Linux).
+    // In addition to hiding the panel, we also set it tiny and move it to
+    // the corner (this may not be necessary anymore, but used to help
+    // with a workaround for a linux bug).
     let tiny = {width: 0, height: 0};
     this._setImageSize(tiny);
     this._panel.moveTo(9999, 9999);
-    if (! this._allowPopdown()) {      
-      return;
-    }
-
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
     }
@@ -1428,11 +1421,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
-    if (! this._allowPopdown()) {
-      // Explicitly position it in case the popup was already displayed,
-      // e.g. when ! this._allowPopdown()
-      this._panel.moveTo(x, y);
-    }
     this._addListenersWhenPopupShown();
   },
   
@@ -1575,10 +1563,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._currentThumb != null) {
       // Close the panel to ensure that we can popup the new panel at a specified
       // location. 
-      if (this._allowPopdown()) {      
-        if (this._panel.state != "closed") {
-          this._panel.hidePopup();
-        }
+      if (this._panel.state != "closed") {
+        this._panel.hidePopup();
       }
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
                                         this._origImageWidth, this._origImageHeight);
@@ -1759,11 +1745,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
-  _allowPopdown : function() {
-    let value = ThumbnailZoomPlus.getPref(this.PREF_PANEL_NEVER_POPDOWN, false);
-    return ! value;
-  },
-  
   /**
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
