@@ -1005,7 +1005,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           ")).*", "i"),
   
   getImageNode : function(aNode, nodeName, nodeClass) {
-    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName) {
+    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
+        "embed" == nodeName) {
       // Don't consider the source of an html doc embedded in an iframe to
       // be a thumbnail (eg gmail compose email body area).
       return null;
