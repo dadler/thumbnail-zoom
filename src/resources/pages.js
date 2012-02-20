@@ -121,7 +121,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         imageSource = aNode.nextSibling.getAttribute("src");
       } else {
         imageSource = aNode.style.backgroundImage.
-          replace(/url\(\"/, "").replace(/\"\)/, "");
+          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: " */
       }
     }
     return imageSource;
@@ -568,7 +568,7 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
       return aImageSrc;
     }
     
-    this._logger.debug("didn't match any google+ URL");
+    this._logger.debug("did not match any google+ URL");
     return null;
   }
 };
@@ -717,19 +717,54 @@ ThumbnailZoomPlus.Pages.Imgur = {
  * ex3:
  * http://s.photosight.ru/img/5/7bd/4167881_crop_1.jpeg
  * http://s.photosight.ru/img/5/7bd/4167881_large.jpeg
+ *
+ * ex4 (for very old images):
+ * http://prv-2001-04.photosight.ru/03/pv_26.jpg
+ * http://img-2001-04.photosight.ru/03/26.jpg
  */
 ThumbnailZoomPlus.Pages.Photosight = {
   key: "photosight",
   name: "Photosight",
-  host: /^(.*\.)?photosight\.ru$/,
-  imageRegExp: /\.photosight\.ru/,
+  host: /^(.*\.)?photosight\.ru$/i,
+  imageRegExp: /\.photosight\.ru/i,
+  
   getZoomImage : function(aImageSrc) {
     let rex1 = new RegExp(/_(icon)\./);
     let rex2 = new RegExp(/_(crop)_[0-9]+\./);
     let rex3 = new RegExp(/_top_of_day\./);
-    let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_large.") :
-      (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "_large.") :
-      (rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "_large.") : null)));
+    let rex4 = new RegExp("//prv-(.*/)pv_([0-9]+\\.)");
+    let image = 
+      rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_large.") :
+      rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "_large.") :
+      rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "_large.") : 
+      rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "//img-$1$2") :
+      null;
+    
+    return image;
+  }
+};
+
+/**
+ * Fotop.net
+ */
+ThumbnailZoomPlus.Pages.Fotop = {
+  key: "fotop",
+  name: "Fotop.net",
+  host: /^(.*\.)?fotop\.net$/i,
+  imageRegExp: /\.fotop\.net/i,
+  
+  getZoomImage : function(aImageSrc) {
+    // change *.thumb.jpg to *.jpg
+    let image = aImageSrc.replace(/\.thumb(\.[a-z]+)$/, "$1");
+    
+    // http://temp3.fotop.net/albums2/cathysin/.pj/tnMFNFs0t.jpg becomes
+    // http://temp3.fotop.net/albums2/cathysin/.pj/tnMFNFs0.jpg
+    image = image.replace(/(\/.pj\/[^.\/]+)t\./, "$1.");
+    
+    // change http://temp3.fotop.net/albums7/NoirSaya/.a/t4bc5f5bd9883a.jpg
+    // to http://temp3.fotop.net/albums7/NoirSaya/.a/4bc5f5bd9883a.jpg
+    image = image.replace(/\/\.a\/t([^.\/]*\.)/, "/.a/$1");
+    
     return image;
   }
 };

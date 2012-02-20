@@ -38,7 +38,7 @@
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.pane.label;">
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.pane.label;" flex="1">
     <preferences>
       <preference id="thumbnailzoomplus-options-delay-pref"
         name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
@@ -111,6 +111,8 @@
         name="extensions.thumbnailzoomplus.okcupid.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-photosight-pref"
         name="extensions.thumbnailzoomplus.photosight.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-fotop-pref"
+        name="extensions.thumbnailzoomplus.fotop.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-engadget-pref"
         name="extensions.thumbnailzoomplus.engadget.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-others-pref"
@@ -189,7 +191,7 @@
     </groupbox>
 
     <!-- Pages -->
-    <groupbox>
+    <groupbox flex="1">
       <caption label="&thumbnailzoomplus.options.enable.groupbox.caption;"/>
       <hbox flex="1">
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
@@ -215,6 +217,9 @@
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
+          <checkbox label="Fotop.net"
+            preference="thumbnailzoomplus-options-fotop-pref" />
+
           <checkbox label="GMail"
             preference="thumbnailzoomplus-options-gmail-pref" />
 
@@ -230,11 +235,11 @@
           <checkbox label="IMDb"
             preference="thumbnailzoomplus-options-imdb-pref" />
 
-          <checkbox label="Imgur"
-            preference="thumbnailzoomplus-options-imgur-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="Imgur"
+            preference="thumbnailzoomplus-options-imgur-pref" />
 
           <checkbox label="Last.fm"
             preference="thumbnailzoomplus-options-lastfm-pref" />
@@ -251,13 +256,13 @@
           <checkbox label="PhotoBucket"
             preference="thumbnailzoomplus-options-photobucket-pref" />
 
-          <checkbox label="Pinterest"
-            preference="thumbnailzoomplus-options-pinterest-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
-          <checkbox label="Photosight"
+          <checkbox label="Pinterest"
+            preference="thumbnailzoomplus-options-pinterest-pref" />
+
+          <checkbox label="Photosight "
             preference="thumbnailzoomplus-options-photosight-pref" />
 
           <checkbox label="Picasa"
@@ -272,11 +277,11 @@
           <checkbox label="Twitter"
             preference="thumbnailzoomplus-options-twitter-pref" />
 
-          <checkbox label="YouTube"
-            preference="thumbnailzoomplus-options-youtube-pref" />
-
         </vbox>
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
+
+          <checkbox label="YouTube"
+            preference="thumbnailzoomplus-options-youtube-pref" />
 
           <checkbox label="Wikipedia"
             preference="thumbnailzoomplus-options-wikipedia-pref" />

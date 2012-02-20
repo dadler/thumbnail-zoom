@@ -66,6 +66,7 @@ pref("extensions.thumbnailzoomplus.dailymile.enable",   true);
 pref("extensions.thumbnailzoomplus.wikipedia.enable",   true);
 pref("extensions.thumbnailzoomplus.deviantart.enable",  true);
 pref("extensions.thumbnailzoomplus.photosight.enable",  true);
+pref("extensions.thumbnailzoomplus.fotop.enable",       true);
 pref("extensions.thumbnailzoomplus.photobucket.enable", true);
 pref("extensions.thumbnailzoomplus.pinterest.enable",   true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
