@@ -798,19 +798,24 @@ ThumbnailZoomPlus.Pages.Others = {
     }
 
     // try to find an enclosing <a> (link) tag.
-    while (aNode != null && 
-           aNode.localName != null && 
-           aNode.localName.toLowerCase() != "a") {
-      this._logger.debug("ThumbnailPreview: Others: trying parent of " + aNode);
-      aNode = aNode.parentNode;
-    }
-    if (aNode != null) {
-      if (aNode.localName == null) {
+    while (aNode != null) {
+      let name = aNode.localName;
+      if (name == null) {
         aNode = null;
+        break;
       }
-      // Note that we allow the resulting preview to be for the same URL
-      // as the thumbnail itself since the thumbnail may be shown at
-      // smaller size (eg with explicit width attribute).
+      name = name.toLowerCase();
+      if (name == "frame" || name == "iframe" || name == "body") {
+        // failed to find anything.
+        aNode = null;
+        break;
+      }
+      if (aNode.localName.toLowerCase() == "a") {
+        // found enclosing link.
+        break;
+      }
+      this._logger.debug("ThumbnailPreview: Others: trying parent of " + aNode.localName);
+      aNode = aNode.parentNode;
     }
     this._logger.debug("ThumbnailPreview: Others: found node " + aNode);
 
@@ -1000,7 +1005,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           ")).*", "i"),
   
   getImageNode : function(aNode, nodeName, nodeClass) {
-    if ("html" == nodeName) {
+    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName) {
       // Don't consider the source of an html doc embedded in an iframe to
       // be a thumbnail (eg gmail compose email body area).
       return null;
