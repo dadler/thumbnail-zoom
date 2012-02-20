@@ -1610,6 +1610,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  /**
+   * _getFileType returns the file type (such as ".jpg" or ".gif")
+   * of the specified filename, or "" if it's null.
+   */
+  _getFileType : function(filename)
+  {
+    if (filename == null) {
+      return "";
+    }
+    let fileTypeRex = /^[^?&]*(\.[a-z0-9]+)([?&].*)?$/i;
+    // image URLs sometimes don't have an explicit type; default to .jpg.
+    let type = ".jpg";
+    if (fileTypeRex.test(filename)) {
+      type = filename.replace(fileTypeRex, "$1");
+    }
+    return type;
+  },
+  
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
                                           noTooSmallWarning, 
                                           imageWidth, imageHeight)
@@ -1632,6 +1650,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
                                              thumbWidth, thumbHeight);
+    let thumbType = this._getFileType(aImageNode.getAttribute("src"));
+    let imageType = this._getFileType(aImageSrc);
+    this._logger.debug("_sizePositionAndDisplayPopup: file types: thumb=" + 
+                       thumbType + 
+                       "; popup=" + imageType + " from " + aImageSrc);
+    if (! imageSize.allow) {
+      if (thumbType != imageType) {
+        // If file types are different, show it even if it's not bigger, since
+        // it may be better quality or an animated gif from a static thumb.
+        this._logger.debug("_sizePositionAndDisplayPopup: forcing allow since different file types"); 
+        imageSize.allow = true;
+      }
+    }
     
     this._logger.debug("_sizePositionAndDisplayPopup: available w/l/r:" + available.width + 
                        "/" + available.left + 
@@ -1662,7 +1693,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
     
-    this._openAndPositionPopup(aImageNode, aImageSrc, imageSize, available);
+    this._openAndPositionPopup(aImageNode, imageSize, available);
 
     this._updateForActualScale(imageSize.width, imageWidth);
     
@@ -1737,13 +1768,12 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
    * @param aImageNode: the thumb or link from which we're popping up
-   * @param aImageSrc: 
    * @param: imageSize: the size of the image itself as we'll be displaying it
    *                    (i.e. reduced to fit as appropriate)
    * @param: available: the available space in .left, .right, .top, .bottom, 
    *                          .width, .height
    */
-  _openAndPositionPopup : function(aImageNode, aImageSrc, imageSize, available) {
+  _openAndPositionPopup : function(aImageNode, imageSize, available) {
     this._logger.trace("_openAndPositionPopup");
     
     let wantCaption = (this._panelCaption.value != "" &&
