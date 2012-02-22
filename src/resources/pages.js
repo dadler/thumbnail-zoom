@@ -324,6 +324,49 @@ ThumbnailZoomPlus.Pages.MySpace = {
 };
 
 /**
+ * Netflix
+ */
+ThumbnailZoomPlus.Pages.Netflix = {
+  key: "netflix",
+  name: "Netflix",
+  host: /^(.*\.)?netflix\.com$/,
+  imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
+                          "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
+                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
+                          
+  getImageNode : function(aNode, nodeName, nodeClass) {
+    if (nodeName == "a" || nodeName == "img") {
+      return aNode;
+    }
+    return null;
+  },
+
+  getZoomImage : function(aImageSrc) {
+
+    // For static thumbs
+    // http://cdn-2.nflximg.com/en_us/boxshots/large/60024022.jpg becomes
+    // http://cdn-2.nflximg.com/en_us/boxshots/ghd/60024022.jpg
+    let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|[0-9]+)/");
+    aImageSrc = aImageSrc.replace(netflixRex1, "$1/ghd/");
+
+    let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(small|main|[0-9]+)/");
+    aImageSrc = aImageSrc.replace(netflixRex2, "$1/cdp/");
+    
+    // For movie thumbs with "play" icons / links
+    // Change http://movies.netflix.com/WiPlayer?movieid=70128681&amp;trkid=3651203&amp;nscl=1 to
+    // http://cdn-1.nflximg.com/en_us/boxshots/ghd/70128681.jpg
+    // and http://movies.netflix.com/WiMovie/Phineas_Ferb/70177007?trkid=4009636
+    // to http://cdn-1.nflximg.com/en_us/boxshots/ghd/70177007.jpg
+    let netflixRex3 = new RegExp(".*//movies\\.netflix\\.com/WiPlayer\\?movieid=([0-9]+).*");
+    let netflixRex4 = new RegExp(".*//movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*");
+    aImageSrc = aImageSrc.replace(netflixRex3, "http://cdn-1.nflximg.com/en_us/boxshots/ghd/$1.jpg");
+    aImageSrc = aImageSrc.replace(netflixRex4, "http://cdn-1.nflximg.com/en_us/boxshots/ghd/$1.jpg");
+
+    return aImageSrc;
+  }
+};
+
+/**
  * Flickr
  */
 ThumbnailZoomPlus.Pages.Flickr = {
@@ -814,7 +857,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "[\?&]img_?url=|" +
                       "(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)" +
                           "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
-                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")",
+                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
                       "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -996,7 +1039,7 @@ ThumbnailZoomPlus.Pages.Others = {
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
-        
+  
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
@@ -1051,6 +1094,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // it to be an actual image.  (The Others rule already handles hrefs.)
       return null;
     }
+    if ("gbqfif" == nodeClass // google search field.
+        ) {
+      return null;
+    }
     return aNode;
   },
   
@@ -1060,6 +1107,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // work since it'd instead follow the <a> link around the image.
     let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
     aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
+    
+    // For some sites, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
+    let regEx = new RegExp("(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
+    
     return aImageSrc; 
   }
 

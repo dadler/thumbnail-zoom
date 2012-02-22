@@ -59,15 +59,16 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.LastFM,
     ThumbnailZoomPlus.Pages.LinkedIn,
     ThumbnailZoomPlus.Pages.MySpace,
+    ThumbnailZoomPlus.Pages.Netflix,
     ThumbnailZoomPlus.Pages.OkCupid,
     ThumbnailZoomPlus.Pages.PhotoBucket,
     ThumbnailZoomPlus.Pages.Pinterest,
-    ThumbnailZoomPlus.Pages.Photosight, // 19
+    ThumbnailZoomPlus.Pages.Photosight, // 20
     ThumbnailZoomPlus.Pages.Picasa,
     ThumbnailZoomPlus.Pages.Tagged,
     ThumbnailZoomPlus.Pages.Twitpic,
     ThumbnailZoomPlus.Pages.Twitter,
-    ThumbnailZoomPlus.Pages.YouTube, // 24
+    ThumbnailZoomPlus.Pages.YouTube, // 25
     ThumbnailZoomPlus.Pages.Wikipedia,
     
     // The next two must be last so they are lower priority.
