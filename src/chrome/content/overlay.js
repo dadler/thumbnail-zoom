@@ -857,8 +857,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       imageSourceInfo.noTooSmallWarning = true;
     }
     // Found a matching page with an image source!
-    let flags = {allowLeft:  true, allowRight: true, 
-                 allowAbove: true, allowBelow: true};
+    let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
                             .getZoomImage(imageSource, flags, aPage);
     if (zoomImageSrc == "") {
@@ -1568,9 +1567,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._panel.state != "closed") {
         this._panel.hidePopup();
       }
-      let flags = {allowLeft:  true, allowRight: true, 
-                   allowAbove: true, allowBelow: true,
-                   noTooSmallWarning: true};
+      let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
+      flags.noTooSmallWarning = true;
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, flags,
                                         this._origImageWidth, this._origImageHeight);
     }

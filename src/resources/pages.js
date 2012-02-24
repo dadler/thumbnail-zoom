@@ -93,14 +93,14 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       the image node itself.  Called only if we don't already have an image
       source after calling getSpecialSource.
 
-    * getZoomImage: required function(aImageSrc, flags); returns the image URL.
+    * getZoomImage: required function(aImageSrc, popupFlags); returns the image URL.
       Translates the aImageSrc URL from the previous functions into the final
       URL of the full-size image for the popup, for example by
       removing ".thumb" from the URL.  Returns null if it can't produce a 
       valid full-size image URL from the specified aImageSrc, or "" if it
       can't because the user has disabled some other page related to the URL.
-      Function can optionally modify members of flags:
-        .allowLeft, .allowRight, .allowAbove, .allowBelow
+      Function can optionally modify members of flags, which is of class
+      ThumbnailZoomPlus.FilterService.PopupFlags.
 
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 

@@ -93,6 +93,20 @@ ThumbnailZoomPlus.FilterService = {
     }
   },
 
+  /*
+   * PopupFlags is a class representing options affecting how the
+   * popup will be displayed.  Instantiate like this:
+   *  flags = new PopupFlags()
+   */
+  PopupFlags : function() {
+    this.allowLeft = true;
+    this.allowRight = true;
+    this.allowAbove = true;
+    this.allowBelow = true;
+    this.noTooSmallWarning = false;
+    this.requireImageBiggerThanThumb = true;
+  },
+  
   /**
    * Gets the host of the specified document (if it has one and the
    * protocol is supported by TZP); otherwise returns null.
