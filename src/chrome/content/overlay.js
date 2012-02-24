@@ -844,7 +844,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     let imageSourceInfo = ThumbnailZoomPlus.FilterService
-    .getImageSource(aDocument, node, aPage);
+                                .getImageSource(aDocument, node, aPage);
     let imageSource = imageSourceInfo.imageURL;
     
     if (null == imageSource ||     
@@ -857,7 +857,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       imageSourceInfo.noTooSmallWarning = true;
     }
     // Found a matching page with an image source!
-    let zoomImageSrc = ThumbnailZoomPlus.FilterService.getZoomImage(imageSource, aPage);
+    let flags = {allowLeft:  true, allowRight: true, 
+                 allowAbove: true, allowBelow: true};
+    let zoomImageSrc = ThumbnailZoomPlus.FilterService
+                            .getZoomImage(imageSource, flags, aPage);
     if (zoomImageSrc == "") {
       this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
       return "rejectedNode";
@@ -871,8 +874,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                        this._originalURI);
     
-    this._showZoomImage(zoomImageSrc, imageSourceInfo.noTooSmallWarning,
-                        requireImageBiggerThanThumb, node, aPage, aEvent);
+    flags.noTooSmallWarning = imageSourceInfo.noTooSmallWarning;
+    flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
+    this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
     return "launched";
   },
 
@@ -1037,8 +1041,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageNode the image node
    * @param aPage the page constant
    */
-  _showZoomImage : function(zoomImageSrc, noTooSmallWarning, 
-                            requireImageBiggerThanThumb, aImageNode, 
+  _showZoomImage : function(zoomImageSrc, flags, aImageNode, 
                             aPage, aEvent) {
     this._logger.trace("_showZoomImage");
     
@@ -1047,7 +1050,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentAllowCoverThumb = this._getAllowCoverThumbPref();
     
     this._showPanel(aImageNode, zoomImageSrc, 
-                    noTooSmallWarning, requireImageBiggerThanThumb, aEvent);
+                    flags, aEvent);
   },
 
 
@@ -1083,7 +1086,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aImageSrc the image source.
    */
   _showPanel : function(aImageNode, aImageSrc, 
-                        noTooSmallWarning, requireImageBiggerThanThumb, aEvent) {
+                        flags, aEvent) {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
@@ -1106,7 +1109,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelInfo.hidden = true;
 
     this._preloadImage(aImageNode, aImageSrc, 
-                       noTooSmallWarning, requireImageBiggerThanThumb, aEvent);
+                       flags, aEvent);
   },
 
   _hideThePopup : function() {
@@ -1446,7 +1449,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * (which cancels the timer).
    */
   _checkIfImageLoaded : function(aImageNode, aImageSrc, 
-                                 noTooSmallWarning, requireImageBiggerThanThumb,
+                                 flags,
                                  image)
   {
     this._logger.trace("_checkIfImageLoaded");
@@ -1484,8 +1487,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         { notify:
           function() {
             that._imageOnLoad(aImageNode, aImageSrc, 
-                              noTooSmallWarning, requireImageBiggerThanThumb, 
-                              image);
+                              flags, image);
           }
          }, delay, Ci.nsITimer.TYPE_ONE_SHOT);
     } 
@@ -1500,7 +1502,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * its dimensions.
    */
   _imageOnLoad : function(aImageNode, aImageSrc, 
-                          noTooSmallWarning, requireImageBiggerThanThumb, image)
+                          flags, image)
   {
     this._logger.trace("_imageOnLoad");
 
@@ -1520,7 +1522,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
-    if (requireImageBiggerThanThumb &&
+    if (flags.requireImageBiggerThanThumb &&
         (thumbWidth  >= image.width ||
          thumbHeight >= image.height) ) {
       // skip
@@ -1529,7 +1531,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          " which is >= than raw image " +
                          image.width + "x" + image.height);
     } else {
-      if (requireImageBiggerThanThumb) {
+      if (flags.requireImageBiggerThanThumb) {
         this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is < raw image " +
@@ -1540,7 +1542,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._origImageHeight = image.height;
       let displayed =
         this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
-                                          noTooSmallWarning, 
+                                          flags, 
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
         if (! this._panelCaption.hidden) {
@@ -1566,7 +1568,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (this._panel.state != "closed") {
         this._panel.hidePopup();
       }
-      this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, true,
+      let flags = {allowLeft:  true, allowRight: true, 
+                   allowAbove: true, allowBelow: true,
+                   noTooSmallWarning: true};
+      this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, flags,
                                         this._origImageWidth, this._origImageHeight);
     }
   },
@@ -1615,7 +1620,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _sizePositionAndDisplayPopup : function(aImageNode, aImageSrc,
-                                          noTooSmallWarning, 
+                                          flags, 
                                           imageWidth, imageHeight)
   {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
@@ -1627,7 +1632,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
     this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
     
-    let available = this._getAvailableSizeOutsideThumb(aImageNode);
+    let available = this._getAvailableSizeOutsideThumb(aImageNode, flags);
     let thumbWidth = aImageNode.offsetWidth * pageZoom;
     let thumbHeight = aImageNode.offsetHeight * pageZoom;
     
@@ -1666,7 +1671,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
     
     if (! imageSize.allow) {
-      if (! noTooSmallWarning) {
+      if (! flags.noTooSmallWarning) {
         // show the thumb's size as a % of raw image's size, so the user
         // can tell if it's worth opening the image in a tab to
         // see it bigger than could fit in the window.
@@ -1693,8 +1698,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aEvent the mouse event which caused us to preload the image.
    */
   _preloadImage : function(aImageNode, aImageSrc, 
-                           noTooSmallWarning, requireImageBiggerThanThumb, 
-                           aEvent) {
+                           flags, aEvent) {
     this._logger.trace("_preloadImage");
 
     let that = this;
@@ -1721,7 +1725,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, 
-                        noTooSmallWarning, requireImageBiggerThanThumb, image);
+                        flags, image);
       that._imageObjectBeingLoaded = null;
     };
 
@@ -1739,8 +1743,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       { notify:
         function() {
             that._checkIfImageLoaded(aImageNode, aImageSrc, 
-                                     noTooSmallWarning, requireImageBiggerThanThumb,
-                                     image);
+                                     flags, image);
           }
       }, 0.3 * 1000, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
@@ -1826,7 +1829,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    *    so that they reflect possible image size, not entire popup size.
    * fields.
    */
-  _getAvailableSizeOutsideThumb : function(aImageNode) {
+  _getAvailableSizeOutsideThumb : function(aImageNode, flags) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
@@ -1834,10 +1837,14 @@ ThumbnailZoomPlusChrome.Overlay = {
      * pageLeft is the space available to the left of the thumb. 
      * pageTop is the space available above it.
      */
-    let available = {};
+    let available = {left:0, right:0, top:0, bottom: 0};
 
-    available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
-    available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
+    if (flags.allowLeft) {
+      available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
+    }
+    if (flags.allowAbove) {
+      available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
+    }
     
     /*
      * pageRight is the space available to the right of the thumbnail,
@@ -1848,9 +1855,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     available.windowWidth = pageWidth;
     available.windowHeight = pageHeight;
-    available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
-    available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
-
+    
+    if (flags.allowRight) {
+      available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
+    }
+    if (flags.allowBelow) {
+      available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
+    }
+    
     let haveCaption = this._panelCaption.value != "" &&
                       this._panelCaption.value != " ";
     let xadjustment = 2*this._pad + this._widthAddon;
@@ -2041,18 +2053,23 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (imageSize.height <= available.height) {
       // We prefer above/below thumb to avoid tooltip.
-      // Position the popup horizontally flush with the right of the window or
+      // Unless we're prohibited from positioning to the right,
+      // position the popup horizontally flush with the right of the window or
       // left-aligned with the left of the thumbnail, whichever is left-most.
-      let popupXPageCoords = pageWidth - (popupWidth + this._pad);
-      let popupXScreenCoords = popupXPageCoords + windowStartX;
-      if (popupXScreenCoords > this._thumbBBox.xMin) {
-        popupXScreenCoords = this._thumbBBox.xMin;
+      if (available.right > 0) {
+        let popupXPageCoords = pageWidth - (popupWidth + this._pad);
+        var popupXScreenCoords = popupXPageCoords + windowStartX;
+        if (popupXScreenCoords > this._thumbBBox.xMin) {
+          popupXScreenCoords = this._thumbBBox.xMin;
+        }
+      } else {
+        var popupXScreenCoords = this._thumbBBox.xMax - (popupWidth + this._pad);
+        popupXScreenCoords = Math.max(popupXScreenCoords, windowStartX);
       }
       pos.x = popupXScreenCoords;
       this._logger.debug("_calcPopupPosition: " +
                          "windowStartX=" + windowStartX +
                          "; pageWidth=" + pageWidth +
-                         "; popupXPageCoords=" + popupXPageCoords +
                          "; popupXScreenCoords=" + popupXScreenCoords);
       if (imageSize.height <= available.top) {
         this._logger.debug("_calcPopupPosition: display above thumb"); 

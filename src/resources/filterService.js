@@ -335,7 +335,7 @@ ThumbnailZoomPlus.FilterService = {
 
           if (backImage && "" != backImage && ! /none/i.test(backImage)) {
             this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
-            imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, "");
+            imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
           }
         }
       }
@@ -376,16 +376,21 @@ ThumbnailZoomPlus.FilterService = {
   /**
    * Gets the zoomed image source.
    * @param aImageSrc the image source url.
+   * @param flags: an object which this function may modify.  Members:
+   *   .allowLeft, .allowRight, .allowAbove, .allowBelow
    * @param aPage the filtered page.
    * @return the zoomed image source, null if none could be found, or "" if
    *  one was found, but for a site which the user disabled.
    */
-  getZoomImage : function(aImageSrc, aPage) {
+  getZoomImage : function(aImageSrc, flags, aPage) {
     this._logger.debug("getZoomImage");
 
     let pageInfo = this.pageList[aPage];
-    let zoomImage = pageInfo.getZoomImage(aImageSrc);
-    this._logger.debug("ThumbnailPreview: getZoomImage returned " + zoomImage);
+    let zoomImage = pageInfo.getZoomImage(aImageSrc, flags);
+    this._logger.debug("ThumbnailPreview: getZoomImage returned flags allow:" +
+                       (+flags.allowLeft) + "<>" + (+flags.allowRight) +
+                       " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
+                       " " + zoomImage);
 
     return zoomImage;
   }
