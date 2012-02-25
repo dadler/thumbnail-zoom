@@ -178,7 +178,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // This prevents it from overlapping text of Facebook's own info popup
       // for thumbs in the main wall (though it may cause them to overlap for
       // thumbs in the right-hand pane of the page).
-      flags.allowRight = false;
+      // DISABLED: to really work, may need to do as vertical avoidance.
+      //flags.popupAvoiderEdge = 0;
+      //flags.popupAvoiderWidth = 465;
+    } else if (/_n\./.test(aImageSrc)) {
+      // These thumbs sometimes have a tooltip-like popup showing their
+      // profile name above the image.
+      flags.allowAbove = false;
     }
     let rex3 = new RegExp(/\/s[0-9]+x[0-9]+\//);
     image = image.replace(rex3, "/");
@@ -370,11 +376,21 @@ ThumbnailZoomPlus.Pages.Netflix = {
   },
 
   getZoomImage : function(aImageSrc, flags) {
+    // We'll set flags.popupAvoiderWidth for thumbs which cause
+    // the site itself to display a popup; this allows TZP to avoid
+    // positioning our own popup where the site's is likely to be.
+    flags.popupAvoiderEdge = 1;
+    flags.popupAvoiderWidth = 0; // no avoider yet...
 
     // For static thumbs
     // http://cdn-2.nflximg.com/en_us/boxshots/large/60024022.jpg becomes
     // http://cdn-2.nflximg.com/en_us/boxshots/ghd/60024022.jpg
     let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|[0-9]+)/");
+    if (netflixRex1.test(aImageSrc)) {
+      // popup for DVD box w/o play now.
+      flags.popupAvoiderWidth = 392;
+    }
+    
     aImageSrc = aImageSrc.replace(netflixRex1, "$1/ghd/");
 
     let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(small|main|[0-9]+)/");
@@ -387,14 +403,12 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // to http://cdn-1.nflximg.com/en_us/boxshots/ghd/70177007.jpg
     let netflixRex3 = new RegExp(".*//movies\\.netflix\\.com/WiPlayer\\?movieid=([0-9]+).*");
     let netflixRex4 = new RegExp(".*//movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*");
+    if (netflixRex3.test(aImageSrc) || netflixRex4.test(aImageSrc)) {
+      // large popup for "play now"
+      flags.popupAvoiderWidth = 384;
+    }
     aImageSrc = aImageSrc.replace(netflixRex3, "http://cdn-1.nflximg.com/en_us/boxshots/ghd/$1.jpg");
     aImageSrc = aImageSrc.replace(netflixRex4, "http://cdn-1.nflximg.com/en_us/boxshots/ghd/$1.jpg");
-
-    // Don't allow the popup to appear to the right of the thumb since Netflix
-    // often puts its own popup there (but doesn't work so well for thumbs
-    // near the right edge of the page since Netflix then positions
-    // its popup to the left).
-    flags.allowRight = false;
     
     return aImageSrc;
   }

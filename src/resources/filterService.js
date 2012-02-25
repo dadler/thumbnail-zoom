@@ -103,6 +103,20 @@ ThumbnailZoomPlus.FilterService = {
     this.allowRight = true;
     this.allowAbove = true;
     this.allowBelow = true;
+
+    // If this.popupAvoiderWidth > 0, then popup positioning avoids the
+    // side (left/right) where the site's own popup is likely to be.
+    // width is the width of the site's popup; .popupAvoiderEdge is the percentage from
+    // left to right where the site's popup starts (0=left, 1=right).
+    // The presumption is that the site's popup tries to position to the right
+    // of that edge if it fits, or else to the left of the thumb.
+    //
+    // Set popupAvoiderWidth by resizing the browser narrow until the site 
+    // just starts showing its popup to the left; then look at the TZP
+    // debug messages to find the corresponding availableForSitePopup value.
+    this.popupAvoiderWidth = 0;
+    this.popupAvoiderEdge = 0;
+    
     this.noTooSmallWarning = false;
     this.requireImageBiggerThanThumb = true;
   },

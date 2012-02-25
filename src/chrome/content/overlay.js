@@ -1638,7 +1638,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // can display the image (without magnifying it and without it
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
-                                             thumbWidth, thumbHeight);
+                                             flags, thumbWidth, thumbHeight);
     let thumbType = this._getFileType(aImageNode.getAttribute("src"));
     let imageType = this._getFileType(aImageSrc);
     this._logger.debug("_sizePositionAndDisplayPopup: file types: thumb=" + 
@@ -1830,36 +1830,49 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getAvailableSizeOutsideThumb : function(aImageNode, flags) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+
+    let pageWidth = content.window.innerWidth * pageZoom;
+    let pageHeight = content.window.innerHeight * pageZoom;
     
     /*
      * pageLeft is the space available to the left of the thumb. 
      * pageTop is the space available above it.
      */
-    let available = {left:0, right:0, top:0, bottom: 0};
+    let available = {left:0, right:0, top:0, bottom: 0,
+                     windowWidth: pageWidth,
+                     windowHeight: pageHeight};
 
-    if (flags.allowLeft) {
-      available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
-    }
-    if (flags.allowAbove) {
-      available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
-    }
+    available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
+    available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
     
     /*
      * pageRight is the space available to the right of the thumbnail,
      * and pageBottom the space below.
      */
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
+    available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
+    available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
-    available.windowWidth = pageWidth;
-    available.windowHeight = pageHeight;
-    
-    if (flags.allowRight) {
-      available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
+    let allowRight = flags.allowRight;
+    let allowLeft = flags.allowLeft;
+    if (flags.popupAvoiderWidth > 0) {    
+      let availableForSitePopup = available.right +
+                  (this._thumbBBox.xMax - this._thumbBBox.xMin + 1) * (1.0 - flags.popupAvoiderEdge);
+      if (availableForSitePopup > flags.popupAvoiderWidth) {
+        // site's own popup would appear to right of thumb.
+        allowRight = false;
+      }  else {
+        allowLeft = false;
+      }
+      this._logger.debug("_getAvailableSizeOutsideThumb: availableForSitePopup=" +
+                         availableForSitePopup + "; popupAvoiderWidth=" + 
+                         flags.popupAvoiderWidth + "; allowLeft=" + allowLeft +
+                         "; allowRight=" + allowRight);
     }
-    if (flags.allowBelow) {
-      available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
-    }
+
+    if (!allowLeft) available.left = 0;
+    if (!allowRight) available.right = 0;
+    if (!flags.allowAbove) available.top = 0;
+    if (!flags.allowBelow) available.bottom = 0;
     
     let haveCaption = this._panelCaption.value != "" &&
                       this._panelCaption.value != " ";
@@ -1917,7 +1930,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    *   }
    */
   _getScaleDimensions : function(imageWidth, imageHeight, available, 
-                                 thumbWidth, thumbHeight) {
+                                 flags, thumbWidth, thumbHeight) {
     this._logger.trace("_getScaleDimensions");
 
     let changedScaleTemporarily = this._currentMaxScaleBy != this._getDefaultScalePref();
@@ -1991,6 +2004,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     //
     if (! this._currentAllowCoverThumb) {
       this._logger.debug("_getScaleDimensions: disallowing covering thumb because of pref");
+      scale = sideScale;
+    } 
+
+    if (flags.popupAvoiderWidth > 0) {
+      // allowing to cover thumb may also cover site's popup, so disallow.
+      // TODO: this is overly strict since a covering popup wouldn't
+      // always cover the site's popup.
+      this._logger.debug("_getScaleDimensions: disallowing covering thumb because popupAvoiderWidth");
       scale = sideScale;
     } 
 

@@ -73,7 +73,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       //
       let enableDebug = false;
-      let enableTrace = false;
+      let enableTrace = false; // even more verbose
             
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
