@@ -124,6 +124,10 @@ ThumbnailZoomPlus.FilterService = {
     this.popupAvoiderHeight = 0;
     this.popupAvoiderTBEdge = "unspecified";
     
+    // Popup won't be shown if raw image size is smaller than this:
+    this.minImageWidth = 30;
+    this.minImageHeight = 15;
+    
     this.noTooSmallWarning = false;
     this.requireImageBiggerThanThumb = true;
   },

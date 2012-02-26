@@ -1160,6 +1160,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let regEx = new RegExp("(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
+    // Using the thumb itself as source; don't annoy the user with
+    // "too small" warnings, which would be quite common.
+    flags.noTooSmallWarning = true;
+
     return aImageSrc; 
   }
 

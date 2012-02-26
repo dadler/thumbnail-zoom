@@ -851,11 +851,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
       return "rejectedNode";
     }
-    if (aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage) {
-      // Using the thumb itself as source; don't annoy the user with
-      // "too small" warnings, which would be quite common.
-      imageSourceInfo.noTooSmallWarning = true;
-    }
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
@@ -873,7 +868,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
                        this._originalURI);
     
-    flags.noTooSmallWarning = imageSourceInfo.noTooSmallWarning;
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
     this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
     return "launched";
@@ -2071,6 +2065,15 @@ ThumbnailZoomPlusChrome.Overlay = {
                            scale.width + " x " + scale.height + 
                            ") isn't at least 12% bigger than thumb (" +
                            thumbWidth + " x " + thumbHeight + ")");
+      }
+      if (scale.allow &&
+          (imageWidth < flags.minImageWidth ||
+           imageHeight < flags.minImageHeight  ) ) {
+        this._logger.debug("_getScaleDimensions: skipping: raw image size (" +
+                           imageWidth + " x " + imageHeight + 
+                           " < min of " + 
+                           flags.minImageWidth + " x " + flags.minImageHeight);
+        scale.allow = false;
       }
       if (scale.allow && 
           this._currentAllowCoverThumb &&
