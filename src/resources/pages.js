@@ -74,8 +74,9 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       .g. in the tool menu's checkboxes.  eg "Facebook".
 
     * host: regular expression which the hostname of the page containing the
-      thumbnail or link must match for the rule to apply.  Remember to backslash-
-      quote literal dots.  eg /^(.*\.)?facebook\.com$/
+      thumbnail or link must match for the rule to apply.  THIS APPLIS
+      TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
+      Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
@@ -286,9 +287,9 @@ ThumbnailZoomPlus.Pages.Amazon = {
   host: /^(.*\.)?((ssl-)?images-)?amazon\.(co\.)?[a-z]+$/,
   
   // Product images seem to come from exc.images-amazon.com.  Static graphics
-  // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com.
-  // The latter don't seem to have larger versions, so don't popup for them.
-  imageRegExp: /(.*\.)(ssl-)?images\-amazon\.com\/images/,
+  // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com,
+  // or have /buttons/ or /gui/ in their URL.
+  imageRegExp: /^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui)\/).*/,
 
   getZoomImage : function(aImageSrc, flags) {
     let ex = /\._[a-z0-9].+_\./i;
@@ -1120,11 +1121,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // We basically match any image, but exclude some which are annoying to
   // show.  
   imageRegExp: new RegExp("^(?![^/]*(" +
-                          "(//.*\.google\.com?[.a-z]*/(.*/)?images/)|" + // google logos
-                          "(//[a-z0-9]+\.google.com?[.a-z]*/.*[/?]lyrs=.*)|" + // google maps tiles
-                          "(//maps\.google\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
+                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)|" + // google logos
+                          "(//[a-z0-9]+\\.google.com?[.a-z]*/.*[/?]lyrs=.*)|" + // google maps tiles
+                          "(//maps\\.google\\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
                           "(//maps.gstatic.com?[.a-z]*/.*)|" + // google maps button images
                           "(//sh.deviantart.net/shadow/)|" + // deviantart frame around thumbs
+                          "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
   
