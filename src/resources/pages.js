@@ -174,13 +174,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return null;
     }
     if (/_q\./.test(aImageSrc)) {
-      // For profile pics, prevent displaying the popup to the right of the thumb.
-      // This prevents it from overlapping text of Facebook's own info popup
-      // for thumbs in the main wall (though it may cause them to overlap for
-      // thumbs in the right-hand pane of the page).
-      // DISABLED: to really work, may need to do as vertical avoidance.
-      //flags.popupAvoiderEdge = 0;
-      //flags.popupAvoiderWidth = 465;
+      // Make sure we avoid positioning our popup will Facebook's wil be.
+      flags.popupAvoiderTBEdge = "midpage"; 
+      flags.popupAvoiderHeight = 1;
+      flags.allowRight = false;
     } else if (/_n\./.test(aImageSrc)) {
       // These thumbs sometimes have a tooltip-like popup showing their
       // profile name above the image.
@@ -379,7 +376,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // We'll set flags.popupAvoiderWidth for thumbs which cause
     // the site itself to display a popup; this allows TZP to avoid
     // positioning our own popup where the site's is likely to be.
-    flags.popupAvoiderEdge = 1;
+    flags.popupAvoiderLREdge = 1;
     flags.popupAvoiderWidth = 0; // no avoider yet...
 
     // For static thumbs

@@ -1812,6 +1812,63 @@ ThumbnailZoomPlusChrome.Overlay = {
     return result;
   },  
   
+  _applyPopupAvoider : function(available, flags) {    
+    // Horizontal popup avoider:
+    if (flags.popupAvoiderWidth > 0) {    
+      let availableForSitePopup = available.right +
+                  (this._thumbBBox.xMax - this._thumbBBox.xMin + 1) * (1.0 - flags.popupAvoiderLREdge);
+      if (availableForSitePopup > flags.popupAvoiderWidth) {
+        // site's own popup would appear to right of thumb.
+        flags.allowRight = false;
+      }  else {
+        flags.allowLeft = false;
+      }
+      this._logger.debug("_getAvailableSizeOutsideThumb: width availableForSitePopup=" +
+                         availableForSitePopup + "; popupAvoiderWidth=" + 
+                         flags.popupAvoiderWidth + "; allowLeft=" + flags.allowLeft +
+                         "; allowRight=" + flags.allowRight);
+    }
+    
+    // Vertical popup avoider:
+    if (flags.popupAvoiderHeight > 0) {
+      if (flags.popupAvoiderTBEdge == "midpage") {
+        if (available.top > available.bottom) {
+          // sites popup will be above thumb.
+          flags.allowAbove = false;
+        } else {
+          flags.allowBelow = false;
+        }
+        this._logger.debug("_getAvailableSizeOutsideThumb: popupAvoiderTBEdge: midpage" +
+                           "; allowAbove=" + flags.allowAbove +
+                           "; allowBelow=" + flags.allowBelow);
+      } else {
+        let availableForSitePopup = 0;
+        if (flags.popupAvoiderTBEdge == "below") {
+          // site's preferred direction is below thumb.
+          availableForSitePopup = available.bottom;
+        } else if (flags.popupAvoiderTBEdge == "above") {
+          // site's preferred direction is below thumb.
+          availableForSitePopup = available.top;
+        } else {
+          this._logger.debug("_getAvailableSizeOutsideThumb: ERROR: popupAvoiderTBEdge: " +
+                             flags.popupAvoiderTBEdge);
+        }
+        let siteUsesPreferred = (availableForSitePopup > flags.popupAvoiderHeight);
+        if (siteUsesPreferred ^ (flags.popupAvoiderTBEdge == "below")) {
+          // site's popup will be above since
+          // either the site is using preferred side or preferred side is below
+          // (but not both).  So allow our popup below but not above.
+          flags.allowAbove = false;
+        } else {
+          flags.allowBelow = false;
+        }
+        this._logger.debug("_getAvailableSizeOutsideThumb: height availableForSitePopup=" +
+                           availableForSitePopup + "; popupAvoiderHeight=" + 
+                           flags.popupAvoiderHeight + "; allowAbove=" + flags.allowAbove +
+                           "; allowBelow=" + flags.allowBelow);
+      }
+    }
+  }, 
   
   /**
    * Returns the width of the larger of the space to the left or
@@ -1852,25 +1909,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     available.right = pageWidth - available.left - aImageNode.offsetWidth * pageZoom;
     available.bottom = pageHeight - available.top - aImageNode.offsetHeight * pageZoom;
 
-    let allowRight = flags.allowRight;
-    let allowLeft = flags.allowLeft;
-    if (flags.popupAvoiderWidth > 0) {    
-      let availableForSitePopup = available.right +
-                  (this._thumbBBox.xMax - this._thumbBBox.xMin + 1) * (1.0 - flags.popupAvoiderEdge);
-      if (availableForSitePopup > flags.popupAvoiderWidth) {
-        // site's own popup would appear to right of thumb.
-        allowRight = false;
-      }  else {
-        allowLeft = false;
-      }
-      this._logger.debug("_getAvailableSizeOutsideThumb: availableForSitePopup=" +
-                         availableForSitePopup + "; popupAvoiderWidth=" + 
-                         flags.popupAvoiderWidth + "; allowLeft=" + allowLeft +
-                         "; allowRight=" + allowRight);
-    }
-
-    if (!allowLeft) available.left = 0;
-    if (!allowRight) available.right = 0;
+    this._applyPopupAvoider(available, flags);
+    
+    if (!flags.allowLeft) available.left = 0;
+    if (!flags.allowRight) available.right = 0;
     if (!flags.allowAbove) available.top = 0;
     if (!flags.allowBelow) available.bottom = 0;
     
