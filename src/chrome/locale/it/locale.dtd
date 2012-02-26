@@ -37,14 +37,14 @@
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.pane.label                    "Preferenze">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Ritardo prima di visualizzare l'immagine (sec):">
-<!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
-<!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra immagine parziale dopo (sec):">
+<!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predefinito (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key.selection.label           "Tasto per visualizzare l'immagine:">
-<!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
+<!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tasto per massimizzare l'immagine:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra bordo bianco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Massimizzare la dimensione immagine di sovrapposti delle miniature">
-<!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Show &thumbnailzoomplus.PERCENT;">
-<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
+<!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Mostra &thumbnailzoomplus.PERCENT;">
+<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Mostra titolo">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Aggiungere immagini alla storia browser">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nessuno">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Generale">
