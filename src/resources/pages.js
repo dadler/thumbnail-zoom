@@ -732,7 +732,7 @@ ThumbnailZoomPlus.Pages.Google = {
 ThumbnailZoomPlus.Pages.YouTube = {
   key: "youtube",
   name: "YouTube",
-  host: /^(.*\.)?youtube\.com$/,
+  host: /^(.*\.)?(nsfw)?youtube\.com$/,
   imageRegExp: /i[0-9]+\.ytimg\.com\/vi\//,
   getZoomImage : function(aImageSrc, flags) {
     let rex = new RegExp(/\/default\./);
@@ -893,7 +893,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "tumblr.com/(photo/|tumblr_)|" +
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
                           "[^/&\\?]+(&.*)?$|" +
-                      "(?:www\\.youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
+                      "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
                       "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
@@ -1078,7 +1078,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
     // http://youtu.be/kuX2lI84YRQ to
     // http://i3.ytimg.com/vi/kuX2lI84YRQ/hqdefault.jpg
-    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|youtu.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
+    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
