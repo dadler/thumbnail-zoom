@@ -52,6 +52,8 @@ ThumbnailZoomPlus.UninstallService = {
   /* Flag indicates whether the uninstall should be executed on exit. */
   _shouldUninstall : false,
 
+  _disabling : false,
+
   /**
    * Initializes the resource.
    */
@@ -71,6 +73,22 @@ ThumbnailZoomPlus.UninstallService = {
     } catch (ex) {}
   },
 
+  /**
+   * Called when the add-on is being disabled.  We clear the
+   * button.installed pref because Firefox will forget about the
+   * toolbar button when we disable, so we need it to re-add the
+   * default toolbar button when the user re-enables.
+   */
+  _clearInstalledPref : function() {
+      this._logger.trace("_clearInstalledPref");
+
+      // When we later re-enable the add-on, it'll re-add the toolbutton
+      // if button.installed is false. 
+      let pref = ThumbnailZoomPlus.PrefBranch + "button.installed";
+      ThumbnailZoomPlus.setPref(pref, false);
+      this._logger.trace("_clearInstalledPref: done");
+  },
+  
   /**
    * Cleans up code to remove the extension directory and related preferences.
    */
@@ -140,6 +158,25 @@ ThumbnailZoomPlus.UninstallService = {
   },
 
   /**
+   * Handles the on uninstalling observer in FF4.
+   * @param aItem the item to be uninstalled.
+   */
+  onDisabling : function(aItem, needsRestart) {
+    this._logger.debug("onDisabling");
+
+    if (ThumbnailZoomPlus.ExtensionId == aItem.id) {
+      this._logger.debug("onDisabling: disabling TZP.");
+      this._disabling = true;
+      
+      // For debugging, temporarily enable calling this here
+      // so we can view any javascript errors.
+      if (0) { // normally if (0)
+        this._clearInstalledPref();
+      }
+    }
+  },
+  
+  /**
    * Handles the on operation cancelled observer in FF4.
    * @param aItem the item cancelled.
    */
@@ -147,6 +184,7 @@ ThumbnailZoomPlus.UninstallService = {
     this._logger.debug("onOperationCancelled");
 
     if (ThumbnailZoomPlus.ExtensionId == aItem.id) {
+      this._shouldUninstall = false;
       this._shouldUninstall = false;
     }
   },
@@ -158,10 +196,13 @@ ThumbnailZoomPlus.UninstallService = {
    * @param aData the data relating to the change.
    */
   observe : function(aSubject, aTopic, aData) {
-    this._logger.debug("observe");
+    this._logger.debug("observe " + aTopic + " " + aData);
 
     switch(aTopic) {
       case TOPIC_QUIT_APPLICATION:
+        if (this._disabling) {
+          this._clearInstalledPref();
+        }
         if (this._shouldUninstall) {
           this._cleanUp();
         }
@@ -179,11 +220,16 @@ ThumbnailZoomPlus.UninstallService = {
             case "item-uninstalled":
               this._shouldUninstall = true;
               break;
+            case "item-disabled":
+              this._disabling = true;
+              break;
           }
         }
         break;
     }
+    this._logger.debug("observe: done");
   }
+
 };
 
 /**
