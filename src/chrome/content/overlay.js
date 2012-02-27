@@ -854,7 +854,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
-                            .getZoomImage(imageSource, flags, aPage);
+                            .getZoomImage(imageSource, node, flags, aPage);
     if (zoomImageSrc == "") {
       this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
       return "rejectedNode";

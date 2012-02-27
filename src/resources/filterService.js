@@ -355,6 +355,7 @@ ThumbnailZoomPlus.FilterService = {
       let imageNode = null;
       imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
       if (imageNode) {
+        this._logger.debug("getImageSource: node class: " + nodeClass);
         if (imageNode.hasAttribute("src")) {
           imageSource = imageNode.getAttribute("src");
           this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
@@ -421,11 +422,11 @@ ThumbnailZoomPlus.FilterService = {
    * @return the zoomed image source, null if none could be found, or "" if
    *  one was found, but for a site which the user disabled.
    */
-  getZoomImage : function(aImageSrc, flags, aPage) {
+  getZoomImage : function(aImageSrc, node, flags, aPage) {
     this._logger.debug("getZoomImage");
 
     let pageInfo = this.pageList[aPage];
-    let zoomImage = pageInfo.getZoomImage(aImageSrc, flags);
+    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags);
     this._logger.debug("ThumbnailPreview: getZoomImage returned flags allow:" +
                        (+flags.allowLeft) + "<>" + (+flags.allowRight) +
                        " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
