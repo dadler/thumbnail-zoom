@@ -747,8 +747,8 @@ ThumbnailZoomPlus.Pages.Google = {
 ThumbnailZoomPlus.Pages.YouTube = {
   key: "youtube",
   name: "YouTube",
-  host: /^(.*\.)?(nsfw)?youtube\.com$/,
-  imageRegExp: /i[0-9]+\.ytimg\.com\/vi\//,
+  host: /^(.*\.)?(nsfw)?youtube\.com|i[0-9]*\.ytimg\.com$/,
+  imageRegExp: /i[0-9]*\.ytimg\.com\/vi\//,
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/default\./);
     let image =
