@@ -43,11 +43,11 @@
 
   <!-- Toolbar button -->
   <toolbarpalette id="BrowserToolbarPalette">
-    <toolbarbutton id="thumbnailzoomplus-toolbar-button" type="menu"
+    <toolbarbutton id="thumbnailzoomplus-toolbar-button" type="menu-button"
       label="&thumbnailzoomplus.toolbar.label;"
       tooltiptext="&thumbnailzoomplus.toolbar.tooltip;"
-      image="chrome://thumbnailzoomplus/skin/images/icon16.png"
-      class="toolbarbutton-1 chromeclass-toolbar-additional ">
+      class="toolbarbutton-1 chromeclass-toolbar-additional "
+      oncommand="ThumbnailZoomPlusChrome.Overlay.toggleEnable();">
       
       <menupopup id="thumbnailzoomplus-toolbar-menu"
         onpopupshowing="ThumbnailZoomPlusChrome.Overlay.addMenuItems();">

@@ -51,6 +51,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
+  PREF_PANEL_ENABLE : ThumbnailZoomPlus.PrefBranch + "panel.enable",
+  
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 
@@ -59,7 +61,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /* Preferences service. */
   _preferencesService : null, // TODO: same as ThumbnailZoomPlus.Application.prefs?
-
+  
   /* The timer, which is used:
    *   - for the user-configured delay from when the user hovers until
    *     we start trying to load an image.
@@ -190,6 +192,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
 
     this._installToolbarButton();
+    this._setMenuButtonState();
     this._showPanelBorder();
     
     // setup the preferences change observe.  We define a local function which
@@ -297,7 +300,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         { 
           let aPage = i;
           menuItem.addEventListener("command",
-                                    function() { ThumbnailZoomPlusChrome.Overlay.togglePreference(aPage);},
+                                    function() { ThumbnailZoomPlusChrome.Overlay.togglePagePreference(aPage);},
                                     true );
         }
         this._updatePagesMenuItemElement(pageInfo.key, menuItem);
@@ -752,6 +755,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   
     this._logger.debug("___________________________");
     this._logger.trace("_handleMouseOver");
+    
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true)) {
+      return;
+    }
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
@@ -1252,10 +1259,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
       // toggle caption
-      let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
-      this._logger.debug("_handleKeyUp: toggle caption to " + (! allowCaption) +
+      let allowCaption = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_CAPTION);
+      this._logger.debug("_handleKeyUp: toggle caption to " + allowCaption +
                          " since pressed c key");      
-      ThumbnailZoomPlus.setPref(this.PREF_PANEL_CAPTION, ! allowCaption);
       // redisplay to update displayed caption.
       if (this._currentThumb) {
         this._setupCaption(this._currentThumb);
@@ -2312,8 +2318,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Toggles the preference value.
    * @param aPage the page constant.
    */
-  togglePreference : function(aPage) {
-    this._logger.trace("togglePreference");
+  togglePagePreference : function(aPage) {
+    this._logger.trace("togglePagePreference");
     let pageName = ThumbnailZoomPlus.FilterService.getPageName(aPage);
     let menuItemId = "thumbnailzoomplus-toolbar-menuitem-" + pageName;
     let menuItem = document.getElementById(menuItemId);
@@ -2345,6 +2351,19 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
   },
 
+  
+  toggleEnable : function() {
+    let enable = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_ENABLE);
+    this._logger.debug("toggleActive: enable=" + enable);
+    this._setMenuButtonState();
+  },
+  
+  _setMenuButtonState : function() {
+    let enable = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true);
+    let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
+    menuButton.setAttribute("tzpenabled", enable);
+  },
+  
   /**
    * Shows the panel border based in the preference value.
    */

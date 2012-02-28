@@ -42,6 +42,7 @@ pref("extensions.thumbnailzoomplus.panel.showpercent",  true);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);
+pref("extensions.thumbnailzoomplus.panel.enable",       true);
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);

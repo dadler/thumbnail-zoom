@@ -252,6 +252,13 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       this.setPrefCache(key, value);
     },
     
+    togglePref : function(key) {
+      let value = ! this.getPref(key, "false");
+      this.setPref(key, value);
+      
+      return value;
+    },
+    
     /**
      * Verify if the page is enabled.
      * @param aPage the page key (string).
