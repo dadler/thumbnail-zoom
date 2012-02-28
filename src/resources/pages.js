@@ -1093,7 +1093,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
     // http://youtu.be/kuX2lI84YRQ to
     // http://i3.ytimg.com/vi/kuX2lI84YRQ/hqdefault.jpg
-    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
+    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
