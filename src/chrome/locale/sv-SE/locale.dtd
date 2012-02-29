@@ -41,10 +41,10 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent">
-<!ENTITY thumbnailzoomplus.options.key.display.label             "___">
-<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "inte">
-<!ENTITY thumbnailzoomplus.options.key2.selection.label           "bildvisning:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent för att">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "visa">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "dölja">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "bilden:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
