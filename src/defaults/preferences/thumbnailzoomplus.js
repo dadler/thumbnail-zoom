@@ -32,6 +32,7 @@
 
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);
+pref("extensions.thumbnailzoomplus.panel.enable",       true);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
 pref("extensions.thumbnailzoomplus.panel.partialloadwait", "1.0"); // seconds
 pref("extensions.thumbnailzoomplus.panel.key",          0);
@@ -42,7 +43,6 @@ pref("extensions.thumbnailzoomplus.panel.showpercent",  true);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);
-pref("extensions.thumbnailzoomplus.panel.enable",       true);
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);

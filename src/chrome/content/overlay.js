@@ -192,7 +192,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
 
     this._installToolbarButton();
-    this._setMenuButtonState();
+    this._updateMenuButtonState();
     this._showPanelBorder();
     
     // setup the preferences change observe.  We define a local function which
@@ -2352,14 +2352,19 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   
-  toggleEnable : function() {
+  toggleEnable : function(target) {
+    let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
+    if (target != menuButton) {
+      return;
+    }
     let enable = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_ENABLE);
     this._logger.debug("toggleActive: enable=" + enable);
-    this._setMenuButtonState();
   },
   
-  _setMenuButtonState : function() {
+  _updateMenuButtonState : function() {
     let enable = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true);
+    
+    // Set tool button state
     let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
     menuButton.setAttribute("tzpenabled", enable);
   },
@@ -2400,6 +2405,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       switch (aData) {
         case this.PREF_PANEL_BORDER:
           this._showPanelBorder();
+          break;
+        case this.PREF_PANEL_ENABLE:
+          this._updateMenuButtonState();
           break;
       }
     }
