@@ -39,7 +39,10 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra imagem parcial após (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom pré-definido (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para exibir a imagem:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label           "Tecla para">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "exibir">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "não exibir">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "a imagem:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar a imagem:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">

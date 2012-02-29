@@ -39,7 +39,10 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying image (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Key to display the image:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Key to">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "display">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "not display">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "the image:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">

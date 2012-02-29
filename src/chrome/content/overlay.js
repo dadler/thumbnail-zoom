@@ -41,6 +41,7 @@ Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 ThumbnailZoomPlusChrome.Overlay = {
   /* UI preference keys. */
   PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_ACTIVATE_KEY_ACTIVATES : ThumbnailZoomPlus.PrefBranch + "panel.keydisplay",
   PREF_PANEL_MAX_KEY : ThumbnailZoomPlus.PrefBranch + "panel.maxkey",
   PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
   PREF_PANEL_PARTIAL_LOAD_WAIT: ThumbnailZoomPlus.PrefBranch + "panel.partialloadwait",
@@ -772,8 +773,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     // so a future mouse move can re-enter it and re-popup.
     this._ignoreBBox.xMax = -999;
     
-    if (! this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, aEvent)) {
-      this._logger.debug("_handleMouseOver: _closePanel since hot key not down");
+    let keyActivates = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
+                                                 true);
+    let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, !keyActivates, aEvent);
+    if (! keyActive) {
+      this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
       this._closePanel();
       return;
     }
@@ -930,7 +934,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param aEvent the event object.
    * @return true if active, false otherwise.
    */
-  _isKeyActive : function(prefName, aEvent) {
+  _isKeyActive : function(prefName, negate, aEvent) {
     this._logger.trace("_isKeyActive");
 
     let active = false;
@@ -939,22 +943,26 @@ ThumbnailZoomPlusChrome.Overlay = {
       case 1:
         active = aEvent.ctrlKey || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_CONTROL);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'control key', return " 
                            + active);
         break;
       case 2:
         active = aEvent.shiftKey || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_SHIFT);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'shift key', return " 
                            + active);
         break;
       case 3:
         active = aEvent.altKey || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_ALT);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'alt key', return " 
                            + active);
         break;
       default:
+        // none; 'negate' flag does not apply.
         active = true;
         this._logger.debug("_isKeyActive: based on 'None key', return " 
                            + active);
@@ -1318,7 +1326,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
       this._redisplayPopup();
 
-    } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
+    } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
       this._logger.debug("_handleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
@@ -1711,7 +1719,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
     }
