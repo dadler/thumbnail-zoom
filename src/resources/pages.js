@@ -1152,7 +1152,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // be a thumbnail (eg gmail compose email body area).
       return null;
     } 
-    if (! aNode.hasAttribute("src") && aNode.hasAttribute("href")) {
+    if (! aNode.hasAttribute("src") && aNode.hasAttribute("href") &&
+        aNode.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to return aNode if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
       return null;
@@ -1175,7 +1176,31 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       return null;
     }
 
-    // for some sites where /images/thumb/(digits) changes thumb to full.
+    // For wordpress, change:
+    // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
+    // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
+    let imgpressEx = new RegExp("^https?://[^/]+\\.wp\\.com/imgpress(\\?.*)?[?&]url=([^?&]+).*");
+    if (imgpressEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgpressEx, "$2");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      ThumbnailZoomPlus.Pages._logger.debug("ThumbnailPreview: Thumbnail matched wordpress");
+    } else {
+      ThumbnailZoomPlus.Pages._logger.debug("ThumbnailPreview: Thumbnail did not match wordpress: " +
+                  aImageSrc + " vs " + imgpressEx);
+    }
+    
+    // For wordpress, change:
+    // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
+    // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg
+    // Similarly for http://wsj2day.files.wordpress.com/2012/03/wsj4060.jpg?w=72&crop=1&h=72
+    let wordpressEx = new RegExp("https?://[^/]+\\.files\\.wordpress\\.com/");
+    if (wordpressEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(/[?&]w=[0-9]+/, "");
+      aImageSrc = aImageSrc.replace(/[?&]h=[0-9]+/, "");
+      aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
+    }
+    
+    // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
     let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
