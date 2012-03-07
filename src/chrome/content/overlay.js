@@ -79,6 +79,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel caption (a label). */
   _panelCaption : null,
 
+  /* The non-visible text field in the popup for holding keyboard focus. */
+  _panelFocusHost : null,
+
   /* Context menu's download image menu item */
   _contextMenu : null,
 
@@ -183,6 +186,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
+    this._panelFocusHost = document.getElementById("thumbnailzoomplus-panel-focus-host");
     this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
@@ -386,10 +390,11 @@ ThumbnailZoomPlusChrome.Overlay = {
      * This is only active while the pop-up is displayed.
      */
     let useCapture = false;
-    window.addEventListener("keydown", this._handleKeyDown, useCapture);
-    window.addEventListener("keyup", this._handleKeyUp, useCapture);
-    window.addEventListener("keypress", this._handleIgnoreKey, useCapture);
-      
+    this._panel.addEventListener("keydown", this._handleKeyDown, useCapture);
+    this._panel.addEventListener("keyup", this._handleKeyUp, useCapture);
+    this._panel.addEventListener("keypress", this._handleIgnoreKey, useCapture);
+    this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
+
     /*
      * Listen for pagehide events to hide the popup when navigating away
      * from the page.  Some pages like deviantart use hashtags like
@@ -408,10 +413,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   _removeListenersWhenPopupHidden : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_removeListenersWhenPopupHidden");
-    window.removeEventListener("keydown", this._handleKeyDown, false);
-    window.removeEventListener("keyup", this._handleKeyUp, false);
-    window.removeEventListener("keypress", this._handleIgnoreKey, false);
-      
+    this._panel.removeEventListener("keydown", this._handleKeyDown, false);
+    this._panel.removeEventListener("keyup", this._handleKeyUp, false);
+    this._panel.removeEventListener("keypress", this._handleIgnoreKey, false);
+    this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
+
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
     window.removeEventListener(
@@ -544,6 +550,14 @@ ThumbnailZoomPlusChrome.Overlay = {
           function(aEvent) {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
+        // Also listen for mouseout so we can popdown if the user moves
+        // the mouse outside the document area without entering another
+        // non-thumbnail element.
+        doc.addEventListener(
+          "mouseout",
+          function(aEvent) {
+            that._handleMouseOut(doc, aEvent, pageConstant);
+          }, true);
       } else {
         this._logger.debug("_addEventListenersToDoc: not on a matching site: " + doc.documentURI);
       }
@@ -579,7 +593,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     if (this._ignoreBBox.xMax == -999) {
       // passed the quick test for "no bbox".
-     this._logger.debug("_insideThumbBBox: returning true since _ignoreBBox.xMax == -999");
+      this._logger.debug("_insideThumbBBox: returning false since _ignoreBBox.xMax == -999");
       return false;
     }
       
@@ -747,6 +761,45 @@ ThumbnailZoomPlusChrome.Overlay = {
     for (let i = 0; i < times; i++) {
       this._handleMouseOverImpl(aDocument, aEvent, aPage);
     }
+  },
+  
+  _handleMouseOut : function (aDocument, aEvent, aPage) {
+  
+    return; // TODO
+    
+    this._logger.debug("___________________________");
+    this._logger.trace("_handleMouseOut leaving " + aEvent.target + 
+                       " entering " + aEvent.relatedTarget);
+  
+    let x = aEvent.screenX;
+    let y = aEvent.screenY;
+    if (this._insideThumbBBox(aDocument, x, y)) {
+      // Ignore attempt to redisplay the same image without first entering
+      // a different element, on the assumption that it's caused by a
+      // focus change after the popup was dismissed.
+      return;
+    }
+
+    // Mouse entered a different region; clear the previous 'ignore' region
+    // so a future mouse move can re-enter it and re-popup.
+    this._ignoreBBox.xMax = -999;
+
+    this._closePanel();
+  },
+  
+  /**
+   * _losingPopupFocus is called when the popup loses keyboard focus.
+   * This happens when the user activates a different input field, such
+   * as the Location or Find field (by clicking or hotkey).  We
+   * close the popup so the user can use that field and so his typing won't
+   * be interpreted as TZP hotkeys.
+   */
+     _losingPopupFocus : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("___________________________");
+    that._logger.trace("_losingPopupFocus: closing popup.");
+
+    that._closePanel();
   },
   
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
@@ -1567,12 +1620,18 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Close the panel to ensure that we can popup the new panel at a specified
       // location. 
       if (this._panel.state != "closed") {
+        // temporarily remove listeners so we don't get a "blur" (losing
+        // focus) event when we pop down the window.  That even would cause
+        // the popup to stay closed, which we don't want.
+        this._removeListenersWhenPopupHidden();
         this._panel.hidePopup();
       }
       let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
       flags.noTooSmallWarning = true;
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, flags,
                                         this._origImageWidth, this._origImageHeight);
+      // re-add back the listeners.
+      this._addListenersWhenPopupShown();
     }
   },
   
@@ -1749,6 +1808,16 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   /**
+   * Gives the popup keyboard focus, so the user can direct key commands to it.
+   * Because we listen for hotkeys only on the popup itself, we're sure
+   * we won't interpret typing in other areas such as the Location bar.
+   */
+  _focusPopup : function() {
+    this._logger.trace("_focusPopup");
+    this._panelFocusHost.focus();
+  },
+  
+  /**
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
    * @param aImageNode: the thumb or link from which we're popping up
@@ -1773,6 +1842,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel.moveTo(pos.x, pos.y);
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
+    this._focusPopup();
   },
   
   
