@@ -164,7 +164,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // image and comments, and lightbox image is already pretty large.
       return null;
     }
-
+    if (aNodeClass.indexOf("actorPic") >= 0) {
+      // Don't show popup for small Facebook thumb of the person who's
+      // entering a comment since the comment field loses focus and the 
+      // thumbnails disappears, which is confusing.
+      return null;
+    }
+    
     // Handle externally-linked images.
     let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
     if (rexExternal.test(aImageSrc)) {
@@ -1173,6 +1179,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                           aNodeClass);
     if ("spotlight" == aNodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
         ) {
+      return null;
+    }
+    if (aNodeClass.indexOf("actorPic") >= 0) {
+      // Don't show popup for small Facebook thumb of the person who's
+      // entering a comment since the comment field loses focus and the 
+      // thumbnails disappears, which is confusing.
       return null;
     }
 

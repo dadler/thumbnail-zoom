@@ -768,7 +768,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return; // TODO
     
     this._logger.debug("___________________________");
-    this._logger.trace("_handleMouseOut leaving " + aEvent.target + 
+    this._logger.debug("_handleMouseOut leaving " + aEvent.target + 
                        " entering " + aEvent.relatedTarget);
   
     let x = aEvent.screenX;
@@ -797,7 +797,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      _losingPopupFocus : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
-    that._logger.trace("_losingPopupFocus: closing popup.");
+    that._logger.debug("_losingPopupFocus: closing popup.");
 
     that._closePanel();
   },
@@ -805,7 +805,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
   
     this._logger.debug("___________________________");
-    this._logger.trace("_handleMouseOver");
+    this._logger.debug("_handleMouseOver");
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
