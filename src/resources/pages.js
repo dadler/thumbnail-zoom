@@ -164,7 +164,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // image and comments, and lightbox image is already pretty large.
       return null;
     }
-    if (aNodeClass.indexOf("actorPic") >= 0) {
+    if (aNodeClass && aNodeClass.indexOf("actorPic") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
@@ -809,8 +809,8 @@ ThumbnailZoomPlus.Pages.Imgur = {
   host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/[bsm](\.[a-z]+)/i);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
+    let rex = new RegExp(/(\/[a-z0-9]{5})[bsm](\.[a-z]+)/i);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
   }
 };
@@ -1114,7 +1114,7 @@ ThumbnailZoomPlus.Pages.Others = {
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
-        
+  
     // For sites other than tumblr and twitpic, if there is no image suffix, add .jpg.
     let rex = new RegExp("tumblr\\.com/.*|" + 
                          "twimg[.0-9-]|twitpic\\.com|(" +
@@ -1153,19 +1153,17 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   
   getImageNode : function(aNode, nodeName, nodeClass) {
     if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
-        "embed" == nodeName) {
+        "embed" == nodeName || "input" == nodeName) {
       // Don't consider the source of an html doc embedded in an iframe to
       // be a thumbnail (eg gmail compose email body area).
+      // Also don't consider a text input field (eg google search)
+      // since it's probably just a minor graphic like a shadow.
       return null;
     } 
     if (! aNode.hasAttribute("src") && aNode.hasAttribute("href") &&
         aNode.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to return aNode if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
-      return null;
-    }
-    if ("gbqfif" == nodeClass // google search field.
-        ) {
       return null;
     }
     return aNode;
@@ -1181,7 +1179,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         ) {
       return null;
     }
-    if (aNodeClass.indexOf("actorPic") >= 0) {
+    if (aNodeClass && aNodeClass.indexOf("actorPic") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
