@@ -1285,6 +1285,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _recognizedKey : function(aEvent) {
+    if (aEvent.metaKey || aEvent.ctrlKey) {
+      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      return false;
+    }
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
@@ -1306,6 +1310,18 @@ ThumbnailZoomPlusChrome.Overlay = {
   _doHandleKeyDown : function(aEvent) {
     this._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
     
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
+      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
+      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
+      this._currentAllowCoverThumb = true;
+      this._redisplayPopup();
+    }
+    
+    if (aEvent.metaKey || aEvent.ctrlKey) {
+      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      return false;
+    }
+
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
       // open preferences
       this._logger.debug("_handleKeyUp: openPreferences since pressed p key");
@@ -1377,12 +1393,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_handleKeyDown: set allowCoverThumb = " +
                          this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
-      this._redisplayPopup();
-
-    } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
-      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
-      this._currentAllowCoverThumb = true;
       this._redisplayPopup();
     }
 
