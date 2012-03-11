@@ -138,6 +138,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
                   null);
     return image;
   },
+  
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = aNodeSource;
     let rex = new RegExp(/static\.ak\.fbcdn\.net/);
@@ -148,7 +149,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         imageSource = aNode.nextSibling.getAttribute("src");
       } else {
         imageSource = aNode.style.backgroundImage.
-          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: " */
+          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: "))) */
       }
     }
     return imageSource;
@@ -1170,6 +1171,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   },
   
   getZoomImage : function(aImageSrc, node, flags) {
+
+    // For certain sites, if node has a background style, use image from that.
+    // But in general we don't since it leads to too many popups from static
+    // background styling (non-image) graphics.
+    let backImage = node.style.backgroundImage;
+    if (backImage && "" != backImage && /url\(/i.test(backImage)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: got image source from backgroundImage of " + node);
+      backImage = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
+      if (new RegExp("\\.tumblr\\.com/avatar").test(backImage)) {
+        aImageSrc = backImage;
+      }
+    }
+    
     // Disable for certain kinds of images.
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
@@ -1186,6 +1200,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       return null;
     }
 
+    // For tiny tumblr profile thumbs change 
+    // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
+    // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png
+    let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
+    ThumbnailZoomPlus.Pages._logger.debug("tumblr: test " + aImageSrc + " against " +
+                              tumblrRegExp + " = " + tumblrRegExp.test(aImageSrc));
+    aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
+
     // For wordpress, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
     // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
@@ -1193,10 +1215,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (imgpressEx.test(aImageSrc)) {
       aImageSrc = aImageSrc.replace(imgpressEx, "$2");
       aImageSrc = decodeURIComponent(aImageSrc);
-      ThumbnailZoomPlus.Pages._logger.debug("ThumbnailPreview: Thumbnail matched wordpress");
-    } else {
-      ThumbnailZoomPlus.Pages._logger.debug("ThumbnailPreview: Thumbnail did not match wordpress: " +
-                  aImageSrc + " vs " + imgpressEx);
     }
     
     // For wordpress, change:
