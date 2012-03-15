@@ -1173,14 +1173,24 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   getZoomImage : function(aImageSrc, node, flags) {
 
     // For certain sites, if node has a background style, use image from that.
+    // And actually, aImageSrc may be already coming from the
+    // background but needs to be excluded.
     // But in general we don't since it leads to too many popups from static
     // background styling (non-image) graphics.
     let backImage = node.style.backgroundImage;
-    if (backImage && "" != backImage && /url\(/i.test(backImage)) {
-      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: got image source from backgroundImage of " + node);
-      backImage = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
-      if (new RegExp("\\.tumblr\\.com/avatar").test(backImage)) {
-        aImageSrc = backImage;
+    let urlRegExp = /url\(/i;
+    if (backImage && "" != backImage && urlRegExp.test(backImage)) {
+      if (node.children.length > 0) {
+        ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring background image since has " +
+            node.children.length + " children > 0");
+        return null;
+      } else {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: got image source from backgroundImage of " + node);
+        backImage = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
+        if (new RegExp("\\.tumblr\\.com/avatar").test(backImage)) {
+          aImageSrc = backImage;
+        }
       }
     }
     
@@ -1204,8 +1214,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
-    ThumbnailZoomPlus.Pages._logger.debug("tumblr: test " + aImageSrc + " against " +
-                              tumblrRegExp + " = " + tumblrRegExp.test(aImageSrc));
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
     // For wordpress, change:
