@@ -1242,6 +1242,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
     
+    // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
+    // we verify the site using baseURI.
+    let leBonCoinSiteRegExp = new RegExp("\\.leboncoin\\.fr/", "i");
+    if (leBonCoinSiteRegExp.test(node.baseURI)) {
+      // change
+      // http://193.164.197.30/thumbs/171/1716737621.jpg to
+      // http://193.164.197.30/images/171/1716737621.jpg
+      let leBonCoinRegExp = new RegExp("/thumbs/([0-9]+/[0-9]+" + 
+                                       ThumbnailZoomPlus.Pages._imageTypesRegExpStr +
+                                       ")");
+      aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
+    }        
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.

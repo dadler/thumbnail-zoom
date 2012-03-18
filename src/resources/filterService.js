@@ -310,7 +310,8 @@ ThumbnailZoomPlus.FilterService = {
                       .getService(Components.interfaces.nsIIOService);
     var baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
     var uri = ioService.newURI(url, aDocument.characterSet, baseUri);
-    this._logger.debug("_applyBaseURI(, " + url + ") = " + uri.spec);
+    this._logger.debug("_applyBaseURI(" + aDocument.baseURI +
+                                      ", " + url + ") = " + uri.spec);
     return uri.spec;
   },
   
