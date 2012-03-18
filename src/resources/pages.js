@@ -572,7 +572,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   key: "pinterest",
   name: "Pinterest",
   host: /^(.*\.)?pinterest\.com$/,
-  imageRegExp: /.*\/media-cdn\.pinterest\.com\/(upload|avatars)\/.*/,
+  imageRegExp: /.*\/media-[^.\/]*\.pinterest\.com\/(upload|avatars)\/.*/,
   getZoomImage : function(aImageSrc, node, flags) {
     // for images:
     let rex = new RegExp("([0-9_a-zA-Z]+_)b(" + 
