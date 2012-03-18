@@ -537,10 +537,10 @@ ThumbnailZoomPlus.Pages.OkCupid = {
   key: "okcupid",
   name: "okCupid",
   host: /^.*\.okcupid\.com$/,
-  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.jpeg$/,
+  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.(jpe?g|png|gif)$/i,
   getZoomImage : function(aImageSrc, node, flags) {
     // http://ak1.okccdn.com/php/load_okc_image.php/images/160x160/160x160/189x210/687x708/2/17985133630795268990.jpeg
-    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.jpeg)$/);
+    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.(jpe?g|png|gif))$/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
                  null);
     return image;
@@ -919,7 +919,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
-                      "/index.php\?.*module=attach|" + // eg rootzwiki.com
+                      "/index.php\?.*module=attach|" + // IP.board, eg rootzwiki.com
                       "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
                       "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
@@ -1216,6 +1216,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
+    // For Google Play Android Apps, change
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0
+    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=h[0-9]+$");
+    let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
+    
     // For wordpress, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
     // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
@@ -1242,8 +1248,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
     aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
     
-    // For some sites, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
-    let regEx = new RegExp("(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
+    let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
     // Using the thumb itself as source; don't annoy the user with

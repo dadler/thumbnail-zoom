@@ -30,7 +30,7 @@
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opciones...">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Preferencias...">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
