@@ -1165,15 +1165,38 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
-    
+  
   getZoomImage : function(aImageSrc, node, flags) {
     let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
                                           + " class='" + nodeClass + "'");
+
+    if (/gii_folder_link/.test(nodeClass)) {
+      // minus.com single-user gallery
+      // img nodes are in <img> child of the grandparent node of the
+      // hovered-over <a> node.  Find that node.
+      // TODO: a generalization of this logic might be useful in general, e.g.
+      // for yahoo.co.jp
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: detected minus.com");
+      node = node.parentNode;
+      if (node) {
+        node = node.parentNode;
+      }
+      if (node) {
+        let imgNodes = node.getElementsByTagName("img");
+        if (imgNodes.length > 0) {
+          node = imgNodes[0];
+          nodeName = "img";
+          aImageSrc = node.getAttribute("src");
+        }
+      }
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com got " + aImageSrc);
+    }
+
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
-      // We don't want to return aNode if it's just an href since we need
+      // We don't want to use node if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
       ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
@@ -1283,7 +1306,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                        ")");
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }        
-    
+    // minus.com
+    let minusRegexp = new RegExp("(\\.minus\\.com/.*)_(e|xs)\\.jpg");
+    aImageSrc = aImageSrc.replace(minusRegexp, "$1.jpg");
+
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
