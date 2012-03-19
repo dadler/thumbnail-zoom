@@ -168,6 +168,11 @@ ThumbnailZoomPlus.FilterService = {
         try {
           host = uri.host;
           protocol = uri.scheme + ":";
+          if (! host || !protocol) {
+            this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
+                               imageSrc + "; got " + protocol + "//" + host);
+            return null;
+          }
         } catch (e) {
           // uri.host throws an exception when the thumb's image data is
           // embedded in the URL, e.g. from Google Images for very small images

@@ -95,7 +95,9 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       node's src, href, or background image.  The default function returns
       the image node itself.  Called only if we don't already have an image
       source after calling getSpecialSource.  Not called when the user hovers
-      directly over an img or when getSpecialSource returns non-null.
+      directly over an img or when getSpecialSource returns non-null.  So it
+      may not be safe to use this to REJECT a node; do that in getZoomImage
+      instead.
 
     * getZoomImage: required function(aImageSrc, node, popupFlags); returns the image URL.
       Translates the aImageSrc URL from the previous functions into the final
@@ -1160,8 +1162,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
-  
-  getImageNode : function(aNode, nodeName, nodeClass) {
+    
+  getZoomImage : function(aImageSrc, node, flags) {
+    let nodeName = node.localName.toLowerCase();
+    let nodeClass = node.getAttribute("class");
     if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
         "embed" == nodeName || "input" == nodeName) {
       // Don't consider the source of an html doc embedded in an iframe to
@@ -1170,18 +1174,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // since it's probably just a minor graphic like a shadow.
       return null;
     } 
-    if (! aNode.hasAttribute("src") && aNode.hasAttribute("href") &&
-        aNode.style.backgroundImage.indexOf("url") == -1) {
+    if (! node.hasAttribute("src") && node.hasAttribute("href") &&
+        node.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to return aNode if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
       return null;
     }
-    return aNode;
-  },
-  
-  getZoomImage : function(aImageSrc, node, flags) {
-
-    let aNodeClass = node.getAttribute("class");
 
     // For certain sites, if node has a background style, use image from that.
     // And actually, aImageSrc may be already coming from the
@@ -1191,7 +1189,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let backImage = node.style.backgroundImage;
     let urlRegExp = /url\(/i;
     if (backImage && "" != backImage && urlRegExp.test(backImage)) {
-      if (node.children.length > 0 && ! /thumb/.test(aNodeClass)) {
+      if (node.children.length > 0 && ! /thumb/.test(nodeClass)) {
         // Ignore e.g. in Google Offers, where a big map image is the background
         // around the guts of the page.
         // But we explicitly allow using background image if nodeClass
@@ -1212,12 +1210,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Disable for certain kinds of images.
     ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
                                           node + "; class=" +
-                                          aNodeClass);
-    if ("spotlight" == aNodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
+                                          nodeClass);
+    if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
         ) {
       return null;
     }
-    if (aNodeClass && aNodeClass.indexOf("actorPic") >= 0) {
+    if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
