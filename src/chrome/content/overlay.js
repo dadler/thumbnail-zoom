@@ -1488,6 +1488,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
+    this._focusPopup();
     this._addListenersWhenPopupShown();
   },
   
