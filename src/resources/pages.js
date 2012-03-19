@@ -1108,6 +1108,15 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
   
+    // For blogger aka Blogspot, change
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s320-p/Tiara+Riley.jpeg to
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s1600-p/Tiara+Riley.jpeg
+    // NOTE: This rule exists in both Others and Thumbnails, and should be the same in both.
+    let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
+    aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
+
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
@@ -1172,6 +1181,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   
   getZoomImage : function(aImageSrc, node, flags) {
 
+    let aNodeClass = node.getAttribute("class");
+
     // For certain sites, if node has a background style, use image from that.
     // And actually, aImageSrc may be already coming from the
     // background but needs to be excluded.
@@ -1180,7 +1191,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let backImage = node.style.backgroundImage;
     let urlRegExp = /url\(/i;
     if (backImage && "" != backImage && urlRegExp.test(backImage)) {
-      if (node.children.length > 0) {
+      if (node.children.length > 0 && ! /thumb/.test(aNodeClass)) {
+        // Ignore e.g. in Google Offers, where a big map image is the background
+        // around the guts of the page.
+        // But we explicitly allow using background image if nodeClass
+        // contains "thummb", as in 
         ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage: ignoring background image since has " +
             node.children.length + " children > 0");
@@ -1195,7 +1210,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     }
     
     // Disable for certain kinds of images.
-    let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
                                           node + "; class=" +
                                           aNodeClass);
@@ -1241,6 +1255,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]h=[0-9]+/, "");
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
+    
+    // For blogger aka Blogspot, change
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s320-p/Tiara+Riley.jpeg to
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s1600-p/Tiara+Riley.jpeg
+    // NOTE: This rule exists in both Others and Thumbnails, and should be the same in both.
+    let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
+    aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
     
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
