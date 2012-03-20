@@ -86,7 +86,7 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * getSpecialSource: optional function(aNode, aNodeSource); returns
       new value of aNodeSource (image URL).  Called before getImageNode().
       Not called when user hovers directly over an img since we use that
-      as the source automatically.
+      as the source automatically.  Returning null prevents popup.
        
     * getImageNode: optional function(aNode, nodeName, nodeClass).  Returns the
       node from which the popup image's link will be generated.  Useful when
