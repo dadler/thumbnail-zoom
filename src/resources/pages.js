@@ -1258,6 +1258,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
     aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
     
+    aImageSrc = aImageSrc.replace(/\/free_pictures\/thumbs\//, "/free_pictures/normal/");
+    
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
     let leBonCoinSiteRegExp = new RegExp("\\.leboncoin\\.fr/", "i");
@@ -1270,6 +1272,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                        ")");
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }        
+    
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.

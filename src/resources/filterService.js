@@ -351,10 +351,6 @@ ThumbnailZoomPlus.FilterService = {
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
       this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
-      if (imageSource == null) {
-        result.imageURL = null;
-        return;
-      }
     }
     
     // Call getImageNode if needed and defined.
@@ -374,6 +370,13 @@ ThumbnailZoomPlus.FilterService = {
       }
     }
     
+    if (imageSource == null && pageInfo.getSpecialSource &&
+        imageNode == aNode) {
+      this._logger.debug("getImageSource: ignoring: no imageSource after getSpecialSource & getImageNode didn't change node");
+      result.imageURL = null;
+      return result;
+    }
+
     // If don't have imageSource yet, get from src, href, or backgroundImage.
     if (null == imageSource) {
       if (imageNode.hasAttribute("src")) {
