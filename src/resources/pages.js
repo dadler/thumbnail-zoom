@@ -91,8 +91,8 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * getImageNode: optional function(aNode, nodeName, nodeClass).  Returns the
       node from which the popup image's link will be generated.  Useful when
       it's generated not from the direct thumbnail image, but an ancestor or
-      peer node.  The image URL is extracted (in fiterService.js) from the 
-      node's src, href, or background image.  The default function returns
+      peer node.  The image URL will be extracted (in fiterService.js) from the 
+      returned node's src, href, or background image.  The default function returns
       the image node itself.  Called only if we don't already have an image
       source after calling getSpecialSource.  Not called when the user hovers
       directly over an img or when getSpecialSource returns non-null.  So it
@@ -442,7 +442,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
 ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
-  host: /^(.*\.)?flickr\.com$/,
+  host: /^(.*\.)?(static)?flickr\.com$/,
   imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
@@ -1166,18 +1166,24 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   getZoomImage : function(aImageSrc, node, flags) {
     let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
+                                          + " class='" + nodeClass + "'");
     if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
         "embed" == nodeName || "input" == nodeName) {
       // Don't consider the source of an html doc embedded in an iframe to
       // be a thumbnail (eg gmail compose email body area).
       // Also don't consider a text input field (eg google search)
       // since it's probably just a minor graphic like a shadow.
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring due to node type " + nodeName);
       return null;
     } 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to return aNode if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
       return null;
     }
 
@@ -1213,12 +1219,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                           nodeClass);
     if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
         ) {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook spotlight");
       return null;
     }
     if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
       return null;
     }
 
@@ -1237,12 +1245,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // For wordpress, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
     // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
-    let imgpressEx = new RegExp("^https?://[^/]+\\.wp\\.com/imgpress(\\?.*)?[?&]url=([^?&]+).*");
+    // and
+    // http://s.wordpress.com/imgpress?resize=300,230&url=http%3A%2F%2Fhappywanderer15.files.wordpress.com%2F2012%2F03%2Fitaly-170.jpg to
+    // http://s.wordpress.com/imgpress?url=http%3A%2F%2Fhappywanderer15.files.wordpress.com%2F2012%2F03%2Fitaly-170.jpg
+    let imgpressEx = new RegExp("^https?://[^/]+\\.(wp|wordpress)\\.com/imgpress(\\?.*)?[?&]url=([^?&]+).*");
     if (imgpressEx.test(aImageSrc)) {
-      aImageSrc = aImageSrc.replace(imgpressEx, "$2");
+      aImageSrc = aImageSrc.replace(imgpressEx, "$3");
       aImageSrc = decodeURIComponent(aImageSrc);
     }
     
+
     // For wordpress, change:
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg
