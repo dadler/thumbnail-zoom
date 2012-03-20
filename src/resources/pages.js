@@ -407,7 +407,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // For static thumbs
     // http://cdn-2.nflximg.com/en_us/boxshots/large/60024022.jpg becomes
     // http://cdn-2.nflximg.com/en_us/boxshots/ghd/60024022.jpg
-    let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|[0-9]+)/");
+    let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|small|[0-9]+)/");
     if (netflixRex1.test(aImageSrc)) {
       // popup for DVD box w/o play now.
       flags.popupAvoiderWidth = 392;
@@ -415,7 +415,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
     
     aImageSrc = aImageSrc.replace(netflixRex1, "$1/ghd/");
 
-    let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(small|main|[0-9]+)/");
+    let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(large|small|main|[0-9]+)/");
     aImageSrc = aImageSrc.replace(netflixRex2, "$1/cdp/");
     
     // For movie thumbs with "play" icons / links
