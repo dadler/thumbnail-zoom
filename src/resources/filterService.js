@@ -337,9 +337,9 @@ ThumbnailZoomPlus.FilterService = {
     let imageNode = aNode;
     let nodeName = aNode.localName.toLowerCase();
     let nodeClass = aNode.getAttribute("class");
-    this._logger.debug("getImageSource: aNode name: " + nodeName + "; src: " +
-                       aNode.getAttribute("src") + "; href: " + imageNode.getAttribute("href") +
-                       "; backgroundImage: " + imageNode.style.backgroundImage +
+    this._logger.debug("getImageSource: aNode name=" + nodeName + "; src=" +
+                       aNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                       "; backgroundImage=" + imageNode.style.backgroundImage +
                        "; class=" + nodeClass);
     let imageSource =  null;
 
@@ -360,9 +360,9 @@ ThumbnailZoomPlus.FilterService = {
       if (imageNode) {
         let nodeName = aNode.localName.toLowerCase();
         let nodeClass = aNode.getAttribute("class");
-        this._logger.debug("getImageSource: after getImageNode, name: " + nodeName + "; src: " +
-                           aNode.getAttribute("src") + "; href: " + imageNode.getAttribute("href") +
-                           "; backgroundImage: " + imageNode.style.backgroundImage +
+        this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
+                           aNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                           "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
       } else {
         // restore original node
@@ -399,6 +399,27 @@ ThumbnailZoomPlus.FilterService = {
       }
       
     }
+
+    // Exclude very small embedded-data images, e.g. from google.com search field:
+    // data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw%3D%3D
+    if (imageSource != null &
+        /^data:/.test(imageSource) &&
+        imageSource.length < 100) {
+      this._logger.debug("getImageSource: ignoring small embedded-data image " +
+                         imageSource);
+      imageSource = null;
+    }
+      
+    // Don't consider the source of an html doc embedded in an iframe to
+    // be a thumbnail (eg gmail compose email body area).
+    // Also don't consider a text input field (eg google search)
+    // since it's probably just a minor graphic like a shadow.
+    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
+        "embed" == nodeName || "input" == nodeName) {
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "getImageSource: ignoring due to node type '" + nodeName + "'");
+      imageSource = null;
+    } 
 
     if (imageSource != null) {
       imageSource = this._applyBaseURI(aDocument, imageSource);

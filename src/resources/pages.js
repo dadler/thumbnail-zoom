@@ -719,7 +719,7 @@ ThumbnailZoomPlus.Pages.Google = {
   // To prevent this from interfering with GooglePlus, its entry
   // comes later in filterService.js.
   host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,
-  imageRegExp: /.+/,
+  imageRegExp: /^https?:\/\//,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = null;
     let imageHref = aNode.parentNode.getAttribute("href");
@@ -1168,16 +1168,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let nodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
                                           + " class='" + nodeClass + "'");
-    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
-        "embed" == nodeName || "input" == nodeName) {
-      // Don't consider the source of an html doc embedded in an iframe to
-      // be a thumbnail (eg gmail compose email body area).
-      // Also don't consider a text input field (eg google search)
-      // since it's probably just a minor graphic like a shadow.
-      ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage: ignoring due to node type " + nodeName);
-      return null;
-    } 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to return aNode if it's just an href since we need
@@ -1204,16 +1194,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             "thumbnail getZoomImage: ignoring background image since has " +
             node.children.length + " children > 0");
         return null;
-      } else {
-        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: got image source from backgroundImage of " + node);
-        backImage = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
-        if (new RegExp("\\.tumblr\\.com/avatar").test(backImage)) {
-          aImageSrc = backImage;
-        }
       }
     }
     
-    // Disable for certain kinds of images.
+    // Disable for certain kinds of Facebook thumbs.
     ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
                                           node + "; class=" +
                                           nodeClass);
@@ -1254,7 +1238,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
     
-
     // For wordpress, change:
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg
