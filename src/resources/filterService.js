@@ -333,59 +333,73 @@ ThumbnailZoomPlus.FilterService = {
     let pageInfo = this.pageList[aPage];
     this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
 
+    // Get node name and class
+    let imageNode = aNode;
     let nodeName = aNode.localName.toLowerCase();
-    this._logger.debug("getImageSource: node name: " + nodeName + "; src: " +
-                       aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
+    let nodeClass = aNode.getAttribute("class");
+    this._logger.debug("getImageSource: aNode name: " + nodeName + "; src: " +
+                       aNode.getAttribute("src") + "; href: " + imageNode.getAttribute("href") +
+                       "; backgroundImage: " + imageNode.style.backgroundImage +
+                       "; class=" + nodeClass);
     let imageSource =  null;
-    let imgImageSource = null;
+
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
-      imageSource = this._applyBaseURI(aDocument, imageSource);
-      imgImageSource = imageSource;
-      this._logger.debug("getImageSource: node name: canonical URL: " + imageSource);
     }
 
-    // check special cases
+    // Call getSpecialSource if needed and defined
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
       this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
     }
     
-    // check other image nodes.
-    // TODO: perhaps we should change this to put the conditional
-    // only around the call to getImageNode(), and if pageInfo doesn't
-    // have getImageNode, use aNode itself as the imageNode.getImageSource
-    // which detects background images.
+    // Call getImageNode if needed and defined.
     if (null == imageSource && pageInfo.getImageNode) {
-      let nodeClass = aNode.getAttribute("class");
-      let imageNode = null;
+      this._logger.debug("getImageSource: calling getImageNode for class: " + nodeClass);
       imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
       if (imageNode) {
-        this._logger.debug("getImageSource: node class: " + nodeClass);
-        if (imageNode.hasAttribute("src")) {
-          imageSource = imageNode.getAttribute("src");
-          this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
-        } else if (imageNode.hasAttribute("href")) {
-          // for an <a href=> node, use javascript string conversion rather
-          // than retrieving the html attribute so it'll apply the base
-          // document's URL for missing components of the URL (eg domain).
-          imageSource = String(imageNode);
-          this._logger.debug("getImageSource: got image source from href of " + imageNode);
-          if (/^https?:\/\/t\.co\//.test(imageSource)) {
-			      // Special case for twitter http://t.co links; the actual
-			      // URL is in the link's tooltip.
-            imageSource = imageNode.title;
-          }
-        } else {
-          let backImage = imageNode.style.backgroundImage;
-
-          if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-            this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
-            imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
-          }
-        }
+        let nodeName = aNode.localName.toLowerCase();
+        let nodeClass = aNode.getAttribute("class");
+        this._logger.debug("getImageSource: after getImageNode, name: " + nodeName + "; src: " +
+                           aNode.getAttribute("src") + "; href: " + imageNode.getAttribute("href") +
+                           "; backgroundImage: " + imageNode.style.backgroundImage +
+                           "; class=" + nodeClass);
+      } else {
+        // restore original node
+        imageNode = aNode;
       }
     }
+    
+    // If don't have imageSource yet, get from src, href, or backgroundImage.
+    if (null == imageSource) {
+      if (imageNode.hasAttribute("src")) {
+        imageSource = imageNode.getAttribute("src");
+        this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
+        
+      } else if (imageNode.hasAttribute("href")) {
+        // for an <a href=> node, use javascript string conversion rather
+        // than retrieving the html attribute so it'll apply the base
+        // document's URL for missing components of the URL (eg domain).
+        imageSource = String(imageNode);
+        this._logger.debug("getImageSource: got image source from href of " + imageNode);
+        if (/^https?:\/\/t\.co\//.test(imageSource)) {
+          // Special case for twitter http://t.co links; the actual
+          // URL is in the link's tooltip.
+          imageSource = imageNode.title;
+        }
+        
+      } else {
+        let backImage = imageNode.style.backgroundImage;
+            
+        if (backImage && "" != backImage && ! /none/i.test(backImage)) {
+          this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
+          imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
+                                 .replace(new RegExp("\"\\)"), "");
+        }
+      }
+      
+    }
+
     if (imageSource != null) {
       imageSource = this._applyBaseURI(aDocument, imageSource);
     }
