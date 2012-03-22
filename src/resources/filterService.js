@@ -335,10 +335,10 @@ ThumbnailZoomPlus.FilterService = {
 
     // Get node name and class
     let imageNode = aNode;
-    let nodeName = aNode.localName.toLowerCase();
-    let nodeClass = aNode.getAttribute("class");
+    let nodeName = imageNode.localName.toLowerCase();
+    let nodeClass = imageNode.getAttribute("class");
     this._logger.debug("getImageSource: aNode name=" + nodeName + "; src=" +
-                       aNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                       imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                        "; backgroundImage=" + imageNode.style.backgroundImage +
                        "; class=" + nodeClass);
     let imageSource =  null;
@@ -350,6 +350,7 @@ ThumbnailZoomPlus.FilterService = {
     // Call getSpecialSource if needed and defined
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
+      imageNode = null;
       this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
     }
     
@@ -358,27 +359,19 @@ ThumbnailZoomPlus.FilterService = {
       this._logger.debug("getImageSource: calling getImageNode for class: " + nodeClass);
       imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
       if (imageNode) {
-        let nodeName = aNode.localName.toLowerCase();
-        let nodeClass = aNode.getAttribute("class");
+        let nodeName = imageNode.localName.toLowerCase();
+        let nodeClass = imageNode.getAttribute("class");
         this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
-                           aNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                           imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
       } else {
-        // restore original node
-        imageNode = aNode;
+        this._logger.debug("getImageSource: after getImageNode, node=" + imageNode);
       }
     }
     
-    if (imageSource == null && pageInfo.getSpecialSource &&
-        imageNode == aNode) {
-      this._logger.debug("getImageSource: ignoring: no imageSource after getSpecialSource & getImageNode didn't change node");
-      result.imageURL = null;
-      return result;
-    }
-
     // If don't have imageSource yet, get from src, href, or backgroundImage.
-    if (null == imageSource) {
+    if (null == imageSource && imageNode != null) {
       if (imageNode.hasAttribute("src")) {
         imageSource = imageNode.getAttribute("src");
         this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
@@ -403,8 +396,7 @@ ThumbnailZoomPlus.FilterService = {
           imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
                                  .replace(new RegExp("\"\\)"), "");
         }
-      }
-      
+      }      
     }
 
     // Exclude very small embedded-data images, e.g. from google.com search field:
