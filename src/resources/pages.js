@@ -89,7 +89,8 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       as the source automatically.  Returning null prevents popup.
        
     * getImageNode: optional function(aNode, nodeName, nodeClass).  Returns the
-      node from which the popup image's link will be generated.  Useful when
+      node from which the popup image's link will be generated, or null if
+      none.  Useful when
       it's generated not from the direct thumbnail image, but an ancestor or
       peer node.  The image URL will be extracted (in fiterService.js) from the 
       returned node's src, href, or background image.  The default function returns
@@ -916,7 +917,7 @@ ThumbnailZoomPlus.Pages.Others = {
   imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
                       "tumblr.com/(photo/|tumblr_)|" +
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
-                          "[^/&\\?]+(&.*)?$|" +
+                      "[^/&\\?]+(&.*)?$|" +
                       "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
                       "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
@@ -926,9 +927,9 @@ ThumbnailZoomPlus.Pages.Others = {
                       "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
                       "[\?&]img_?url=|" +
                       "(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)" +
-                          "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
-                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
-                      "i"),
+                      "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
+                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
+                      , "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
   
@@ -1283,6 +1284,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
+    // Google Play album: change
+    // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
+    // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
+    // and
+    // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=2&source=ge-web-market to
+    // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=0&source=ge-web-market
+    aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*=)w[0-9][0-9][0-9]?$/, "$1w1000");
+    aImageSrc = aImageSrc.replace(/(\.google\.com\/books?.*)&zoom=1&/, "$1&zoom=0&");
+
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
