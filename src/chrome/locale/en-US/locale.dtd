@@ -27,6 +27,8 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
+
+
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
@@ -34,8 +36,7 @@
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferences">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Preferences">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying image (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">

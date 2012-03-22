@@ -34,11 +34,13 @@
 
 <!DOCTYPE overlay SYSTEM "chrome://thumbnailzoomplus/locale/locale.dtd">
 
+<!-- On Windows only the title is visible; on Mac only the prefpane is visible.
+     So we set both the same. -->
 <prefwindow id="thumbnailzoomplus-options-window"
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.pane.label;" flex="1">
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" flex="1">
     <preferences>
       <preference id="thumbnailzoomplus-options-delay-pref"
         name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
