@@ -1047,10 +1047,10 @@ ThumbnailZoomPlus.Pages.Others = {
         return ""; // Google Images support is disabled by user preference.
       }
       aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./.test(aImageSrc)) {
         aImageSrc = "http://" + aImageSrc;
       }
-      aImageSrc = decodeURIComponent(aImageSrc);
     }
 
     // Deviantart external links: change
@@ -1184,7 +1184,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // But in general we don't since it leads to too many popups from static
     // background styling (non-image) graphics.
     let backImage = node.style.backgroundImage;
-    let urlRegExp = /url\(/i;
+    let urlRegExp = /url\("(.*)"\)$/i;
     if (backImage && "" != backImage && urlRegExp.test(backImage)) {
       if (node.children.length > 0 && ! /thumb/.test(nodeClass)) {
         // Ignore e.g. in Google Offers, where a big map image is the background
@@ -1196,6 +1196,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             node.children.length + " children > 0");
         return null;
       }
+      aImageSrc = backImage.replace(urlRegExp, "$1");
     }
     
     // Disable for certain kinds of Facebook thumbs.
@@ -1217,27 +1218,34 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
 
     // For tiny tumblr profile thumbs change 
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
-    // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png
+    // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png ; also as
+    // https://gs1.wac.edgecastcdn.net/8019B6/data.tumblr.com/avatar_c9703e0bc252_64.png
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
     // For Google Play Android Apps, change
     // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
-    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0
-    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=h[0-9]+$");
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
+    // and ...=w124 and ...==w78-h78
+    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
     let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
     
-    // For wordpress, change:
+    // For Wordpress and Bing Images, etc., get URL from
+    // imgurl=... part.
+    // eg, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
     // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
-    // and
-    // http://s.wordpress.com/imgpress?resize=300,230&url=http%3A%2F%2Fhappywanderer15.files.wordpress.com%2F2012%2F03%2Fitaly-170.jpg to
-    // http://s.wordpress.com/imgpress?url=http%3A%2F%2Fhappywanderer15.files.wordpress.com%2F2012%2F03%2Fitaly-170.jpg
-    let imgpressEx = new RegExp("^https?://[^/]+\\.(wp|wordpress)\\.com/imgpress(\\?.*)?[?&]url=([^?&]+).*");
-    if (imgpressEx.test(aImageSrc)) {
-      aImageSrc = aImageSrc.replace(imgpressEx, "$3");
+    let imgurlEx = /.*[\?&](img_?)?url=([^&]+).*$/;
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
       aImageSrc = decodeURIComponent(aImageSrc);
+      if (! /^https?:\/\/./i.test(aImageSrc)) {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: adding http:// prefix after finding url=" +
+                                              aImageSrc);
+        aImageSrc = "http://" + aImageSrc;
+      }
     }
+
     
     // For wordpress, change:
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
