@@ -108,12 +108,20 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       can't because the user has disabled some other page related to the URL.
       Function can optionally modify members of flags, which is of class
       ThumbnailZoomPlus.FilterService.PopupFlags.  node is the node the user
-      hovered, useful e.g. if you want to check its class.
+      hovered, useful e.g. if you want to check its class.  You could decided
+      to use a different (probably related) node, but note that getZoomImage
+      won't even get called unless the hovered node has an image (otherwise
+      you'd need to use getImageNode).
 
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 
       assigned by calculation in filterService.js.
 
+    TODO: the rules governing getSpecialSource, getImageNode, and getZoomImage
+      are complex and a source of bugs.  For example, getImageNode can 
+      choose a node to use, but it can't safely choose not to reject the node.
+      It'd be better to simplify them and perhaps eliminate/merge some of them.
+      
  ***********/
 
 /**
@@ -1166,33 +1174,48 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
   
-  getZoomImage : function(aImageSrc, node, flags) {
-    let nodeName = node.localName.toLowerCase();
-    let nodeClass = node.getAttribute("class");
-    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
-                                          + " class='" + nodeClass + "'");
-
-    if (/gii_folder_link/.test(nodeClass)) {
-      // minus.com single-user gallery
-      // img nodes are in <img> child of the grandparent node of the
+  getImageNode : function(node, nodeName, nodeClass) {
+    if (/gii_folder_link/.test(nodeClass) ||
+        (nodeName == "div" && /overlay|inner|date|notes/.test(nodeClass) && /tumblr\.com/i.test(node.baseURI)) ) {
+      // minus.com single-user gallery or
+      // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
+      // img nodes are in <img> child of the (great(grand))parent node of the
       // hovered-over <a> node.  Find that node.
       // TODO: a generalization of this logic might be useful in general, e.g.
       // for yahoo.co.jp
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: detected minus.com");
-      node = node.parentNode;
-      if (node) {
+      let generationsUp = 1; // overlay
+      if (/gii_folder_link|inner/.test(nodeClass)) {
+        generationsUp = 2;
+      } else if (/date|notes/.test(nodeClass)) {
+        generationsUp = 3;
+      }
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected minus.com or tumblr.com; going up "
+          + generationsUp + " levels and then finding img.");
+      while (generationsUp > 0 && node) {
         node = node.parentNode;
+        generationsUp--;
       }
       if (node) {
         let imgNodes = node.getElementsByTagName("img");
         if (imgNodes.length > 0) {
-          node = imgNodes[0];
-          nodeName = "img";
-          aImageSrc = node.getAttribute("src");
+          // take the last child.
+          node = imgNodes[imgNodes.length-1];
         }
       }
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com got " + aImageSrc);
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
     }
+    return node;
+  },
+  
+  getZoomImage : function(aImageSrc, node, flags) {
+    let verbose = true;
+    
+    let nodeName = node.localName.toLowerCase();
+    let nodeClass = node.getAttribute("class");
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
+                                          + " class='" + nodeClass + "'" +
+                                          " baseURI=" + node.baseURI);
+
 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
@@ -1202,6 +1225,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
       return null;
     }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p03: so far have " + aImageSrc);
 
     // For certain sites, if node has a background style, use image from that.
     // And actually, aImageSrc may be already coming from the
@@ -1223,7 +1248,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       }
       aImageSrc = backImage.replace(urlRegExp, "$1");
     }
-    
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p06: so far have " + aImageSrc);
+
     // Disable for certain kinds of Facebook thumbs.
     ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
                                           node + "; class=" +
@@ -1240,11 +1267,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
       return null;
     }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p10: so far have " + aImageSrc);
 
     // For tiny tumblr profile thumbs change 
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png ; also as
     // https://gs1.wac.edgecastcdn.net/8019B6/data.tumblr.com/avatar_c9703e0bc252_64.png
+    // TODO: Similar changes would help for images in archives, changing 128 to 400, 500, or 1280.
+    // But we aren't guaranteed that those sizes exist so we don't handle that case.
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
@@ -1270,6 +1301,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         aImageSrc = "http://" + aImageSrc;
       }
     }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p20: so far have " + aImageSrc);
 
     
     // For wordpress, change:
@@ -1305,10 +1338,20 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                        ThumbnailZoomPlus.Pages._imageTypesRegExpStr +
                                        ")");
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
-    }        
+    }
+    
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p30: so far have " + aImageSrc);
+
     // minus.com
-    let minusRegexp = new RegExp("(\\.minus\\.com/.*)_(e|xs)\\.jpg");
+    let minusRegexp = new RegExp("([.\\/]minus\\.com/.*)_(e|xs)\\.jpg");
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: testing " + aImageSrc + " against " + minusRegexp +
+            ": " + minusRegexp.test(aImageSrc));
     aImageSrc = aImageSrc.replace(minusRegexp, "$1.jpg");
+
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p40: so far have " + aImageSrc);
 
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
@@ -1332,6 +1375,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
+
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p99: so far have " + aImageSrc);
 
     return aImageSrc; 
   }

@@ -325,11 +325,12 @@ ThumbnailZoomPlus.FilterService = {
    * @param aNode the html node.
    * @param aPage the page constant.
    * @return object with fields:
+   *     node: the node from which imageURL was determined
    *     imageURL: string (null if not apply);
    *     noTooSmallWarning: boolean
    */
   getImageSource : function(aDocument, aNode, aPage) {
-    let result = {imageURL: null, noTooSmallWarning: false};
+    let result = {imageURL: null, noTooSmallWarning: false, node: aNode};
     let pageInfo = this.pageList[aPage];
     this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
 
@@ -436,6 +437,7 @@ ThumbnailZoomPlus.FilterService = {
                        "; noTooSmallWarning=" + result.noTooSmallWarning);
     
     result.imageURL = imageSource;
+    result.node = imageNode;
     
     return result;
   },

@@ -911,6 +911,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageSourceInfo = ThumbnailZoomPlus.FilterService
                                 .getImageSource(aDocument, node, aPage);
     let imageSource = imageSourceInfo.imageURL;
+    if (imageSourceInfo.node != null) {
+      node = imageSourceInfo.node;
+    }
     
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
