@@ -483,6 +483,12 @@ ThumbnailZoomPlus.FilterService = {
                        " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
                        " " + zoomImage);
 
+    if (! /^https?:\/\/./i.test(zoomImage)) {
+      // As a security precaution, we only allow http and https.
+      this._logger.debug("ThumbnailPreview: rejecting URL not beginning with http or https");
+      return null;
+    }
+    
     return zoomImage;
   }
 };

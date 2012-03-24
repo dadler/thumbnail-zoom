@@ -948,6 +948,7 @@ ThumbnailZoomPlus.Pages.Others = {
     return null;
   },
   
+  // For "Others"
   getImageNode : function(aNode, nodeName, nodeClass) {
     let imgNode = null;
     let imgNodeURL = null;
@@ -1024,6 +1025,7 @@ ThumbnailZoomPlus.Pages.Others = {
     return aNode;
   },
   
+  // For "Others"
   getZoomImage : function(aImageSrc, node, flags) {
     /*
        The rules here transform various kinds of link URLs into links to images.
@@ -1174,6 +1176,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
   
+  // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass) {
     if (/gii_folder_link/.test(nodeClass) ||
         (nodeName == "div" && /overlay|inner|date|notes/.test(nodeClass) && /tumblr\.com/i.test(node.baseURI)) ) {
@@ -1207,6 +1210,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     return node;
   },
   
+  // For "Thumbnail"
   getZoomImage : function(aImageSrc, node, flags) {
     let verbose = true;
     
@@ -1247,6 +1251,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         return null;
       }
       aImageSrc = backImage.replace(urlRegExp, "$1");
+      aImageSrc = ThumbnailZoomPlus.FilterService._applyBaseURI(node.ownerDocument, aImageSrc);
     }
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p06: so far have " + aImageSrc);
