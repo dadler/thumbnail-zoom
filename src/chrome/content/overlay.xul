@@ -55,20 +55,22 @@
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
           oncommand="ThumbnailZoomPlusChrome.Overlay.openPreferences();" />
+        <menuitem label="&thumbnailzoomplus.toolbar.help.label;"
+          oncommand="ThumbnailZoomPlusChrome.Overlay.openHelp();" />
           
         <!--
            This XXXENTITYREF tag is ignored when building the user interface,
            but defines a tag from which overlay.js can retrieve the translation
            of entities like thumbnailzoomplus.pages.names.others in
-           addMenuItems().
+           _getEntity().
            
            We must define here one attribute for each page name which
            is localized with an entity.
          -->
-        <XXXENTITYREF id="thumbnailzoomplus-options-page-names"
-           ENTITYothers="&thumbnailzoomplus.pages.names.others;" 
-           ENTITYthumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
-           ENTITYgoogle="&thumbnailzoomplus.pages.names.google;" 
+        <XXXENTITYREF id="thumbnailzoomplus-entity-names"
+           ENTITY_page_others="&thumbnailzoomplus.pages.names.others;" 
+           ENTITY_page_thumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
+           ENTITY_page_google="&thumbnailzoomplus.pages.names.google;" 
            />
       </menupopup>
     </toolbarbutton>

@@ -259,7 +259,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-
+  _getEntity : function(key) {
+    // Gets name from the <XXXENTITYREF ENTITYkey="..."> attribute in overlay.xul
+    // if it exists; this is how we get localized names based on locale.dtd entity
+    // definitions.
+    return document.getElementById("thumbnailzoomplus-entity-names")
+                   .getAttribute("ENTITY_" + key);
+    
+  },
+  
   /**
    * Adds the menu items.
    */
@@ -290,11 +298,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         
         let name = pageInfo.name;
         if (name == "") {
-          // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
-          // this is how we get localized names based on locale.dtd entity
-          // definitions.
-          name = document.getElementById("thumbnailzoomplus-options-page-names")
-                         .getAttribute("ENTITY" + pageInfo.key);
+          name = this._getEntity("page_" + pageInfo.key);
           ThumbnailZoomPlus.FilterService.pageList[i].name = name;
         }
         menuItem.setAttribute("label", name);
@@ -357,7 +361,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       function(aEvent) {
         that._handlePopupMove(aEvent);
       }, true);
-    
+          
     /*
      * For dragging tab into empty space (make new window):
      * Add listeners in any pre-existing documents.  Normally there won't 
@@ -2364,6 +2368,22 @@ ThumbnailZoomPlusChrome.Overlay = {
         "thumbnailzoomplus-options-window", "chrome,centerscreen");
 
     optionsDialog.focus();
+  },
+
+
+  /**
+   * Opens the help in a new tab.  This is used when opening help from
+   * the toolbar button, but not the Preferences dialog (the latter uses
+   * a direct html link).
+   */
+  openHelp : function() {
+    this._logger.debug("openHelp");
+
+    let helpURL = "http://thumbnailzoomplus.wordpress.com/";
+
+    let tab = openUILinkIn(helpURL, "tab");
+    gBrowser.selectedTab = tab;
+    
   },
 
 

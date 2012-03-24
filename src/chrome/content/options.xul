@@ -130,7 +130,12 @@
     <!-- General -->
     <groupbox>
       <caption>
-        <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
+        <hbox width="580px">
+          <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
+          <spacer flex="1" />
+          <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
+              href="http://thumbnailzoomplus.wordpress.com/" />
+          </hbox>
       </caption>
       <grid>
         <columns>
