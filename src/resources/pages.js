@@ -931,11 +931,6 @@ ThumbnailZoomPlus.Pages.Others = {
 
   _logger: ThumbnailZoomPlus.Pages._logger,
   
-  getSpecialSource : function(aNode, aNodeSource) {
-    // we never want to use the img node.
-    return null;
-  },
-  
   // For "Others"
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     let imgNode = null;
