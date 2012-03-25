@@ -348,29 +348,39 @@ ThumbnailZoomPlus.FilterService = {
       imageSource = aNode.getAttribute("src");
     }
 
-    // Call getSpecialSource if needed and defined
+    // Call getSpecialSource if needed and defined (DEPRECATED)
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
       imageNode = null;
       this._logger.debug("getImageSource: getSpecialSource returned " + imageSource);
     }
     
-    // Call getImageNode if needed and defined.
-    if (null == imageSource && pageInfo.getImageNode) {
-      this._logger.debug("getImageSource: calling getImageNode for class: " + nodeClass);
-      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
-      if (imageNode) {
-        let nodeName = imageNode.localName.toLowerCase();
-        let nodeClass = imageNode.getAttribute("class");
-        this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
+    // Call getImageNode if defined.
+    if (pageInfo.getImageNode) {
+      this._logger.debug("getImageSource: calling getImageNode for " +
+                         "aNode=" + aNode + ", nodeName=" + nodeName +
+                         ", nodeClass=" + nodeClass + ", imageSource=" + imageSource);
+      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass, imageSource);      
+      if (imageNode != aNode) {
+        // changed nodes.   If imageNode == null, we're shouldn't do a popup.
+        imageSource = null; // we need to re-get imageSource.
+        if (imageNode != null) {
+          let nodeName = imageNode.localName.toLowerCase();
+          let nodeClass = imageNode.getAttribute("class");
+          this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
+        } else {
+          this._logger.debug("getImageSource: after getImageNode, imageNode=null; name=" + nodeName + 
+                             "; class=" + nodeClass);
+        }
       } else {
         this._logger.debug("getImageSource: after getImageNode, node=" + imageNode);
       }
     }
     
+    /*
     if (imageSource == null && pageInfo.getSpecialSource &&
         imageNode == aNode) {
       // this case is needed e.g. so Google search results don't show popups,
@@ -379,7 +389,8 @@ ThumbnailZoomPlus.FilterService = {
       result.imageURL = null;
       return result;
     }
-
+    */
+    
     // If don't have imageSource yet, get from src, href, or backgroundImage.
     if (null == imageSource && imageNode != null) {
       if (imageNode.hasAttribute("src")) {

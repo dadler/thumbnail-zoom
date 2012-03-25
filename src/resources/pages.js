@@ -83,23 +83,22 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       due to generating an image URL which isn't really an image.
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
 
-    * getSpecialSource: optional function(aNode, aNodeSource); returns
+    * getSpecialSource: DEPRECATED: use getImageNode and getZoomImage instead.
+      optional function(aNode, aNodeSource); returns
       new value of aNodeSource (image URL).  Called before getImageNode().
       Not called when user hovers directly over an img since we use that
-      as the source automatically.  Returning null prevents popup.
+      as the source automatically.  Returning null doesn't necessarily prevent popup
+      so don't return null.
        
-    * getImageNode: optional function(aNode, nodeName, nodeClass).  Returns the
-      node from which the popup image's link will be generated, or null if
-      none.  Useful when
-      it's generated not from the direct thumbnail image, but an ancestor or
+    * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
+      Returns the node from which the popup image's link will be generated, or 
+      null if the popup should be disabled (i.e. to REJECT the popup).  
+      Useful when it's generated not from the direct thumbnail image, but an ancestor or
       peer node.  The image URL will be extracted (in fiterService.js) from the 
-      returned node's src, href, or background image.  The default function returns
-      the image node itself.  Called only if we don't already have an image
-      source after calling getSpecialSource.  Not called when the user hovers
-      directly over an img or when getSpecialSource returns non-null.  So it
-      may not be safe to use this to REJECT a node; do that in getZoomImage
-      instead.
-
+      returned node's src, href, or background image (assuming the return is
+      different than aNode).  The default function returns
+      the image node itself.  
+      
     * getZoomImage: required function(aImageSrc, node, popupFlags); returns the image URL.
       Translates the aImageSrc URL from the previous functions into the final
       URL of the full-size image for the popup, for example by
@@ -111,7 +110,8 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       hovered, useful e.g. if you want to check its class.  You could decided
       to use a different (probably related) node, but note that getZoomImage
       won't even get called unless the hovered node has an image (otherwise
-      you'd need to use getImageNode).
+      you'd need to use getImageNode).  Also, if you use a different node,
+      that node will not be considered by site enable flags.
 
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 
@@ -143,7 +143,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
   imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/,
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     let image = ("i" == aNodeName ? aNode : 
                  ("a" == aNodeName && "album_link" == aNodeClass) ? aNode.parentNode :
                   null);
@@ -399,7 +399,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
                           "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
                           "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
                           
-  getImageNode : function(aNode, nodeName, nodeClass) {
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     if (nodeName == "a" || nodeName == "img") {
       return aNode;
     }
@@ -565,10 +565,7 @@ ThumbnailZoomPlus.Pages.PhotoBucket = {
   key: "photobucket",
   name: "PhotoBucket",
   host: /^(.*\.)?photobucket\.com$/,
-  imageRegExp: /[0-9]+\.photobucket.com\/(albums|groups)/,
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
-    return ("div" == aNodeName && "thumb" == aNodeClass ? aNode : null);
-  },
+  imageRegExp: /\.photobucket.com\/(albums|groups)/,
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/th_/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/") : null);
@@ -623,14 +620,8 @@ ThumbnailZoomPlus.Pages.LastFM = {
   name: "Last.fm",
   host: /^(.*\.)?(last\.fm|lastfm.[a-z]+)$/,
   imageRegExp: /userserve-ak\.last\.fm\/serve/,
-  getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/\/serve\/\w+\//);
-    let image =
-      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
-    return image;
-  },
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
-    let image = null;
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    let image = aNode;
     if ("span" == aNodeName  && aNode.previousSibling) {
       if ("overlay" == aNodeClass) {
         image = aNode.previousSibling.firstChild;
@@ -638,6 +629,13 @@ ThumbnailZoomPlus.Pages.LastFM = {
         image = aNode.previousSibling;
       }
     }
+    return image;
+  },
+  
+  getZoomImage : function(aImageSrc, node, flags) {
+    let rex = new RegExp(/\/serve\/\w+\//);
+    let image =
+      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
     return image;
   }
 };
@@ -949,7 +947,7 @@ ThumbnailZoomPlus.Pages.Others = {
   },
   
   // For "Others"
-  getImageNode : function(aNode, nodeName, nodeClass) {
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     let imgNode = null;
     let imgNodeURL = null;
     if (aNode.localName.toLowerCase() == "img") {
@@ -1177,7 +1175,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           ")).*", "i"),
   
   // For "Thumbnail"
-  getImageNode : function(node, nodeName, nodeClass) {
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
     if (/gii_folder_link/.test(nodeClass) ||
         (nodeName == "div" && /overlay|inner|date|notes/.test(nodeClass) && /tumblr\.com/i.test(node.baseURI)) ) {
       // minus.com single-user gallery or
