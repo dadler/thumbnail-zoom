@@ -88,7 +88,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* File Picker. */
   _filePicker : null,
   
-  /* The current image source (URL). */
+  /* The current image source (URL).  This is used to detect whether
+     an event is for the current window's popup, and also for open in new
+     tab, open in new window, and save as. */
   _currentImage : null,
 
   // The image object which is currently being loaded (as in new Image ...)
@@ -453,7 +455,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._ignoreBBox.xMax = -999; // don't reject next move as trivial.
     this._logger.debug("_handleTabSelected: _closePanel since tab selected");
-    this._closePanel();
+    this._closePanel(true);
   },
   
   
@@ -478,7 +480,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
       this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
-      this._closePanel();
+      this._closePanel(true);
     }
   },
   
@@ -791,7 +793,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // so a future mouse move can re-enter it and re-popup.
     this._ignoreBBox.xMax = -999;
 
-    this._closePanel();
+    this._closePanel(true);
   },
   
   /**
@@ -806,7 +808,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus: closing popup.");
 
-    that._closePanel();
+    that._closePanel(false);
   },
   
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
@@ -816,7 +818,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
-      this._closePanel();
+      this._closePanel(true);
       return;
     }
     
@@ -839,7 +841,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                                       !keyActivates, true, aEvent);
     if (! keyActive) {
       this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
-      this._closePanel();
+      this._closePanel(true);
       return;
     }
 
@@ -847,7 +849,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let node = aEvent.target;
 
     // Close the previously displayed popup (if any).
-    this._closePanel();
+    this._closePanel(true);
 
     if (node == null) {
       this._logger.debug("_handleMouseOver: event.target=null; ignoring");
@@ -1181,7 +1183,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // location.  Note that we temporarily save _currentWindow since _closePanel
     // clears it.
     let currentWindow = this._currentWindow;
-    this._closePanel();
+    this._closePanel(true);
     this._currentWindow = currentWindow;
     
     this._originalURI = this._currentWindow.document.documentURI;
@@ -1235,8 +1237,15 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /**
    * Closes the panel.
+   * @param: clearContext: true iff we should entirely clear this popup's
+   *         context.  False if we should hide the popup, but still remember
+   *         its image as context e.g. for Save As...
+   *         Pass false for events where the mouse is still over the thumb,
+   *         but the user has requested a pop-down, e.g. pressing Escape or
+   *         losing keyboard focus.  Note that the act of popping up the
+   *         context menu causes the popup to lose focus.
    */
-  _closePanel : function() {
+  _closePanel : function(clearContext) {
     try {
       // When called from _handlePageHide after closing window with Control+W
       // while popup is up, some of the statements below raise exceptions
@@ -1245,7 +1254,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       // silently ignore exceptions here.
       this._logger.trace("_closePanel");
       
-      this._contextMenu.hidden = true;
+      if (clearContext) {
+        this._contextMenu.hidden = true;
+        this._currentImage = null;
+      }
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
 
@@ -1266,7 +1278,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       this._originalURI = "";
-      this._currentImage = null;
       this._hideThePopup();
       
       // We no longer need the image contents, and don't want them to show
@@ -1310,14 +1321,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     // moved outside bbox of thumb; dismiss popup.
     this._logger.debug("_handlePopupMove: closing with mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
-    this._closePanel();
+    this._closePanel(true);
   },
 
 
   _handlePopupClick : function(aEvent) {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
-    this._closePanel();
+    this._closePanel(false);
   },
   
   _recognizedKey : function(aEvent) {
@@ -1334,6 +1345,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_H ||
             aEvent.keyCode == aEvent.DOM_VK_P ||
             aEvent.keyCode == aEvent.DOM_VK_N ||
+            aEvent.keyCode == aEvent.DOM_VK_S ||
             aEvent.keyCode == aEvent.DOM_VK_T ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
             aEvent.keyCode == aEvent.DOM_VK_0);
@@ -1392,6 +1404,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       window.open(this._currentImage, 
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_S) {
+      this._logger.debug("_handleKeyUp: save image");
+      this.downloadImage();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
@@ -1454,7 +1470,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // don't want.
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
-      that._closePanel();
+      that._closePanel(false);
     }
     if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleKeyUp: ignoring key event");
@@ -1491,7 +1507,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.trace("_handlePageHide");
     if (this._currentWindow == affectedWindow) {
       that._logger.debug("_handlePageHide: closing panel");
-      that._closePanel();
+      that._closePanel(true);
     }
     return true; // allow page to hide
   },
@@ -1500,7 +1516,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.trace("_handleHashChange");
     that._logger.debug("_handleHashChange: closing panel");
-    that._closePanel();
+    that._closePanel(true);
   },
   
   _showStatusIcon : function(aImageNode, iconName, iconWidth) {
@@ -1529,7 +1545,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
-    this._focusPopup();
+    this._focusThePopup();
     this._addListenersWhenPopupShown();
   },
   
@@ -1544,7 +1560,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let that = this;
     this._timer.initWithCallback(
-        { notify: function() { that._closePanel(); } }, 
+        { notify: function() { that._closePanel(true); } }, 
         1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
@@ -1870,8 +1886,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Because we listen for hotkeys only on the popup itself, we're sure
    * we won't interpret typing in other areas such as the Location bar.
    */
-  _focusPopup : function() {
-    this._logger.trace("_focusPopup");
+  _focusThePopup : function() {
+    this._logger.trace("_focusThePopup");
     this._panelFocusHost.focus();
   },
   
@@ -1900,7 +1916,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel.moveTo(pos.x, pos.y);
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
-    this._focusPopup();
+    this._focusThePopup();
   },
   
   
@@ -2436,26 +2452,29 @@ ThumbnailZoomPlusChrome.Overlay = {
   downloadImage : function() {
     this._logger.debug("downloadImage");
 
-    if (null != this._currentImage) {
-      let fileURL = this._currentImage;
-      let filePickerResult = null;
-      let filePickerName =
-        fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
-
-      this._filePicker.defaultString = filePickerName;
-      filePickerResult = this._filePicker.show();
-
-      if (Ci.nsIFilePicker.returnOK == filePickerResult ||
-          Ci.nsIFilePicker.returnReplace == filePickerResult) {
-        let filePath = this._filePicker.file.path;
-        let image = new Image();
-
-        image.onload = function() {
-          ThumbnailZoomPlus.DownloadService.downloadImage(
-            image, filePath, window);
-        };
-        image.src = fileURL;
-      }
+    if (null == this._currentImage) {
+      this._logger.debug("downloadImage: no _currentImage");
+      return;
+    }
+    
+    let fileURL = this._currentImage;
+    let filePickerResult = null;
+    let filePickerName =
+      fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
+    
+    this._filePicker.defaultString = filePickerName;
+    filePickerResult = this._filePicker.show();
+    
+    if (Ci.nsIFilePicker.returnOK == filePickerResult ||
+        Ci.nsIFilePicker.returnReplace == filePickerResult) {
+      let filePath = this._filePicker.file.path;
+      let image = new Image();
+      
+      image.onload = function() {
+        ThumbnailZoomPlus.DownloadService.downloadImage(
+                                                        image, filePath, window);
+      };
+      image.src = fileURL;
     }
   },
 
