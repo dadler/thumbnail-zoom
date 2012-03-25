@@ -392,6 +392,9 @@ ThumbnailZoomPlusChrome.Overlay = {
      * all three of keydown, keyup, and keypress; that keeps for example
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
+     * 
+     * Note that some compound keys like "?" can appear in keypress but
+     * may appear as 0 in keydown.
      */
     let useCapture = false;
     this._panel.addEventListener("keydown", this._handleKeyDown, useCapture);
@@ -832,7 +835,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let keyActivates = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
                                                  true);
-    let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, !keyActivates, aEvent);
+    let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
+                                      !keyActivates, true, aEvent);
     if (! keyActive) {
       this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
       this._closePanel();
@@ -988,31 +992,37 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /**
    * Verifies if the key is active.
+   * @param prefName: the preference which determines which modifier key we look for
+   * @param negate: if true, negates the logic of the test, returning true
+   *                iff the key is *not* down (but does not have an effect if no
+   *                key is configured).
+   * @param useState: if true, looks not just at the key of the current event,
+   *                  but also the modifier state based on prior events.
    * @param aEvent the event object.
    * @return true if active, false otherwise.
    */
-  _isKeyActive : function(prefName, negate, aEvent) {
+  _isKeyActive : function(prefName, negate, useState, aEvent) {
     this._logger.trace("_isKeyActive");
 
     let active = false;
     let keyPref = ThumbnailZoomPlus.getPref(prefName, 2);
     switch (keyPref) {
       case 1:
-        active = aEvent.ctrlKey || 
+        active = (useState && aEvent.ctrlKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_CONTROL);
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'control key', return " 
                            + active);
         break;
       case 2:
-        active = aEvent.shiftKey || 
+        active = (useState && aEvent.shiftKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_SHIFT);
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'shift key', return " 
                            + active);
         break;
       case 3:
-        active = aEvent.altKey || 
+        active = (useState && aEvent.altKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_ALT);
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'alt key', return " 
@@ -1299,6 +1309,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_A ||
             aEvent.keyCode == aEvent.DOM_VK_C ||
             aEvent.keyCode == aEvent.DOM_VK_D ||
+            aEvent.keyCode == aEvent.DOM_VK_H ||
             aEvent.keyCode == aEvent.DOM_VK_P ||
             aEvent.keyCode == aEvent.DOM_VK_N ||
             aEvent.keyCode == aEvent.DOM_VK_T ||
@@ -1312,9 +1323,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _doHandleKeyDown : function(aEvent) {
-    this._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
+    this._logger.debug("_handleKeyDown for keyCode="  + aEvent.keyCode +
+                       "(charCode=" + aEvent.charCode + "; which=" +
+                       aEvent.which + ")");
     
-    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, false, aEvent)) {
       this._logger.debug("_handleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
@@ -1398,8 +1411,10 @@ ThumbnailZoomPlusChrome.Overlay = {
                          this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
       this._redisplayPopup();
+    } else if (aEvent.keyCode == aEvent.DOM_VK_H) {
+      this.openHelp();
     }
-
+    
     if (this._recognizedKey(aEvent)) {
       this._logger.debug("_handleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
@@ -1793,7 +1808,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, aEvent)) {
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
     }

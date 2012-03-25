@@ -351,7 +351,7 @@ ThumbnailZoomPlus.FilterService = {
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
       imageNode = null;
-      this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
+      this._logger.debug("getImageSource: getSpecialSource returned " + imageSource);
     }
     
     // Call getImageNode if needed and defined.
