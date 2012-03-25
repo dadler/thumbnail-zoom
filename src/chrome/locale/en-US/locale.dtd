@@ -33,7 +33,7 @@
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Preferences...">
-<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Help &amp; Support">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Help">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">

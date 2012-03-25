@@ -33,6 +33,7 @@
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Se bilderna bakom bildminiatyrerna">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Inställningar…">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Hjälp">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
