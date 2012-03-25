@@ -144,10 +144,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
    */
   imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/,
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
-    let image = ("i" == aNodeName ? aNode : 
-                 ("a" == aNodeName && "album_link" == aNodeClass) ? aNode.parentNode :
-                  null);
-    return image;
+    if ("a" == aNodeName && "album_link" == aNodeClass) {
+       aNode = aNode.parentNode;
+    }
+    return aNode;
   },
   
   getSpecialSource : function(aNode, aNodeSource) {
@@ -729,32 +729,22 @@ ThumbnailZoomPlus.Pages.Google = {
   
   imageRegExp: /^https?:\/\//,
   
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = null;
-    let imageHref = aNode.parentNode.getAttribute("href");
-    if (null != imageHref) {
-      let imageIndex = imageHref.indexOf("imgurl=");
-      if (-1 < imageIndex) {
-        imageSource = imageHref.substring(imageIndex + 7);
-        imageIndex = imageSource.indexOf("&");
-        if (-1 < imageIndex) {
-          imageSource = imageSource.substring(0, imageIndex);
-        }
-        
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: before decode URI=" + imageSource);
-
-        // The image URL is double-encoded; for example, a space is represented as "%2520".
-        // After first decode it's "%20" and after second decode it's " ".
-        imageSource = decodeURIComponent(imageSource);
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after decode URI=" + imageSource);
-
-        imageSource = decodeURIComponent(imageSource);
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after 2nd decode URI=" + imageSource);
-      }
-    }
-    return imageSource;
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    return node.parentNode;
   },
+
   getZoomImage : function(aImageSrc, node, flags) {
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      aImageSrc = decodeURIComponent(aImageSrc);
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+    } else {
+      aImageSrc = null;
+    }
     return aImageSrc;
   }
 };
