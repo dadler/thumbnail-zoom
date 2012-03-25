@@ -911,8 +911,21 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageSourceInfo = ThumbnailZoomPlus.FilterService
                                 .getImageSource(aDocument, node, aPage);
     let imageSource = imageSourceInfo.imageURL;
+    
+    // imageSourceNode is the node from which the full-size image's URL
+    // is determined.  Node remains the node from which the hover event
+    // was provoked.  This distinction is important because:
+    // * We want to getZoomImage to use the node from what the URL will be determined
+    // * When using a caption, we must clear .title on the event's node
+    // * When checking whether the popup's file type is different than the
+    //   thumb's, we need the node of the actual thumb, which is more likely
+    //   to be the provoking node (since the Others rule typically returns
+    //   a parent's <a> node).
+    // TODO: ideally we might want to use imageSourceNode for positioning,
+    // but still use node for captioning.
+    let imageSourceNode = node;
     if (imageSourceInfo.node != null) {
-      node = imageSourceInfo.node;
+      imageSourceNode = imageSourceInfo.node;
     }
     
     if (null == imageSource ||     
@@ -922,7 +935,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
-                            .getZoomImage(imageSource, node, flags, aPage);
+                            .getZoomImage(imageSource, imageSourceNode, flags, aPage);
     if (zoomImageSrc == "") {
       this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
       return "rejectedNode";
@@ -1127,12 +1140,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /*
    * Sets the popup's caption from aImageNode's (or its ancestor's).
-   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
-   * before this gets called, so it isn't suppressed.
+   * Doesn't actually hide the tooltip from the original node.
+   *
    * Note that the tooltip doen't get unhidden until we popup,
    * and the node's title doesn't get cleared (to hide the tooltip)
-   * until just after we dispaly, so we don't clear the tooltip
+   * until just after we display, so we don't clear the tooltip
    * if we end up not displaying it.
+   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
+   * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode) {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
@@ -1196,6 +1211,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  /**
+   * _hideCaption hides the caption from the popup and restores the original
+   * tooltip to the original node.
+   */
   _hideCaption : function() {
       this._logger.trace("_hideCaption");
       this._panelCaption.hidden = true;
@@ -1613,6 +1632,8 @@ ThumbnailZoomPlusChrome.Overlay = {
         (thumbWidth  >= image.width ||
          thumbHeight >= image.height) ) {
       // skip
+      // TODO: ought to allow if file types are different (like the
+      // check already done in _sizePositionAndDisplayPopup).
       this._logger.debug("_imageOnLoad: skipping popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
@@ -1633,7 +1654,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
         if (! this._panelCaption.hidden) {
-          aImageNode.title = " "; // suppress tooltip
+          // we're showing caption in the popup so suppress the tooltip.
+          aImageNode.title = " ";
         }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
@@ -1733,11 +1755,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
                                              flags, thumbWidth, thumbHeight);
-    let thumbType = this._getFileType(aImageNode.getAttribute("src"));
+    let thumbSrc = aImageNode.getAttribute("src");
+    let thumbType = this._getFileType(thumbSrc);
     let imageType = this._getFileType(aImageSrc);
     this._logger.debug("_sizePositionAndDisplayPopup: file types: thumb=" + 
                        thumbType + 
-                       "; popup=" + imageType + " from " + aImageSrc);
+                       "; popup=" + imageType + " from thumb=" + 
+                       aImageNode.localName + " " + thumbSrc + 
+                       " and image=" + aImageSrc);
     if (! imageSize.allow) {
       if (thumbType != imageType) {
         // If file types are different, show it even if it's not bigger, since
