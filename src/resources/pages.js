@@ -720,7 +720,9 @@ ThumbnailZoomPlus.Pages.Google = {
   // To prevent this from interfering with GooglePlus, its entry
   // comes later in filterService.js.
   host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,
+  
   imageRegExp: /^https?:\/\//,
+  
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = null;
     let imageHref = aNode.parentNode.getAttribute("href");

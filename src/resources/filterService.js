@@ -370,6 +370,15 @@ ThumbnailZoomPlus.FilterService = {
       }
     }
     
+    if (imageSource == null && pageInfo.getSpecialSource &&
+        imageNode == aNode) {
+      // this case is needed e.g. so Google search results don't show popups,
+      // since its getSpeialSource returns null in that situation.
+      this._logger.debug("getImageSource: ignoring: no imageSource after getSpecialSource & getImageNode didn't change node");
+      result.imageURL = null;
+      return result;
+    }
+
     // If don't have imageSource yet, get from src, href, or backgroundImage.
     if (null == imageSource && imageNode != null) {
       if (imageNode.hasAttribute("src")) {
