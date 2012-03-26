@@ -916,7 +916,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "tumblr.com/(photo/|tumblr_)|" +
                       "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
                       "[^/&\\?]+(&.*)?$|" +
-                      "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
+                      "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/watch|" +
                       "/youtu.be/[^/]+$|" +
                       "quickmeme\\.com/meme/|" +
                       "qkme.me/|" +
@@ -971,12 +971,12 @@ ThumbnailZoomPlus.Pages.Others = {
         let id=imgNode.id;
         id = id.replace("thumbnail_photo_", "high_res_link_");
         let related = imgNode.ownerDocument.getElementById(id);
-        this._logger.debug("ThumbnailPreview: Others: related ID=" + id + "; related=" +
+        this._logger.debug("Others: related ID=" + id + "; related=" +
                            String(related));
         if (related && related.getAttribute("href") != "") {
             imgNodeURL = related.getAttribute("href");
             aNode = related;
-            this._logger.debug("ThumbnailPreview: Others: detected tumblr high-rez link " +
+            this._logger.debug("Others: detected tumblr high-rez link " +
                                String(aNode));
         }
         
@@ -998,7 +998,7 @@ ThumbnailZoomPlus.Pages.Others = {
             ! /assets\.tumblr\.com/.test(imgNodeURL) &&
             // test the link node's URL to see if it's an image:
             (aNode == null || ! tumblrOrPhotoRegExp.test(String(aNode))) ) {
-          this._logger.debug("ThumbnailPreview: Others: detected tumblr; using thumb as image, node "
+          this._logger.debug("Others: detected tumblr; using thumb as image, node "
                              + imgNode + " " + imgNodeURL);
           
           return imgNode;
@@ -1034,14 +1034,14 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
-    // For google images links, images.yandex.ru, and some others, get URL from
-    // imgurl=... part.
-    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    // For google images links, google video search, images.yandex.ru, 
+    // and some others, get URL from imgurl=... part.
+    let imgurlEx = new RegExp(/.*[\?&](img_?)?url=([^&]+).*$/);
     if (imgurlEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
         return ""; // Google Images support is disabled by user preference.
       }
-      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
       aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./.test(aImageSrc)) {
         aImageSrc = "http://" + aImageSrc;
@@ -1133,7 +1133,7 @@ ThumbnailZoomPlus.Pages.Others = {
       // (including stuff.jpg?more=...)
       aImageSrc += ".jpg";
     }
-    this._logger.debug("ThumbnailPreview: Others using zoom image " + aImageSrc);
+    this._logger.debug("Others getZoomImage: using zoom image " + aImageSrc);
 
     return aImageSrc;
   }
