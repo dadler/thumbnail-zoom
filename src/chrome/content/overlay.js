@@ -605,10 +605,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_insideThumbBBox: returning false since _ignoreBBox.xMax == -999");
       return false;
     }
-      
-    var win = doc.defaultView;  
-    var scrollLeft = win.scrollX;
-    var scrollTop = win.scrollY;
+
+    var viewportElement = gBrowser.selectedBrowser.contentWindow;  
+    var scrollLeft = viewportElement.scrollX;
+    var scrollTop  = viewportElement.scrollY;
+
     if (typeof(gBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
@@ -620,15 +621,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    var adj = this._ignoreBBox;
+    var adj = {xMin:0, xMax:0, yMin:0, yMax:0};
     // Adjust the bounding box to account for scrolling.  Note that the box's
     // position on-screen moves the opposite direction than the scroll amount.
-    var xOffset = (adj.refScrollLeft - scrollLeft) * pageZoom; 
-    var yOffset = (adj.refScrollTop - scrollTop) * pageZoom;
-    adj.xMin += xOffset;
-    adj.xMax += xOffset;
-    adj.yMin += yOffset;
-    adj.yMax += yOffset;
+    var xOffset = (this._ignoreBBox.refScrollLeft - scrollLeft) * pageZoom; 
+    var yOffset = (this._ignoreBBox.refScrollTop - scrollTop) * pageZoom;
+    adj.xMin = this._ignoreBBox.xMin + xOffset;
+    adj.xMax = this._ignoreBBox.xMax + xOffset;
+    adj.yMin = this._ignoreBBox.yMin + yOffset;
+    adj.yMax = this._ignoreBBox.yMax + yOffset;
 
     var inside = (x > adj.xMin &&
                   x < adj.xMax &&
@@ -636,7 +637,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                   y < adj.yMax);
     if (0) this._logger.debug("_insideThumbBBox: zoom=" + pageZoom + 
                       "; orig scroll=" +
-                      adj.refScrollLeft + "," + adj.refScrollTop +
+                      this._ignoreBBox.refScrollLeft + "," +
+                      this._ignoreBBox.refScrollTop +
                       "; cur scroll=" +
                       scrollLeft + "," + scrollTop +
                       "; scaled diff = " + xOffset+
