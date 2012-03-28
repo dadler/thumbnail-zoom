@@ -56,8 +56,8 @@
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
-      <preference id="thumbnailzoomplus-options-key-pref"
-        name="extensions.thumbnailzoomplus.panel.key" type="int"/>
+      <preference id="thumbnailzoomplus-options-activate-key-pref"
+        name="extensions.thumbnailzoomplus.panel.activatekey" type="int"/>
       <preference id="thumbnailzoomplus-options-key-display-pref"
         name="extensions.thumbnailzoomplus.panel.keydisplay" type="bool"/>
       <preference id="thumbnailzoomplus-options-max-key-pref"
@@ -173,7 +173,7 @@
               </menulist>
               <label value="&thumbnailzoomplus.options.key2.selection.label;" />
             </hbox>
-            <menulist preference="thumbnailzoomplus-options-key-pref">
+            <menulist preference="thumbnailzoomplus-options-activate-key-pref">
               <menupopup>
                 <menuitem value="0"
                   label="&thumbnailzoomplus.options.key.none.label;" />

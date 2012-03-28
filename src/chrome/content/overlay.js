@@ -40,7 +40,7 @@ Cu.import("resource://thumbnailzoomplus/uninstallService.js");
  */
 ThumbnailZoomPlusChrome.Overlay = {
   /* UI preference keys. */
-  PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.activatekey",
   PREF_PANEL_ACTIVATE_KEY_ACTIVATES : ThumbnailZoomPlus.PrefBranch + "panel.keydisplay",
   PREF_PANEL_MAX_KEY : ThumbnailZoomPlus.PrefBranch + "panel.maxkey",
   PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
