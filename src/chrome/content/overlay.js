@@ -1646,26 +1646,38 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
+    let imageWidth = image.width;
+    let imageHeight = image.height;
+    if (imageWidth == 0 || imageHeight == 0) {
+      // Some images (such as .svg Scalable Vector Graphics) don't always have
+      // an explicit size.  Give it an arbitrary resolution, at which it'll
+      // render.
+      this._logger.debug("_imageOnLoad: got 0 width or height; using 1000.");
+      imageWidth = 1000;
+      // Use same aspect as thumb.
+      imageHeight = imageWidth * thumbHeight / thumbWidth;
+    }
+    
     if (flags.requireImageBiggerThanThumb &&
-        (thumbWidth  >= image.width ||
-         thumbHeight >= image.height) ) {
+        (thumbWidth  >= imageWidth ||
+         thumbHeight >= imageHeight) ) {
       // skip
       // TODO: ought to allow if file types are different (like the
       // check already done in _sizePositionAndDisplayPopup).
       this._logger.debug("_imageOnLoad: skipping popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
-                         image.width + "x" + image.height);
+                         imageWidth + "x" + imageHeight);
     } else {
       if (flags.requireImageBiggerThanThumb) {
         this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is < raw image " +
-                         image.width + "x" + image.height);
+                         imageWidth + "x" + imageHeight);
       }
       this._currentThumb = aImageNode;
-      this._origImageWidth = image.width;
-      this._origImageHeight = image.height;
+      this._origImageWidth = imageWidth;
+      this._origImageHeight = imageHeight;
       let displayed =
         this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
                                           flags, 
