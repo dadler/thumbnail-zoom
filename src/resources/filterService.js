@@ -365,7 +365,9 @@ ThumbnailZoomPlus.FilterService = {
         // changed nodes.   If imageNode == null, we're shouldn't do a popup.
         imageSource = null; // we need to re-get imageSource.
         if (imageNode != null) {
-          let nodeName = imageNode.localName.toLowerCase();
+          this._logger.debug("getImageSource: imageNode=" + imageNode);
+
+          var nodeName = imageNode.localName;
           let nodeClass = imageNode.getAttribute("class");
           this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
