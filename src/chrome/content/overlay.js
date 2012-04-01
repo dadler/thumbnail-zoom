@@ -117,7 +117,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     within which hover events are ignored, to avoid accidentally re-triggering
     the popup when the window regains focus.  Unlike _thumbBBox, 
     _ignoreBBox sometimes gets invalidated, when we no longer need to
-    ignore a region.
+    ignore a region.  We set _ignoreBBox based on _thumbBBox when we
+    pop-down the panel and need to prevent the resulting mouseOver from
+    popping it up again, e.g. when closing due to the Escape key.  
+    
+    We don't set _ignoreBBox when we popup since that causes problems when 
+    the bbox we get is wrong due to clipping or when the thumb we popped up from 
+    disappears, e.g. when scrolling in Google Images hides Google Images'
+    own popup on which we had hovered.
    */
   _ignoreBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
                  refScrollLeft: 0, refScrollTop: 0},
@@ -453,7 +460,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handleTabSelected: other win=" + that._currentWindow);
     that._addEventListenersToDoc(gBrowser.contentDocument);
 
-    this._ignoreBBox.xMax = -999; // don't reject next move as trivial.
+    // don't reject next move as trivial.
+    this._clearIgnoreBBox();
     this._logger.debug("_handleTabSelected: _closePanel since tab selected");
     this._closePanel(true);
   },
@@ -496,7 +504,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _addEventListenersToDoc: function(doc) {
     this._logger.trace("_addEventListenersToDoc");
 
-    this._ignoreBBox.xMax = -999;
+    this._clearIgnoreBBox();
 
     let that = this;
 
@@ -575,7 +583,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  _insideThumbBBox : function(doc, x,y) {
+  _insideThumbBBox : function(bbox, x,y) {
     // TODO: this is used to prevent re-showing a popup after we get
     // an event in the doc's window when the user dismisses a popup which is
     // covering the mouse via Escape or mouse-click.  The problem is that 
@@ -600,7 +608,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // down.  Or always popdown without looking at bbox if the newly entered
     // element doesn't correspond to something we'd popup for.
     
-    if (this._ignoreBBox.xMax == -999) {
+    if (bbox.xMax == -999) {
       // passed the quick test for "no bbox".
       this._logger.debug("_insideThumbBBox: returning false since _ignoreBBox.xMax == -999");
       return false;
@@ -624,12 +632,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     var adj = {xMin:0, xMax:0, yMin:0, yMax:0};
     // Adjust the bounding box to account for scrolling.  Note that the box's
     // position on-screen moves the opposite direction than the scroll amount.
-    var xOffset = (this._ignoreBBox.refScrollLeft - scrollLeft) * pageZoom; 
-    var yOffset = (this._ignoreBBox.refScrollTop - scrollTop) * pageZoom;
-    adj.xMin = this._ignoreBBox.xMin + xOffset;
-    adj.xMax = this._ignoreBBox.xMax + xOffset;
-    adj.yMin = this._ignoreBBox.yMin + yOffset;
-    adj.yMax = this._ignoreBBox.yMax + yOffset;
+    var xOffset = (bbox.refScrollLeft - scrollLeft) * pageZoom; 
+    var yOffset = (bbox.refScrollTop - scrollTop) * pageZoom;
+    adj.xMin = bbox.xMin + xOffset;
+    adj.xMax = bbox.xMax + xOffset;
+    adj.yMin = bbox.yMin + yOffset;
+    adj.yMax = bbox.yMax + yOffset;
 
     var inside = (x > adj.xMin &&
                   x < adj.xMax &&
@@ -637,8 +645,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                   y < adj.yMax);
     if (0) this._logger.debug("_insideThumbBBox: zoom=" + pageZoom + 
                       "; orig scroll=" +
-                      this._ignoreBBox.refScrollLeft + "," +
-                      this._ignoreBBox.refScrollTop +
+                      bbox.refScrollLeft + "," +
+                      bbox.refScrollTop +
                       "; cur scroll=" +
                       scrollLeft + "," + scrollTop +
                       "; scaled diff = " + xOffset+
@@ -784,20 +792,17 @@ ThumbnailZoomPlusChrome.Overlay = {
   
     let x = aEvent.screenX;
     let y = aEvent.screenY;
-    if (this._insideThumbBBox(aDocument, x, y)) {
+    if (this._insideThumbBBox(this._ignoreBBox, x, y)) {
       // Ignore attempt to redisplay the same image without first entering
       // a different element, on the assumption that it's caused by a
       // focus change after the popup was dismissed.
       return;
     }
 
-    // Mouse entered a different region; clear the previous 'ignore' region
-    // so a future mouse move can re-enter it and re-popup.
-    this._ignoreBBox.xMax = -999;
-
+    this._clearIgnoreBBox();
     this._closePanel(true);
   },
-  
+
   /**
    * _losingPopupFocus is called when the popup loses keyboard focus.
    * This happens when the user activates a different input field, such
@@ -805,11 +810,13 @@ ThumbnailZoomPlusChrome.Overlay = {
    * close the popup so the user can use that field and so his typing won't
    * be interpreted as TZP hotkeys.
    */
-     _losingPopupFocus : function(aEvent) {
+  _losingPopupFocus : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus: closing popup.");
 
+    // Prevent another popup from immediately happening and taking focus back.
+    that._setIgnoreBBoxPageRelative();
     that._closePanel(false);
   },
   
@@ -826,7 +833,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let x = aEvent.screenX;
     let y = aEvent.screenY;
-    if (this._insideThumbBBox(aDocument, x, y)) {
+    if (this._insideThumbBBox(this._ignoreBBox, x, y)) {
       // Ignore attempt to redisplay the same image without first entering
       // a different element, on the assumption that it's caused by a
       // focus change after the popup was dismissed.
@@ -835,8 +842,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Mouse entered a different region; clear the previous 'ignore' region
     // so a future mouse move can re-enter it and re-popup.
-    this._ignoreBBox.xMax = -999;
-    
+    this._clearIgnoreBBox();
+
     let keyActivates = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
                                                  true);
     let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
@@ -1306,18 +1313,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     let x = aEvent.screenX;
     let y = aEvent.screenY;
 
-    if (x >= this._ignoreBBox.xMin &&
-        x <= this._ignoreBBox.xMax &&
-        y >= this._ignoreBBox.yMin &&
-        y <= this._ignoreBBox.yMax) {
+    if (this._insideThumbBBox(this._thumbBBox, x, y)) {
       // Mouse is still over the thumbnail.  Ignore the move and don't
       // dismiss since the thumb would immediately receive an 'over' event
       // and retrigger the popup to display.
       this._logger.debug("_handlePopupMove: ignoring since mouse at " +
                          x + "," + y +
-                         " is within thumb " +
-                         this._ignoreBBox.xMin + ".." + this._ignoreBBox.xMax + "," +
-                         this._ignoreBBox.yMin + ".." + this._ignoreBBox.yMax);
+                         " is within thumb bbox");
       return;
     }
     // moved outside bbox of thumb; dismiss popup.
@@ -1330,6 +1332,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handlePopupClick : function(aEvent) {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
+    this._setIgnoreBBoxPageRelative();
     this._closePanel(false);
   },
   
@@ -1472,6 +1475,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // don't want.
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
+      that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
     }
     if (that._recognizedKey(aEvent)) {
@@ -1769,13 +1773,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
-    this._ignoreBBox.xMin = this._thumbBBox.xMin;
-    this._ignoreBBox.xMax = this._thumbBBox.xMax;
-    this._ignoreBBox.yMin = this._thumbBBox.yMin;
-    this._ignoreBBox.yMax = this._thumbBBox.yMax;
-    this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
-    this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
-    
     let available = this._getAvailableSizeOutsideThumb(aImageNode, flags);
     let thumbWidth = aImageNode.offsetWidth * pageZoom;
     let thumbHeight = aImageNode.offsetHeight * pageZoom;
@@ -1933,6 +1930,22 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._focusThePopup();
   },
   
+  _clearIgnoreBBox : function() {
+    this._logger.trace("_clearIgnoreBBox");
+    // clear the previous 'ignore' region
+    // so a future mouse move can re-enter it and re-popup.
+    this._ignoreBBox.xMax = -999;
+  },
+
+  _setIgnoreBBoxPageRelative : function() {
+    this._logger.trace("_setIgnoreBBoxPageRelative");
+    this._ignoreBBox.xMin = this._thumbBBox.xMin;
+    this._ignoreBBox.xMax = this._thumbBBox.xMax;
+    this._ignoreBBox.yMin = this._thumbBBox.yMin;
+    this._ignoreBBox.yMax = this._thumbBBox.yMax;
+    this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
+    this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
+  },
   
   /**
    * Calculates a bounding box like this._thumbBBox or this._ignoreBBox
