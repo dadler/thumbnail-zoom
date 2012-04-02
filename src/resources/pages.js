@@ -1151,10 +1151,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // show.  
   imageRegExp: new RegExp("^(?![^/]*(" +
                           "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)|" + // google logos
-                          "(//[a-z0-9]+\\.google.com?[.a-z]*/.*[/?]lyrs=.*)|" + // google maps tiles
+                          "(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)|" + // google maps tiles
                           "(//maps\\.google\\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
-                          "(//maps.gstatic.com?[.a-z]*/.*)|" + // google maps button images
-                          "(//sh.deviantart.net/shadow/)|" + // deviantart frame around thumbs
+                          "(//maps\\.gstatic\\.com?[.a-z]*/.*)|" + // google maps button images
+                          "(//sh\\.deviantart\\.net/shadow/)|" + // deviantart frame around thumbs
                           "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
                           "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),

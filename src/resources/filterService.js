@@ -361,12 +361,12 @@ ThumbnailZoomPlus.FilterService = {
                          "aNode=" + aNode + ", nodeName=" + nodeName +
                          ", nodeClass=" + nodeClass + ", imageSource=" + imageSource);
       imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass, imageSource);      
-      if (null != imageNode && imageNode != aNode && imageNode.localName) {
+      if (imageNode != aNode) {
         // changed nodes.   If imageNode == null, we're shouldn't do a popup.
         // and we ignore if localName is null, as sometimes happens if the
         // returned node is the document itself (seen when reloading Google Images)
         imageSource = null; // we need to re-get imageSource.
-        if (imageNode != null) {
+        if (imageNode != null && imageNode.localName) {
           var nodeName = imageNode.localName;
           let nodeClass = imageNode.getAttribute("class");
           this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
@@ -374,6 +374,7 @@ ThumbnailZoomPlus.FilterService = {
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
         } else {
+          imageNode = null;
           this._logger.debug("getImageSource: after getImageNode, imageNode=null; name=" + nodeName + 
                              "; class=" + nodeClass);
         }
