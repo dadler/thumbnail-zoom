@@ -128,7 +128,14 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _ignoreBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
                  refScrollLeft: 0, refScrollTop: 0},
-                  
+  
+  /**
+   * _scrolledSinceMoved is set true when we receive a scroll event and false4
+   * when we receive a mousemove event.  It is thus true if the last event
+   * was a scroll.  We use this to ignore mouseOver events caused by scrolling.
+   */
+  _scrolledSinceMoved : false,
+  
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
   
@@ -567,6 +574,16 @@ ThumbnailZoomPlusChrome.Overlay = {
           function(aEvent) {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
+        doc.addEventListener(
+          "mousemove",
+          function(aEvent) {
+            that._handleMouseMove(doc, aEvent, pageConstant);
+          }, true);
+        doc.addEventListener(
+          "scroll",
+          function(aEvent) {
+            that._handleScroll(doc, aEvent, pageConstant);
+          }, true);
         // Also listen for mouseout so we can popdown if the user moves
         // the mouse outside the document area without entering another
         // non-thumbnail element.
@@ -768,20 +785,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
     return title;
   },
-  
-  /**
-   * Handles the mouse over event.
-   * @param aEvent the event object.
-   * @param aPage the filtered page.
-   */
-  _handleMouseOver : function (aDocument, aEvent, aPage) {
-    let times = 1; // Set to 1 normally, or to 100 when timing.
     
-    for (let i = 0; i < times; i++) {
-      this._handleMouseOverImpl(aDocument, aEvent, aPage);
-    }
-  },
-  
   _handleMouseOut : function (aDocument, aEvent, aPage) {
   
     return; // TODO
@@ -803,6 +807,20 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel(true);
   },
 
+  _handleMouseMove : function (aDocument, aEvent, aPage) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("___________________________");
+    that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
+    that._scrolledSinceMoved = false;
+  },
+
+  _handleScroll : function (aDocument, aEvent, aPage) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("___________________________");
+    that._logger.debug("_handleScroll: _scrolledSinceMoved=true");
+    that._scrolledSinceMoved = true;
+  },
+
   /**
    * _losingPopupFocus is called when the popup loses keyboard focus.
    * This happens when the user activates a different input field, such
@@ -813,17 +831,30 @@ ThumbnailZoomPlusChrome.Overlay = {
   _losingPopupFocus : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
-    that._logger.debug("_losingPopupFocus: closing popup.");
+    that._logger.debug("_losingPopupFocus; closing popup.");
 
     // Prevent another popup from immediately happening and taking focus back.
     that._setIgnoreBBoxPageRelative();
     that._closePanel(false);
   },
   
+  /**
+   * Handles the mouse over event.
+   * @param aEvent the event object.
+   * @param aPage the filtered page.
+   */
+  _handleMouseOver : function (aDocument, aEvent, aPage) {
+    let times = 1; // Set to 1 normally, or to 100 when timing.
+    
+    for (let i = 0; i < times; i++) {
+      this._handleMouseOverImpl(aDocument, aEvent, aPage);
+    }
+  },
+
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
   
     this._logger.debug("___________________________");
-    this._logger.debug("_handleMouseOver");
+    this._logger.debug("_handleMouseOver: timeStamp=" + aEvent.timeStamp/1000.);
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
@@ -860,12 +891,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Close the previously displayed popup (if any).
     this._closePanel(true);
 
+    if (this._scrolledSinceMoved) {
+      this._logger.debug("_handleMouseOver: _scrolledSinceMoved==true; ignoring");
+      return;
+    }
+    
     if (node == null) {
       this._logger.debug("_handleMouseOver: event.target=null; ignoring");
       return;
     }
     if (node.localName == null) {
-      // reported by user on Ubuntu Linux.
+      // reported by user on Ubuntu Linux (perhaps node is the document itself?)
       this._logger.debug("_handleMouseOver: event.target.localName=null; ignoring");
       return;
     }
