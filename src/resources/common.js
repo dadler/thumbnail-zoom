@@ -59,9 +59,11 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      */
     _init : function() {
       // 
-      // ***** DEBUG ENABLE IS HERE: *****
+      // ***** OVERALL DEBUG ENABLE IS HERE: *****
       //
       // Set to true to enable debug or trace messages.
+      // See also the per-module enables farther below in
+      // getLogger()
       //
       // Log messages will be written to ThumbnailZoomPlus/log.txt under
       // your profile dir, e.g. on Mac OSX it might be
@@ -71,7 +73,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
       //
       // Enabling these increases CPU usage when moving the mouse in Firefox.
-      //
+      // 
       let enableDebug = false;
       let enableTrace = false; // even more verbose
             
@@ -110,7 +112,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       }
       root.addAppender(app);
 
-      this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus");
+      this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.common");
 
       // get the observer service.
       this._observerService =
@@ -126,6 +128,17 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     getLogger : function(aName, aLevel) {
       let logger = Log4Moz.repository.getLogger(aName);
 
+      if (! aLevel) {
+        if (aName == "ThumbnailZoomPlus.Overlay") {
+          aLevel = "Trace";
+        } else if (aName == "ThumbnailZoomPlus.Pages") {
+          aLevel = "Trace";
+        } else if (aName == "ThumbnailZoomPlus.FilterService") {
+          aLevel = "Warn";
+        } else if (aName == "ThumbnailZoomPlus.common") {
+          aLevel = "Warn";
+        }
+      }
       logger.level = Log4Moz.Level[(aLevel ? aLevel : "All")];
 
       return logger;
