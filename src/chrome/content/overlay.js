@@ -854,7 +854,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
   
     this._logger.debug("___________________________");
-    this._logger.debug("_handleMouseOver: timeStamp=" + aEvent.timeStamp/1000.);
+    this._logger.debug("_handleMouseOver");
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");

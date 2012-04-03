@@ -394,10 +394,11 @@ ThumbnailZoomPlus.Pages.MySpace = {
 ThumbnailZoomPlus.Pages.Netflix = {
   key: "netflix",
   name: "Netflix",
-  host: /^(.*\.)?netflix\.com$/,
+  host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net)$/,
   imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
                           "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
-                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
+                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$|" +
+                          "netflix\\..*llnwd\\.net/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
                           
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     if (nodeName == "a" || nodeName == "img") {
@@ -416,7 +417,11 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // For static thumbs
     // http://cdn-2.nflximg.com/en_us/boxshots/large/60024022.jpg becomes
     // http://cdn-2.nflximg.com/en_us/boxshots/ghd/60024022.jpg
-    let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|small|[0-9]+)/");
+    // when not logged in, sign-up page needs to change 
+    // https://netflix.hs.llnwd.net/e1/en_us/boxshots/large/70208522.jpg to
+    //     // when not logged in, sign-up page has 
+    // https://netflix.hs.llnwd.net/e1/en_us/boxshots/ghd/70208522.jpg
+    let netflixRex1 = new RegExp("(/boxshots)/(large|small|[0-9]+)/");
     if (netflixRex1.test(aImageSrc)) {
       // popup for DVD box w/o play now.
       flags.popupAvoiderWidth = 392;
@@ -1195,7 +1200,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   
   // For "Thumbnail"
   getZoomImage : function(aImageSrc, node, flags) {
-    let verbose = true;
+    let verbose = false;
     
     let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
@@ -1350,6 +1355,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
     let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
+    
+    aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
     
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
