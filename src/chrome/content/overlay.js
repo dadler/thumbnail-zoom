@@ -851,6 +851,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  _allowMouseOverPropagation : function(aPage, node) {
+    if (aPage == ThumbnailZoomPlus.Pages.Google.aPage &&
+        /^imgthumb/.test(node.id)) {
+      // We must prevent mouseOver from getting to the web page for
+      // "Visually Related" thumbs in Google since Google's own popup
+      // causes endless cycling due to a focus fight (issue #57).
+      // thumb id imgthumb10.
+      this._logger.debug("_allowMouseOverPropagation: disalowing for " + node);
+      return false;
+    }
+    return true;
+  },
+  
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
   
     this._logger.debug("___________________________");
@@ -913,6 +926,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.initWithCallback({ notify:
         function() { that._findPageAndShowImage(aDocument, aEvent, aPage, node); }
       }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
+
+    if (! this._allowMouseOverPropagation(aPage, node)) {
+      aEvent.stopPropagation();
+    }
   },
 
 
@@ -984,16 +1001,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
                             .getZoomImage(imageSource, imageSourceNode, flags, aPage);
     if (zoomImageSrc == "") {
-      this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
+      this._logger.debug("_tryImageSource: getZoomImage returned '' (matched but disabled by user).");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
-      this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
+      this._logger.debug("_tryImageSource: getZoomImage returned null.");
       return "rejectedNode";
     }
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
-    this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
+    this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
                        this._originalURI);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
