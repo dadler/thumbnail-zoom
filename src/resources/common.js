@@ -129,14 +129,15 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       let logger = Log4Moz.repository.getLogger(aName);
 
       if (! aLevel) {
+        // Set each to All (disable) or Trace (enable).
         if (aName == "ThumbnailZoomPlus.Overlay") {
-          aLevel = "Trace";
+          aLevel = "All";
         } else if (aName == "ThumbnailZoomPlus.Pages") {
-          aLevel = "Trace";
+          aLevel = "All";
         } else if (aName == "ThumbnailZoomPlus.FilterService") {
-          aLevel = "Warn";
+          aLevel = "All";
         } else if (aName == "ThumbnailZoomPlus.common") {
-          aLevel = "Warn";
+          aLevel = "All";
         }
       }
       logger.level = Log4Moz.Level[(aLevel ? aLevel : "All")];

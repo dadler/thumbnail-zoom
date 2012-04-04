@@ -81,6 +81,9 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
+      Note that this is applied to the initial URL we hae after getSpecialSource
+      and getImageNode, but before getZoom Image (which is kind of odd; maybe
+      we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
 
     * getSpecialSource: DEPRECATED: use getImageNode and getZoomImage instead.
@@ -250,14 +253,43 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)/,
+    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=.*lockerz\.com|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com)/,
+
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    // The currently-selected thumbnail in slideshow view has a div
+    // superimposed on it; find the corresponding img.
+    // example: https://twitter.com/#!/TheRomMistress/media/slideshow?url=pic.twitter.com%2FfNwHmcGv
+    if (nodeClass == "thumbnail-active-border-inner") {
+      // Find child "img" nodes
+      let imgNodes = node.parentNode.parentNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the last child.
+        node = imgNodes[imgNodes.length-1];
+      }
+    }
+    return node;
+  },
+    
   getZoomImage : function(aImageSrc, node, flags) {
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
+    // eg http://twitpic.com/show/mini/563w31; in this case mini and iphone exist but full doesn't.
     let rex3 = new RegExp(/\/(mini|thumb|iphone|large)\//);
+    let rexInstagram = new RegExp("((instagr\\.am|instagram.com)/p/.*size)=[a-z]$");
     let rex4 = new RegExp(/\?size=t/);
-    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg)/);
+    // yfrog: http://yfrog.com/gyw3xnpj:twthumb -> http://yfrog.com/gyw3xnpj:iphone
+    // see also http://code.google.com/p/imageshackapi/wiki/YFROGurls
+    let rex5 = new RegExp("(://yfrog\\..*):twthumb"); 
+    // http://s235.photobucket.com/albums/ee124/snasearles/?action=view&current=IMAG0019.jpg ->
+    // http://s235.photobucket.com/albums/ee124/snasearles/IMAG0019.jpg
+    let rex6 = new RegExp("(\.photobucket\.com/albums/.*/)\\?.*=([a-z0-9]\\.[a-z0-9]+)", "i");
+    // lockerz:
+    // http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http%3A%2F%2Flockerz.com%2Fs%2F198302791
+    let rexPlixi = new RegExp("(.*/api\\.plixi\\.com/.*[?&])size=[a-z]+(.*)$");
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg|\.photobucket\.com\/albums)/);
     
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p10: " + aImageSrc);
+
     /*
      * We could resolutions to "large".  Another option is "full", which is bigger,
      * but the server seems quite slow and "full" could take several seconds to
@@ -266,15 +298,53 @@ ThumbnailZoomPlus.Pages.Twitpic = {
      * Ideally we'd try "large" but if it fails, try "full".
      * For now we use "full" to assure we get something, but it may be slow.
      */
-    let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
-                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
-                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
-                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=f") :
-                rexNoModNecessary.test(aImageSrc) ? aImageSrc :
-                null;
+    let image = null;
+    
+    if (rex1.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex1");
+      image = aImageSrc.replace(rex1, "");
+
+    } else if (rex2.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex2");
+      image = aImageSrc.replace(rex2, "-full.");
+
+    } else if (rex3.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex3");
+      image = aImageSrc.replace(rex3, "/iphone/");
+
+    } else if (rexInstagram.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexInstagram");
+      image = aImageSrc.replace(rexInstagram, "$1=l");
+
+    }  else if (rex4.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex4");
+      image = aImageSrc.replace(rex4, "?size=f");
+
+    } else if (rex5.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex5");
+      image = aImageSrc.replace(rex5, "$1:iphone");
+
+    } else if (rex6.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex6");
+      image = aImageSrc.replace(rex6, "$1$2");
+
+    } else if (rexPlixi.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexPlixi");
+      // See http://support.lockerz.com/entries/350297-image-from-url
+      image = aImageSrc.replace(rexPlixi, "$1size=big$2");
+
+    } else if (rexNoModNecessary.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexNoModNecessary");
+      image = aImageSrc;
+    }
+    
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p20: " + image);
     if (image == null) {
       return null;
     }
+
+    // some twitpic images don't work with https so use http instead.
+    image = image.replace(new RegExp("https://twitpic\\.com/"), "http://twitpic.com/");
 
     if (false) {
       // This is disabled because while it may sometimes help, more often it 
@@ -291,6 +361,8 @@ ThumbnailZoomPlus.Pages.Twitpic = {
       }
     }
     
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p50: " + image);
+
     return image;
   }
 };
@@ -1187,6 +1259,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         generationsUp--;
       }
       if (node) {
+        // Find child "img" nodes
         let imgNodes = node.getElementsByTagName("img");
         if (imgNodes.length > 0) {
           // take the last child.
