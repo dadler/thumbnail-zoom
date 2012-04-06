@@ -1241,11 +1241,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     if (/gii_folder_link/.test(nodeClass) ||
-        (nodeName == "div" && /overlay|inner|date|notes/.test(nodeClass) && /tumblr\.com/i.test(node.baseURI)) ) {
+        (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass))) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
       // img nodes are in <img> child of the (great(grand))parent node of the
-      // hovered-over <a> node.  Find that node.
+      // hovered-over <a> node.  Find that node.  We don't specificaly test for
+      // the tumblr domain since we want to work even when a different domain
+      // is used, eg http://www.valentinovamp.com/archive
       // TODO: a generalization of this logic might be useful in general, e.g.
       // for yahoo.co.jp
       let generationsUp = 1; // overlay
@@ -1254,18 +1256,25 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       } else if (/date|notes/.test(nodeClass)) {
         generationsUp = 3;
       }
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected minus.com or tumblr.com; going up "
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected minus.com or possible tumblr.com; going up "
           + generationsUp + " levels and then finding img.");
-      while (generationsUp > 0 && node) {
-        node = node.parentNode;
+      let ancestor = node;
+      while (generationsUp > 0 && ancestor) {
+        ancestor = ancestor.parentNode;
         generationsUp--;
       }
-      if (node) {
+      if (ancestor) {
         // Find child "img" nodes
-        let imgNodes = node.getElementsByTagName("img");
+        let imgNodes = ancestor.getElementsByTagName("img");
         if (imgNodes.length > 0) {
-          // take the last child.
-          node = imgNodes[imgNodes.length-1];
+          // Confirm that it's tumblr or minus.com.
+          if (/gii_folder_link/.test(nodeClass) ||
+              /photo/.test(ancestor.getAttribute("class"))) {
+            // take the last child.
+            node = imgNodes[imgNodes.length-1];
+          } else {
+            ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed.");
+          }
         }
       }
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
