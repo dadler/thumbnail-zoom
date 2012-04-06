@@ -1152,6 +1152,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_tryImageSource: getZoomImage returned null.");
       return "rejectedNode";
     }
+
+    if (String(imageSourceNode) == zoomImageSrc) {
+      this._logger.debug("_tryImageSource: zoomImage same as hovered link; show crosshair.");
+      imageSourceNode.style.cursor = "crosshair";
+    }
+    
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
     this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
