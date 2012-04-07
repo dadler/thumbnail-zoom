@@ -1170,6 +1170,19 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     }
     
+    // For google.com/url?v= for youtube.com:
+    // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w to
+    // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w
+    let youtube2Ex = new RegExp("^(?:https?://)(?:[^/]*\\.)?google\\.com/url(?:\\?.*)?[?&]q=([^&]*).*$");
+    if (youtube2Ex.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
+        return ""; // YouTube support disabled by user preference.
+      }
+      aImageSrc = decodeURIComponent(aImageSrc.replace(youtube2Ex, "$1"));
+      this._logger.debug("Others getZoomImage: from google.com/url... got " + aImageSrc);
+      
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
@@ -1177,14 +1190,14 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i3.ytimg.com/vi/kuX2lI84YRQ/hqdefault.jpg
     // http://www.youtube.com/embed/87xNpOYOlQ4?rel=0 to
     // http://i3.ytimg.com/vi/87xNpOYOlQ4/hqdefault.jpg
-    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
+    let youtubeEx = new RegExp("(https?://)(?:[^/]*\\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
-  
+
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
@@ -1404,6 +1417,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = aImageSrc.replace(/\/free_pictures\/thumbs\//, "/free_pictures/normal/");
     
+    // For taobao.com, change
+    // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg_310x310.jpg to
+    // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg
+    ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage BEFORE " + aImageSrc);
+    aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_[0-9]+x[0-9]+\\.jpg$"), "$1");
+    ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage AFTER " + aImageSrc);
+    
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
     let leBonCoinSiteRegExp = new RegExp("\\.leboncoin\\.fr/", "i");
@@ -1451,6 +1473,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*=)w[0-9][0-9][0-9]?$/, "$1w1000");
     aImageSrc = aImageSrc.replace(/(\.google\.com\/books?.*)&zoom=1&/, "$1&zoom=0&");
 
+    // imageporter.com
+    aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
+    
+    // weheartit.com uses 
+    // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
+    // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg
+    aImageSrc = aImageSrc.replace(/(data\.whicdn\.com\/images\/.*)_thumb\.jpg/,
+                                  "$1_large.jpg");
+                                  
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
