@@ -1002,7 +1002,7 @@ ThumbnailZoomPlus.Pages.Others = {
                       "|qkme.me/" +
                       "|/index.php\?.*module=attach" + // IP.board, eg rootzwiki.com
                       "|^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$" +
-                      "|^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$" +
+                      "|^https?://twitter.com/.*\\?url=(http[^&]+)(&.*)?$" +
                       "|^https?://([^/?&]*\.)?fotoblur\.com/images/[0-9+]" +
                       "|[\?&]img_?url=" +
                       "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$" +
