@@ -631,10 +631,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
 
-    var viewportElement = gBrowser.selectedBrowser.contentWindow;  
-    var scrollLeft = viewportElement.scrollX;
-    var scrollTop  = viewportElement.scrollY;
-
     if (typeof(gBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
@@ -644,6 +640,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_insideThumbBBox: returning true since no gBrowser");
       return true;
     }
+    var viewportElement = gBrowser.selectedBrowser.contentWindow;  
+    var scrollLeft = viewportElement.scrollX;
+    var scrollTop  = viewportElement.scrollY;
+
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
     var adj = {xMin:0, xMax:0, yMin:0, yMax:0};
@@ -808,6 +808,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _handleMouseMove : function (aDocument, aEvent, aPage) {
+    if (! window.ThumbnailZoomPlusChrome) {
+      // I've seen this happen after dragging a tab to a new window.
+      return;
+    }
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
     that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
@@ -815,6 +819,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _handleScroll : function (aDocument, aEvent, aPage) {
+    if (! window.ThumbnailZoomPlusChrome) {
+      // I've seen this happen after dragging a tab to a new window.
+      return;
+    }
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
     that._logger.debug("_handleScroll: _scrolledSinceMoved=true");
