@@ -253,7 +253,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=.*lockerz\.com|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com)/,
+    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com|photozou.jp\/p\/img\/)/,
 
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     // The currently-selected thumbnail in slideshow view has a div
@@ -271,6 +271,9 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   },
     
   getZoomImage : function(aImageSrc, node, flags) {
+    // lockerz, etc.:
+    // http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http%3A%2F%2Flockerz.com%2Fs%2F198302791
+    let rexPlixi = new RegExp("(.*/api\\.plixi\\.com/.*[?&])size=[a-z]+(.*)$");
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     // eg http://twitpic.com/show/mini/563w31; in this case mini and iphone exist but full doesn't.
@@ -283,10 +286,10 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     // http://s235.photobucket.com/albums/ee124/snasearles/?action=view&current=IMAG0019.jpg ->
     // http://s235.photobucket.com/albums/ee124/snasearles/IMAG0019.jpg
     let rex6 = new RegExp("(\.photobucket\.com/albums/.*/)\\?.*=([a-z0-9]\\.[a-z0-9]+)", "i");
-    // lockerz:
-    // http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http%3A%2F%2Flockerz.com%2Fs%2F198302791
-    let rexPlixi = new RegExp("(.*/api\\.plixi\\.com/.*[?&])size=[a-z]+(.*)$");
-    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg|\.photobucket\.com\/albums)/);
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|lockers\.com|instagram.com|twimg|\.photobucket\.com\/albums|photozou\.jp\/p\/img\/)/);
+    
+    // photozou.jp:
+    // http://photozou.jp/p/img/91576005 use as-is
     
     ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p10: " + aImageSrc);
 
@@ -299,6 +302,12 @@ ThumbnailZoomPlus.Pages.Twitpic = {
      * For now we use "full" to assure we get something, but it may be slow.
      */
     let image = null;
+    
+    if (rexPlixi.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexPlixi");
+      // See http://support.lockerz.com/entries/350297-image-from-url
+      image = aImageSrc.replace(rexPlixi, "$1size=big$2");
+    } 
     
     if (rex1.test(aImageSrc)) {
       ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex1");
@@ -327,11 +336,6 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     } else if (rex6.test(aImageSrc)) {
       ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex6");
       image = aImageSrc.replace(rex6, "$1$2");
-
-    } else if (rexPlixi.test(aImageSrc)) {
-      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexPlixi");
-      // See http://support.lockerz.com/entries/350297-image-from-url
-      image = aImageSrc.replace(rexPlixi, "$1size=big$2");
 
     } else if (rexNoModNecessary.test(aImageSrc)) {
       ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexNoModNecessary");
