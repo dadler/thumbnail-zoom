@@ -1763,13 +1763,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
-
-        // initially clear the ignore bbox to ensure we will show a
-        // new popup if we get a mouseOver even in the same area as the
-        // original thumb (eg after Google Images' popup disappears; see
-        // Issue #56).  This call is necessary since after user presses "0",
-        // _redisplayPopup() calls _setIgnoreBBoxPageRelative().
-        this._clearIgnoreBBox();
       }
     }
     // Help the garbage collector reclaim memory quickly.
@@ -1790,13 +1783,20 @@ ThumbnailZoomPlusChrome.Overlay = {
         // focus) event when we pop down the window.  That even would cause
         // the popup to stay closed, which we don't want.
         this._removeListenersWhenPopupHidden();
-        this._setIgnoreBBoxPageRelative();
+
+        // We could set ignore region so if mouse loses focus due to "0" or "-"
+        // changing popup position, we don't re-popup with default zoom.
+        // But we don't since that'd re-create 
+        // bug #56: Google images popup may stay up from prior image
+        // DISABLED: this._setIgnoreBBoxPageRelative();
+
         this._panel.hidePopup();
       }
       let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
       flags.noTooSmallWarning = true;
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, flags,
                                         this._origImageWidth, this._origImageHeight);
+
       // re-add back the listeners.
       this._addListenersWhenPopupShown();
     }
