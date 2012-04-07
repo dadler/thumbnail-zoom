@@ -471,8 +471,9 @@ ThumbnailZoomPlus.FilterService = {
 
     if (regExp.test(aImageSrc)) {
       validImage = true;
+      this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc + " using " + exp);
     } else {
-      this._logger.debug("ThumbnailPreview: filterImage rejected " + aImageSrc + " using " + exp);
+      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + aImageSrc + " using " + exp);
     }
 
     return validImage;

@@ -1240,15 +1240,20 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   host: /.*/,
   
   // We basically match any image, but exclude some which are annoying to
-  // show.  
+  // show.   
+  // Expression Tips:
+  // Patterns in () must match starting from first slash (or earlier)
+  // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp("^(?![^/]*(" +
-                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)|" + // google logos
-                          "(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)|" + // google maps tiles
-                          "(//maps\\.google\\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
-                          "(//maps\\.gstatic\\.com?[.a-z]*/.*)|" + // google maps button images
-                          "(//sh\\.deviantart\\.net/shadow/)|" + // deviantart frame around thumbs
-                          "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
-                          "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
+                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)" + // google logos
+                          "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" + // google maps tiles
+                          "|(//maps\\.google\\.com?[.a-z]*/.*)" + // google maps user photo popups, etc.
+                          "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" + // google maps button images
+                          "|(//sh\\.deviantart\\.net/shadow/)" + // deviantart frame around thumbs
+                          "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" + // amazon buttons
+                          "|(//[^/]*tiles\\.virtualearth\\.net/.*)" + // bing.com/maps tiles
+                          "|(//[^/]*.maps.live.com/i/.*)" + // bing.com/maps directions pin
+                          "|(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
   
   // For "Thumbnail"
@@ -1292,6 +1297,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       }
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
     }
+    
     return node;
   },
   
