@@ -1722,8 +1722,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       // render.
       this._logger.debug("_imageOnLoad: got 0 width or height; using 1000.");
       imageWidth = 1000;
-      // Use same aspect as thumb.
-      imageHeight = imageWidth * thumbHeight / thumbWidth;
+      // Use same aspect as thumb (not not too extreme since the thumb may actually
+      // be long text in an <a> tag).
+      let aspect = 1.0;
+      if (thumbWidth != 0 && thumbHeight != 0) {
+        aspect = thumbHeight / thumbWidth;
+      }
+      aspect = Math.min(4.0, Math.max(aspect, 0.25));
+      imageHeight = imageWidth * aspect;
     }
     
     if (flags.requireImageBiggerThanThumb &&
@@ -1757,6 +1763,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
+
+        // initially clear the ignore bbox to ensure we will show a
+        // new popup if we get a mouseOver even in the same area as the
+        // original thumb (eg after Google Images' popup disappears; see
+        // Issue #56).  This call is necessary since after user presses "0",
+        // _redisplayPopup() calls _setIgnoreBBoxPageRelative().
+        this._clearIgnoreBBox();
       }
     }
     // Help the garbage collector reclaim memory quickly.
@@ -1777,6 +1790,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // focus) event when we pop down the window.  That even would cause
         // the popup to stay closed, which we don't want.
         this._removeListenersWhenPopupHidden();
+        this._setIgnoreBBoxPageRelative();
         this._panel.hidePopup();
       }
       let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
