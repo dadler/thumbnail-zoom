@@ -993,21 +993,20 @@ ThumbnailZoomPlus.Pages.Others = {
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
   
-  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
-                      "tumblr.com/(photo/|tumblr_)|" +
-                      "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
-                      "[^/&\\?]+(&.*)?$|" +
-                      "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)|" +
-                      "/youtu.be/[^/]+$|" +
-                      "quickmeme\\.com/meme/|" +
-                      "qkme.me/|" +
-                      "/index.php\?.*module=attach|" + // IP.board, eg rootzwiki.com
-                      "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
-                      "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
-                      "[\?&]img_?url=|" +
-                      "(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)" +
-                      "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
-                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
+  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$" +
+                      "|tumblr.com/(photo/|tumblr_)" +
+                      "|imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$" +
+                      "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)" +
+                      "|/youtu.be/[^/]+$" +
+                      "|quickmeme\\.com/meme/" +
+                      "|qkme.me/" +
+                      "|/index.php\?.*module=attach" + // IP.board, eg rootzwiki.com
+                      "|^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$" +
+                      "|^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$" +
+                      "|^https?://([^/?&]*\.)?fotoblur\.com/images/[0-9+]" +
+                      "|[\?&]img_?url=" +
+                      "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$" +
+                      "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
                       , "i"),
 
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -1072,9 +1071,10 @@ ThumbnailZoomPlus.Pages.Others = {
         // link's node and the image's node, but the framework doesn't currently
         // let us return multiple.  The general approach would let us remove the
         // tumblr-specific code and work better on all sites.
-        let tumblrOrPhotoRegExp = new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*|(.*" + 
-                                    ThumbnailZoomPlus.Pages._imageTypesRegExpStr 
-                                    + ")", "i");
+        let tumblrOrPhotoRegExp = 
+          new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*" +
+                     "|(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
+                     "|fotoblur\.com/images/[0-9]+", "i");
         if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
             ! /assets\.tumblr\.com/.test(imgNodeURL) &&
             // test the link node's URL to see if it's an image:
@@ -1219,6 +1219,12 @@ ThumbnailZoomPlus.Pages.Others = {
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
   
+    // fotoblur.com: change
+    // http://www.fotoblur.com/images/389235 to
+    // http://www.fotoblur.com/api/resize?id=389235&width=1280&height=1024
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/[^\/?]*fotoblur\.com)\/images\/([0-9]+).*/,
+                                  "$1/api/resize?id=$2&width=1280&height=1024");
+                                  
     // For sites other than tumblr and twitpic, if there is no image suffix, add .jpg.
     let rex = new RegExp("tumblr\\.com/.*|" + 
                          "twimg[.0-9-]|twitpic\\.com|(" +
