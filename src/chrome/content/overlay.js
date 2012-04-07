@@ -861,7 +861,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _allowMouseOverPropagation : function(aPage, node) {
     if (aPage == ThumbnailZoomPlus.Pages.Google.aPage &&
-        /^imgthumb/.test(node.id)) {
+        (/^imgthumb|rg_hi/.test(node.id) ||
+         node.parentNode && node.parentNode.getAttribute &&
+         /uh_rl/.test(node.parentNode.getAttribute("class"))) ) {
       // We must prevent mouseOver from getting to the web page for
       // "Visually Related" thumbs in Google since Google's own popup
       // causes endless cycling due to a focus fight (issue #57).
@@ -1693,6 +1695,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _imageOnLoad : function(aImageNode, aImageSrc, 
                           flags, image)
   {
+    this._logger.trace("");
     this._logger.trace("_imageOnLoad");
 
     if (this._currentImage != aImageSrc) {
