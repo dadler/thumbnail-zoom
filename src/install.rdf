@@ -35,11 +35,11 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>thumbnailZoom@dadler.github.com</em:id>
     <em:name>Thumbnail Zoom Plus</em:name>
-    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Amazon, deviantART, Facebook, Flickr, Google+, Google Images, GMail, Reddit, Twitter, and more.  Thumbnail Zoom Plus is an enhanced version of the Thumbnail Zoom add-on.</em:description>
-    <em:version>1.6.1beta7</em:version>
+    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Amazon, Bing, Facebook, Flickr, Google, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Tumblr, Twitter, Yandex.ru, YouTube, Wikipedia, WordPress, Yahoo Images, and many more.</em:description>
+    <em:version>1.6.1beta8</em:version>
     <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
-    <!-- <em:homepageURL>http://dadler.github.com/thumbnail-zoom/</em:homepageURL> -->
+    <em:homepageURL>http://thumbnailzoomplus.wordpress.com/</em:homepageURL>
     <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
@@ -48,7 +48,7 @@
 		<Description>
 			<em:locale>sv-SE</em:locale>
 			<em:name>Thumbnail Zoom Plus</em:name>
-			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, deviantART, Facebook, Flickr, Google+, Google Bilder, GMail, Reddit, Twitter, och många fler.  Thumbnail Zoom Plus är en förbättrad version av tillägget Thumbnail Zoom.</em:description>
+			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, deviantART, Facebook, Flickr, Google+, Google Bilder, GMail, Reddit, Twitter, och många fler.</em:description>
 			<em:creator>David Adler och Andres Hernandez Monge</em:creator>
 			<em:translator>Mikael Hiort af Ornäs</em:translator>
 		</Description>
