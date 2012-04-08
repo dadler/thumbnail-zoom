@@ -824,8 +824,20 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     let that = ThumbnailZoomPlusChrome.Overlay;
+    let id = aEvent.target.getAttribute && aEvent.target.getAttribute("id");
+    if ("topicBoxCon" == id) {
+      // http://Weibo.com uses javascript to horizonally-scroll a list of
+      // article links, which causes lots of scroll events and makes it
+      // hard to reliably trigger pop-ups.  I don't know how to detect
+      // that a scroll event is synthetic so I explicitly ignore scrolls
+      // over that area.
+      // We normally disable this debug msgs to reduce CPU usage:
+      // that._logger.debug("_handleScroll: ignore since target id=" + id);
+      return;
+    }
     that._logger.debug("___________________________");
-    that._logger.debug("_handleScroll: _scrolledSinceMoved=true");
+    that._logger.debug("_handleScroll: _scrolledSinceMoved=true; " +
+      "; target id=" + id);
     that._scrolledSinceMoved = true;
   },
 

@@ -1225,11 +1225,12 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/[^\/?]*fotoblur\.com)\/images\/([0-9]+).*/,
                                   "$1/api/resize?id=$2&width=1280&height=1024");
                                   
-    // For sites other than tumblr and twitpic, if there is no image suffix, add .jpg.
-    let rex = new RegExp("tumblr\\.com/.*|" + 
-                         "twimg[.0-9-]|twitpic\\.com|(" +
-                         ThumbnailZoomPlus.Pages._imageTypesRegExpStr + 
-                         "(\\?.*)?$)", "i");
+    // For most sites, if there is no image suffix, add .jpg.
+    let rex = new RegExp("tumblr\\.com/.*" + 
+                         "|twimg[.0-9-]" +
+                         "|twitpic\\.com" +
+                         "|(" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$)"
+                         , "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
@@ -1431,16 +1432,22 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
     aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
     
+    // For weibo.com profile pics, change
+    // http://tp1.sinaimg.cn/1744655144/50/5602386657/0 to
+    // http://tp1.sinaimg.cn/1744655144/180/5602386657/0
+    aImageSrc = aImageSrc.replace(/(\.sinaimg\.cn\/[0-9]+)\/50\/(.*)/, "$1/180/$2");
+
+    // For weibo.com photos, change
+    // http://ww4.sinaimg.cn/thumbnail/4b80c1bdjw1drrv3te5ygj.jpg to
+    // http://ww4.sinaimg.cn/large/4b80c1bdjw1drrv3te5ygj.jpg
+    aImageSrc = aImageSrc.replace(/(\.sinaimg\.cn)\/thumbnail/, "$1/large");
+
     aImageSrc = aImageSrc.replace(/\/free_pictures\/thumbs\//, "/free_pictures/normal/");
     
     // For taobao.com, change
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg_310x310.jpg to
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg
-    ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage BEFORE " + aImageSrc);
     aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_[0-9]+x[0-9]+\\.jpg$"), "$1");
-    ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage AFTER " + aImageSrc);
     
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
