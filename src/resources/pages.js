@@ -1451,7 +1451,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // For taobao.com, change
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg_310x310.jpg to
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_[0-9]+x[0-9]+\\.jpg$"), "$1");
+    // sim for http://img02.taobaocdn.com/bao/uploaded/i2/T1zrSVXitjXXaE.Ufb_095429.jpg_b.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_(?:[0-9]+x[0-9]+|[a-z]+)\\.jpg$"), "$1");
     
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
