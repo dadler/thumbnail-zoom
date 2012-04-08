@@ -676,7 +676,47 @@ ThumbnailZoomPlusChrome.Overlay = {
     return inside;
   },
   
-  
+  _getInnerText : function(element) {
+    // Based on example by "Alex Blog" at
+    // http://ccapeng.blogspot.com/2006/01/firefox-innertext.html
+    
+    var innerText = "";
+    if (element.hasChildNodes()) {
+      
+      var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+      if (displayType != null && displayType!="none") {
+        for (var i = 0; i < element.childNodes.length; i++) {
+          if (element.tagName=="P") {
+            innerText = "\n" + innerText;
+          }
+          innerText = innerText + this._getInnerText( element.childNodes[i] );
+          //this._logger.debug("_getInnerText: after element " + i +
+          //                   " have '" + innerText + "'");
+        }
+        if (displayType!="inline") innerText = innerText + "\n";
+      }
+    } else {
+      if ( element.nodeType == 3 ) {
+        // text
+        innerText = innerText + element.nodeValue;
+      } else if (element.nodeType == 1) { 
+        // object
+        var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+        if (displayType == null || displayType=="none") {
+        } else if (displayType=="inline") {
+          innerText = innerText + element.textContent;
+          if (element.tagName=="BR") innerText = innerText + "\n";
+        } else {
+          innerText = innerText + element.textContent + "\n";
+        }
+      }
+      //this._logger.debug("_getInnerText: returning '" + innerText + "'");
+    }
+    
+    return innerText;
+    
+  },
+               
   /**
    * _getEffectiveTitle gets the text to be shown in the caption when
    * showing a popupfor aNode.
@@ -730,8 +770,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       // Look for document text enclosed by aNode (or its descendents).
-      let text = aNode.textContent
-      if (text != undefined && text != "") {
+      let text = this._getInnerText(aNode);
+      
+      // Remove trailing newlines and spaces:
+      text = text.replace(/\s+/, "");
+
+      if (text != "") {
         // change newlines to spaces to simplify the next test.
         text = text.replace(/\s+/gm, " ");
         let exp = /^ ?[0-9]+:[0-9]+ ?Add to ?$/m;
@@ -743,7 +787,28 @@ ThumbnailZoomPlusChrome.Overlay = {
           // so we can traverse up higher.
           this._logger.debug("_getEffectiveTitle: skipping tagWrapper (eg facebook)");
         } else {
-          // note: the exclusion test above is for youtube.com.
+          if (/rg_/.test(aNode.className)) {
+            // Specia clean-up for Google Images.  EG change from ... to ...
+            // pizza‑page.jpg aiellospizza.com 803 × 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar ‑ More sizes
+            // pizza‑page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
+            this._logger.debug("_getEffectiveTitle: doing Google Images cleanup on '" +
+                               text + "'");
+            // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
+            text = text.replace(/ +[0-9]+ . [0-9]+ /i, "");
+            text = text.replace(/ +Similar . More sizes */i, "");
+          }
+          if (/sg_/.test(aNode.className)) {
+            // Specia clean-up for Bing Images.  EG change from ... to ...
+            // prefer to make my pizza in a 15 inch pizza pan 900 x 602 · 544 kB · jpeg www.perfecthomemadepizza.com More sizes
+            // prefer to make my pizza in a 15 inch pizza pan · www.perfecthomemadepizza.com
+            this._logger.debug("_getEffectiveTitle: doing Bing Images cleanup on '" +
+                               text + "'");
+            // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
+            text = text.replace(/ +[0-9]+ . [0-9]+ . [0-9]+ kB */i, "");
+            text = text.replace(/ +(jpeg|gif|png) +/i, " ");
+            text = text.replace(/ +More sizes */i, "");
+          }
+
           title = text;
           this._logger.debug("_getEffectiveTitle: found with className " + aNode.className);
           break;
@@ -875,7 +940,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (aPage == ThumbnailZoomPlus.Pages.Google.aPage &&
         (/^imgthumb|rg_hi/.test(node.id) ||
          node.parentNode && node.parentNode.getAttribute &&
-         /uh_rl/.test(node.parentNode.getAttribute("class"))) ) {
+         /uh_rl/.test(node.parentNode.className)) ) {
       // We must prevent mouseOver from getting to the web page for
       // "Visually Related" thumbs in Google since Google's own popup
       // causes endless cycling due to a focus fight (issue #57).
