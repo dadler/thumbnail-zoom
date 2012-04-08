@@ -187,7 +187,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // showed the popup.
   _originalURI : "",
   
-  // observe is the function called when preferences change.
+  // observe is the function called when preferences change (set in init() ).
   observe : null,
   
   /**
