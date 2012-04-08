@@ -1261,6 +1261,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           "|(//maps\\.google\\.com?[.a-z]*/.*)" + // google maps user photo popups, etc.
                           "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" + // google maps button images
                           "|(//sh\\.deviantart\\.net/shadow/)" + // deviantart frame around thumbs
+                          "|(//st\\.deviantart\\.net/.*)" + // deviantart logo
                           "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" + // amazon buttons
                           "|(//[^/]*tiles\\.virtualearth\\.net/.*)" + // bing.com/maps tiles
                           "|(//[^/]*.maps.live.com/i/.*)" + // bing.com/maps directions pin
