@@ -58,6 +58,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   ThumbnailZoomPlus.Pages._init();
 };
 
+// _imageTypesRegExpStr is a non-remembering expression which matches
+// image file suffixes.
 ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 
 /***********
@@ -1477,6 +1479,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p40: so far have " + aImageSrc);
 
+    // For 500px.com change
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
+                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  "$1/4$2");
+                                  
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
