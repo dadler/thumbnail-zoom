@@ -790,8 +790,9 @@ ThumbnailZoomPlusChrome.Overlay = {
         } else {
           if (/rg_/.test(aNode.className)) {
             // Specia clean-up for Google Images.  EG change from ... to ...
-            // pizza‑page.jpg aiellospizza.com 803 × 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar ‑ More sizes
-            // pizza‑page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
+            // pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
+            // pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
+            // The - and x are non-ASCII characters.
             this._logger.debug("_getEffectiveTitle: doing Google Images cleanup on '" +
                                text + "'");
             // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
@@ -800,8 +801,9 @@ ThumbnailZoomPlusChrome.Overlay = {
           }
           if (/sg_/.test(aNode.className)) {
             // Specia clean-up for Bing Images.  EG change from ... to ...
-            // prefer to make my pizza in a 15 inch pizza pan 900 x 602 · 544 kB · jpeg www.perfecthomemadepizza.com More sizes
-            // prefer to make my pizza in a 15 inch pizza pan · www.perfecthomemadepizza.com
+            // prefer to make my pizza in a 15 inch pizza pan 900 x 602 . 544 kB . jpeg www.perfecthomemadepizza.com More sizes
+            // prefer to make my pizza in a 15 inch pizza pan . www.perfecthomemadepizza.com
+            // The - and x are non-ASCII characters.
             this._logger.debug("_getEffectiveTitle: doing Bing Images cleanup on '" +
                                text + "'");
             // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
@@ -953,7 +955,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
-  
+      if (! window.ThumbnailZoomPlusChrome) {
+        // I've seen this happen after dragging a tab to a new window.
+        return;
+      }
+    
     this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOver");
     
@@ -2022,6 +2028,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
+      flags.requireImageBiggerThanThumb = false;
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, 
