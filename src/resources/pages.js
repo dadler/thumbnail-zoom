@@ -1357,8 +1357,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         return null;
       }
       aImageSrc = backImage.replace(urlRegExp, "$1");
-      aImageSrc = ThumbnailZoomPlus.FilterService._applyBaseURI(node.ownerDocument, aImageSrc);
     }
+    
+    // For diasp.org & similar, get from <img data-full-photo="http://...">
+    let fullPhoto = node.getAttribute("data-full-photo");
+    if (fullPhoto) {
+      aImageSrc = fullPhoto;
+    }
+    
+    aImageSrc = ThumbnailZoomPlus.FilterService._applyBaseURI(node.ownerDocument, aImageSrc);
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p06: so far have " + aImageSrc);
 
@@ -1508,6 +1515,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*=)w[0-9][0-9][0-9]?$/, "$1w1000");
     aImageSrc = aImageSrc.replace(/(\.google\.com\/books?.*)&zoom=1&/, "$1&zoom=0&");
 
+    // For diasp.org:
+    // https://diasp.org/uploads/images/thumb_small_d4abd1cd065ed5746b01.jpg ->
+    // https://diasp.org/uploads/images/d4abd1cd065ed5746b01.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("/uploads/images/thumb_small_([a-z0-9]+" +
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                             "/uploads/images/$1");
+                                             
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
     
