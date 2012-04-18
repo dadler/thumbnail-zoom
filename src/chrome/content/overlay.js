@@ -855,8 +855,19 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
     
   _handleMouseOut : function (aDocument, aEvent, aPage) {
-  
-    return; // TODO
+    
+    /*
+     * We just return now.  We'd like to use this handler to dismiss the
+     * popup, e.g. when the user moves the mouse outside the browser.
+     * The problem is that this event is also triggered when the popup
+     * is displayed overlapping the thumb and the current mouse position,
+     * leading to an endless cycle of popups and popdowns.  So for now we
+     * just return.
+     *
+     * TODO: We might be able to solve it by setting _scrolledSinceMove so that
+     * further popups are disabled until the mouse actually moves.
+     */
+    return;
     
     this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOut leaving " + aEvent.target + 
@@ -975,6 +986,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Ignore attempt to redisplay the same image without first entering
       // a different element, on the assumption that it's caused by a
       // focus change after the popup was dismissed.
+      return;
+    }
+
+    if (x == 0 && y == 0) {
+      this._logger.debug("_handleMouseOver: ignoring mouseOver at (-1,-1), assumed synthetic");
       return;
     }
     
@@ -1698,7 +1714,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
-    this._focusThePopup();
+    this._focusThePopup(aImageNode);
     this._addListenersWhenPopupShown();
   },
   
@@ -2060,8 +2076,33 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Because we listen for hotkeys only on the popup itself, we're sure
    * we won't interpret typing in other areas such as the Location bar.
    */
-  _focusThePopup : function() {
+  _focusThePopup : function(aImageNode) {
     this._logger.trace("_focusThePopup");
+
+    let doc = this._currentWindow.document;
+    let focused = doc.activeElement;
+
+    if (focused && focused.tagName != "BODY") {
+      this._logger.debug("_focusThePopup: focused=" + focused + "; sending mouseover evnet");
+
+      // The focused element will lose focus when we give the popup focus.  Make
+      // it lose focus now so it'll send the inevitible blur (focus-loss) event.
+      // Then send a synthetic mouseover event so Firefox will continue to show
+      // the link's URL.  Fixes issue #60: Firefox doesn't show link URL after 
+      // popup displays.
+      focused.blur();
+      let synthetic = doc.createEvent("MouseEvents");
+      /* template: event.initMouseEvent(type, canBubble, cancelable, view, 
+                     detail, screenX, screenY, clientX, clientY, 
+                     ctrlKey, altKey, shiftKey, metaKey, 
+                     button, relatedTarget); */
+      synthetic.initMouseEvent("mouseover", true, true, this._currentWindow,
+                    0,   0, 0,   0, 0,   
+                    false, false, false, false,
+                    0,  focused);
+      aImageNode.dispatchEvent(synthetic);
+    }
+
     this._panelFocusHost.focus();
   },
   
@@ -2090,7 +2131,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel.moveTo(pos.x, pos.y);
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
-    this._focusThePopup();
+    this._focusThePopup(aImageNode);
   },
   
   _clearIgnoreBBox : function() {
