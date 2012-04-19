@@ -131,11 +131,13 @@ ThumbnailZoomPlusChrome.Overlay = {
                  refScrollLeft: 0, refScrollTop: 0},
   
   /**
-   * _scrolledSinceMoved is set true when we receive a scroll event and false4
+   * _scrolledSinceMoved is set true when we receive a scroll event and false
    * when we receive a mousemove event.  It is thus true if the last event
    * was a scroll.  We use this to ignore mouseOver events caused by scrolling.
    */
   _scrolledSinceMoved : false,
+  
+  _movedSincePoppedUp : false,
   
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
@@ -856,23 +858,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   _handleMouseOut : function (aDocument, aEvent, aPage) {
     
-    /*
-     * We just return now.  We'd like to use this handler to dismiss the
-     * popup, e.g. when the user moves the mouse outside the browser.
-     * The problem is that this event is also triggered when the popup
-     * is displayed overlapping the thumb and the current mouse position,
-     * leading to an endless cycle of popups and popdowns.  So for now we
-     * just return.
-     *
-     * TODO: We might be able to solve it by setting _scrolledSinceMove so that
-     * further popups are disabled until the mouse actually moves.
-     */
-    return;
-    
     this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOut leaving " + aEvent.target + 
                        " entering " + aEvent.relatedTarget);
-  
+    if (! this._movedSincePoppedUp) {
+      this._logger.debug("_handleMouseOut: didn't move since popping up; ignoring.");
+      return; 
+    }
+    
     let x = aEvent.screenX;
     let y = aEvent.screenY;
     if (this._insideThumbBBox(this._ignoreBBox, x, y)) {
@@ -895,6 +888,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
     that._scrolledSinceMoved = false;
+    that._movedSincePoppedUp = true;
   },
 
   _handleScroll : function (aDocument, aEvent, aPage) {
@@ -2129,6 +2123,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Explicitly move panel since if it was already popped-up, openPopupAtScreen
     // won't do anything.
     this._panel.moveTo(pos.x, pos.y);
+
+    // popping up can cause a mouseout event if the mouse ends up over
+    // the popup.  Prevent that with a tiny bbox.
+    this._movedSincePoppedUp = false;
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
     this._focusThePopup(aImageNode);
