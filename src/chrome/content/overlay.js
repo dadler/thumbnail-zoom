@@ -137,6 +137,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _scrolledSinceMoved : false,
   
+  // _movedSincePoppedUp is set false when popping up and true when mouse is
+  // moved over main doc.  We use it to ignore mouseout events resulting from
+  // loss of focus from showing the popup.
   _movedSincePoppedUp : false,
   
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
@@ -984,7 +987,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     if (x == 0 && y == 0) {
-      this._logger.debug("_handleMouseOver: ignoring mouseOver at (-1,-1), assumed synthetic");
+      this._logger.debug("_handleMouseOver: ignoring mouseOver at (0,0), assumed synthetic");
       return;
     }
     

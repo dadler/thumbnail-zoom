@@ -157,11 +157,15 @@ ThumbnailZoomPlus.FilterService = {
     if (aDocument.location) {
       host = aDocument.location.host;
       protocol = aDocument.location.protocol;
+      //this._logger.debug("    getHostOfDoc: loc from aDocument.location = "
+      //                   protocol + "//" + host);
     }
     if (! host || !protocol) {
+      // Try to get from an image node's src attr.  TODO: should it also
+      // try href?
       let imageSource = aDocument.src;
       if (imageSource) {
-        // this._logger.debug("    getHostOfDoc: trying loc from aDocument.src "
+        //this._logger.debug("    getHostOfDoc: trying loc from aDocument.src "
         //                   + imageSource);
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                             .getService(Components.interfaces.nsIIOService);

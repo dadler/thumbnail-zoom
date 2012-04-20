@@ -1504,6 +1504,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
+    aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
+    
     aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
     
     // Google Play album: change
@@ -1518,8 +1520,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // For diasp.org:
     // https://diasp.org/uploads/images/thumb_small_d4abd1cd065ed5746b01.jpg ->
     // https://diasp.org/uploads/images/d4abd1cd065ed5746b01.jpg
+    // https://joindiaspora.com/uploads/images/thumb_small_Tf3hixImiB4d06d4482c174313aa001347.jpeg
     aImageSrc = aImageSrc.replace(new RegExp("/uploads/images/thumb_small_([a-z0-9]+" +
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
                                              "/uploads/images/$1");
                                              
     // imageporter.com
