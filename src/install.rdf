@@ -37,7 +37,7 @@
     <em:id>thumbnailZoom@dadler.github.com</em:id>
     <em:name>Thumbnail Zoom Plus</em:name>
     <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Amazon, Bing, Facebook, Flickr, Google, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Tumblr, Twitter, Yandex.ru, YouTube, Wikipedia, WordPress, Yahoo Images, and many more.</em:description>
-    <em:version>1.6.1beta9</em:version>
+    <em:version>1.7.0rc1</em:version>
     <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
     <em:homepageURL>http://thumbnailzoomplus.wordpress.com/</em:homepageURL>
