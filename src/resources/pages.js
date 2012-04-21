@@ -1524,7 +1524,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("/uploads/images/thumb_small_([a-z0-9]+" +
                                              ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
                                              "/uploads/images/$1");
-                                             
+    
+    // modelmayhem.com:
+    // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_t.jpg to
+    // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_m.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://photos\\.modelmayhem\\.com/avatars/.*)_t(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1_m$2");
+    // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef_m.jpg to
+    // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://photos\\.modelmayhem\\.com/photos/.*)_[a-z](" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1$2");
+
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
     
