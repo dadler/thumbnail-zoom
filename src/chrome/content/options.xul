@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- - Copyright (c) 2010 Andres Hernandez Monge
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
  - All rights reserved.
  -
  - Redistribution and use in source and binary forms, with or without
@@ -34,11 +35,13 @@
 
 <!DOCTYPE overlay SYSTEM "chrome://thumbnailzoomplus/locale/locale.dtd">
 
+<!-- On Windows only the title is visible; on Mac only the prefpane is visible.
+     So we set both the same. -->
 <prefwindow id="thumbnailzoomplus-options-window"
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.pane.label;" flex="1">
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" flex="1">
     <preferences>
       <preference id="thumbnailzoomplus-options-enable-pref"
         name="extensions.thumbnailzoomplus.panel.enable" type="bool"/>
@@ -56,8 +59,10 @@
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
-      <preference id="thumbnailzoomplus-options-key-pref"
-        name="extensions.thumbnailzoomplus.panel.key" type="int"/>
+      <preference id="thumbnailzoomplus-options-activate-key-pref"
+        name="extensions.thumbnailzoomplus.panel.activatekey" type="int"/>
+      <preference id="thumbnailzoomplus-options-key-display-pref"
+        name="extensions.thumbnailzoomplus.panel.keydisplay" type="bool"/>
       <preference id="thumbnailzoomplus-options-max-key-pref"
         name="extensions.thumbnailzoomplus.panel.maxkey" type="int"/>
       <preference id="thumbnailzoomplus-options-defaultzoom-pref"
@@ -128,7 +133,12 @@
     <!-- General -->
     <groupbox>
       <caption>
-        <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
+        <hbox width="580px">
+          <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
+          <spacer flex="1" />
+          <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
+              href="http://thumbnailzoomplus.wordpress.com/" />
+          </hbox>
       </caption>
       <grid>
         <columns>
@@ -157,8 +167,18 @@
               increment="10" />
           </row>
           <row align="center">
-            <label value="&thumbnailzoomplus.options.key.selection.label;" />
-            <menulist preference="thumbnailzoomplus-options-key-pref">
+            <hbox align="center">
+              <label value="&thumbnailzoomplus.options.key1.selection.label;" />
+              <menulist preference="thumbnailzoomplus-options-key-display-pref"
+                        width="125">
+                <menupopup>
+                  <menuitem value="false" label="&thumbnailzoomplus.options.key.notdisplay.label;" />
+                  <menuitem value="true"  label="&thumbnailzoomplus.options.key.display.label;" />
+                </menupopup>
+              </menulist>
+              <label value="&thumbnailzoomplus.options.key2.selection.label;" />
+            </hbox>
+            <menulist preference="thumbnailzoomplus-options-activate-key-pref">
               <menupopup>
                 <menuitem value="0"
                   label="&thumbnailzoomplus.options.key.none.label;" />

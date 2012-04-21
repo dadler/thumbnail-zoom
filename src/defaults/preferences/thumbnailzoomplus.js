@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2010 Andres Hernandez Monge
+ * Copyright (c) 2010 Andres Hernandez Monge and 
+ * Copyright (c) 2011-2012 David M. Adler
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +36,12 @@ pref("extensions.thumbnailzoomplus.button.installed",   false);
 pref("extensions.thumbnailzoomplus.panel.enable",       true);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
 pref("extensions.thumbnailzoomplus.panel.partialloadwait", "1.0"); // seconds
-pref("extensions.thumbnailzoomplus.panel.key",          0);
+
+// Note: pref ...panel.key has been replaced by ...panel.activatekey.  The
+// original name is retired to avoid compatibility problems when reverting
+// back to 1.6.0.
+pref("extensions.thumbnailzoomplus.panel.activatekey",  0); // NONE
+pref("extensions.thumbnailzoomplus.panel.keydisplay",   true);
 pref("extensions.thumbnailzoomplus.panel.maxkey",       2); // SHIFT
 pref("extensions.thumbnailzoomplus.panel.border",       true);
 pref("extensions.thumbnailzoomplus.panel.largeimage",   false);

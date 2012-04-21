@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2010 Andres Hernandez Monge
+ * Copyright (c) 2010 Andres Hernandez Monge and 
+ * Copyright (c) 2011-2012 David M. Adler
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -156,11 +157,15 @@ ThumbnailZoomPlus.FilterService = {
     if (aDocument.location) {
       host = aDocument.location.host;
       protocol = aDocument.location.protocol;
+      //this._logger.debug("    getHostOfDoc: loc from aDocument.location = "
+      //                   protocol + "//" + host);
     }
     if (! host || !protocol) {
+      // Try to get from an image node's src attr.  TODO: should it also
+      // try href?
       let imageSource = aDocument.src;
       if (imageSource) {
-        // this._logger.debug("    getHostOfDoc: trying loc from aDocument.src "
+        //this._logger.debug("    getHostOfDoc: trying loc from aDocument.src "
         //                   + imageSource);
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                             .getService(Components.interfaces.nsIIOService);
@@ -168,6 +173,11 @@ ThumbnailZoomPlus.FilterService = {
         try {
           host = uri.host;
           protocol = uri.scheme + ":";
+          if (! host || !protocol) {
+            this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
+                               imageSrc + "; got " + protocol + "//" + host);
+            return null;
+          }
         } catch (e) {
           // uri.host throws an exception when the thumb's image data is
           // embedded in the URL, e.g. from Google Images for very small images
@@ -310,7 +320,8 @@ ThumbnailZoomPlus.FilterService = {
                       .getService(Components.interfaces.nsIIOService);
     var baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
     var uri = ioService.newURI(url, aDocument.characterSet, baseUri);
-    this._logger.debug("_applyBaseURI(, " + url + ") = " + uri.spec);
+    this._logger.debug("_applyBaseURI(" + aDocument.baseURI +
+                                      ", " + url + ") = " + uri.spec);
     return uri.spec;
   },
   
@@ -319,67 +330,125 @@ ThumbnailZoomPlus.FilterService = {
    * @param aNode the html node.
    * @param aPage the page constant.
    * @return object with fields:
+   *     node: the node from which imageURL was determined
    *     imageURL: string (null if not apply);
    *     noTooSmallWarning: boolean
    */
   getImageSource : function(aDocument, aNode, aPage) {
-    let result = {imageURL: null, noTooSmallWarning: false};
+    let result = {imageURL: null, noTooSmallWarning: false, node: aNode};
     let pageInfo = this.pageList[aPage];
     this._logger.debug("getImageSource: page " + aPage + " " + pageInfo.key);
 
-    let nodeName = aNode.localName.toLowerCase();
-    this._logger.debug("getImageSource: node name: " + nodeName + "; src: " +
-                       aNode.getAttribute("src") + "; href: " + aNode.getAttribute("href"));
+    // Get node name and class
+    let imageNode = aNode;
+    let nodeName = imageNode.localName.toLowerCase();
+    let nodeClass = imageNode.getAttribute("class");
+    this._logger.debug("getImageSource: aNode name=" + nodeName + "; src=" +
+                       imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                       "; backgroundImage=" + imageNode.style.backgroundImage +
+                       "; class=" + nodeClass);
     let imageSource =  null;
-    let imgImageSource = null;
+
     if ("img" == nodeName) {
       imageSource = aNode.getAttribute("src");
-      imageSource = this._applyBaseURI(aDocument, imageSource);
-      imgImageSource = imageSource;
-      this._logger.debug("getImageSource: node name: canonical URL: " + imageSource);
     }
 
-    // check special cases
+    // Call getSpecialSource if needed and defined (DEPRECATED)
     if (null != imageSource && pageInfo.getSpecialSource) {
       imageSource = pageInfo.getSpecialSource(aNode, imageSource);
-      this._logger.debug("getImageSource: node name: getSpecialSource returned " + imageSource);
+      imageNode = null;
+      this._logger.debug("getImageSource: getSpecialSource returned " + imageSource);
     }
     
-    // check other image nodes.
-    // TODO: perhaps we should change this to put the conditional
-    // only around the call to getImageNode(), and if pageInfo doesn't
-    // have getImageNode, use aNode itself as the imageNode.getImageSource
-    // which detects background images.
-    if (null == imageSource && pageInfo.getImageNode) {
-      let nodeClass = aNode.getAttribute("class");
-      let imageNode = null;
-      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass);      
-      if (imageNode) {
-        this._logger.debug("getImageSource: node class: " + nodeClass);
-        if (imageNode.hasAttribute("src")) {
-          imageSource = imageNode.getAttribute("src");
-          this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
-        } else if (imageNode.hasAttribute("href")) {
-          // for an <a href=> node, use javascript string conversion rather
-          // than retrieving the html attribute so it'll apply the base
-          // document's URL for missing components of the URL (eg domain).
-          imageSource = String(imageNode);
-          this._logger.debug("getImageSource: got image source from href of " + imageNode);
-          if (/^https?:\/\/t\.co\//.test(imageSource)) {
-			      // Special case for twitter http://t.co links; the actual
-			      // URL is in the link's tooltip.
-            imageSource = imageNode.title;
-          }
+    // Call getImageNode if defined.
+    if (pageInfo.getImageNode) {
+      this._logger.debug("getImageSource: calling getImageNode for " +
+                         "aNode=" + aNode + ", nodeName=" + nodeName +
+                         ", nodeClass=" + nodeClass + ", imageSource=" + imageSource);
+      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass, imageSource);      
+      if (imageNode != aNode) {
+        // changed nodes.   If imageNode == null, we're shouldn't do a popup.
+        // and we ignore if localName is null, as sometimes happens if the
+        // returned node is the document itself (seen when reloading Google Images)
+        imageSource = null; // we need to re-get imageSource.
+        if (imageNode != null && imageNode.localName) {
+          var nodeName = imageNode.localName;
+          let nodeClass = imageNode.getAttribute("class");
+          this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
+                           imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
+                           "; backgroundImage=" + imageNode.style.backgroundImage +
+                           "; class=" + nodeClass);
         } else {
-          let backImage = imageNode.style.backgroundImage;
-
-          if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-            this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
-            imageSource = backImage.replace(/url\(\"/, "").replace(/\"\)/, ""); // fix Xcode syntax highlighting: "
-          }
+          imageNode = null;
+          this._logger.debug("getImageSource: after getImageNode, imageNode=null; name=" + nodeName + 
+                             "; class=" + nodeClass);
         }
+      } else {
+        this._logger.debug("getImageSource: after getImageNode, node=" + imageNode);
       }
     }
+    
+    /*
+    if (imageSource == null && pageInfo.getSpecialSource &&
+        imageNode == aNode) {
+      // this case is needed e.g. so Google search results don't show popups,
+      // since its getSpeialSource returns null in that situation.
+      this._logger.debug("getImageSource: ignoring: no imageSource after getSpecialSource & getImageNode didn't change node");
+      result.imageURL = null;
+      return result;
+    }
+    */
+    
+    // If don't have imageSource yet, get from src, href, or backgroundImage.
+    if (null == imageSource && imageNode != null) {
+      if (imageNode.hasAttribute("src")) {
+        imageSource = imageNode.getAttribute("src");
+        this._logger.debug("getImageSource: got image source from src attr of " + imageNode);
+        
+      } else if (imageNode.hasAttribute("href")) {
+        // for an <a href=> node, use javascript string conversion rather
+        // than retrieving the html attribute so it'll apply the base
+        // document's URL for missing components of the URL (eg domain).
+        imageSource = String(imageNode);
+        this._logger.debug("getImageSource: got image source from href of " + imageNode);
+        if (/^https?:\/\/t\.co\//.test(imageSource)) {
+          // Special case for twitter http://t.co links; the actual
+          // URL is in the link's tooltip.
+          imageSource = imageNode.title;
+        }
+        
+      } else {
+        let backImage = imageNode.style.backgroundImage;
+            
+        if (backImage && "" != backImage && ! /none/i.test(backImage)) {
+          this._logger.debug("getImageSource: got image source from backgroundImage of " + imageNode);
+          imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
+                                 .replace(new RegExp("\"\\)"), "");
+        }
+      }      
+    }
+
+    // Exclude very small embedded-data images, e.g. from google.com search field:
+    // data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw%3D%3D
+    if (imageSource != null &
+        /^data:/.test(imageSource) &&
+        imageSource.length < 100) {
+      this._logger.debug("getImageSource: ignoring small embedded-data image " +
+                         imageSource);
+      imageSource = null;
+    }
+      
+    // Don't consider the source of an html doc embedded in an iframe to
+    // be a thumbnail (eg gmail compose email body area).
+    // Also don't consider a text input field (eg google search)
+    // since it's probably just a minor graphic like a shadow.
+    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
+        "embed" == nodeName || "input" == nodeName) {
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "getImageSource: ignoring due to node type '" + nodeName + "'");
+      imageSource = null;
+    } 
+
     if (imageSource != null) {
       imageSource = this._applyBaseURI(aDocument, imageSource);
     }
@@ -387,6 +456,7 @@ ThumbnailZoomPlus.FilterService = {
                        "; noTooSmallWarning=" + result.noTooSmallWarning);
     
     result.imageURL = imageSource;
+    result.node = imageNode;
     
     return result;
   },
@@ -406,8 +476,9 @@ ThumbnailZoomPlus.FilterService = {
 
     if (regExp.test(aImageSrc)) {
       validImage = true;
+      this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc + " using " + exp);
     } else {
-      this._logger.debug("ThumbnailPreview: filterImage rejected " + aImageSrc + " using " + exp);
+      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + aImageSrc + " using " + exp);
     }
 
     return validImage;
@@ -432,6 +503,12 @@ ThumbnailZoomPlus.FilterService = {
                        " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
                        " " + zoomImage);
 
+    if (! /^https?:\/\/./i.test(zoomImage)) {
+      // As a security precaution, we only allow http and https.
+      this._logger.debug("ThumbnailPreview: rejecting URL not beginning with http or https");
+      return null;
+    }
+    
     return zoomImage;
   }
 };

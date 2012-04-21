@@ -1,5 +1,6 @@
 <!--
- - Copyright (c) 2010 Andres Hernandez Monge
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
  - All rights reserved.
  -
  - Redistribution and use in source and binary forms, with or without
@@ -27,20 +28,25 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
+
+
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opzioni...">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Preferenze...">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Aiuto">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferenze">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Preferenze">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Attivare">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Ritardo prima di visualizzare l'immagine (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra immagine parziale dopo (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predefinito (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tasto per visualizzare l'immagine:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tasto">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "per">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "di non">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "visualizzare l'immagine:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tasto per massimizzare l'immagine:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra bordo bianco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Massimizzare la dimensione immagine di sovrapposti delle miniature">

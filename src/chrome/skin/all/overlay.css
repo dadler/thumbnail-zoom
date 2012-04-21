@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2010 Andres Hernandez Monge
+ * Copyright (c) 2010 Andres Hernandez Monge and 
+ * Copyright (c) 2011-2012 David M. Adler
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +45,21 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
   padding: 5px;
-  cursor: none !important;
   z-index: 10100;
+  
+  /*
+     We want to set cursor: none, but due to a bug seen in Firefox 11 on Mac,
+     the cursor sometimes gets stuck invisible after popdown.  As a workaround,
+     instead of using none, we set cursor to a transparent image.
+     Problem seen on the 4th image (which sets a non-default cursor)
+     on the Reddit framing of this imgur page:
+     http://www.reddit.com/tb/rd0b1
+     http://imgur.com/a/21WOk
+     
+     Possibly related bug report:
+     https://bugzilla.mozilla.org/show_bug.cgi?id=721239
+   */
+  cursor: url(chrome://thumbnailzoomplus/skin/images/transparent_1x1.gif), auto;
 }
 #thumbnailzoomplus-panel[panelnoborder=true] {
   padding: 0px;
@@ -62,6 +76,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-position: top left !important;
   image-rendering: optimizeQuality;
 }
+
 #thumbnailzoomplus-panel-vbox {
   background-color: #AAA !important;
 }
@@ -75,6 +90,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   border-width: 1px;
   -moz-border-radius: 5px;
   font-weight:bold;
+  font-size:9px !important;
 }
 
 #thumbnailzoomplus-panel-caption {

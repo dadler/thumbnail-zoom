@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2010 Andres Hernandez Monge
+ * Copyright (c) 2010 Andres Hernandez Monge and 
+ * Copyright (c) 2011-2012 David M. Adler
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +58,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   ThumbnailZoomPlus.Pages._init();
 };
 
+// _imageTypesRegExpStr is a non-remembering expression which matches
+// image file suffixes.
 ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 
 /***********
@@ -81,22 +84,27 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
+      Note that this is applied to the initial URL we hae after getSpecialSource
+      and getImageNode, but before getZoom Image (which is kind of odd; maybe
+      we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
 
-    * getSpecialSource: optional function(aNode, aNodeSource); returns
+    * getSpecialSource: DEPRECATED: use getImageNode and getZoomImage instead.
+      optional function(aNode, aNodeSource); returns
       new value of aNodeSource (image URL).  Called before getImageNode().
       Not called when user hovers directly over an img since we use that
-      as the source automatically.
+      as the source automatically.  Returning null doesn't necessarily prevent popup
+      so don't return null.
        
-    * getImageNode: optional function(aNode, nodeName, nodeClass).  Returns the
-      node from which the popup image's link will be generated.  Useful when
-      it's generated not from the direct thumbnail image, but an ancestor or
-      peer node.  The image URL is extracted (in fiterService.js) from the 
-      node's src, href, or background image.  The default function returns
-      the image node itself.  Called only if we don't already have an image
-      source after calling getSpecialSource.  Not called when the user hovers
-      directly over an img or when getSpecialSource returns non-null.
-
+    * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
+      Returns the node from which the popup image's link will be generated, or 
+      null if the popup should be disabled (i.e. to REJECT the popup).  
+      Useful when it's generated not from the direct thumbnail image, but an ancestor or
+      peer node.  The image URL will be extracted (in fiterService.js) from the 
+      returned node's src, href, or background image (assuming the return is
+      different than aNode).  The default function returns
+      the image node itself.  
+      
     * getZoomImage: required function(aImageSrc, node, popupFlags); returns the image URL.
       Translates the aImageSrc URL from the previous functions into the final
       URL of the full-size image for the popup, for example by
@@ -105,12 +113,21 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       can't because the user has disabled some other page related to the URL.
       Function can optionally modify members of flags, which is of class
       ThumbnailZoomPlus.FilterService.PopupFlags.  node is the node the user
-      hovered, useful e.g. if you want to check its class.
+      hovered, useful e.g. if you want to check its class.  You could decided
+      to use a different (probably related) node, but note that getZoomImage
+      won't even get called unless the hovered node has an image (otherwise
+      you'd need to use getImageNode).  Also, if you use a different node,
+      that node will not be considered by site enable flags.
 
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 
       assigned by calculation in filterService.js.
 
+    TODO: the rules governing getSpecialSource, getImageNode, and getZoomImage
+      are complex and a source of bugs.  For example, getImageNode can 
+      choose a node to use, but it can't safely choose not to reject the node.
+      It'd be better to simplify them and perhaps eliminate/merge some of them.
+      
  ***********/
 
 /**
@@ -132,12 +149,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
   imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/,
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
-    let image = ("i" == aNodeName ? aNode : 
-                 ("a" == aNodeName && "album_link" == aNodeClass) ? aNode.parentNode :
-                  null);
-    return image;
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    if ("a" == aNodeName && "album_link" == aNodeClass) {
+       aNode = aNode.parentNode;
+    }
+    return aNode;
   },
+  
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = aNodeSource;
     let rex = new RegExp(/static\.ak\.fbcdn\.net/);
@@ -148,7 +166,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         imageSource = aNode.nextSibling.getAttribute("src");
       } else {
         imageSource = aNode.style.backgroundImage.
-          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: " */
+          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: "))) */
       }
     }
     return imageSource;
@@ -164,7 +182,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // image and comments, and lightbox image is already pretty large.
       return null;
     }
-
+    if (aNodeClass && aNodeClass.indexOf("actorPic") >= 0) {
+      // Don't show popup for small Facebook thumb of the person who's
+      // entering a comment since the comment field loses focus and the 
+      // thumbnails disappears, which is confusing.
+      return null;
+    }
+    
     // Handle externally-linked images.
     let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
     if (rexExternal.test(aImageSrc)) {
@@ -232,14 +256,46 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   // Host includes twitter.com since twitter often hosts twitpic images.
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
   imageRegExp:
-    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|instagr\.am|instagram.com|twitpicproxy\.com)/,
+    /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com|photozou.jp\/p\/img\/)/,
+
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    // The currently-selected thumbnail in slideshow view has a div
+    // superimposed on it; find the corresponding img.
+    // example: https://twitter.com/#!/TheRomMistress/media/slideshow?url=pic.twitter.com%2FfNwHmcGv
+    if (nodeClass == "thumbnail-active-border-inner") {
+      // Find child "img" nodes
+      let imgNodes = node.parentNode.parentNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the last child.
+        node = imgNodes[imgNodes.length-1];
+      }
+    }
+    return node;
+  },
+    
   getZoomImage : function(aImageSrc, node, flags) {
+    // lockerz, etc.:
+    // http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http%3A%2F%2Flockerz.com%2Fs%2F198302791
+    let rexPlixi = new RegExp("(.*/api\\.plixi\\.com/.*[?&])size=[a-z]+(.*)$");
     let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
+    // eg http://twitpic.com/show/mini/563w31; in this case mini and iphone exist but full doesn't.
     let rex3 = new RegExp(/\/(mini|thumb|iphone|large)\//);
+    let rexInstagram = new RegExp("((instagr\\.am|instagram.com)/p/.*size)=[a-z]$");
     let rex4 = new RegExp(/\?size=t/);
-    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|instagram.com|twimg)/);
+    // yfrog: http://yfrog.com/gyw3xnpj:twthumb -> http://yfrog.com/gyw3xnpj:iphone
+    // see also http://code.google.com/p/imageshackapi/wiki/YFROGurls
+    let rex5 = new RegExp("(://yfrog\\..*):twthumb"); 
+    // http://s235.photobucket.com/albums/ee124/snasearles/?action=view&current=IMAG0019.jpg ->
+    // http://s235.photobucket.com/albums/ee124/snasearles/IMAG0019.jpg
+    let rex6 = new RegExp("(\.photobucket\.com/albums/.*/)\\?.*=([a-z0-9]\\.[a-z0-9]+)", "i");
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|lockers\.com|instagram.com|twimg|\.photobucket\.com\/albums|photozou\.jp\/p\/img\/)/);
     
+    // photozou.jp:
+    // http://photozou.jp/p/img/91576005 use as-is
+    
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p10: " + aImageSrc);
+
     /*
      * We could resolutions to "large".  Another option is "full", which is bigger,
      * but the server seems quite slow and "full" could take several seconds to
@@ -248,15 +304,54 @@ ThumbnailZoomPlus.Pages.Twitpic = {
      * Ideally we'd try "large" but if it fails, try "full".
      * For now we use "full" to assure we get something, but it may be slow.
      */
-    let image = rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "") :
-                rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "-full.") : 
-                rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "/full/") : 
-                rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "?size=f") :
-                rexNoModNecessary.test(aImageSrc) ? aImageSrc :
-                null;
+    let image = null;
+    
+    if (rexPlixi.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexPlixi");
+      // See http://support.lockerz.com/entries/350297-image-from-url
+      image = aImageSrc.replace(rexPlixi, "$1size=big$2");
+    } 
+    
+    if (rex1.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex1");
+      image = aImageSrc.replace(rex1, "");
+
+    } else if (rex2.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex2");
+      image = aImageSrc.replace(rex2, "-full.");
+
+    } else if (rex3.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex3");
+      image = aImageSrc.replace(rex3, "/iphone/");
+
+    } else if (rexInstagram.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexInstagram");
+      image = aImageSrc.replace(rexInstagram, "$1=l");
+
+    }  else if (rex4.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex4");
+      image = aImageSrc.replace(rex4, "?size=f");
+
+    } else if (rex5.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex5");
+      image = aImageSrc.replace(rex5, "$1:iphone");
+
+    } else if (rex6.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rex6");
+      image = aImageSrc.replace(rex6, "$1$2");
+
+    } else if (rexNoModNecessary.test(aImageSrc)) {
+      ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexNoModNecessary");
+      image = aImageSrc;
+    }
+    
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p20: " + image);
     if (image == null) {
       return null;
     }
+
+    // some twitpic images don't work with https so use http instead.
+    image = image.replace(new RegExp("https://twitpic\\.com/"), "http://twitpic.com/");
 
     if (false) {
       // This is disabled because while it may sometimes help, more often it 
@@ -273,6 +368,8 @@ ThumbnailZoomPlus.Pages.Twitpic = {
       }
     }
     
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p50: " + image);
+
     return image;
   }
 };
@@ -376,12 +473,13 @@ ThumbnailZoomPlus.Pages.MySpace = {
 ThumbnailZoomPlus.Pages.Netflix = {
   key: "netflix",
   name: "Netflix",
-  host: /^(.*\.)?netflix\.com$/,
+  host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net)$/,
   imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
                           "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
-                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
+                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$|" +
+                          "netflix\\..*llnwd\\.net/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
                           
-  getImageNode : function(aNode, nodeName, nodeClass) {
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     if (nodeName == "a" || nodeName == "img") {
       return aNode;
     }
@@ -398,7 +496,11 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // For static thumbs
     // http://cdn-2.nflximg.com/en_us/boxshots/large/60024022.jpg becomes
     // http://cdn-2.nflximg.com/en_us/boxshots/ghd/60024022.jpg
-    let netflixRex1 = new RegExp("(\.nflximg.com/.*/boxshots)/(large|[0-9]+)/");
+    // when not logged in, sign-up page needs to change 
+    // https://netflix.hs.llnwd.net/e1/en_us/boxshots/large/70208522.jpg to
+    //     // when not logged in, sign-up page has 
+    // https://netflix.hs.llnwd.net/e1/en_us/boxshots/ghd/70208522.jpg
+    let netflixRex1 = new RegExp("(/boxshots)/(large|small|[0-9]+)/");
     if (netflixRex1.test(aImageSrc)) {
       // popup for DVD box w/o play now.
       flags.popupAvoiderWidth = 392;
@@ -406,7 +508,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
     
     aImageSrc = aImageSrc.replace(netflixRex1, "$1/ghd/");
 
-    let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(small|main|[0-9]+)/");
+    let netflixRex2 = new RegExp("(\.nflximg.com/.*/kidscharacters)/(large|small|main|[0-9]+)/");
     aImageSrc = aImageSrc.replace(netflixRex2, "$1/cdp/");
     
     // For movie thumbs with "play" icons / links
@@ -433,7 +535,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
 ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
-  host: /^(.*\.)?flickr\.com$/,
+  host: /^(.*\.)?(static)?flickr\.com$/,
   imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
   getSpecialSource : function(aNode, aNodeSource) {
     let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
@@ -530,10 +632,10 @@ ThumbnailZoomPlus.Pages.OkCupid = {
   key: "okcupid",
   name: "okCupid",
   host: /^.*\.okcupid\.com$/,
-  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.jpeg$/,
+  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.(jpe?g|png|gif)$/i,
   getZoomImage : function(aImageSrc, node, flags) {
     // http://ak1.okccdn.com/php/load_okc_image.php/images/160x160/160x160/189x210/687x708/2/17985133630795268990.jpeg
-    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.jpeg)$/);
+    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.(jpe?g|png|gif))$/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
                  null);
     return image;
@@ -547,10 +649,7 @@ ThumbnailZoomPlus.Pages.PhotoBucket = {
   key: "photobucket",
   name: "PhotoBucket",
   host: /^(.*\.)?photobucket\.com$/,
-  imageRegExp: /[0-9]+\.photobucket.com\/(albums|groups)/,
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
-    return ("div" == aNodeName && "thumb" == aNodeClass ? aNode : null);
-  },
+  imageRegExp: /\.photobucket.com\/(albums|groups)/,
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/th_/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/") : null);
@@ -565,7 +664,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   key: "pinterest",
   name: "Pinterest",
   host: /^(.*\.)?pinterest\.com$/,
-  imageRegExp: /.*\/media-cdn\.pinterest\.com\/(upload|avatars)\/.*/,
+  imageRegExp: /.*\/media-[^.\/]*\.pinterest\.com\/(upload|avatars)\/.*/,
   getZoomImage : function(aImageSrc, node, flags) {
     // for images:
     let rex = new RegExp("([0-9_a-zA-Z]+_)b(" + 
@@ -605,14 +704,8 @@ ThumbnailZoomPlus.Pages.LastFM = {
   name: "Last.fm",
   host: /^(.*\.)?(last\.fm|lastfm.[a-z]+)$/,
   imageRegExp: /userserve-ak\.last\.fm\/serve/,
-  getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/\/serve\/\w+\//);
-    let image =
-      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
-    return image;
-  },
-  getImageNode : function(aNode, aNodeName, aNodeClass) {
-    let image = null;
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    let image = aNode;
     if ("span" == aNodeName  && aNode.previousSibling) {
       if ("overlay" == aNodeClass) {
         image = aNode.previousSibling.firstChild;
@@ -620,6 +713,13 @@ ThumbnailZoomPlus.Pages.LastFM = {
         image = aNode.previousSibling;
       }
     }
+    return image;
+  },
+  
+  getZoomImage : function(aImageSrc, node, flags) {
+    let rex = new RegExp(/\/serve\/\w+\//);
+    let image =
+      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/serve/_/") : null);
     return image;
   }
 };
@@ -710,33 +810,25 @@ ThumbnailZoomPlus.Pages.Google = {
   // To prevent this from interfering with GooglePlus, its entry
   // comes later in filterService.js.
   host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,
-  imageRegExp: /.+/,
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = null;
-    let imageHref = aNode.parentNode.getAttribute("href");
-    if (null != imageHref) {
-      let imageIndex = imageHref.indexOf("imgurl=");
-      if (-1 < imageIndex) {
-        imageSource = imageHref.substring(imageIndex + 7);
-        imageIndex = imageSource.indexOf("&");
-        if (-1 < imageIndex) {
-          imageSource = imageSource.substring(0, imageIndex);
-        }
-        
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: before decode URI=" + imageSource);
-
-        // The image URL is double-encoded; for example, a space is represented as "%2520".
-        // After first decode it's "%20" and after second decode it's " ".
-        imageSource = decodeURIComponent(imageSource);
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after decode URI=" + imageSource);
-
-        imageSource = decodeURIComponent(imageSource);
-        ThumbnailZoomPlus.Pages._logger.debug("Pages.Google.getSpecialSource: after 2nd decode URI=" + imageSource);
-      }
-    }
-    return imageSource;
+  
+  imageRegExp: /^https?:\/\//,
+  
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    return node.parentNode;
   },
+
   getZoomImage : function(aImageSrc, node, flags) {
+    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      aImageSrc = decodeURIComponent(aImageSrc);
+      if (! /^https?:\/\/./.test(aImageSrc)) {
+        aImageSrc = "http://" + aImageSrc;
+      }
+    } else {
+      aImageSrc = null;
+    }
     return aImageSrc;
   }
 };
@@ -803,8 +895,8 @@ ThumbnailZoomPlus.Pages.Imgur = {
   host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/[bsm](\.[a-z]+)/i);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
+    let rex = new RegExp(/(\/[a-z0-9]{5})[bsm](\.[a-z]+)/i);
+    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
   }
 };
@@ -904,31 +996,28 @@ ThumbnailZoomPlus.Pages.Others = {
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
   
-  imageRegExp: new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$|" +
-                      "tumblr.com/(photo/|tumblr_)|" +
-                      "imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)" +
-                          "[^/&\\?]+(&.*)?$|" +
-                      "(?:www\\.(nsfw)?youtube\\.com|youtu.be)/watch.*(?:v=|/)([^&#!/]+)[^/]*/*$|" +
-                      "/youtu.be/[^/]+$|" +
-                      "quickmeme\\.com/meme/|" +
-                      "qkme.me/|" +
-                      "/index.php\?.*module=attach|" + // eg rootzwiki.com
-                      "^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$|" +
-                      "^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$|" +
-                      "[\?&]img_?url=|" +
-                      "(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)" +
-                          "([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$|" +
-                      "stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
-                      "i"),
-
+  imageRegExp: new RegExp(
+      ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$"
+    + "|tumblr.com/(photo/|tumblr_)"
+    + "|imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
+    + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
+    + "|/youtu.be/[^/]+$"
+    + "|quickmeme\\.com/meme/"
+    + "|qkme.me/"
+    + "|/index.php\?.*module=attach" // IP.board, eg rootzwiki.com
+    + "|^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$"
+    + "|^https?://twitter.com/.*\\?url=(http[^&]+)(&.*)?$"
+    + "|^https?://([^/?&]*\.)?fotoblur\.com/images/[0-9+]"
+    + "|[\?&]img_?url="
+    + "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$"
+    + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
+    + "|^https?:\/\/[^/]+\.viddy\.com\/video\/[^\/?]+"
+    , "i"),
+                          
   _logger: ThumbnailZoomPlus.Pages._logger,
   
-  getSpecialSource : function(aNode, aNodeSource) {
-    // we never want to use the img node.
-    return null;
-  },
-  
-  getImageNode : function(aNode, nodeName, nodeClass) {
+  // For "Others"
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     let imgNode = null;
     let imgNodeURL = null;
     if (aNode.localName.toLowerCase() == "img") {
@@ -961,49 +1050,51 @@ ThumbnailZoomPlus.Pages.Others = {
     // For tumblr.com:
     let tumblrRegExp = new RegExp("\\.tumblr\\.com/(photo/|tumblr_)", "i");
     if (tumblrRegExp.test(imgNodeURL)) {
-        // Tumblr dashboard when Full Images is off doesn't link to the full-size
-        // images.  The img node has id="thumbnail_photo_1234567890", and
-        // the <a> node linking to the high-res image has id="high_res_link_1234567890"
-        let id=imgNode.id;
-        id = id.replace("thumbnail_photo_", "high_res_link_");
-        let related = imgNode.ownerDocument.getElementById(id);
-        this._logger.debug("ThumbnailPreview: Others: related ID=" + id + "; related=" +
-                           String(related));
-        if (related && related.getAttribute("href") != "") {
-            imgNodeURL = related.getAttribute("href");
-            aNode = related;
-            this._logger.debug("ThumbnailPreview: Others: detected tumblr high-rez link " +
-                               String(aNode));
-        }
+      // Tumblr dashboard when Full Images is off doesn't link to the full-size
+      // images.  The img node has id="thumbnail_photo_1234567890", and
+      // the <a> node linking to the high-res image has id="high_res_link_1234567890"
+      let id=imgNode.id;
+      id = id.replace("thumbnail_photo_", "high_res_link_");
+      let related = imgNode.ownerDocument.getElementById(id);
+      this._logger.debug("Others: related ID=" + id + "; related=" +
+                         String(related));
+      if (related && related.getAttribute("href") != "") {
+          imgNodeURL = related.getAttribute("href");
+          aNode = related;
+          this._logger.debug("Others: detected tumblr high-rez link " +
+                             String(aNode));
+      }
+      
+      // Special hack for tumblr: tumblr often uses thumbs which have links, where
+      // the thumb itself could be shown larger and the link may point to
+      // a non-image such as another tumblr's blog.  So we'd rather use the 
+      // thumb's image itself as our node than its link.  This is especially
+      // useful when the images are larger than the embedded size, e.g. when
+      // viewing tumblr zoomed out.
+      //
+      // TODO: The more general way to handle this would be to return both the
+      // link's node and the image's node, but the framework doesn't currently
+      // let us return multiple.  The general approach would let us remove the
+      // tumblr-specific code and work better on all sites.
+      let tumblrOrPhotoRegExp = 
+        new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*" +
+                   "|(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
+                   "|fotoblur\.com/images/[0-9]+", "i");
+      if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
+          ! /assets\.tumblr\.com/.test(imgNodeURL) &&
+          // test the link node's URL to see if it's an image:
+          (aNode == null || ! tumblrOrPhotoRegExp.test(String(aNode))) ) {
+        this._logger.debug("Others: detected tumblr; using thumb as image, node "
+                           + imgNode + " " + imgNodeURL);
         
-        // Special hack for tumblr: tumblr often uses thumbs which have links, where
-        // the thumb itself could be shown larger and the link may point to
-        // a non-image such as another tumblr's blog.  So we'd rather use the 
-        // thumb's image itself as our node than its link.  This is especially
-        // useful when the images are larger than the embedded size, e.g. when
-        // viewing tumblr zoomed out.
-        //
-        // TODO: The more general way to handle this would be to return both the
-        // link's node and the image's node, but the framework doesn't currently
-        // let us return multiple.  The general approach would let us remove the
-        // tumblr-specific code and work better on all sites.
-        let tumblrOrPhotoRegExp = new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*|(.*" + 
-                                    ThumbnailZoomPlus.Pages._imageTypesRegExpStr 
-                                    + ")", "i");
-        if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
-            ! /assets\.tumblr\.com/.test(imgNodeURL) &&
-            // test the link node's URL to see if it's an image:
-            (aNode == null || ! tumblrOrPhotoRegExp.test(String(aNode))) ) {
-          this._logger.debug("ThumbnailPreview: Others: detected tumblr; using thumb as image, node "
-                             + imgNode + " " + imgNodeURL);
-          
-          return imgNode;
-        }
+        return imgNode;
+      }
     }
     
     return aNode;
   },
   
+  // For "Others"
   getZoomImage : function(aImageSrc, node, flags) {
     /*
        The rules here transform various kinds of link URLs into links to images.
@@ -1029,18 +1120,18 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
-    // For google images links, images.yandex.ru, and some others, get URL from
-    // imgurl=... part.
-    let imgurlEx = new RegExp(/.*[\?&]img_?url=([^&]+).*$/);
+    // For google images links, google video search, images.yandex.ru, 
+    // and some others, get URL from imgurl=... part.
+    let imgurlEx = new RegExp(/.*[\?&](img_?)?url=([^&]+).*$/);
     if (imgurlEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
         return ""; // Google Images support is disabled by user preference.
       }
-      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
+      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
+      aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./.test(aImageSrc)) {
         aImageSrc = "http://" + aImageSrc;
       }
-      aImageSrc = decodeURIComponent(aImageSrc);
     }
 
     // Deviantart external links: change
@@ -1088,19 +1179,43 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     }
     
+    // For google.com/url?v= for youtube.com:
+    // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w to
+    // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w
+    let youtube2Ex = new RegExp("^(?:https?://)(?:[^/]*\\.)?google\\.com/url(?:\\?.*)?[?&]q=([^&]*).*$");
+    if (youtube2Ex.test(aImageSrc)) {
+      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
+        return ""; // YouTube support disabled by user preference.
+      }
+      aImageSrc = decodeURIComponent(aImageSrc.replace(youtube2Ex, "$1"));
+      this._logger.debug("Others getZoomImage: from google.com/url... got " + aImageSrc);
+      
+    }
+
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
     // http://i3.ytimg.com/vi/-b69G6kVzTc/hqdefault.jpg
     // http://youtu.be/kuX2lI84YRQ to
     // http://i3.ytimg.com/vi/kuX2lI84YRQ/hqdefault.jpg
-    let youtubeEx = new RegExp("(https?://)(?:[^/]*\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^&#!/]+)[^/]*/*$");
+    // http://www.youtube.com/embed/87xNpOYOlQ4?rel=0 to
+    // http://i3.ytimg.com/vi/87xNpOYOlQ4/hqdefault.jpg
+    let youtubeEx = new RegExp("(https?://)(?:[^/]*\\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
     if (youtubeEx.test(aImageSrc)) {
       if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
         return ""; // YouTube support disabled by user preference.
       }
       aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     }
-  
+
+    // For blogger aka Blogspot, change
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s320-p/Tiara+Riley.jpeg to
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s1600-p/Tiara+Riley.jpeg
+    // NOTE: This rule exists in both Others and Thumbnails, and should be the same in both.
+    let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
+    aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
+
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
@@ -1108,18 +1223,31 @@ ThumbnailZoomPlus.Pages.Others = {
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
-        
-    // For sites other than tumblr and twitpic, if there is no image suffix, add .jpg.
-    let rex = new RegExp("tumblr\\.com/.*|" + 
-                         "twimg[.0-9-]|twitpic\\.com|(" +
-                         ThumbnailZoomPlus.Pages._imageTypesRegExpStr + 
-                         "(\\?.*)?$)", "i");
+  
+    // fotoblur.com: change
+    // http://www.fotoblur.com/images/389235 to
+    // http://www.fotoblur.com/api/resize?id=389235&width=1280&height=1024
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/[^\/?]*fotoblur\.com)\/images\/([0-9]+).*/,
+                                  "$1/api/resize?id=$2&width=1280&height=1024");
+    
+    // viddy.com (see also in Thumbnail rule)
+    // http://www.viddy.com/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794 becomes
+    // http://cdn.viddy.com/images/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794.jpg
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/)[^/]+\.viddy\.com\/video\/([^\/?]+).*/i,
+                                  "$1/cdn.viddy.com/images/video/$2.jpg");
+                                  
+    // For most sites, if there is no image suffix, add .jpg.
+    let rex = new RegExp("tumblr\\.com/.*" + 
+                         "|twimg[.0-9-]" +
+                         "|twitpic\\.com" +
+                         "|(" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$)"
+                         , "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
       aImageSrc += ".jpg";
     }
-    this._logger.debug("ThumbnailPreview: Others using zoom image " + aImageSrc);
+    this._logger.debug("Others getZoomImage: using zoom image " + aImageSrc);
 
     return aImageSrc;
   }
@@ -1134,60 +1262,311 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   host: /.*/,
   
   // We basically match any image, but exclude some which are annoying to
-  // show.  
+  // show.   
+  // Expression Tips:
+  // Patterns in () must match starting from first slash (or earlier)
+  // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp("^(?![^/]*(" +
-                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)|" + // google logos
-                          "(//[a-z0-9]+\\.google.com?[.a-z]*/.*[/?]lyrs=.*)|" + // google maps tiles
-                          "(//maps\\.google\\.com?[.a-z]*/.*)|" + // google maps user photo popups, etc.
-                          "(//maps.gstatic.com?[.a-z]*/.*)|" + // google maps button images
-                          "(//sh.deviantart.net/shadow/)|" + // deviantart frame around thumbs
-                          "((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)|" + // amazon buttons
-                          "(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
+                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)" + // google logos
+                          "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" + // google maps tiles
+                          "|(//maps\\.google\\.com?[.a-z]*/.*)" + // google maps user photo popups, etc.
+                          "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" + // google maps button images
+                          "|(//sh\\.deviantart\\.net/shadow/)" + // deviantart frame around thumbs
+                          "|(//st\\.deviantart\\.net/.*)" + // deviantart logo
+                          "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" + // amazon buttons
+                          "|(//[^/]*tiles\\.virtualearth\\.net/.*)" + // bing.com/maps tiles
+                          "|(//[^/]*.maps.live.com/i/.*)" + // bing.com/maps directions pin
+                          "|(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
                           ")).*", "i"),
   
-  getImageNode : function(aNode, nodeName, nodeClass) {
-    if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
-        "embed" == nodeName) {
-      // Don't consider the source of an html doc embedded in an iframe to
-      // be a thumbnail (eg gmail compose email body area).
-      return null;
-    } 
-    if (! aNode.hasAttribute("src") && aNode.hasAttribute("href")) {
-      // We don't want to return aNode if it's just an href since we need
-      // it to be an actual image.  (The Others rule already handles hrefs.)
-      return null;
+  // For "Thumbnail"
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    if (/gii_folder_link/.test(nodeClass) ||
+        (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass))) {
+      // minus.com single-user gallery or
+      // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
+      // img nodes are in <img> child of the (great(grand))parent node of the
+      // hovered-over <a> node.  Find that node.  We don't specificaly test for
+      // the tumblr domain since we want to work even when a different domain
+      // is used, eg http://www.valentinovamp.com/archive
+      // TODO: a generalization of this logic might be useful in general, e.g.
+      // for yahoo.co.jp
+      let generationsUp = 1; // overlay
+      if (/gii_folder_link|inner/.test(nodeClass)) {
+        generationsUp = 2;
+      } else if (/date|notes/.test(nodeClass)) {
+        generationsUp = 3;
+      }
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected minus.com or possible tumblr.com; going up "
+          + generationsUp + " levels and then finding img.");
+      let ancestor = node;
+      while (generationsUp > 0 && ancestor) {
+        ancestor = ancestor.parentNode;
+        generationsUp--;
+      }
+      if (ancestor) {
+        // Find child "img" nodes
+        let imgNodes = ancestor.getElementsByTagName("img");
+        if (imgNodes.length > 0) {
+          // Confirm that it's tumblr or minus.com.
+          if (/gii_folder_link/.test(nodeClass) ||
+              /photo/.test(ancestor.getAttribute("class"))) {
+            // take the last child.
+            node = imgNodes[imgNodes.length-1];
+          } else {
+            ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed.");
+          }
+        }
+      }
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
     }
-    if ("gbqfif" == nodeClass // google search field.
-        ) {
-      return null;
-    }
-    return aNode;
+    
+    return node;
   },
   
+  // For "Thumbnail"
   getZoomImage : function(aImageSrc, node, flags) {
-    // Disable for certain kinds of images.
-    let aNodeClass = node.getAttribute("class");
-    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
-                                          node + "; class=" +
-                                          aNodeClass);
-    if ("spotlight" == aNodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
-        ) {
+    let verbose = false;
+    
+    let nodeName = node.localName.toLowerCase();
+    let nodeClass = node.getAttribute("class");
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
+                                          + " class='" + nodeClass + "'" +
+                                          " baseURI=" + node.baseURI);
+
+
+    if (! node.hasAttribute("src") && node.hasAttribute("href") &&
+        node.style.backgroundImage.indexOf("url") == -1) {
+      // We don't want to use node if it's just an href since we need
+      // it to be an actual image.  (The Others rule already handles hrefs.)
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
       return null;
     }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p03: so far have " + aImageSrc);
 
-    // for some sites where /images/thumb/(digits) changes thumb to full.
+    // For certain sites, if node has a background style, use image from that.
+    // And actually, aImageSrc may be already coming from the
+    // background but needs to be excluded.
+    // But in general we don't since it leads to too many popups from static
+    // background styling (non-image) graphics.
+    let backImage = node.style.backgroundImage;
+    let urlRegExp = /url\("(.*)"\)$/i;
+    if (backImage && "" != backImage && urlRegExp.test(backImage)) {
+      if (node.children.length > 0 && ! /thumb/.test(nodeClass)) {
+        // Ignore e.g. in Google Offers, where a big map image is the background
+        // around the guts of the page.
+        // But we explicitly allow using background image if nodeClass
+        // contains "thummb", as in 
+        ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring background image since has " +
+            node.children.length + " children > 0");
+        return null;
+      }
+      aImageSrc = backImage.replace(urlRegExp, "$1");
+    }
+    
+    // For diasp.org & similar, get from <img data-full-photo="http://...">
+    let fullPhoto = node.getAttribute("data-full-photo");
+    if (fullPhoto) {
+      aImageSrc = fullPhoto;
+    }
+    
+    aImageSrc = ThumbnailZoomPlus.FilterService._applyBaseURI(node.ownerDocument, aImageSrc);
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p06: so far have " + aImageSrc);
+
+    // Disable for certain kinds of Facebook thumbs.
+    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
+                                          node + "; class=" +
+                                          nodeClass);
+    if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
+        ) {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook spotlight");
+      return null;
+    }
+    if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
+      // Don't show popup for small Facebook thumb of the person who's
+      // entering a comment since the comment field loses focus and the 
+      // thumbnails disappears, which is confusing.
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
+      return null;
+    }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p10: so far have " + aImageSrc);
+
+    // For tiny tumblr profile thumbs change 
+    // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
+    // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png ; also as
+    // https://gs1.wac.edgecastcdn.net/8019B6/data.tumblr.com/avatar_c9703e0bc252_64.png
+    // TODO: Similar changes would help for images in archives, changing 128 to 400, 500, or 1280.
+    // But we aren't guaranteed that those sizes exist so we don't handle that case.
+    let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
+    aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
+
+    // For Google Play Android Apps, change
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
+    // and ...=w124 and ...==w78-h78
+    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
+    let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
+    
+    // For Wordpress and Bing Images, etc., get URL from
+    // imgurl=... part.
+    // eg, change:
+    // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
+    // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
+    let imgurlEx = /.*[\?&](img_?)?url=([^&]+).*$/;
+    if (imgurlEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      if (! /^https?:\/\/./i.test(aImageSrc)) {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: adding http:// prefix after finding url=" +
+                                              aImageSrc);
+        aImageSrc = "http://" + aImageSrc;
+      }
+    }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p20: so far have " + aImageSrc);
+
+    
+    // For wordpress, change:
+    // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
+    // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg
+    // Similarly for http://wsj2day.files.wordpress.com/2012/03/wsj4060.jpg?w=72&crop=1&h=72
+    let wordpressEx = new RegExp("https?://[^/]+\\.files\\.wordpress\\.com/");
+    if (wordpressEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(/[?&]w=[0-9]+/, "");
+      aImageSrc = aImageSrc.replace(/[?&]h=[0-9]+/, "");
+      aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
+    }
+    
+    // For blogger aka Blogspot, change
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
+    // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s320-p/Tiara+Riley.jpeg to
+    // http://1.bp.blogspot.com/-cCrMafs3SJ4/TwcFrqD23II/AAAAAAAABCg/3GxEgPh0qRQ/s1600-p/Tiara+Riley.jpeg
+    // NOTE: This rule exists in both Others and Thumbnails, and should be the same in both.
+    let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
+    aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
+    
+    // For weibo.com profile pics, change
+    // http://tp1.sinaimg.cn/1744655144/50/5602386657/0 to
+    // http://tp1.sinaimg.cn/1744655144/180/5602386657/0
+    aImageSrc = aImageSrc.replace(/(\.sinaimg\.cn\/[0-9]+)\/50\/(.*)/, "$1/180/$2");
+
+    // For weibo.com photos, change
+    // http://ww4.sinaimg.cn/thumbnail/4b80c1bdjw1drrv3te5ygj.jpg to
+    // http://ww4.sinaimg.cn/large/4b80c1bdjw1drrv3te5ygj.jpg
+    aImageSrc = aImageSrc.replace(/(\.sinaimg\.cn)\/thumbnail/, "$1/large");
+
+    aImageSrc = aImageSrc.replace(/\/free_pictures\/thumbs\//, "/free_pictures/normal/");
+    
+    // For taobao.com, change
+    // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg_310x310.jpg to
+    // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg
+    // sim for http://img02.taobaocdn.com/bao/uploaded/i2/T1zrSVXitjXXaE.Ufb_095429.jpg_b.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_(?:[0-9]+x[0-9]+|[a-z]+)\\.jpg$"), "$1");
+    
+    // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
+    // we verify the site using baseURI.
+    let leBonCoinSiteRegExp = new RegExp("\\.leboncoin\\.fr/", "i");
+    if (leBonCoinSiteRegExp.test(node.baseURI)) {
+      // change
+      // http://193.164.197.30/thumbs/171/1716737621.jpg to
+      // http://193.164.197.30/images/171/1716737621.jpg
+      let leBonCoinRegExp = new RegExp("/thumbs/([0-9]+/[0-9]+" + 
+                                       ThumbnailZoomPlus.Pages._imageTypesRegExpStr +
+                                       ")");
+      aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
+    }
+    
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p30: so far have " + aImageSrc);
+
+    // minus.com
+    let minusRegexp = new RegExp("([.\\/]minus\\.com/.*)_(e|xs)\\.jpg");
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: testing " + aImageSrc + " against " + minusRegexp +
+            ": " + minusRegexp.test(aImageSrc));
+    aImageSrc = aImageSrc.replace(minusRegexp, "$1.jpg");
+
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p40: so far have " + aImageSrc);
+
+    // For 500px.com change
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
+                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  "$1/4$2");
+                                  
+    // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
     let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
     aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
     
-    // For some sites, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
-    let regEx = new RegExp("(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
+    let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
+    aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
+    
+    aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
+    
+    // Google Play album: change
+    // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
+    // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
+    // and
+    // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=2&source=ge-web-market to
+    // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=0&source=ge-web-market
+    aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*=)w[0-9][0-9][0-9]?$/, "$1w1000");
+    aImageSrc = aImageSrc.replace(/(\.google\.com\/books?.*)&zoom=1&/, "$1&zoom=0&");
+
+    // For diasp.org:
+    // https://diasp.org/uploads/images/thumb_small_d4abd1cd065ed5746b01.jpg ->
+    // https://diasp.org/uploads/images/d4abd1cd065ed5746b01.jpg
+    // https://joindiaspora.com/uploads/images/thumb_small_Tf3hixImiB4d06d4482c174313aa001347.jpeg
+    aImageSrc = aImageSrc.replace(new RegExp("/uploads/images/thumb_small_([a-z0-9]+" +
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "/uploads/images/$1");
+    
+    // modelmayhem.com:
+    // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_t.jpg to
+    // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_m.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://photos\\.modelmayhem\\.com/avatars/.*)_t(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1_m$2");
+    // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef_m.jpg to
+    // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://photos\\.modelmayhem\\.com/photos/.*)_[a-z](" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1$2");
+
+    // viddy.com (see also in Others rule):
+    // http://cdn.viddy.com/images/users/thumb/15dfd804-ab4f-4998-a1f4-fc56277fe0b3_150x150.jpg to
+    // http://cdn.viddy.com/images/users/15dfd804-ab4f-4998-a1f4-fc56277fe0b3.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]+\\.viddy\\.com/.*)/thumb/(.*)_[0-9]+x[0-9]+(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1/$2$3");
+    
+    // imageporter.com
+    aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
+    
+    // weheartit.com uses 
+    // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
+    // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg
+    aImageSrc = aImageSrc.replace(/(data\.whicdn\.com\/images\/.*)_thumb\.jpg/,
+                                  "$1_large.jpg");
+                                  
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
+
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p99: so far have " + aImageSrc);
 
     return aImageSrc; 
   }

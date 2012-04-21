@@ -1,5 +1,6 @@
 <!--
- - Copyright (c) 2010 Andres Hernandez Monge
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
  - All rights reserved.
  -
  - Redistribution and use in source and binary forms, with or without
@@ -30,17 +31,20 @@
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Opções...">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Preferências...">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Ajuda">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferências">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Preferências">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Habilitar">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra imagem parcial após (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom pré-definido (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tecla para exibir a imagem:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label           "Tecla para">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "exibir">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "não exibir">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "a imagem:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar a imagem:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">

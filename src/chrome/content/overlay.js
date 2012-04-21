@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2010 Andres Hernandez Monge
+ * Copyright (c) 2010 Andres Hernandez Monge and 
+ * Copyright (c) 2011-2012 David M. Adler
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +41,8 @@ Cu.import("resource://thumbnailzoomplus/uninstallService.js");
  */
 ThumbnailZoomPlusChrome.Overlay = {
   /* UI preference keys. */
-  PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.key",
+  PREF_PANEL_ACTIVATE_KEY : ThumbnailZoomPlus.PrefBranch + "panel.activatekey",
+  PREF_PANEL_ACTIVATE_KEY_ACTIVATES : ThumbnailZoomPlus.PrefBranch + "panel.keydisplay",
   PREF_PANEL_MAX_KEY : ThumbnailZoomPlus.PrefBranch + "panel.maxkey",
   PREF_PANEL_WAIT : ThumbnailZoomPlus.PrefBranch + "panel.wait",
   PREF_PANEL_PARTIAL_LOAD_WAIT: ThumbnailZoomPlus.PrefBranch + "panel.partialloadwait",
@@ -80,13 +82,18 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel caption (a label). */
   _panelCaption : null,
 
+  /* The non-visible text field in the popup for holding keyboard focus. */
+  _panelFocusHost : null,
+
   /* Context menu's download image menu item */
   _contextMenu : null,
 
   /* File Picker. */
   _filePicker : null,
   
-  /* The current image source (URL). */
+  /* The current image source (URL).  This is used to detect whether
+     an event is for the current window's popup, and also for open in new
+     tab, open in new window, and save as. */
   _currentImage : null,
 
   // The image object which is currently being loaded (as in new Image ...)
@@ -113,11 +120,30 @@ ThumbnailZoomPlusChrome.Overlay = {
     within which hover events are ignored, to avoid accidentally re-triggering
     the popup when the window regains focus.  Unlike _thumbBBox, 
     _ignoreBBox sometimes gets invalidated, when we no longer need to
-    ignore a region.
+    ignore a region.  We set _ignoreBBox based on _thumbBBox when we
+    pop-down the panel and need to prevent the resulting mouseOver from
+    popping it up again, e.g. when closing due to the Escape key.  
+    
+    We don't set _ignoreBBox when we popup since that causes problems when 
+    the bbox we get is wrong due to clipping or when the thumb we popped up from 
+    disappears, e.g. when scrolling in Google Images hides Google Images'
+    own popup on which we had hovered.
    */
   _ignoreBBox : { xMin: 999, xMax: -999, yMin: 999, yMax: -999,
                  refScrollLeft: 0, refScrollTop: 0},
-                  
+  
+  /**
+   * _scrolledSinceMoved is set true when we receive a scroll event and false
+   * when we receive a mousemove event.  It is thus true if the last event
+   * was a scroll.  We use this to ignore mouseOver events caused by scrolling.
+   */
+  _scrolledSinceMoved : false,
+  
+  // _movedSincePoppedUp is set false when popping up and true when mouse is
+  // moved over main doc.  We use it to ignore mouseout events resulting from
+  // loss of focus from showing the popup.
+  _movedSincePoppedUp : false,
+  
   // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
   
@@ -168,7 +194,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // showed the popup.
   _originalURI : "",
   
-  // observe is the function called when preferences change.
+  // observe is the function called when preferences change (set in init() ).
   observe : null,
   
   /**
@@ -184,6 +210,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
+    this._panelFocusHost = document.getElementById("thumbnailzoomplus-panel-focus-host");
     this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
 
@@ -257,7 +284,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-
+  _getEntity : function(key) {
+    // Gets name from the <XXXENTITYREF ENTITYkey="..."> attribute in overlay.xul
+    // if it exists; this is how we get localized names based on locale.dtd entity
+    // definitions.
+    return document.getElementById("thumbnailzoomplus-entity-names")
+                   .getAttribute("ENTITY_" + key);
+    
+  },
+  
   /**
    * Adds the menu items.
    */
@@ -288,11 +323,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         
         let name = pageInfo.name;
         if (name == "") {
-          // Get name from the <XXXENTITYREF ENTITYkey="..."> attribute if it exists; 
-          // this is how we get localized names based on locale.dtd entity
-          // definitions.
-          name = document.getElementById("thumbnailzoomplus-options-page-names")
-                         .getAttribute("ENTITY" + pageInfo.key);
+          name = this._getEntity("page_" + pageInfo.key);
           ThumbnailZoomPlus.FilterService.pageList[i].name = name;
         }
         menuItem.setAttribute("label", name);
@@ -355,7 +386,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       function(aEvent) {
         that._handlePopupMove(aEvent);
       }, true);
-    
+          
     /*
      * For dragging tab into empty space (make new window):
      * Add listeners in any pre-existing documents.  Normally there won't 
@@ -386,12 +417,16 @@ ThumbnailZoomPlusChrome.Overlay = {
      * all three of keydown, keyup, and keypress; that keeps for example
      * reddpics.com from refreshing the page when we hit Escape.
      * This is only active while the pop-up is displayed.
+     * 
+     * Note that some compound keys like "?" can appear in keypress but
+     * may appear as 0 in keydown.
      */
     let useCapture = false;
-    window.addEventListener("keydown", this._handleKeyDown, useCapture);
-    window.addEventListener("keyup", this._handleKeyUp, useCapture);
-    window.addEventListener("keypress", this._handleIgnoreKey, useCapture);
-      
+    this._panel.addEventListener("keydown", this._handleKeyDown, useCapture);
+    this._panel.addEventListener("keyup", this._handleKeyUp, useCapture);
+    this._panel.addEventListener("keypress", this._handleIgnoreKey, useCapture);
+    this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
+
     /*
      * Listen for pagehide events to hide the popup when navigating away
      * from the page.  Some pages like deviantart use hashtags like
@@ -410,10 +445,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   _removeListenersWhenPopupHidden : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_removeListenersWhenPopupHidden");
-    window.removeEventListener("keydown", this._handleKeyDown, false);
-    window.removeEventListener("keyup", this._handleKeyUp, false);
-    window.removeEventListener("keypress", this._handleIgnoreKey, false);
-      
+    this._panel.removeEventListener("keydown", this._handleKeyDown, false);
+    this._panel.removeEventListener("keyup", this._handleKeyUp, false);
+    this._panel.removeEventListener("keypress", this._handleIgnoreKey, false);
+    this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
+
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
     window.removeEventListener(
@@ -440,9 +476,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handleTabSelected: other win=" + that._currentWindow);
     that._addEventListenersToDoc(gBrowser.contentDocument);
 
-    this._ignoreBBox.xMax = -999; // don't reject next move as trivial.
+    // don't reject next move as trivial.
+    this._clearIgnoreBBox();
     this._logger.debug("_handleTabSelected: _closePanel since tab selected");
-    this._closePanel();
+    this._closePanel(true);
   },
   
   
@@ -467,7 +504,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
       this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
-      this._closePanel();
+      this._closePanel(true);
     }
   },
   
@@ -483,7 +520,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _addEventListenersToDoc: function(doc) {
     this._logger.trace("_addEventListenersToDoc");
 
-    this._ignoreBBox.xMax = -999;
+    this._clearIgnoreBBox();
 
     let that = this;
 
@@ -546,6 +583,24 @@ ThumbnailZoomPlusChrome.Overlay = {
           function(aEvent) {
             that._handleMouseOver(doc, aEvent, pageConstant);
           }, true);
+        doc.addEventListener(
+          "mousemove",
+          function(aEvent) {
+            that._handleMouseMove(doc, aEvent, pageConstant);
+          }, true);
+        doc.addEventListener(
+          "scroll",
+          function(aEvent) {
+            that._handleScroll(doc, aEvent, pageConstant);
+          }, true);
+        // Also listen for mouseout so we can popdown if the user moves
+        // the mouse outside the document area without entering another
+        // non-thumbnail element.
+        doc.addEventListener(
+          "mouseout",
+          function(aEvent) {
+            that._handleMouseOut(doc, aEvent, pageConstant);
+          }, true);
       } else {
         this._logger.debug("_addEventListenersToDoc: not on a matching site: " + doc.documentURI);
       }
@@ -554,7 +609,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  _insideThumbBBox : function(doc, x,y) {
+  _insideThumbBBox : function(bbox, x,y) {
     // TODO: this is used to prevent re-showing a popup after we get
     // an event in the doc's window when the user dismisses a popup which is
     // covering the mouse via Escape or mouse-click.  The problem is that 
@@ -579,15 +634,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     // down.  Or always popdown without looking at bbox if the newly entered
     // element doesn't correspond to something we'd popup for.
     
-    if (this._ignoreBBox.xMax == -999) {
+    if (bbox.xMax == -999) {
       // passed the quick test for "no bbox".
-     this._logger.debug("_insideThumbBBox: returning true since _ignoreBBox.xMax == -999");
+      this._logger.debug("_insideThumbBBox: returning false since _ignoreBBox.xMax == -999");
       return false;
     }
-      
-    var win = doc.defaultView;  
-    var scrollLeft = win.scrollX;
-    var scrollTop = win.scrollY;
+
     if (typeof(gBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
@@ -597,17 +649,21 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_insideThumbBBox: returning true since no gBrowser");
       return true;
     }
+    var viewportElement = gBrowser.selectedBrowser.contentWindow;  
+    var scrollLeft = viewportElement.scrollX;
+    var scrollTop  = viewportElement.scrollY;
+
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    var adj = this._ignoreBBox;
+    var adj = {xMin:0, xMax:0, yMin:0, yMax:0};
     // Adjust the bounding box to account for scrolling.  Note that the box's
     // position on-screen moves the opposite direction than the scroll amount.
-    var xOffset = (adj.refScrollLeft - scrollLeft) * pageZoom; 
-    var yOffset = (adj.refScrollTop - scrollTop) * pageZoom;
-    adj.xMin += xOffset;
-    adj.xMax += xOffset;
-    adj.yMin += yOffset;
-    adj.yMax += yOffset;
+    var xOffset = (bbox.refScrollLeft - scrollLeft) * pageZoom; 
+    var yOffset = (bbox.refScrollTop - scrollTop) * pageZoom;
+    adj.xMin = bbox.xMin + xOffset;
+    adj.xMax = bbox.xMax + xOffset;
+    adj.yMin = bbox.yMin + yOffset;
+    adj.yMax = bbox.yMax + yOffset;
 
     var inside = (x > adj.xMin &&
                   x < adj.xMax &&
@@ -615,7 +671,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                   y < adj.yMax);
     if (0) this._logger.debug("_insideThumbBBox: zoom=" + pageZoom + 
                       "; orig scroll=" +
-                      adj.refScrollLeft + "," + adj.refScrollTop +
+                      bbox.refScrollLeft + "," +
+                      bbox.refScrollTop +
                       "; cur scroll=" +
                       scrollLeft + "," + scrollTop +
                       "; scaled diff = " + xOffset+
@@ -628,7 +685,47 @@ ThumbnailZoomPlusChrome.Overlay = {
     return inside;
   },
   
-  
+  _getInnerText : function(element) {
+    // Based on example by "Alex Blog" at
+    // http://ccapeng.blogspot.com/2006/01/firefox-innertext.html
+    
+    var innerText = "";
+    if (element.hasChildNodes()) {
+      
+      var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+      if (displayType != null && displayType!="none") {
+        for (var i = 0; i < element.childNodes.length; i++) {
+          if (element.tagName=="P") {
+            innerText = "\n" + innerText;
+          }
+          innerText = innerText + this._getInnerText( element.childNodes[i] );
+          //this._logger.debug("_getInnerText: after element " + i +
+          //                   " have '" + innerText + "'");
+        }
+        if (displayType!="inline") innerText = innerText + "\n";
+      }
+    } else {
+      if ( element.nodeType == 3 ) {
+        // text
+        innerText = innerText + element.nodeValue;
+      } else if (element.nodeType == 1) { 
+        // object
+        var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+        if (displayType == null || displayType=="none") {
+        } else if (displayType=="inline") {
+          innerText = innerText + element.textContent;
+          if (element.tagName=="BR") innerText = innerText + "\n";
+        } else {
+          innerText = innerText + element.textContent + "\n";
+        }
+      }
+      //this._logger.debug("_getInnerText: returning '" + innerText + "'");
+    }
+    
+    return innerText;
+    
+  },
+               
   /**
    * _getEffectiveTitle gets the text to be shown in the caption when
    * showing a popupfor aNode.
@@ -682,8 +779,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       // Look for document text enclosed by aNode (or its descendents).
-      let text = aNode.textContent
-      if (text != undefined && text != "") {
+      let text = this._getInnerText(aNode);
+      
+      // Remove trailing newlines and spaces:
+      text = text.replace(/\s+/, "");
+
+      if (text != "") {
         // change newlines to spaces to simplify the next test.
         text = text.replace(/\s+/gm, " ");
         let exp = /^ ?[0-9]+:[0-9]+ ?Add to ?$/m;
@@ -695,7 +796,30 @@ ThumbnailZoomPlusChrome.Overlay = {
           // so we can traverse up higher.
           this._logger.debug("_getEffectiveTitle: skipping tagWrapper (eg facebook)");
         } else {
-          // note: the exclusion test above is for youtube.com.
+          if (/rg_/.test(aNode.className)) {
+            // Specia clean-up for Google Images.  EG change from ... to ...
+            // pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
+            // pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
+            // The - and x are non-ASCII characters.
+            this._logger.debug("_getEffectiveTitle: doing Google Images cleanup on '" +
+                               text + "'");
+            // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
+            text = text.replace(/ +[0-9]+ . [0-9]+ /i, "");
+            text = text.replace(/ +Similar . More sizes */i, "");
+          }
+          if (/sg_/.test(aNode.className)) {
+            // Specia clean-up for Bing Images.  EG change from ... to ...
+            // prefer to make my pizza in a 15 inch pizza pan 900 x 602 . 544 kB . jpeg www.perfecthomemadepizza.com More sizes
+            // prefer to make my pizza in a 15 inch pizza pan . www.perfecthomemadepizza.com
+            // The - and x are non-ASCII characters.
+            this._logger.debug("_getEffectiveTitle: doing Bing Images cleanup on '" +
+                               text + "'");
+            // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
+            text = text.replace(/ +[0-9]+ . [0-9]+ . [0-9]+ kB */i, "");
+            text = text.replace(/ +(jpeg|gif|png) +/i, " ");
+            text = text.replace(/ +More sizes */i, "");
+          }
+
           title = text;
           this._logger.debug("_getEffectiveTitle: found with className " + aNode.className);
           break;
@@ -737,6 +861,81 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
     return title;
   },
+    
+  _handleMouseOut : function (aDocument, aEvent, aPage) {
+    
+    this._logger.debug("___________________________");
+    this._logger.debug("_handleMouseOut leaving " + aEvent.target + 
+                       " entering " + aEvent.relatedTarget);
+    if (! this._movedSincePoppedUp) {
+      this._logger.debug("_handleMouseOut: didn't move since popping up; ignoring.");
+      return; 
+    }
+    
+    let x = aEvent.screenX;
+    let y = aEvent.screenY;
+    if (this._insideThumbBBox(this._ignoreBBox, x, y)) {
+      // Ignore attempt to redisplay the same image without first entering
+      // a different element, on the assumption that it's caused by a
+      // focus change after the popup was dismissed.
+      return;
+    }
+
+    this._clearIgnoreBBox();
+    this._closePanel(true);
+  },
+
+  _handleMouseMove : function (aDocument, aEvent, aPage) {
+    if (! window.ThumbnailZoomPlusChrome) {
+      // I've seen this happen after dragging a tab to a new window.
+      return;
+    }
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("___________________________");
+    that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
+    that._scrolledSinceMoved = false;
+    that._movedSincePoppedUp = true;
+  },
+
+  _handleScroll : function (aDocument, aEvent, aPage) {
+    if (! window.ThumbnailZoomPlusChrome) {
+      // I've seen this happen after dragging a tab to a new window.
+      return;
+    }
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    let id = aEvent.target.getAttribute && aEvent.target.getAttribute("id");
+    if ("topicBoxCon" == id) {
+      // http://Weibo.com uses javascript to horizonally-scroll a list of
+      // article links, which causes lots of scroll events and makes it
+      // hard to reliably trigger pop-ups.  I don't know how to detect
+      // that a scroll event is synthetic so I explicitly ignore scrolls
+      // over that area.
+      // We normally disable this debug msgs to reduce CPU usage:
+      // that._logger.debug("_handleScroll: ignore since target id=" + id);
+      return;
+    }
+    that._logger.debug("___________________________");
+    that._logger.debug("_handleScroll: _scrolledSinceMoved=true; " +
+      "; target id=" + id);
+    that._scrolledSinceMoved = true;
+  },
+
+  /**
+   * _losingPopupFocus is called when the popup loses keyboard focus.
+   * This happens when the user activates a different input field, such
+   * as the Location or Find field (by clicking or hotkey).  We
+   * close the popup so the user can use that field and so his typing won't
+   * be interpreted as TZP hotkeys.
+   */
+  _losingPopupFocus : function(aEvent) {
+    let that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.debug("___________________________");
+    that._logger.debug("_losingPopupFocus; closing popup.");
+
+    // Prevent another popup from immediately happening and taking focus back.
+    that._setIgnoreBBoxPageRelative();
+    that._closePanel(false);
+  },
   
   /**
    * Handles the mouse over event.
@@ -750,11 +949,30 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._handleMouseOverImpl(aDocument, aEvent, aPage);
     }
   },
+
+  _allowMouseOverPropagation : function(aPage, node) {
+    if (aPage == ThumbnailZoomPlus.Pages.Google.aPage &&
+        (/^imgthumb|rg_hi/.test(node.id) ||
+         node.parentNode && node.parentNode.getAttribute &&
+         /uh_rl/.test(node.parentNode.className)) ) {
+      // We must prevent mouseOver from getting to the web page for
+      // "Visually Related" thumbs in Google since Google's own popup
+      // causes endless cycling due to a focus fight (issue #57).
+      // thumb id imgthumb10.
+      this._logger.debug("_allowMouseOverPropagation: disalowing for " + node);
+      return false;
+    }
+    return true;
+  },
   
   _handleMouseOverImpl : function (aDocument, aEvent, aPage) {
-  
+      if (! window.ThumbnailZoomPlusChrome) {
+        // I've seen this happen after dragging a tab to a new window.
+        return;
+      }
+    
     this._logger.debug("___________________________");
-    this._logger.trace("_handleMouseOver");
+    this._logger.debug("_handleMouseOver");
     
     if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true)) {
       return;
@@ -762,26 +980,35 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
-      this._closePanel();
+      this._closePanel(true);
       return;
     }
     
     let x = aEvent.screenX;
     let y = aEvent.screenY;
-    if (this._insideThumbBBox(aDocument, x, y)) {
+    if (this._insideThumbBBox(this._ignoreBBox, x, y)) {
       // Ignore attempt to redisplay the same image without first entering
       // a different element, on the assumption that it's caused by a
       // focus change after the popup was dismissed.
       return;
     }
+
+    if (x == 0 && y == 0) {
+      this._logger.debug("_handleMouseOver: ignoring mouseOver at (0,0), assumed synthetic");
+      return;
+    }
     
     // Mouse entered a different region; clear the previous 'ignore' region
     // so a future mouse move can re-enter it and re-popup.
-    this._ignoreBBox.xMax = -999;
-    
-    if (! this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, aEvent)) {
-      this._logger.debug("_handleMouseOver: _closePanel since hot key not down");
-      this._closePanel();
+    this._clearIgnoreBBox();
+
+    let keyActivates = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
+                                                 true);
+    let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
+                                      !keyActivates, true, aEvent);
+    if (! keyActive) {
+      this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
+      this._closePanel(true);
       return;
     }
 
@@ -789,14 +1016,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     let node = aEvent.target;
 
     // Close the previously displayed popup (if any).
-    this._closePanel();
+    this._closePanel(true);
 
+    if (this._scrolledSinceMoved) {
+      this._logger.debug("_handleMouseOver: _scrolledSinceMoved==true; ignoring");
+      return;
+    }
+    
     if (node == null) {
       this._logger.debug("_handleMouseOver: event.target=null; ignoring");
       return;
     }
     if (node.localName == null) {
-      // reported by user on Ubuntu Linux.
+      // reported by user on Ubuntu Linux (perhaps node is the document itself?)
       this._logger.debug("_handleMouseOver: event.target.localName=null; ignoring");
       return;
     }
@@ -808,6 +1040,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.initWithCallback({ notify:
         function() { that._findPageAndShowImage(aDocument, aEvent, aPage, node); }
       }, this._getHoverTime(), Ci.nsITimer.TYPE_ONE_SHOT);
+
+    if (! this._allowMouseOverPropagation(aPage, node)) {
+      aEvent.stopPropagation();
+    }
   },
 
 
@@ -854,6 +1090,22 @@ ThumbnailZoomPlusChrome.Overlay = {
                                 .getImageSource(aDocument, node, aPage);
     let imageSource = imageSourceInfo.imageURL;
     
+    // imageSourceNode is the node from which the full-size image's URL
+    // is determined.  Node remains the node from which the hover event
+    // was provoked.  This distinction is important because:
+    // * We want to getZoomImage to use the node from what the URL will be determined
+    // * When using a caption, we must clear .title on the event's node
+    // * When checking whether the popup's file type is different than the
+    //   thumb's, we need the node of the actual thumb, which is more likely
+    //   to be the provoking node (since the Others rule typically returns
+    //   a parent's <a> node).
+    // TODO: ideally we might want to use imageSourceNode for positioning,
+    // but still use node for captioning.
+    let imageSourceNode = node;
+    if (imageSourceInfo.node != null) {
+      imageSourceNode = imageSourceInfo.node;
+    }
+    
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
       return "rejectedNode";
@@ -861,18 +1113,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
-                            .getZoomImage(imageSource, node, flags, aPage);
+                            .getZoomImage(imageSource, imageSourceNode, flags, aPage);
     if (zoomImageSrc == "") {
-      this._logger.debug("_findPageAndShowImage: getZoomImage returned '' (matched but disabled by user).");
+      this._logger.debug("_tryImageSource: getZoomImage returned '' (matched but disabled by user).");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
-      this._logger.debug("_findPageAndShowImage: getZoomImage returned null.");
+      this._logger.debug("_tryImageSource: getZoomImage returned null.");
       return "rejectedNode";
     }
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
-    this._logger.debug("_findPageAndShowImage: *** Setting _originalURI=" + 
+    this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
                        this._originalURI);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
@@ -934,34 +1186,44 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /**
    * Verifies if the key is active.
+   * @param prefName: the preference which determines which modifier key we look for
+   * @param negate: if true, negates the logic of the test, returning true
+   *                iff the key is *not* down (but does not have an effect if no
+   *                key is configured).
+   * @param useState: if true, looks not just at the key of the current event,
+   *                  but also the modifier state based on prior events.
    * @param aEvent the event object.
    * @return true if active, false otherwise.
    */
-  _isKeyActive : function(prefName, aEvent) {
+  _isKeyActive : function(prefName, negate, useState, aEvent) {
     this._logger.trace("_isKeyActive");
 
     let active = false;
     let keyPref = ThumbnailZoomPlus.getPref(prefName, 2);
     switch (keyPref) {
       case 1:
-        active = aEvent.ctrlKey || 
+        active = (useState && aEvent.ctrlKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_CONTROL);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'control key', return " 
                            + active);
         break;
       case 2:
-        active = aEvent.shiftKey || 
+        active = (useState && aEvent.shiftKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_SHIFT);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'shift key', return " 
                            + active);
         break;
       case 3:
-        active = aEvent.altKey || 
+        active = (useState && aEvent.altKey) || 
                  (aEvent.keyCode != undefined && aEvent.keyCode == aEvent.DOM_VK_ALT);
+        active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'alt key', return " 
                            + active);
         break;
       default:
+        // none; 'negate' flag does not apply.
         active = true;
         this._logger.debug("_isKeyActive: based on 'None key', return " 
                            + active);
@@ -1056,12 +1318,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /*
    * Sets the popup's caption from aImageNode's (or its ancestor's).
-   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
-   * before this gets called, so it isn't suppressed.
+   * Doesn't actually hide the tooltip from the original node.
+   *
    * Note that the tooltip doen't get unhidden until we popup,
    * and the node's title doesn't get cleared (to hide the tooltip)
-   * until just after we dispaly, so we don't clear the tooltip
+   * until just after we display, so we don't clear the tooltip
    * if we end up not displaying it.
+   * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
+   * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode) {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
@@ -1095,7 +1359,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // location.  Note that we temporarily save _currentWindow since _closePanel
     // clears it.
     let currentWindow = this._currentWindow;
-    this._closePanel();
+    this._closePanel(true);
     this._currentWindow = currentWindow;
     
     this._originalURI = this._currentWindow.document.documentURI;
@@ -1125,6 +1389,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  /**
+   * _hideCaption hides the caption from the popup and restores the original
+   * tooltip to the original node.
+   */
   _hideCaption : function() {
       this._logger.trace("_hideCaption");
       this._panelCaption.hidden = true;
@@ -1145,8 +1413,15 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /**
    * Closes the panel.
+   * @param: clearContext: true iff we should entirely clear this popup's
+   *         context.  False if we should hide the popup, but still remember
+   *         its image as context e.g. for Save As...
+   *         Pass false for events where the mouse is still over the thumb,
+   *         but the user has requested a pop-down, e.g. pressing Escape or
+   *         losing keyboard focus.  Note that the act of popping up the
+   *         context menu causes the popup to lose focus.
    */
-  _closePanel : function() {
+  _closePanel : function(clearContext) {
     try {
       // When called from _handlePageHide after closing window with Control+W
       // while popup is up, some of the statements below raise exceptions
@@ -1155,7 +1430,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       // silently ignore exceptions here.
       this._logger.trace("_closePanel");
       
-      this._contextMenu.hidden = true;
+      if (clearContext) {
+        this._contextMenu.hidden = true;
+        this._currentImage = null;
+      }
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
 
@@ -1176,7 +1454,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       this._originalURI = "";
-      this._currentImage = null;
       this._hideThePopup();
       
       // We no longer need the image contents, and don't want them to show
@@ -1203,42 +1480,44 @@ ThumbnailZoomPlusChrome.Overlay = {
     let x = aEvent.screenX;
     let y = aEvent.screenY;
 
-    if (x >= this._ignoreBBox.xMin &&
-        x <= this._ignoreBBox.xMax &&
-        y >= this._ignoreBBox.yMin &&
-        y <= this._ignoreBBox.yMax) {
+    if (this._insideThumbBBox(this._thumbBBox, x, y)) {
       // Mouse is still over the thumbnail.  Ignore the move and don't
       // dismiss since the thumb would immediately receive an 'over' event
       // and retrigger the popup to display.
       this._logger.debug("_handlePopupMove: ignoring since mouse at " +
                          x + "," + y +
-                         " is within thumb " +
-                         this._ignoreBBox.xMin + ".." + this._ignoreBBox.xMax + "," +
-                         this._ignoreBBox.yMin + ".." + this._ignoreBBox.yMax);
+                         " is within thumb bbox");
       return;
     }
     // moved outside bbox of thumb; dismiss popup.
     this._logger.debug("_handlePopupMove: closing with mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
-    this._closePanel();
+    this._closePanel(true);
   },
 
 
   _handlePopupClick : function(aEvent) {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
-    this._closePanel();
+    this._setIgnoreBBoxPageRelative();
+    this._closePanel(false);
   },
   
   _recognizedKey : function(aEvent) {
+    if (aEvent.metaKey || aEvent.ctrlKey) {
+      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      return false;
+    }
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_A ||
             aEvent.keyCode == aEvent.DOM_VK_C ||
             aEvent.keyCode == aEvent.DOM_VK_D ||
+            aEvent.keyCode == aEvent.DOM_VK_H ||
             aEvent.keyCode == aEvent.DOM_VK_P ||
             aEvent.keyCode == aEvent.DOM_VK_N ||
+            aEvent.keyCode == aEvent.DOM_VK_S ||
             aEvent.keyCode == aEvent.DOM_VK_T ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
             aEvent.keyCode == aEvent.DOM_VK_0);
@@ -1250,8 +1529,22 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _doHandleKeyDown : function(aEvent) {
-    this._logger.debug("_handleKeyDown for code "  + aEvent.keyCode );
+    this._logger.debug("_handleKeyDown for keyCode="  + aEvent.keyCode +
+                       "(charCode=" + aEvent.charCode + "; which=" +
+                       aEvent.which + ")");
     
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, false, aEvent)) {
+      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
+      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
+      this._currentAllowCoverThumb = true;
+      this._redisplayPopup();
+    }
+    
+    if (aEvent.metaKey || aEvent.ctrlKey) {
+      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      return false;
+    }
+
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
       // open preferences
       this._logger.debug("_handleKeyUp: openPreferences since pressed p key");
@@ -1282,6 +1575,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       window.open(this._currentImage, 
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_S) {
+      this._logger.debug("_handleKeyUp: save image");
+      this.downloadImage();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
@@ -1323,14 +1620,10 @@ ThumbnailZoomPlusChrome.Overlay = {
                          this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
       this._redisplayPopup();
-
-    } else if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
-      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
-      this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
-      this._currentAllowCoverThumb = true;
-      this._redisplayPopup();
+    } else if (aEvent.keyCode == aEvent.DOM_VK_H) {
+      this.openHelp();
     }
-
+    
     if (this._recognizedKey(aEvent)) {
       this._logger.debug("_handleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
@@ -1348,7 +1641,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // don't want.
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
-      that._closePanel();
+      that._setIgnoreBBoxPageRelative();
+      that._closePanel(false);
     }
     if (that._recognizedKey(aEvent)) {
       that._logger.debug("_handleKeyUp: ignoring key event");
@@ -1385,7 +1679,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.trace("_handlePageHide");
     if (this._currentWindow == affectedWindow) {
       that._logger.debug("_handlePageHide: closing panel");
-      that._closePanel();
+      that._closePanel(true);
     }
     return true; // allow page to hide
   },
@@ -1394,7 +1688,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.trace("_handleHashChange");
     that._logger.debug("_handleHashChange: closing panel");
-    that._closePanel();
+    that._closePanel(true);
   },
   
   _showStatusIcon : function(aImageNode, iconName, iconWidth) {
@@ -1423,6 +1717,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
+    this._focusThePopup(aImageNode);
     this._addListenersWhenPopupShown();
   },
   
@@ -1437,7 +1732,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let that = this;
     this._timer.initWithCallback(
-        { notify: function() { that._closePanel(); } }, 
+        { notify: function() { that._closePanel(true); } }, 
         1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
@@ -1503,6 +1798,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _imageOnLoad : function(aImageNode, aImageSrc, 
                           flags, image)
   {
+    this._logger.trace("");
     this._logger.trace("_imageOnLoad");
 
     if (this._currentImage != aImageSrc) {
@@ -1521,31 +1817,52 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
+    let imageWidth = image.width;
+    let imageHeight = image.height;
+    if (imageWidth == 0 || imageHeight == 0) {
+      // Some images (such as .svg Scalable Vector Graphics) don't always have
+      // an explicit size.  Give it an arbitrary resolution, at which it'll
+      // render.
+      this._logger.debug("_imageOnLoad: got 0 width or height; using 1000.");
+      imageWidth = 1000;
+      // Use same aspect as thumb (not not too extreme since the thumb may actually
+      // be long text in an <a> tag).
+      let aspect = 1.0;
+      if (thumbWidth != 0 && thumbHeight != 0) {
+        aspect = thumbHeight / thumbWidth;
+      }
+      aspect = Math.min(4.0, Math.max(aspect, 0.25));
+      imageHeight = imageWidth * aspect;
+    }
+    
     if (flags.requireImageBiggerThanThumb &&
-        (thumbWidth  >= image.width ||
-         thumbHeight >= image.height) ) {
+        (thumbWidth  >= imageWidth ||
+         thumbHeight >= imageHeight) ) {
       // skip
+      // TODO: ought to allow if file types are different (like the
+      // check already done in _sizePositionAndDisplayPopup).
       this._logger.debug("_imageOnLoad: skipping popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
-                         image.width + "x" + image.height);
+                         imageWidth + "x" + imageHeight);
     } else {
       if (flags.requireImageBiggerThanThumb) {
         this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is < raw image " +
-                         image.width + "x" + image.height);
+                         imageWidth + "x" + imageHeight);
       }
       this._currentThumb = aImageNode;
-      this._origImageWidth = image.width;
-      this._origImageHeight = image.height;
+      this._origImageWidth = imageWidth;
+      this._origImageHeight = imageHeight;
       let displayed =
         this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
                                           flags, 
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
         if (! this._panelCaption.hidden) {
-          aImageNode.title = " "; // suppress tooltip
+          // we're showing caption in the popup so suppress the tooltip.
+          aImageNode.title = " ";
         }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
@@ -1565,12 +1882,26 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Close the panel to ensure that we can popup the new panel at a specified
       // location. 
       if (this._panel.state != "closed") {
+        // temporarily remove listeners so we don't get a "blur" (losing
+        // focus) event when we pop down the window.  That even would cause
+        // the popup to stay closed, which we don't want.
+        this._removeListenersWhenPopupHidden();
+
+        // We could set ignore region so if mouse loses focus due to "0" or "-"
+        // changing popup position, we don't re-popup with default zoom.
+        // But we don't since that'd re-create 
+        // bug #56: Google images popup may stay up from prior image
+        // DISABLED: this._setIgnoreBBoxPageRelative();
+
         this._panel.hidePopup();
       }
       let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
       flags.noTooSmallWarning = true;
       this._sizePositionAndDisplayPopup(this._currentThumb, this._currentImage, flags,
                                         this._origImageWidth, this._origImageHeight);
+
+      // re-add back the listeners.
+      this._addListenersWhenPopupShown();
     }
   },
   
@@ -1623,13 +1954,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
-    this._ignoreBBox.xMin = this._thumbBBox.xMin;
-    this._ignoreBBox.xMax = this._thumbBBox.xMax;
-    this._ignoreBBox.yMin = this._thumbBBox.yMin;
-    this._ignoreBBox.yMax = this._thumbBBox.yMax;
-    this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
-    this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
-    
     let available = this._getAvailableSizeOutsideThumb(aImageNode, flags);
     let thumbWidth = aImageNode.offsetWidth * pageZoom;
     let thumbHeight = aImageNode.offsetHeight * pageZoom;
@@ -1639,11 +1963,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
                                              flags, thumbWidth, thumbHeight);
-    let thumbType = this._getFileType(aImageNode.getAttribute("src"));
+    let thumbSrc = aImageNode.getAttribute("src");
+    let thumbType = this._getFileType(thumbSrc);
     let imageType = this._getFileType(aImageSrc);
     this._logger.debug("_sizePositionAndDisplayPopup: file types: thumb=" + 
                        thumbType + 
-                       "; popup=" + imageType + " from " + aImageSrc);
+                       "; popup=" + imageType + " from thumb=" + 
+                       aImageNode.localName + " " + thumbSrc + 
+                       " and image=" + aImageSrc);
     if (! imageSize.allow) {
       if (thumbType != imageType) {
         // If file types are different, show it even if it's not bigger, since
@@ -1717,9 +2044,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     };
 
-    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, aEvent)) {
+    if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
+      flags.requireImageBiggerThanThumb = false;
     }
     image.onload = function() {
       that._imageOnLoad(aImageNode, aImageSrc, 
@@ -1747,6 +2075,41 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   /**
+   * Gives the popup keyboard focus, so the user can direct key commands to it.
+   * Because we listen for hotkeys only on the popup itself, we're sure
+   * we won't interpret typing in other areas such as the Location bar.
+   */
+  _focusThePopup : function(aImageNode) {
+    this._logger.trace("_focusThePopup");
+
+    let doc = this._currentWindow.document;
+    let focused = doc.activeElement;
+
+    if (focused && focused.tagName != "BODY") {
+      this._logger.debug("_focusThePopup: focused=" + focused + "; sending mouseover evnet");
+
+      // The focused element will lose focus when we give the popup focus.  Make
+      // it lose focus now so it'll send the inevitible blur (focus-loss) event.
+      // Then send a synthetic mouseover event so Firefox will continue to show
+      // the link's URL.  Fixes issue #60: Firefox doesn't show link URL after 
+      // popup displays.
+      focused.blur();
+      let synthetic = doc.createEvent("MouseEvents");
+      /* template: event.initMouseEvent(type, canBubble, cancelable, view, 
+                     detail, screenX, screenY, clientX, clientY, 
+                     ctrlKey, altKey, shiftKey, metaKey, 
+                     button, relatedTarget); */
+      synthetic.initMouseEvent("mouseover", true, true, this._currentWindow,
+                    0,   0, 0,   0, 0,   
+                    false, false, false, false,
+                    0,  focused);
+      aImageNode.dispatchEvent(synthetic);
+    }
+
+    this._panelFocusHost.focus();
+  },
+  
+  /**
    * Opens the popup positioned appropriately relative to the thumbnail
    * aImageNode.
    * @param aImageNode: the thumb or link from which we're popping up
@@ -1770,9 +2133,30 @@ ThumbnailZoomPlusChrome.Overlay = {
     // won't do anything.
     this._panel.moveTo(pos.x, pos.y);
 
+    // popping up can cause a mouseout event if the mouse ends up over
+    // the popup.  Prevent that with a tiny bbox.
+    this._movedSincePoppedUp = false;
+
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
+    this._focusThePopup(aImageNode);
   },
   
+  _clearIgnoreBBox : function() {
+    this._logger.trace("_clearIgnoreBBox");
+    // clear the previous 'ignore' region
+    // so a future mouse move can re-enter it and re-popup.
+    this._ignoreBBox.xMax = -999;
+  },
+
+  _setIgnoreBBoxPageRelative : function() {
+    this._logger.trace("_setIgnoreBBoxPageRelative");
+    this._ignoreBBox.xMin = this._thumbBBox.xMin;
+    this._ignoreBBox.xMax = this._thumbBBox.xMax;
+    this._ignoreBBox.yMin = this._thumbBBox.yMin;
+    this._ignoreBBox.yMax = this._thumbBBox.yMax;
+    this._ignoreBBox.refScrollLeft = this._thumbBBox.refScrollLeft;
+    this._ignoreBBox.refScrollTop = this._thumbBBox.refScrollTop;
+  },
   
   /**
    * Calculates a bounding box like this._thumbBBox or this._ignoreBBox
@@ -2285,31 +2669,50 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
+   * Opens the help in a new tab.  This is used when opening help from
+   * the toolbar button, but not the Preferences dialog (the latter uses
+   * a direct html link).
+   */
+  openHelp : function() {
+    this._logger.debug("openHelp");
+
+    let helpURL = "http://thumbnailzoomplus.wordpress.com/";
+
+    let tab = openUILinkIn(helpURL, "tab");
+    gBrowser.selectedTab = tab;
+    
+  },
+
+
+  /**
    * Downloads the full image.
    */
   downloadImage : function() {
     this._logger.debug("downloadImage");
 
-    if (null != this._currentImage) {
-      let fileURL = this._currentImage;
-      let filePickerResult = null;
-      let filePickerName =
-        fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
-
-      this._filePicker.defaultString = filePickerName;
-      filePickerResult = this._filePicker.show();
-
-      if (Ci.nsIFilePicker.returnOK == filePickerResult ||
-          Ci.nsIFilePicker.returnReplace == filePickerResult) {
-        let filePath = this._filePicker.file.path;
-        let image = new Image();
-
-        image.onload = function() {
-          ThumbnailZoomPlus.DownloadService.downloadImage(
-            image, filePath, window);
-        };
-        image.src = fileURL;
-      }
+    if (null == this._currentImage) {
+      this._logger.debug("downloadImage: no _currentImage");
+      return;
+    }
+    
+    let fileURL = this._currentImage;
+    let filePickerResult = null;
+    let filePickerName =
+      fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
+    
+    this._filePicker.defaultString = filePickerName;
+    filePickerResult = this._filePicker.show();
+    
+    if (Ci.nsIFilePicker.returnOK == filePickerResult ||
+        Ci.nsIFilePicker.returnReplace == filePickerResult) {
+      let filePath = this._filePicker.file.path;
+      let image = new Image();
+      
+      image.onload = function() {
+        ThumbnailZoomPlus.DownloadService.downloadImage(
+                                                        image, filePath, window);
+      };
+      image.src = fileURL;
     }
   },
 

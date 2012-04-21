@@ -1,5 +1,6 @@
 <!--
- - Copyright (c) 2010 Andres Hernandez Monge
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
  - All rights reserved.
  -
  - Redistribution and use in source and binary forms, with or without
@@ -27,20 +28,25 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
+
+
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Settings...">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Preferences...">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Help">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.options.pane.label                    "Preferences">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Preferences">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Enable">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying image (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Key to display the image:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Key to">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "display">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "not display">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "the image:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">

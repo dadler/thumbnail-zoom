@@ -1,5 +1,6 @@
 <!--
- - Copyright (c) 2010 Andres Hernandez Monge
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
  - All rights reserved.
  -
  - Redistribution and use in source and binary forms, with or without
@@ -33,16 +34,19 @@
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Se bilderna bakom bildminiatyrerna">
 <!ENTITY thumbnailzoomplus.toolbar.settings.label                "Inställningar…">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Hjälp">
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus">
-<!ENTITY thumbnailzoomplus.options.pane.label                    "Inställningar">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Inställningar">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Aktivera">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.key.selection.label           "Tangent för bildvisning:">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent för att">
+<!ENTITY thumbnailzoomplus.options.key.display.label             "visa">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "dölja">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          "bilden:">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
