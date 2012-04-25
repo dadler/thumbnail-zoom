@@ -2072,6 +2072,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Gives the popup keyboard focus, so the user can direct key commands to it.
    * Because we listen for hotkeys only on the popup itself, we're sure
    * we won't interpret typing in other areas such as the Location bar.
+   *
+   * Note: hotkeys don't seem to work in Firefox 3.6 (at least on mac),
+   * possibly related to use of _focusThePopup.  The log doesn't show that
+   * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
     this._logger.trace("_focusThePopup");
