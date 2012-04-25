@@ -36,7 +36,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>thumbnailZoom@dadler.github.com</em:id>
     <em:name>Thumbnail Zoom Plus</em:name>
-    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Amazon, Bing, Facebook, Flickr, Google, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Tumblr, Twitter, Yandex.ru, YouTube, Wikipedia, WordPress, Yahoo Images, and many more.</em:description>
+    <em:description>Shows full image when you hover over a thumbnail.  Works with many sites including Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Images, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, Yahoo Images, and many more.</em:description>
     <em:version>1.7.0rc2</em:version>
     <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
@@ -49,7 +49,7 @@
 		<Description>
 			<em:locale>sv-SE</em:locale>
 			<em:name>Thumbnail Zoom Plus</em:name>
-			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, deviantART, Facebook, Flickr, Google+, Google Bilder, GMail, Reddit, Twitter, och många fler.</em:description>
+			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Bilder, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, och många fler.</em:description>
 			<em:creator>David Adler och Andres Hernandez Monge</em:creator>
 			<em:translator>Mikael Hiort af Ornäs</em:translator>
 		</Description>
