@@ -974,10 +974,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOver");
     
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true)) {
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true) &&
+        ! this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
+      // we're disabled and the maximize key isn't down so refuse to pop-up.
+      // we test for this early in the routine to minimize work done when
+      // disabled.
+      this._logger.debug("_handleMouseOver: ignoring since we're disabled and MAX_KEY isn't down");
       return;
-    }
-    
+    }    
+
+
     if (this._needToPopDown(aDocument.defaultView.top)) {
       this._logger.debug("_handleMouseOver: _closePanel since different doc.");
       this._closePanel(true);
@@ -1519,6 +1525,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_N ||
             aEvent.keyCode == aEvent.DOM_VK_S ||
             aEvent.keyCode == aEvent.DOM_VK_T ||
+            aEvent.keyCode == aEvent.DOM_VK_X ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
             aEvent.keyCode == aEvent.DOM_VK_0);
   },
@@ -1547,13 +1554,13 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
       // open preferences
-      this._logger.debug("_handleKeyUp: openPreferences since pressed p key");
+      this._logger.debug("_doHandleKeyDown: openPreferences since pressed p key");
       this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
       // toggle caption
       let allowCaption = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_CAPTION);
-      this._logger.debug("_handleKeyUp: toggle caption to " + allowCaption +
+      this._logger.debug("_doHandleKeyDown: toggle caption to " + allowCaption +
                          " since pressed c key");      
       // redisplay to update displayed caption.
       if (this._currentThumb) {
@@ -1563,7 +1570,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
       // open image in new tab
-      this._logger.debug("_handleKeyUp: open in new tab " +this._currentImage +
+      this._logger.debug("_doHandleKeyDown: open in new tab " +this._currentImage +
                          " referrer " + document.documentURIObject);
       let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
       let tab = openUILinkIn(this._currentImage, "tab", options);
@@ -1571,14 +1578,19 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_N) {
       // open image in new browser window
-      this._logger.debug("_handleKeyUp: open in new window");
+      this._logger.debug("_doHandleKeyDown: open in new window");
       window.open(this._currentImage, 
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_S) {
-      this._logger.debug("_handleKeyUp: save image");
+      this._logger.debug("_doHandleKeyDown: save image");
       this.downloadImage();
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_X) {
+      this._logger.debug("_doHandleKeyDown: toggle TZP 'enable'");
+      ThumbnailZoomPlus.togglePref(this.PREF_PANEL_ENABLE);
+      // code in _handleKeyUp() closes the popup.
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
@@ -1602,11 +1614,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
       // Set default scale based on current scale.
-      this._logger.debug("_handleKeyUp: set default zoom pref");
+      this._logger.debug("_doHandleKeyDown: set default zoom pref");
       this._setDefaultScalePref(this._currentMaxScaleBy);
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
-      this._logger.debug("_handleKeyUp: toggle allow-covering-thumb pref");
+      this._logger.debug("_doHandleKeyDown: toggle allow-covering-thumb pref");
       this._currentAllowCoverThumb = ! this._getAllowCoverThumbPref();
       ThumbnailZoomPlus.setPref(this.PREF_PANEL_LARGE_IMAGE,
                                 this._currentAllowCoverThumb);
@@ -1635,12 +1647,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeyUp for code "  + aEvent.keyCode );
 
-    // Handle Escape to cancel popup in key-up.  We couldn't do it in
+    // Handle Escape or x to cancel popup in key-up.  We couldn't do it in
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
-      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc key");
+    let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE);
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
+        (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
+      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc or x key");
       that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
     }
