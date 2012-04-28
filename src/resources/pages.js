@@ -1560,6 +1560,22 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg
     aImageSrc = aImageSrc.replace(/(data\.whicdn\.com\/images\/.*)_thumb\.jpg/,
                                   "$1_large.jpg");
+    
+    // Huffingtonpost.com
+    // http://i.huffpost.com/gen/574638/thumbs/s-MILA-KUNIS-WITHOUT-MAKEUP-154x114.jpg becomes
+    // http://i.huffpost.com/gen/574638/thumbs/o-MILA-KUNIS-WITHOUT-MAKEUP-570.jpg
+    // can also be -mini, -small.  Note that occasionally o-*570 doesn't exist,
+    // but s-*large does.  We fail in that case.
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/s-(.*)-(mini|small|large|[0-9]+x[0-9]+)[0-9]*\.jpg/i,
+                                  "$1/o-$2-570.jpg");
+    // http://i.huffpost.com/gen/576806/thumbs/r-SECRET-LIVES-OF-MOMS-medium260.jpg becomes
+    // http://i.huffpost.com/gen/576806/thumbs/o-SECRET-LIVES-OF-MOMS-570.jpg
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/r-(.*)-(mini|small|medium|large)[0-9]*\.jpg/i,
+                                  "$1/o-$2-570.jpg");
+
+    aImageSrc = aImageSrc.replace(new RegExp("(tyimg\\.com/thumb)/[a-z]/[a-z]_(.*" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  "$1/l/l_$2");
                                   
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.

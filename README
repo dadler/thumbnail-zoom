@@ -26,22 +26,21 @@ https://developer.mozilla.org/en/Setting_up_extension_development_environment
 If you're using the Restartless Restart add-on, also turn on Disable Fastload
 in its preferences.
 
-In my developer profile in Firefox, I create a symlink is follows
+In my developer profile in Firefox, I create a pointer file as follows
 (this should work on OSX or Linux but your directory may vary; on Windows see
 the mozilla link above).
 
   cd $HOME/Library/Application Support/Firefox/Profiles/7sep123p.developer/extensions
-  ln -s $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src/ thumbnailZoom@dadler.github.com
+  echo /$HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src > thumbnailZoom@dadler.github.com
 
 where $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
 my git repository. 
 
-With this symlink in place, to test a change I simply save my source file and restart Firefox
+With this pointer in place, to test a change I simply save my source file and restart Firefox
 (running my developer profile regular than my regular user profile).
 
-CAUTION: if you install the plug-in into this profile using an xpi file, firefox
-will remove the symlink and the directory it points to, which may cause you to lose
-uncommitted changes in your development tree.
+NOTE: if you install the plug-in into this profile using an xpi file, firefox
+may remove the pointer file.
 
 
 DEBUGGING:

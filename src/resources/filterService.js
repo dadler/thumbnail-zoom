@@ -155,10 +155,15 @@ ThumbnailZoomPlus.FilterService = {
     let protocol = null;
     let host = null;
     if (aDocument.location) {
-      host = aDocument.location.host;
-      protocol = aDocument.location.protocol;
-      //this._logger.debug("    getHostOfDoc: loc from aDocument.location = "
-      //                   protocol + "//" + host);
+      try {
+        host = aDocument.location.host;
+        protocol = aDocument.location.protocol;
+        //this._logger.debug("    getHostOfDoc: loc from aDocument.location = "
+        //                   protocol + "//" + host);
+      } catch (e) {
+        // I've seen this exception when pressing 't' in Firefox 3.6.
+        this._logger.debug("getHostOfDoc: unable to get host or protocol (a): " + e);
+      }      
     }
     if (! host || !protocol) {
       // Try to get from an image node's src attr.  TODO: should it also
@@ -184,7 +189,7 @@ ThumbnailZoomPlus.FilterService = {
           // (eg size 'icon') or from flickr.com thumbs on main page when 
           // not logged in, e.g.
           // data:image/jpeg;base64,/9j...
-          this._logger.debug("getHostOfDoc: unable to get host or protocol: " + e);
+          this._logger.debug("getHostOfDoc: unable to get host or protocol (b): " + e);
         }
         uri = null;
       }
