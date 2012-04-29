@@ -78,20 +78,37 @@
   </toolbarpalette>
 
   <!-- Panel -->
-  <window id="main-window"> 
+  <window id="main-window" xmlns:html="http://www.w3.org/1999/xhtml"> 
     <panel id="thumbnailzoomplus-panel" 
            noautofocus="true" noautohide="true" >
       <vbox id="thumbnailzoomplus-panel-vbox" 
             align="center" pack="center" >
         <stack>
+          <!-- In a stack, the last item mentioned is on the top of the
+               stack.  All elements are overlaid at the same position
+               by default. -->
+               
           <!-- the focus-host is never visible, but allows the
                popup to receive keyboard focus. -->
-          <textbox id="thumbnailzoomplus-panel-focus-host" type="text" />
-          <image id="thumbnailzoomplus-panel-image" />
+          <textbox id="thumbnailzoomplus-panel-focus-host" type="text" 
+               width="1px" height="1px" style="width: 1px; height: 1px;" />
+          
+          <!-- 
+               For the image, we use an html <img> tag rather than xul
+               <image> since the former updates images more often while
+               loading, resolving issue #???.
+               xul requires img to be wrapped in div.  Both elements
+               default transparent; set a background on div so we don't
+               see through to the focus-host. -->
+          <html:div id="thumbnailzoomplus-panel-image-div" >
+            <html:img id="thumbnailzoomplus-panel-image" />
+          </html:div>
+          <!-- <image id="XXXthumbnailzoomplus-panel-image" /> -->
           <vbox>
             <spacer flex="1" />
             <hbox>
               <spacer flex="1" />
+              <!-- % display -->
               <label id="thumbnailzoomplus-panel-info" 
                    hidden="true" height="14px"/>
             </hbox>
