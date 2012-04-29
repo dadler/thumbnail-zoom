@@ -1,14 +1,27 @@
 This git repository holds the source code for Thumbnail Zoom Plus, which is
 David Adler's fork of the Thumbnail Zoom add-on for Mozilla Firefox.
 
-Thumbnail Zoom Plus is a Firefox addon which shows ful-sized images in a pop-over window when
-you hover over a thumbnail.  It works with sites like Facebook, Amazon, Imgur, Flickr, Reddit, 
-and many others, including most sites which link directly to full-size images.   
-This is a fork (derivation from) thumbnail-zoom by Andres Hernandez.
+Thumbnail Zoom Plus is a Firefox plug-in which shows a full-size image pop-up 
+when you hover over a thumbnail or image link.
 
-You can find this add-on on the official Firefox Add-on site:
+When you hover your mouse over a thumbnail or an image or video link, the 
+add-on displays the full-size image or video still-frame in a floating window.
 
-    https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/ .
+The image remains visible until you move the mouse outside the thumb, click 
+the mouse, or press Escape. It's quick and easy to move the mouse from one 
+thumbnail to another to see the corresponding full-size images.
+
+Supported sites include Amazon, Bing, Facebook, Flickr, Google, IMDb, LinkedIn, 
+Netflix, Pinterest, Reddit, Tumblr, Twitter, Yandex.ru, YouTube, Wikipedia, 
+WordPress, Yahoo Images, and many more.
+
+For more information see our official site:
+  
+  http://thumbnailzoomplus.wordpress.com/
+
+You can install this add-on from the official Firefox Add-on site:
+
+    https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/
 
 
 
