@@ -696,7 +696,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             innerText = "\n" + innerText;
           }
           innerText = innerText + this._getInnerText( element.childNodes[i] );
-          //this._logger.debug("_getInnerText: after element " + i +
+          // this._logger.debug("_getInnerText: after element " + i +
           //                   " have '" + innerText + "'");
         }
         if (displayType!="inline") innerText = innerText + "\n";
@@ -716,8 +716,8 @@ ThumbnailZoomPlusChrome.Overlay = {
           innerText = innerText + element.textContent + "\n";
         }
       }
-      //this._logger.debug("_getInnerText: returning '" + innerText + "'");
     }
+    // this._logger.debug("_getInnerText: returning '" + innerText + "'");
     
     return innerText;
     
@@ -779,7 +779,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       let text = this._getInnerText(aNode);
       
       // Remove trailing newlines and spaces:
-      text = text.replace(/\s+/, "");
+      text = text.replace(/\s+$/, "");
 
       if (text != "") {
         // change newlines to spaces to simplify the next test.
@@ -818,7 +818,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           }
 
           title = text;
-          this._logger.debug("_getEffectiveTitle: found with className " + aNode.className);
+          this._logger.debug("_getEffectiveTitle: found with className: " + aNode.className);
           break;
         }
       }
