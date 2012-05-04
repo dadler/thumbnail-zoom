@@ -43,6 +43,8 @@
 
   <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" flex="1">
     <preferences>
+      <preference id="thumbnailzoomplus-options-enable-pref"
+        name="extensions.thumbnailzoomplus.panel.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-delay-pref"
         name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
       <preference id="thumbnailzoomplus-options-partialloadwait-pref"
@@ -144,6 +146,8 @@
           <column />
         </columns>
         <rows>
+          <checkbox preference="thumbnailzoomplus-options-enable-pref"
+                    label="&thumbnailzoomplus.options.enable.checkbox.label;" />
           <row align="center">
             <label value="&thumbnailzoomplus.options.delay.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-delay-pref" type="number"

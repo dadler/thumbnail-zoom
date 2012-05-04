@@ -39,6 +39,7 @@
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Inställningar">
+<!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Aktivera">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">

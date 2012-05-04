@@ -31,6 +31,16 @@
 toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   -moz-box-orient: horizontal;
 }
+#thumbnailzoomplus-toolbar-button {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(0px, 15px, 15px, 0px);
+}
+#thumbnailzoomplus-toolbar-button[tzpenabled=false] {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(16px, 15px, 31px, 0px);
+}
 
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
