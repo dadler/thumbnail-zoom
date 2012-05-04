@@ -84,25 +84,18 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
-      Note that this is applied to the initial URL we hae after getSpecialSource
-      and getImageNode, but before getZoom Image (which is kind of odd; maybe
-      we should change it).
+      Note that this is applied to the initial URL we hae after getImageNode, 
+      but before getZoom Image (which is kind of odd; maybe we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
 
-    * getSpecialSource: DEPRECATED: use getImageNode and getZoomImage instead.
-      optional function(aNode, aNodeSource); returns
-      new value of aNodeSource (image URL).  Called before getImageNode().
-      Not called when user hovers directly over an img since we use that
-      as the source automatically.  Returning null doesn't necessarily prevent popup
-      so don't return null.
-       
     * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
       Returns the node from which the popup image's link will be generated, or 
       null if the popup should be disabled (i.e. to REJECT the popup).  
       Useful when it's generated not from the direct thumbnail image, but an ancestor or
       peer node.  The image URL will be extracted (in fiterService.js) from the 
       returned node's src, href, or background image (assuming the return is
-      different than aNode).  The default function returns
+      different than aNode).  Note that imageSource may be null if the hovered
+      node isn't an image or link.  The default function returns
       the image node itself.  
       
     * getZoomImage: required function(aImageSrc, node, popupFlags); returns the image URL.
@@ -122,11 +115,6 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 
       assigned by calculation in filterService.js.
-
-    TODO: the rules governing getSpecialSource, getImageNode, and getZoomImage
-      are complex and a source of bugs.  For example, getImageNode can 
-      choose a node to use, but it can't safely choose not to reject the node.
-      It'd be better to simplify them and perhaps eliminate/merge some of them.
       
  ***********/
 
@@ -154,22 +142,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
        aNode = aNode.parentNode;
     }
     return aNode;
-  },
-  
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = aNodeSource;
-    let rex = new RegExp(/static\.ak\.fbcdn\.net/);
-    if (rex.test(aNodeSource)) {
-      // Facebook photos sometimes use an <i> tag with the image
-      // displayed via a style with background-image.
-      if (-1 == aNode.style.backgroundImage.indexOf("url")) {
-        imageSource = aNode.nextSibling.getAttribute("src");
-      } else {
-        imageSource = aNode.style.backgroundImage.
-          replace(/url\(\"/, "").replace(/\"\)/, ""); /* help Xcode syntax highlighting: "))) */
-      }
-    }
-    return imageSource;
   },
   
   getZoomImage : function(aImageSrc, node, flags) {
@@ -453,13 +425,9 @@ ThumbnailZoomPlus.Pages.MySpace = {
   name: "MySpace",
   host: /^(.*\.)?myspace\.com$/,
   imageRegExp: /images\.myspacecdn\.com/,
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = (aNode.hasAttribute("data-src") ?
-      aNode.getAttribute("data-src") : aNodeSource);
-    return imageSource;
-  },
+  
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex1 = new RegExp(/(\/|\_)[sml]\./i);
+    let rex1 = new RegExp(/(\/|\_)[smlt]\./i);
     let rex2 = new RegExp(/\/(sml|med|lrg)_/i);
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "$1l.") :
       (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "/lrg_") : null));
@@ -537,15 +505,39 @@ ThumbnailZoomPlus.Pages.Flickr = {
   name: "Flickr",
   host: /^(.*\.)?(static)?flickr\.com$/,
   imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
-  getSpecialSource : function(aNode, aNodeSource) {
-    let imageSource = (-1 != aNodeSource.indexOf("spaceball.gif") ?
-      aNode.parentNode.previousSibling.firstChild.firstChild.getAttribute("src")
-      : aNodeSource);
-    if (-1 != aNodeSource.indexOf("spaceout.gif")) {
-      imageSource = aNode.parentNode.parentNode.firstChild.firstChild.getAttribute("src");
+  
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
+    
+    /*
+        spaceball:
+        Images tagged as "The owner has disabled downloading of their photos"
+        overlapped by a preceding <div> with this class.  We could find the 
+        actual image to allow it to pop-up, as follows.  But this would
+        also let the user open in new tab or save, which the site intends
+        to prevent, so don't allow a popup either (at least until we
+        can prevent saving).
+    */
+    if (false &&
+        -1 != nodeClass.indexOf("spaceball")) {
+      ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: saw spaceball");
+      let imgNodes = aNode.parentNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: returning " +
+        imgNodes[0]);
+      }
+      return imgNodes[0];
     }
-    return imageSource;
+    
+    // Not sure if this part still works.  I think it's for hovering
+    // over the "i" more info icon.
+    if (imageSource && -1 != imageSource.indexOf("spaceout.gif")) {
+      ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: saw spaceout.gif");
+      return aNode.parentNode.parentNode.firstChild.firstChild;
+    }
+    
+    return aNode;
   },
+    
   getZoomImage : function(aImageSrc, node, flags) {
     // match an image name with a s, m, or t size code, or no size code, e.g.
     // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04_s.jpg or
@@ -841,18 +833,12 @@ ThumbnailZoomPlus.Pages.YouTube = {
   name: "YouTube",
   host: /^(.*\.)?(nsfw)?youtube\.com|i[0-9]*\.ytimg\.com$/,
   imageRegExp: /i[0-9]*\.ytimg\.com\/vi\//,
+  
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/default\./);
     let image =
       (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/hqdefault.") : null);
     return image;
-  },
-  getSpecialSource : function(aNode, aNodeSource) {
-    if (-1 == aNodeSource.indexOf("http:") &&
-        -1 == aNodeSource.indexOf("https:")) {
-      aNodeSource = "http:" + aNodeSource;
-    }
-    return aNodeSource;
   }
 };
 
@@ -1429,7 +1415,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     }
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p20: so far have " + aImageSrc);
-
     
     // For wordpress, change:
     // http://trulybogus.files.wordpress.com/2012/02/p2126148.jpg?w=150&h=104 to
@@ -1441,6 +1426,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]h=[0-9]+/, "");
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
+    
+    // egotastic.com; may generalize to other wordpress sites (not necessarily 
+    // wordpress.com) but don't know.
+    // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
+    // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
+    let wpContentEx = new RegExp("(egotastic\.com/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
+                                 ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+    aImageSrc = aImageSrc.replace(wpContentEx, "$1$2");
     
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to

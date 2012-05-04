@@ -347,18 +347,6 @@ ThumbnailZoomPlus.FilterService = {
       imageSource = imageNode.getAttribute("src");
       this._logger.debug("_getUrlFromNode: got image source from src attr of " + imageNode);
       
-    } else if (imageNode.hasAttribute("href")) {
-      // for an <a href=> node, use javascript string conversion rather
-      // than retrieving the html attribute so it'll apply the base
-      // document's URL for missing components of the URL (eg domain).
-      imageSource = String(imageNode);
-      this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
-      if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
-        // Special case for twitter http://t.co links; the actual
-        // URL is in the link's tooltip.
-        imageSource = imageNode.title;
-      }
-      
     } else {
       let backImage = imageNode.style.backgroundImage;
           
@@ -367,7 +355,21 @@ ThumbnailZoomPlus.FilterService = {
         imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
                                .replace(new RegExp("\"\\)"), "");
       }
+      if (! imageSource &&
+          imageNode.hasAttribute("href")) {
+        // for an <a href=> node, use javascript string conversion rather
+        // than retrieving the html attribute so it'll apply the base
+        // document's URL for missing components of the URL (eg domain).
+        imageSource = String(imageNode);
+        this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
+        if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
+          // Special case for twitter http://t.co links; the actual
+          // URL is in the link's tooltip.
+          imageSource = imageNode.title;
+        }
+      }
     }
+    
     return imageSource;
   },
   
@@ -388,23 +390,16 @@ ThumbnailZoomPlus.FilterService = {
     // Get node name and class
     let imageNode = aNode;
     let nodeName = imageNode.localName.toLowerCase();
-    let nodeClass = imageNode.getAttribute("class");
+    let nodeClass = imageNode.className;
     this._logger.debug("getImageSource: aNode name=" + nodeName + "; src=" +
                        imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                        "; backgroundImage=" + imageNode.style.backgroundImage +
                        "; class=" + nodeClass);
-    let imageSource =  null;
-
-    if ("img" == nodeName) {
-      imageSource = aNode.getAttribute("src");
-    }
-
-    // Call getSpecialSource if needed and defined (DEPRECATED)
-    if (null != imageSource && pageInfo.getSpecialSource) {
-      imageSource = pageInfo.getSpecialSource(aNode, imageSource);
-      imageNode = null;
-      this._logger.debug("getImageSource: getSpecialSource returned " + imageSource);
-    }
+    
+    /*
+     * Get initial imageSource attempt from imageNode's image or link.
+     */
+    let imageSource = this._getUrlFromNode(imageNode);
     
     // Call getImageNode if defined.
     if (pageInfo.getImageNode) {
@@ -416,31 +411,24 @@ ThumbnailZoomPlus.FilterService = {
         // changed nodes.   If imageNode == null, we're shouldn't do a popup.
         // and we ignore if localName is null, as sometimes happens if the
         // returned node is the document itself (seen when reloading Google Images)
-        imageSource = null; // we need to re-get imageSource.
         if (imageNode != null && imageNode.localName) {
           var nodeName = imageNode.localName;
-          let nodeClass = imageNode.getAttribute("class");
+          let nodeClass = imageNode.className;
           this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
+          imageSource = this._getUrlFromNode(imageNode);
         } else {
           imageNode = null;
-          this._logger.debug("getImageSource: after getImageNode, imageNode=null; name=" + nodeName + 
-                             "; class=" + nodeClass);
+          imageSource = null; // disable.
+          this._logger.debug("getImageSource: after getImageNode, imageNode=null");
         }
       } else {
-        this._logger.debug("getImageSource: after getImageNode, node=" + imageNode);
+        this._logger.debug("getImageSource: after getImageNode, unchanged node=" + imageNode);
       }
     }
     
-    // If don't have imageSource yet, get from src, href, or backgroundImage.
-    // TODO: could simplify logic (move into 'if' above) after
-    // getSpecialSource is removed.
-    if (null == imageSource && imageNode != null) {
-      imageSource = this._getUrlFromNode(imageNode);
-    }
-
     // Exclude very small embedded-data images, e.g. from google.com search field:
     // data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw%3D%3D
     if (imageSource != null &
@@ -465,6 +453,7 @@ ThumbnailZoomPlus.FilterService = {
     if (imageSource != null) {
       imageSource = this._applyBaseURI(aDocument, imageSource);
     }
+    
     this._logger.debug("getImageSource: using image source       " + imageSource +
                        "; noTooSmallWarning=" + result.noTooSmallWarning);
     
