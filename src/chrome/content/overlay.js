@@ -662,10 +662,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     adj.yMin = bbox.yMin + yOffset;
     adj.yMax = bbox.yMax + yOffset;
 
-    var inside = (x > adj.xMin &&
-                  x < adj.xMax &&
-                  y > adj.yMin &&
-                  y < adj.yMax);
+    // Testing in use from _handeMouseOut() indicates these tests need
+    // to be >=, not > .
+    var inside = (x >= adj.xMin &&
+                  x <= adj.xMax &&
+                  y >= adj.yMin &&
+                  y <= adj.yMax);
     if (0) this._logger.debug("_insideThumbBBox: zoom=" + pageZoom + 
                       "; orig scroll=" +
                       bbox.refScrollLeft + "," +
@@ -1485,6 +1487,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     // moved outside bbox of thumb; dismiss popup.
     this._logger.debug("_handlePopupMove: closing with mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
+    // ignore a mouseOver event over the thumb's bbox, in case our
+    // bbox calculation was a bit off; we don't want to popup again
+    // if the mouse is still (barely) over the thumb.
+    this._setIgnoreBBoxPageRelative();
     this._closePanel(true);
   },
 
