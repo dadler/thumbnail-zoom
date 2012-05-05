@@ -49,6 +49,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_POPUP_ON_SCROLL : ThumbnailZoomPlus.PrefBranch + "panel.popuponscroll",
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
@@ -1026,7 +1027,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Close the previously displayed popup (if any).
     this._closePanel(true);
 
-    if (this._scrolledSinceMoved) {
+    if (this._scrolledSinceMoved &&
+        ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_ON_SCROLL, false)) {
       this._logger.debug("_handleMouseOver: _scrolledSinceMoved==true; ignoring");
       return;
     }
@@ -1561,6 +1563,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _passKeyEventToPage : function(aEvent) {
     if (! this._currentThumb) {
       return;
+    }
+    if (aEvent.metaKey || aEvent.ctrlKey) {
+      // don't send key w/ Control/Command since it gets
+      // passed automatically, and sending it here would cause
+      // it to be sent twice (eg cancelling the effect of
+      // Command+Shift+F full-screen).
+      return false;
     }
 
     if (aEvent.keyCode == aEvent.DOM_VK_DOWN) {
