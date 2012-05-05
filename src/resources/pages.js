@@ -77,7 +77,7 @@ ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp
       .g. in the tool menu's checkboxes.  eg "Facebook".
 
     * host: regular expression which the hostname of the page containing the
-      thumbnail or link must match for the rule to apply.  THIS APPLIS
+      thumbnail or link must match for the rule to apply.  THIS APPLIES
       TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
@@ -809,8 +809,7 @@ ThumbnailZoomPlus.Pages.Google = {
   // www.google.com general search with image results, etc.
   // To prevent this from interfering with GooglePlus, its entry
   // comes later in filterService.js.
-  host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,
-  
+  host: /^((?!picasaweb).*\.google(\.com)?\.[a-z]+)$/,  
   imageRegExp: /^https?:\/\//,
   
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
@@ -1124,9 +1123,6 @@ ThumbnailZoomPlus.Pages.Others = {
     // and some others, get URL from imgurl=... part.
     let imgurlEx = new RegExp(/.*[\?&](img_?)?url=([^&]+).*$/);
     if (imgurlEx.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Google.key)) {
-        return ""; // Google Images support is disabled by user preference.
-      }
       aImageSrc = aImageSrc.replace(imgurlEx, "$2");
       aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./.test(aImageSrc)) {
@@ -1138,13 +1134,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://www.deviantart.com/users/outgoing?http://www.youtube.com/watch?v=DLQBAOomHzq to
     // http://www.youtube.com/watch?v=DLQBAOomHzq
     let deviantOutgoingRex = new RegExp("https?://[^\\.]+\\.deviantart\\.com/.*/outgoing\\?(.*)");
-    if (deviantOutgoingRex.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
-        return ""; // DeviantART support disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(deviantOutgoingRex, "$1");
-      this._logger.debug("ThumbnailPreview: after deviantArt outgoing rule: " + aImageSrc);
-    }
+    aImageSrc = aImageSrc.replace(deviantOutgoingRex, "$1");
 
     // Deviantart profile links:
     // Change link
@@ -1152,45 +1142,23 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://a.deviantart.net/avatars/t/r/truong-san.jpg?1 (/t/r/ are from the 1st 2 letters)
     // We unfortunately have to assume either jpg or gif.
     let deviantProfileRex = new RegExp("(https?)://([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$");
-    if (deviantProfileRex.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.DeviantART.key)) {
-        return ""; // DeviantART support disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
-    }
+    aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
     
     // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
     let twitterEx = new RegExp("^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$");
-    if (twitterEx.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitter.key)) {
-        return ""; // Twitter support is disabled by user preference.
-      }
-      aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
-    }
+    aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
     
     // For links to twitpic pages, chage
     // http://twitpic.com/10l4j4.jpg to
     // http://twitpic.com/show/full/10l4j4  (or .../large/...)
     let twitpicEx = new RegExp("^(https?://(.*\\.)?twitpic.com/)([^\\./]+)$");
-    if (twitpicEx.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.Twitpic.key)) {
-        return ""; // Twitter support is disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
-    }
+    aImageSrc = aImageSrc.replace(twitpicEx, "$1/show/full/$3");
     
     // For google.com/url?v= for youtube.com:
     // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w to
     // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w
     let youtube2Ex = new RegExp("^(?:https?://)(?:[^/]*\\.)?google\\.com/url(?:\\?.*)?[?&]q=([^&]*).*$");
-    if (youtube2Ex.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
-        return ""; // YouTube support disabled by user preference.
-      }
-      aImageSrc = decodeURIComponent(aImageSrc.replace(youtube2Ex, "$1"));
-      this._logger.debug("Others getZoomImage: from google.com/url... got " + aImageSrc);
-      
-    }
+    aImageSrc = decodeURIComponent(aImageSrc.replace(youtube2Ex, "$1"));
 
     // For youtube links, change 
     // http://www.youtube.com/watch?v=-b69G6kVzTc&hd=1&t=30s to 
@@ -1200,12 +1168,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://www.youtube.com/embed/87xNpOYOlQ4?rel=0 to
     // http://i3.ytimg.com/vi/87xNpOYOlQ4/hqdefault.jpg
     let youtubeEx = new RegExp("(https?://)(?:[^/]*\\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
-    if (youtubeEx.test(aImageSrc)) {
-      if (! ThumbnailZoomPlus.isNamedPageEnabled(ThumbnailZoomPlus.Pages.YouTube.key)) {
-        return ""; // YouTube support disabled by user preference.
-      }
-      aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
-    }
+    aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
 
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to

@@ -1044,13 +1044,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     _tryImageSource tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
     make the popup appear later).
-    @return "disabled", 
-            "rejectedPageMatchNode", 
-            "rejectedNode",
-            "launced".
+    @return 
+            "rejectedPageMatchNode": the page's host URL doesn't match
+            "disabled": page's host matches, but is disabled
+            "rejectedNode": the thumb/image URL doesn't match imageRegExp
+            "launced": everything matched and we launched the popup.
    */
   _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
                              aEvent, aPage, node) {
+    var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
     let requireImageBiggerThanThumb = false;
     let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
     if (! allow &&
@@ -1065,20 +1067,21 @@ ThumbnailZoomPlusChrome.Overlay = {
       allow = true;
       requireImageBiggerThanThumb = true;
     }
-    if (! allow) {
-      // The rule for aPage is disabled in preferences.
-      return "disabled";
-    }
-    
+
     this._logger.debug("... _tryImageSource: Trying " +
                        (aDocument == pageMatchNode ? "page " : "image") +
-                       " against '" + 
-                       ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                       " against '" + pageName +
                        "'");
     if (! ThumbnailZoomPlus.FilterService.testPageConstantByHost(pageMatchHost, aPage)) {
       return "rejectedPageMatchNode";
     }
-    
+    if (! allow) {
+      // The rule for aPage is disabled in preferences.
+      this._logger.debug("                            DISABLED is page " +
+                         pageName );
+      return "disabled";
+    }
+        
     let imageSourceInfo = ThumbnailZoomPlus.FilterService
                                 .getImageSource(aDocument, node, aPage);
     let imageSource = imageSourceInfo.imageURL;
@@ -1125,7 +1128,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     return "launched";
   },
 
-
+  _isOthersThumbnailsPage : function(aPage) {
+    return (aPage == ThumbnailZoomPlus.Pages.Others.aPage ||
+            aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage);
+  },
+  
   _findPageAndShowImage : function(aDocument, aEvent, minFullPageNum, node) {
     this._logger.trace("_findPageAndShowImage"); 
     
@@ -1153,15 +1160,35 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (aDocument != node) {
       nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
     }
+    var disallowOthers = false;
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
-    
+
+      if (disallowOthers && this._isOthersThumbnailsPage(aPage)) {
+        this._logger.debug("_findPageAndShowImage: Skipping Others or Thumbnails");
+        continue;
+      }
+      
       let status="notTried";
       if (aPage >= minFullPageNum && docHost != null) {        
         status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node);
         if (status == "launched") {
           return;
+        }
+        if (status == "disabled" && ! this._isOthersThumbnailsPage(aPage)) {
+          /*
+           * If the host matches the page's host URL but the page is disabled,
+           * then don't allow a popup due to the match-all pages
+           * Others and Thumbnails.  The user means to disable the page so
+           * we don't want to show popups from Others and Thumbnails.  But
+           * if any other page happens to match host, we'll still allow that
+           * other page to launch a popup.
+           */
+          disallowOthers = true;
+          this._logger.debug("_findPageAndShowImage: Disabling Others & Thumbnails since " +
+                             ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                             " is disabled");
         }
       }
       
