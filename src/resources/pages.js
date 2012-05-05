@@ -1510,6 +1510,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
+
+    // pixiv.net
+    // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
+    // http://img29.pixiv.net/img/puppy/12345678_m.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_s(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1_m$2");
+    // http://img01.pixiv.net/img/ajoritas/1234567_100.jpg?ctype=ranking becomes
+    // http://img01.pixiv.net/img/ajoritas/1234567_m.jpg?ctype=ranking 
+    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_[0-9]{2,3}(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "$1_m$2");
     
     // weheartit.com uses 
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
