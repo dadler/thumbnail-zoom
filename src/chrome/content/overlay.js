@@ -1572,13 +1572,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
 
-    if (aEvent.keyCode == aEvent.DOM_VK_DOWN) {
+    if (aEvent.keyCode == aEvent.DOM_VK_DOWN ||
+        aEvent.keyCode == aEvent.DOM_VK_UP) {
       if (aEvent.type == "keydown") {
-        this._currentWindow.scrollByLines(2);
+        var delta = (aEvent.keyCode == aEvent.DOM_VK_DOWN) ? 2 : -2;
+        this._currentWindow.scrollByLines(delta);
       }
-    } else if (aEvent.keyCode == aEvent.DOM_VK_UP) {
+    } else if (aEvent.keyCode == aEvent.DOM_VK_LEFT ||
+               aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
       if (aEvent.type == "keydown") {
-        this._currentWindow.scrollByLines(-2);
+        var delta = (aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -16 : 16;
+        this._currentWindow.scrollBy(delta, 0);
       }
     } else {
       // Send synthetic event to the web page itself.
@@ -1748,14 +1752,20 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleKeyPress : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeyPress for "  + aEvent.keyCode );
-
     
     if (that._recognizedKey(aEvent)) {
+      // Ignore this key.  
       that._logger.debug("_handleKeyPress: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
     } else {
-      that._passKeyEventToPage(aEvent);
+      // Unlike the other key events keyPress gets
+      // code 0 when regular letters are entered, so
+      // we ignore them by checking for 0 (so we don't eg enter them
+      // into a gmail compose window).
+      if (aEvent.keyCode != 0) {
+        that._passKeyEventToPage(aEvent);
+      }
     }
   },
   
