@@ -424,7 +424,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let useCapture = false;
     this._panel.addEventListener("keydown", this._handleKeyDown, useCapture);
     this._panel.addEventListener("keyup", this._handleKeyUp, useCapture);
-    this._panel.addEventListener("keypress", this._handleIgnoreKey, useCapture);
+    this._panel.addEventListener("keypress", this._handleKeyPress, useCapture);
     this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
 
     /*
@@ -447,7 +447,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("_removeListenersWhenPopupHidden");
     this._panel.removeEventListener("keydown", this._handleKeyDown, false);
     this._panel.removeEventListener("keyup", this._handleKeyUp, false);
-    this._panel.removeEventListener("keypress", this._handleIgnoreKey, false);
+    this._panel.removeEventListener("keypress", this._handleKeyPress, false);
     this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
 
     window.removeEventListener(
@@ -1550,31 +1550,65 @@ ThumbnailZoomPlusChrome.Overlay = {
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
-            aEvent.keyCode == aEvent.DOM_VK_A ||
-            aEvent.keyCode == aEvent.DOM_VK_C ||
-            aEvent.keyCode == aEvent.DOM_VK_D ||
-            aEvent.keyCode == aEvent.DOM_VK_H ||
-            aEvent.keyCode == aEvent.DOM_VK_P ||
-            aEvent.keyCode == aEvent.DOM_VK_N ||
-            aEvent.keyCode == aEvent.DOM_VK_S ||
-            aEvent.keyCode == aEvent.DOM_VK_T ||
-            aEvent.keyCode == aEvent.DOM_VK_X ||
+            (aEvent.keyCode >= aEvent.DOM_VK_A &&
+             aEvent.keyCode <= aEvent.DOM_VK_Z) ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-            aEvent.keyCode == aEvent.DOM_VK_0);
+            (aEvent.keyCode >= aEvent.DOM_VK_0 &&
+             aEvent.keyCode <= aEvent.DOM_VK_9)
+           );
   },
-  
+
+  _passKeyEventToPage : function(aEvent) {
+    if (! this._currentThumb) {
+      return;
+    }
+
+    if (aEvent.keyCode == aEvent.DOM_VK_DOWN) {
+      if (aEvent.type == "keydown") {
+        this._currentWindow.scrollByLines(2);
+      }
+    } else if (aEvent.keyCode == aEvent.DOM_VK_UP) {
+      if (aEvent.type == "keydown") {
+        this._currentWindow.scrollByLines(-2);
+      }
+    } else {
+      // Send synthetic event to the web page itself.
+      // This allows e.g. Return to follow the link.
+      // Note that it doesn't allow scrolling to work; perhaps
+      // the doc but not Firefox chrome receives the event; we worked
+      // around that by detecting up/down explicitly above.
+      
+      let doc = this._currentThumb.ownerDocument;
+      let synthetic = doc.createEvent("KeyboardEvent");
+      /* template: event.initKeyEvent (type, bubbles, cancelable, viewArg, 
+                        ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg, 
+                        keyCodeArg, charCodeArg)  */
+      synthetic.initKeyEvent(aEvent.type,
+                    aEvent.bubbles, aEvent.cancelable, this._currentWindow,
+                    aEvent.ctrlKey, aEvent.altKey, aEvent.shiftKey, aEvent.metaKey,
+                    aEvent.keyCode, aEvent.charCode);
+      this._logger.debug("_passKeyEventToPage: sending type=" +
+                         synthetic.type + " keyCode="  + aEvent.keyCode +
+                         " to " + this._currentWindow + " " + 
+                         this._currentThumb);
+
+      this._currentThumb.dispatchEvent(synthetic);
+    
+    }
+  },
+
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._doHandleKeyDown(aEvent);
   },
   
   _doHandleKeyDown : function(aEvent) {
-    this._logger.debug("_handleKeyDown for keyCode="  + aEvent.keyCode +
+    this._logger.debug("_doHandleKeyDown for keyCode="  + aEvent.keyCode +
                        "(charCode=" + aEvent.charCode + "; which=" +
                        aEvent.which + ")");
     
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, false, aEvent)) {
-      this._logger.debug("_handleKeyDown: maximize image since max-key is down");
+      this._logger.debug("_doHandleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
       this._currentAllowCoverThumb = true;
       this._redisplayPopup();
@@ -1636,13 +1670,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         factor = 1.0 / factor;
       }
       this._currentMaxScaleBy *= factor;
-      this._logger.debug("_handleKeyDown: scale *= " +
+      this._logger.debug("_doHandleKeyDown: scale *= " +
                          factor + " gives " + this._currentMaxScaleBy);
       this._redisplayPopup();
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_0) {
       this._currentMaxScaleBy = 1.0;
-      this._logger.debug("_handleKeyDown: reset scale = 1.0");
+      this._logger.debug("_doHandleKeyDown: reset scale = 1.0");
       this._redisplayPopup();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
@@ -1661,7 +1695,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy,
                                            this._getDefaultScalePref());
       }
-      this._logger.debug("_handleKeyDown: set allowCoverThumb = " +
+      this._logger.debug("_doHandleKeyDown: set allowCoverThumb = " +
                          this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
       this._redisplayPopup();
@@ -1670,9 +1704,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (this._recognizedKey(aEvent)) {
-      this._logger.debug("_handleKeyDown: ignoring key event");
+      this._logger.debug("_doHandleKeyDown: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
+    } else {
+      this._passKeyEventToPage(aEvent);
     }
   },
   
@@ -1695,16 +1731,22 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._logger.debug("_handleKeyUp: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
+    } else {
+      that._passKeyEventToPage(aEvent);
     }
   },
   
-  _handleIgnoreKey : function(aEvent) {
+  _handleKeyPress : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleIgnoreKey for "  + aEvent.keyCode );
+    that._logger.debug("_handleKeyPress for "  + aEvent.keyCode );
+
+    
     if (that._recognizedKey(aEvent)) {
-      that._logger.debug("_handleIgnoreKey: ignoring key event");
+      that._logger.debug("_handleKeyPress: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
+    } else {
+      that._passKeyEventToPage(aEvent);
     }
   },
   
