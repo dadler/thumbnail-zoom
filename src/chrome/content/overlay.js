@@ -1572,13 +1572,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
 
-    if (aEvent.keyCode == aEvent.DOM_VK_DOWN) {
+    if (aEvent.keyCode == aEvent.DOM_VK_DOWN ||
+        aEvent.keyCode == aEvent.DOM_VK_UP) {
       if (aEvent.type == "keydown") {
-        this._currentWindow.scrollByLines(2);
+        var delta = (aEvent.keyCode == aEvent.DOM_VK_DOWN) ? 2 : -2;
+        this._currentWindow.scrollByLines(delta);
       }
-    } else if (aEvent.keyCode == aEvent.DOM_VK_UP) {
+    } else if (aEvent.keyCode == aEvent.DOM_VK_LEFT ||
+               aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
       if (aEvent.type == "keydown") {
-        this._currentWindow.scrollByLines(-2);
+        var delta = (aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -16 : 16;
+        this._currentWindow.scrollBy(delta, 0);
       }
     } else {
       // Send synthetic event to the web page itself.
