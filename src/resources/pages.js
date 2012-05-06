@@ -659,7 +659,8 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   imageRegExp: /.*\/media-[^.\/]*\.pinterest\.com\/(upload|avatars)\/.*/,
   getZoomImage : function(aImageSrc, node, flags) {
     // for images:
-    let rex = new RegExp("([0-9_a-zA-Z]+_)b(" + 
+    // eg seen at http://pinterest.com/pin/98164466848180792/
+    let rex = new RegExp("([0-9_a-zA-Z]+_)[tb](" + 
                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
     aImageSrc = aImageSrc.replace(rex, "$1f$2");
 
