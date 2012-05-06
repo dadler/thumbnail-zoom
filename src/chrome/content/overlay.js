@@ -1752,14 +1752,20 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleKeyPress : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_handleKeyPress for "  + aEvent.keyCode );
-
     
     if (that._recognizedKey(aEvent)) {
+      // Ignore this key.  
       that._logger.debug("_handleKeyPress: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
     } else {
-      that._passKeyEventToPage(aEvent);
+      // Unlike the other key events keyPress gets
+      // code 0 when regular letters are entered, so
+      // we ignore them by checking for 0 (so we don't eg enter them
+      // into a gmail compose window).
+      if (aEvent.keyCode != 0) {
+        that._passKeyEventToPage(aEvent);
+      }
     }
   },
   
