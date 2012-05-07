@@ -1154,8 +1154,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     if (String(imageSourceNode) == zoomImageSrc) {
-      this._logger.debug("_tryImageSource: zoomImage same as hovered link; show crosshair.");
-      imageSourceNode.style.cursor = "crosshair";
+      // The link URL of the hovered-over node is the same as the full-size
+      // image we're showing; indicate that clicking the link wouldn't be
+      // useful by using our custom cursor on the link/thumb.
+      // TODO: might want to also look for onclick and similar handlers which
+      // might cause click to do something different than show this URL
+      // (example: reddit.com).
+      // TODO: need to restore the cursor when the popup is dismissed.
+      this._logger.debug("_tryImageSource: zoomImage same as hovered link (" +
+                         zoomImageSrc + "); using TZP cursor.");
+      imageSourceNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
     }
     
     this._currentWindow = aDocument.defaultView.top;

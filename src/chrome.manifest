@@ -27,7 +27,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ##
 
-content   thumbnailzoomplus                chrome/content/
+# We use contentaccessible=yes so the web page's "cursor" attribute
+# can see our custom cursor.  Security implication: This also means other 
+# files in chrome are readable from web pages, but we don't have anything
+# sensitive so that's OK.
+
+content   thumbnailzoomplus                chrome/content/ contentaccessible=yes
 locale    thumbnailzoomplus   en-US        chrome/locale/en-US/
 locale    thumbnailzoomplus   es           chrome/locale/es/
 locale    thumbnailzoomplus   it           chrome/locale/it/
