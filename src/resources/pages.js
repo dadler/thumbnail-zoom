@@ -441,7 +441,7 @@ ThumbnailZoomPlus.Pages.MySpace = {
 ThumbnailZoomPlus.Pages.Netflix = {
   key: "netflix",
   name: "Netflix",
-  host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net)$/,
+  host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net|instantwatcher\.com)$/,
   imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
                           "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
                           "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$|" +
@@ -468,7 +468,7 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // https://netflix.hs.llnwd.net/e1/en_us/boxshots/large/70208522.jpg to
     //     // when not logged in, sign-up page has 
     // https://netflix.hs.llnwd.net/e1/en_us/boxshots/ghd/70208522.jpg
-    let netflixRex1 = new RegExp("(/boxshots)/(large|small|[0-9]+)/");
+    let netflixRex1 = new RegExp("(/boxshots)/(large|small|tiny|[0-9]+)/");
     if (netflixRex1.test(aImageSrc)) {
       // popup for DVD box w/o play now.
       flags.popupAvoiderWidth = 392;
@@ -1185,7 +1185,12 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://cdn.viddy.com/images/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794.jpg
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)[^/]+\.viddy\.com\/video\/([^\/?]+).*/i,
                                   "$1/cdn.viddy.com/images/video/$2.jpg");
-                                  
+    
+    // imgchili.com:
+    // http://imgchili.com/show/7428/9998984_ie_011.jpg becomes
+    // http://i2.imgchili.com/7428/9998984_ie_011.jpg
+    aImageSrc = aImageSrc.replace(/\/\/imgchili\.com\/show\//, "i2.imgchili.com/");
+    
     // For most sites, if there is no image suffix, add .jpg.
     let rex = new RegExp("tumblr\\.com/.*" + 
                          "|twimg[.0-9-]" +
@@ -1216,18 +1221,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // Expression Tips:
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
-  imageRegExp: new RegExp("^(?![^/]*(" +
-                          "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)" + // google logos
-                          "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" + // google maps tiles
-                          "|(//maps\\.google\\.com?[.a-z]*/.*)" + // google maps user photo popups, etc.
-                          "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" + // google maps button images
-                          "|(//sh\\.deviantart\\.net/shadow/)" + // deviantart frame around thumbs
-                          "|(//st\\.deviantart\\.net/.*)" + // deviantart logo
-                          "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" + // amazon buttons
-                          "|(//[^/]*tiles\\.virtualearth\\.net/.*)" + // bing.com/maps tiles
-                          "|(//[^/]*.maps.live.com/i/.*)" + // bing.com/maps directions pin
-                          "|(^data:image/gif;base64,R0lGODlhEAA)" + // LastPass icon in input fields
-                          ")).*", "i"),
+  imageRegExp: new RegExp("^(?![^/]*("
+                          + "(//.*\\.google\\.com?[.a-z]*/(.*/)?images/)" // google logos
+                          + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
+                          + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
+                          + "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images
+                          + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
+                          + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
+                          + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
+                          + "|(//[^/]*tiles\\.virtualearth\\.net/.*)" // bing.com/maps tiles
+                          + "|(//[^/]*.maps.live.com/i/.*)" // bing.com/maps directions pin
+                          + "|(^data:image/gif;base64,R0lGODlhEAA)" // LastPass icon in input fields
+                          + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
+                          + ")).*", "i"),
   
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
@@ -1511,6 +1517,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
+
+    // imagetwist:
+    // http://img8.imagetwist.com/th/01282/999sz25wbi76.jpg becomes
+    // http://img8.imagetwist.com/i/01282/999sz25wbi76.jpg
+    aImageSrc = aImageSrc.replace(/(\.imagetwist\.com\/)th\//, "$1i/");
+
+    // imgchili.com:
+    // http://t2.imgchili.com/7428/9998984_ie_011.jpg becomes
+    // http://i2.imgchili.com/7428/9998984_ie_011.jpg
+    aImageSrc = aImageSrc.replace(/:\/\/t([0-9]+\.imgchili\.com\/)/, "://i$1/");
 
     // pixiv.net
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
