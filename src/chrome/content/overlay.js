@@ -2192,14 +2192,51 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
-    this._logger.trace("_focusThePopup");
-
     let doc = this._currentWindow.document;
     let focused = doc.activeElement;
 
-    if (focused && focused.tagName != "BODY") {
-      this._logger.debug("_focusThePopup: focused=" + focused + "; sending mouseover evnet");
+    this._logger.debug("_focusThePopup: aImageNode=" + aImageNode +
+                       "; class=" + aImageNode.className + 
+                       "; p.class=" + aImageNode.parentNode.className + 
+                       "; p.p.class=" + aImageNode.parentNode.parentNode.className + 
+                       "; focused=" + focused);
+    let parent = aImageNode.parentNode || aImageNode;
+    let parent = parent.parentNode || parent;
+    if (parent.className.indexOf("deviants") >= 0 ||
+        parent.className.indexOf("grp hh") >= 0) {
+      // This is the deviantart.com Deviants or Groups pulldown menu.
+      // Focusing would immediately dismiss the menu so we don't.
+      // TODO: it'd be better to detect this more generically if we knew how.
+      this._logger.debug("_focusThePopup: not focusing since ancestor class=" + 
+                         parent.className);
+      return;
+    }
+    
+    if (aImageNode && aImageNode.tagName != "BODY") {
+      this._logger.debug("_focusThePopup: aImageNode=" + aImageNode + "; sending mouseover event");
 
+      if (false) {
+        let node = aImageNode;
+        while (node && node.tagName != "HTML") {
+          if (node.onblur) {
+            this._logger.debug("_focusThePopup: not focusing since " + node + 
+                               " has onblur: " + aImageNode.onblur);
+            return;
+          }
+          if (node.onmouseover) {
+            this._logger.debug("_focusThePopup: not focusing since " + node + 
+                               " has onmouseover: " + aImageNode.onmouseover);
+            return;
+          }
+          if (node.onmouseout) {
+            this._logger.debug("_focusThePopup: not focusing since " + node + 
+                               " has onmouseout: " + aImageNode.onmouseout);
+            return;
+          }
+          node = node.parentNode;
+        }
+      }
+      
       // The focused element will lose focus when we give the popup focus.  Make
       // it lose focus now so it'll send the inevitible blur (focus-loss) event.
       // Then send a synthetic mouseover event so Firefox will continue to show
