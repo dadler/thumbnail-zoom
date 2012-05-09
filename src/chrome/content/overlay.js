@@ -195,7 +195,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   // _originalURI is the document URL (not the image) _currentWindow had when we last 
   // showed the popup.
   _originalURI : "",
-  
+
+  // _originalCursorNode (when not null) is the document node whose cursor 
+  // attribute we've overridden, and _originalCursor is its original value.
+  _originalCursorNode : null,
+  _originalCursor : "",
+
   // observe is the function called when preferences change (set in init() ).
   observe : null,
   
@@ -1073,6 +1078,26 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  /**
+    _isLinkSameAsImage returns true iff the specified node links to the
+    same url as zoomImageSrc (a string).  This determines whether we show
+    a special cursor.
+  */
+  _isLinkSameAsImage : function(imageSourceNode, zoomImageSrc) {
+    if (imageSourceNode.onmousedown ||
+        imageSourceNode.onclick) {
+      // If there's a javascript handler, clicking the link may do something
+      // different than our popup shows so don't use the special cursor.
+      // Example: reddit.com when logged in with "display links with a reddit 
+      // toolbar" preference on.
+      return false;
+    }
+    
+    if (String(imageSourceNode) == zoomImageSrc) {
+      return true;
+    }
+    return false;
+  },
 
   /**
     _tryImageSource tries to display a popup using rule aPage, returning
@@ -1153,18 +1178,13 @@ ThumbnailZoomPlusChrome.Overlay = {
       return "rejectedNode";
     }
 
-    if (String(imageSourceNode) == zoomImageSrc) {
-      // The link URL of the hovered-over node is the same as the full-size
-      // image we're showing; indicate that clicking the link wouldn't be
-      // useful by using our custom cursor on the link/thumb.
-      // TODO: might want to also look for onclick and similar handlers which
-      // might cause click to do something different than show this URL
-      // (example: reddit.com).
-      // TODO: need to restore the cursor when the popup is dismissed.
-      this._logger.debug("_tryImageSource: zoomImage same as hovered link (" +
-                         zoomImageSrc + "); using TZP cursor.");
-      imageSourceNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
-    }
+    // Test whether the link URL of the hovered-over node is the same as the full-size
+    // image we're showing; indicate that clicking the link wouldn't be
+    // useful by using our custom cursor on the link/thumb.
+    // TODO: might want to also look for onclick and similar handlers which
+    // might cause click to do something different than show this URL
+    // (example: reddit.com).
+    flags.linkSameAsImage = this._isLinkSameAsImage(imageSourceNode, zoomImageSrc);
     
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
@@ -1411,14 +1431,59 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
   },
   
+    /**
+   * _hideCaption hides the caption from the popup and restores the original
+   * tooltip to the original node.
+   */
+  _hideCaption : function() {
+      this._logger.trace("_hideCaption");
+      this._panelCaption.hidden = true;
+      // restore original title / tooltip:
+      if (this._panelCaption.value != "") {
+        this._logger.debug("_hideCaption: restoring title to " + 
+                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
+                           + ": " + 
+                           this._panelCaption.value);
+        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
+                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+        }
+      }
+      this._panelCaption.value = "";
+  },
+  
+  _setupCursor : function(aImageNode) {
+    // TODO: need to restore the cursor when the popup is dismissed.
+    this._logger.debug("_setupCursor: zoomImage same as hovered link; using TZP cursor.");
+
+    // In case an override was already in effect, clear it.
+    this._restoreCursor();
+
+    this._originalCursor = aImageNode.style.cursor;
+    this._originalCursorNode = aImageNode;
+
+    aImageNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
+  },
+  
+  _restoreCursor : function() {
+      this._logger.trace("_restoreCursor");
+
+      if (this._originalCursorNode) {
+        this._logger.debug("_restoreCursor: restoring cursor to " + 
+                           this._originalCursorNode
+                           + ": " + this._originalCursor);
+        this._originalCursorNode.style.cursor = this._originalCursor;
+        this._originalCursorNode = null;
+      }
+  },
   
   /**
-   * Shows the panel.
+   * Shows the panel (after the image has loaded).
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
    */
-  _showPanel : function(aImageNode, aImageSrc, 
-                        flags, aEvent) {
+  _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
@@ -1434,6 +1499,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentImage = aImageSrc;
     
     this._setupCaption(aImageNode);
+    if (flags.linkSameAsImage) {
+      this._setupCursor(aImageNode);
+    }
     
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -1455,28 +1523,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
     }
-  },
-  
-  /**
-   * _hideCaption hides the caption from the popup and restores the original
-   * tooltip to the original node.
-   */
-  _hideCaption : function() {
-      this._logger.trace("_hideCaption");
-      this._panelCaption.hidden = true;
-      // restore original title / tooltip:
-      if (this._panelCaption.value != "") {
-        this._logger.debug("_hideCaption: restoring title to " + 
-                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
-                           + ": " + 
-                           this._panelCaption.value);
-        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
-                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
-        }
-      }
-      this._panelCaption.value = "";
   },
   
   /**
@@ -1532,6 +1578,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._currentThumb = null;
       
       this._hideCaption();
+      this._restoreCursor();
     } catch (e) {
       this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
