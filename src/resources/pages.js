@@ -888,7 +888,7 @@ ThumbnailZoomPlus.Pages.Imgur = {
 };
 
 /**
- * Photosight
+ * Photosight.ru and Photosight.com
  *
  * ex1:
  * http://s.photosight.ru/img/4/aef/4167500_icon.jpg
@@ -903,23 +903,28 @@ ThumbnailZoomPlus.Pages.Imgur = {
  * ex4 (for very old images):
  * http://prv-2001-04.photosight.ru/03/pv_26.jpg
  * http://img-2001-04.photosight.ru/03/26.jpg
+ *
+ * http://www.photosight.com/prv/2012/05/09/pv_1612453.jpg becomes
+ * http://images.photosight.com/2012/05/09/1612453.jpg
  */
 ThumbnailZoomPlus.Pages.Photosight = {
   key: "photosight",
   name: "Photosight",
-  host: /^(.*\.)?photosight\.ru$/i,
-  imageRegExp: /\.photosight\.ru/i,
+  host: /^(.*\.)?photosight\.(ru|com)$/i,
+  imageRegExp: /\.photosight\.(ru|com)/i,
   
   getZoomImage : function(aImageSrc, node, flags) {
     let rex1 = new RegExp(/_(icon)\./);
     let rex2 = new RegExp(/_(crop)_[0-9]+\./);
     let rex3 = new RegExp(/_top_of_day\./);
     let rex4 = new RegExp("//prv-(.*/)pv_([0-9]+\\.)");
+    let rex5 = new RegExp("//www.photosight.com/prv/(.*/)pv_([0-9]+\\.)");
     let image = 
       rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_large.") :
       rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "_large.") :
       rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "_large.") : 
       rex4.test(aImageSrc) ? aImageSrc.replace(rex4, "//img-$1$2") :
+      rex5.test(aImageSrc) ? aImageSrc.replace(rex5, "//images.photosight.com/$1$2") :
       null;
     
     return image;
