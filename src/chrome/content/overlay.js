@@ -1080,42 +1080,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   /**
-    _isLinkSameAsImage returns true iff the specified node links to the
-    same url as zoomImageSrc (a string).  This determines whether we show
-    a special cursor.
-  */
-  _isLinkSameAsImage : function(imageSourceNode, zoomImageSrc) {
-    if (String(imageSourceNode) != zoomImageSrc) {
-      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
-                       "\"): true since != \"" + zoomImageSrc + "\"");
-      return false;
-    }
-
-    let handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
-    if (handler) {
-      handler = String(handler);
-      if (! handler.match(/lightbox/i)) {
-        // If there's a javascript handler, and it doesn't appear to be a
-        // trivial lightbox viewer, clicking the link may do something
-        // different than our popup shows so don't use the special cursor.
-        // Example: reddit.com when logged in with "display links with a reddit 
-        // toolbar" preference on.
-        this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
-                           "\"): false due to onmousedown or onclick: \"" +
-                         handler + "\"");
-        return false;
-      }
-      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
-                           "\"): ignoring onmousedown or onclick which " +
-                           "looks like a lightbox: \"" +
-                           handler + "\"");
-    }
-    this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
-                       "\"): true");
-    return true;
-  },
-
-  /**
     _tryImageSource tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
     make the popup appear later).
@@ -1528,6 +1492,41 @@ ThumbnailZoomPlusChrome.Overlay = {
       }, 0.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
+    /**
+    _isLinkSameAsImage returns true iff the specified node links to the
+    same url as zoomImageSrc (a string).  This determines whether we show
+    a special cursor.
+  */
+  _isLinkSameAsImage : function(imageSourceNode, zoomImageSrc) {
+    if (String(imageSourceNode) != zoomImageSrc) {
+      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                       "\"): false since != \"" + zoomImageSrc + "\"");
+      return false;
+    }
+
+    let handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
+    if (handler) {
+      handler = String(handler);
+      if (! handler.match(/lightbox|save_href\(/i)) {
+        // If there's a javascript handler, clicking the link may do something
+        // different than our popup shows so don't use the special cursor.
+        // But we specifically ignore handlers for lightboxes like on
+        // tumblr.com and reddit's link redirector (save_href).
+        this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                           "\"): false due to onmousedown or onclick: \"" +
+                         handler + "\"");
+        return false;
+      }
+      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                           "\"): ignoring onmousedown or onclick which " +
+                           "we want to ignore: \"" +
+                           handler + "\"");
+    }
+    this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                       "\"): true");
+    return true;
+  },
+
   /**
    * Shows the panel (after the image has loaded).
    * @param aImageNode the image node.
