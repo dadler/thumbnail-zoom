@@ -51,6 +51,7 @@
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra bordo bianco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Massimizzare la dimensione immagine di sovrapposti delle miniature">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
+<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Mostra &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Mostra titolo">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Aggiungere alla storia">

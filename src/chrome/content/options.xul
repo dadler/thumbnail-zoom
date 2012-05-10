@@ -55,6 +55,8 @@
         name="extensions.thumbnailzoomplus.panel.largeimage" type="bool"/>
       <preference id="thumbnailzoomplus-options-popup-on-scroll-pref"
         name="extensions.thumbnailzoomplus.panel.popuponscroll" type="bool"/>
+      <preference id="thumbnailzoomplus-options-focuspopup-pref"
+        name="extensions.thumbnailzoomplus.panel.focuspopup" type="bool"/>
       <preference id="thumbnailzoomplus-options-show-percent-pref"
         name="extensions.thumbnailzoomplus.panel.showpercent" type="bool"/>
       <preference id="thumbnailzoomplus-options-caption-pref"
@@ -213,8 +215,19 @@
               label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
+          </hbox>
+          <hbox>
             <checkbox preference="thumbnailzoomplus-options-popup-on-scroll-pref"
               label="&thumbnailzoomplus.options.popuponscroll.checkbox.label;" />
+            <checkbox preference="thumbnailzoomplus-options-focuspopup-pref"
+              label="&thumbnailzoomplus.options.focuspopup.checkbox.label;" 
+              tooltiptext="When on (the default) the pop-up takes keyboard focus
+from the web page so you'll realize typing is for the pop-up's hotkeys, not the web page.
+The pop-up closes when it loses keyboard focus.
+Turn off if you're having trouble with the pop-up closing
+immediately or if a web page's pop-up menus close when the Thumbnail Zoom Plus
+pop-up appears (eg on certain Linux machines)."
+              />
           </hbox>
         </rows>
       </grid>

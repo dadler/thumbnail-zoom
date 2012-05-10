@@ -50,6 +50,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
   PREF_PANEL_POPUP_ON_SCROLL : ThumbnailZoomPlus.PrefBranch + "panel.popuponscroll",
+  PREF_PANEL_FOCUS_POPUP : ThumbnailZoomPlus.PrefBranch + "panel.focuspopup",
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
@@ -405,15 +406,16 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Adds listeners when the popup image is shown.  The listener is added
-   * on the document itself (not the popup); otherwise we never get events,
-   * perhaps due to focus issues.
+   * Adds listeners when the popup image is shown.  
+   *
+   * The listener is added on the popup if PREF_PANEL_FOCUS_POPUP is true
+   * (the default); otherwise it's added to the document itself.
    */
   _addListenersWhenPopupShown : function() {
     this._logger.trace("_addListenersWhenPopupShown");
     
     /*
-     * Add key listeners so the "Escape" key can hide the popup.
+     * Add key listeners for our hotkeys.
      * We make sure the web site won't see the Escape key by handling
      * all three of keydown, keyup, and keypress; that keeps for example
      * reddpics.com from refreshing the page when we hit Escape.
@@ -423,10 +425,15 @@ ThumbnailZoomPlusChrome.Overlay = {
      * may appear as 0 in keydown.
      */
     let useCapture = false;
-    this._panel.addEventListener("keydown", this._handleKeyDown, useCapture);
-    this._panel.addEventListener("keyup", this._handleKeyUp, useCapture);
-    this._panel.addEventListener("keypress", this._handleKeyPress, useCapture);
-    this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
+    if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+      var keyReceiver = this._panel;
+      this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
+    } else {
+      var keyReceiver = this._currentWindow.document;
+    }
+    keyReceiver.addEventListener("keydown", this._handleKeyDown, useCapture);
+    keyReceiver.addEventListener("keyup", this._handleKeyUp, useCapture);
+    keyReceiver.addEventListener("keypress", this._handleKeyPress, useCapture);
 
     /*
      * Listen for pagehide events to hide the popup when navigating away
@@ -446,9 +453,15 @@ ThumbnailZoomPlusChrome.Overlay = {
   _removeListenersWhenPopupHidden : function() {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("_removeListenersWhenPopupHidden");
-    this._panel.removeEventListener("keydown", this._handleKeyDown, false);
-    this._panel.removeEventListener("keyup", this._handleKeyUp, false);
-    this._panel.removeEventListener("keypress", this._handleKeyPress, false);
+    
+    // Unregister for both key receivers in case the PREF_PANEL_FOCUS_POPUP 
+    // pref changed while popped up.
+    [this._panel, this._currentWindow.document].forEach(function(keyReceiver) {
+        keyReceiver.removeEventListener("keydown", this._handleKeyDown, false);
+        keyReceiver.removeEventListener("keyup", this._handleKeyUp, false);
+        keyReceiver.removeEventListener("keypress", this._handleKeyPress, false);
+      }, this);
+    
     this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
 
     window.removeEventListener(
@@ -934,6 +947,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
+
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+      return;
+    }
 
     // Prevent another popup from immediately happening and taking focus back.
     that._setIgnoreBBoxPageRelative();
@@ -2192,6 +2209,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+      return;
+    }
     let doc = this._currentWindow.document;
     let focused = doc.activeElement;
 

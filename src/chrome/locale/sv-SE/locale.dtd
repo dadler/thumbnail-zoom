@@ -51,6 +51,7 @@
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
+<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Visa &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Visa bildtext">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till historien">
