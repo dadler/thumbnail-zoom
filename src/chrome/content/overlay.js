@@ -1063,6 +1063,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Start a timer to try to load the image after the configured
     // hover delay time. 
     let that = this;
+    this._hideCaption();
     this._timer.cancel();
     this._timer.initWithCallback({ notify:
         function() { that._findPageAndShowImage(aDocument, aEvent, aPage, node); }
@@ -1371,21 +1372,19 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /*
-   * Sets the popup's caption from aImageNode's (or its ancestor's).
-   * Doesn't actually hide the tooltip from the original node.
+   * Sets the popup's caption from aImageNode's (or its ancestor's)
+   * and clears the tooltip.
+   * Be sure to call _hideCaption() at some point in the future so the 
+   * original tooltip/title gets restored to the node.
    *
-   * Note that the tooltip doen't get unhidden until we popup,
-   * and the node's title doesn't get cleared (to hide the tooltip)
-   * until just after we display, so we don't clear the tooltip
-   * if we end up not displaying it.
    * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
    * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode) {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
     this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
+    this._hideCaption();
     if (!allowCaption) {
-      this._hideCaption();
       return;
     }
     
@@ -1393,10 +1392,39 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_setupCaption: image title='" + 
                        caption + "'");
     this._panelCaption.value = caption;
-    this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
+    this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
+
+    // suppress the tooltip from the thumb.
+    aImageNode.title = " ";
   },
   
+  /**
+   * _hideCaption hides the caption from the popup and restores the original
+   * tooltip to the original node.  We call this when closing the popup
+   * and even if we just have an error loading the image, since we need
+   * to restore the original tooltip.
+   *
+   * It doesn't do anything if there is no saved tooltip to restore
+   * so calling it extra doesn't hurt.
+   */
+  _hideCaption : function() {
+      this._logger.trace("_hideCaption");
+      // restore original title / tooltip:
+      if (this._panelCaption.value != "") {
+        this._panelCaption.hidden = true;
+        this._logger.debug("_hideCaption: restoring title to " + 
+                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
+                           + ": " + 
+                           this._panelCaption.value);
+        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
+                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
+          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+        }
+      }
+      this._panelCaption.value = "";
+  },
   
   /**
    * Shows the panel.
@@ -1441,28 +1469,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (this._panel.state != "closed") {
       this._panel.hidePopup();
     }
-  },
-  
-  /**
-   * _hideCaption hides the caption from the popup and restores the original
-   * tooltip to the original node.
-   */
-  _hideCaption : function() {
-      this._logger.trace("_hideCaption");
-      this._panelCaption.hidden = true;
-      // restore original title / tooltip:
-      if (this._panelCaption.value != "") {
-        this._logger.debug("_hideCaption: restoring title to " + 
-                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
-                           + ": " + 
-                           this._panelCaption.value);
-        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
-                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
-        }
-      }
-      this._panelCaption.value = "";
   },
   
   /**
@@ -1985,12 +1991,10 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           flags, 
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
-        if (! this._panelCaption.hidden) {
-          // we're showing caption in the popup so suppress the tooltip.
-          aImageNode.title = " ";
-        }
         this._addListenersWhenPopupShown();
         this._addToHistory(aImageSrc);
+      } else {
+        this._hideCaption();
       }
     }
     // Help the garbage collector reclaim memory quickly.
@@ -2162,11 +2166,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     // keep loading in the background).
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
-      if (that._currentImage == aImageSrc) {
-        that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
-        that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
-        that._imageObjectBeingLoaded = null;
+
+      if (this._currentImage != aImageSrc) {
+        // A different image than our current one finished loading; ignore it.
+        return;
       }
+      this._hideCaption();
+      that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
+      that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
+      that._imageObjectBeingLoaded = null;
     };
 
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
