@@ -104,7 +104,8 @@ ThumbnailZoomPlus.FilterService = {
     this.allowRight = true;
     this.allowAbove = true;
     this.allowBelow = true;
-
+    this.linkSameAsImage = false;
+    
     // If this.popupAvoiderWidth > 0, then popup positioning avoids the
     // side (left/right) where the site's own popup is likely to be.
     // width is the width of the site's popup; .popupAvoiderLREdge is the percentage from

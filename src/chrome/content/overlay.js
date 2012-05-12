@@ -72,6 +72,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    *   - for the repeating timer after we start loading to poll whether we
    *     have loaded enough to know image dimensions and thus show the full-size
    *     image.
+   *   - for the cursor to hide the cursor in the popup
    */
   _timer : null,
 
@@ -195,7 +196,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   // _originalURI is the document URL (not the image) _currentWindow had when we last 
   // showed the popup.
   _originalURI : "",
-  
+
+  // _originalCursorNode (when not null) is the document node whose cursor 
+  // attribute we've overridden, and _originalCursor is its original value.
+  _originalCursorNode : null,
+  _originalCursor : "",
+
   // observe is the function called when preferences change (set in init() ).
   observe : null,
   
@@ -1074,7 +1080,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-
   /**
     _tryImageSource tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
@@ -1153,6 +1158,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_tryImageSource: getZoomImage returned null.");
       return "rejectedNode";
     }
+
+    // Test whether the link URL of the hovered-over node is the same as the full-size
+    // image we're showing; indicate that clicking the link wouldn't be
+    // useful by using our custom cursor on the link/thumb.
+    // TODO: might want to also look for onclick and similar handlers which
+    // might cause click to do something different than show this URL
+    // (example: reddit.com).
+    flags.linkSameAsImage = this._isLinkSameAsImage(imageSourceNode, zoomImageSrc);
+    
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
     this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
@@ -1426,13 +1440,106 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelCaption.value = "";
   },
   
+  _setupCursor : function(aImageNode) {
+    this._logger.trace("_setupCursor");
+
+    // In case an override was already in effect, clear it.
+    this._restoreCursor();
+
+    this._originalCursor = aImageNode.style.cursor;
+    this._originalCursorNode = aImageNode;
+
+    aImageNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
+  },
+  
+  _restoreCursor : function() {
+      this._logger.trace("_restoreCursor");
+
+      if (this._originalCursorNode) {
+        this._logger.debug("_restoreCursor: restoring cursor to " + 
+                           this._originalCursorNode
+                           + ": " + this._originalCursor);
+        this._originalCursorNode.style.cursor = this._originalCursor;
+        this._originalCursorNode = null;
+      }
+  },
+  
+  _showPopupCursor : function() {
+    // Enable cursor.
+    if (this._originalCursorNode) {
+      this._panel.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
+    } else {
+      this._panel.style.cursor = "auto";
+    }
+    
+    // Set a timer to disable cursor soon, so we only see it when moving 
+    // the mouse.
+    this._timer.cancel();
+    let that = this;
+    this._timer.initWithCallback(
+      { notify:
+        function() {
+          /*
+             Hide the cursor over the popup.
+             
+     We want to set cursor: none, but due to a bug seen in Firefox 11 on Mac,
+     the cursor sometimes gets stuck invisible after popdown.  As a workaround,
+     instead of using none, we set cursor to a transparent image.
+     Problem seen on the 4th image (which sets a non-default cursor)
+     on the Reddit framing of this imgur page:
+     http://www.reddit.com/tb/rd0b1
+     http://imgur.com/a/21WOk
+     
+     Possibly related bug report:
+     https://bugzilla.mozilla.org/show_bug.cgi?id=721239
+            */
+            let cursor = "url(chrome://thumbnailzoomplus/skin/images/transparent_1x1.gif), auto";
+            that._panel.style.cursor = cursor;
+        }
+      }, 0.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+  },
+  
+    /**
+    _isLinkSameAsImage returns true iff the specified node links to the
+    same url as zoomImageSrc (a string).  This determines whether we show
+    a special cursor.
+  */
+  _isLinkSameAsImage : function(imageSourceNode, zoomImageSrc) {
+    if (String(imageSourceNode) != zoomImageSrc) {
+      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                       "\"): false since != \"" + zoomImageSrc + "\"");
+      return false;
+    }
+
+    let handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
+    if (handler) {
+      handler = String(handler);
+      if (! handler.match(/lightbox|save_href\(/i)) {
+        // If there's a javascript handler, clicking the link may do something
+        // different than our popup shows so don't use the special cursor.
+        // But we specifically ignore handlers for lightboxes like on
+        // tumblr.com and reddit's link redirector (save_href).
+        this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                           "\"): false due to onmousedown or onclick: \"" +
+                         handler + "\"");
+        return false;
+      }
+      this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                           "\"): ignoring onmousedown or onclick which " +
+                           "we want to ignore: \"" +
+                           handler + "\"");
+    }
+    this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                       "\"): true");
+    return true;
+  },
+
   /**
-   * Shows the panel.
+   * Shows the panel (after the image has loaded).
    * @param aImageNode the image node.
    * @param aImageSrc the image source.
    */
-  _showPanel : function(aImageNode, aImageSrc, 
-                        flags, aEvent) {
+  _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
     this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
@@ -1448,6 +1555,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentImage = aImageSrc;
     
     this._setupCaption(aImageNode);
+    if (flags.linkSameAsImage) {
+      this._setupCursor(aImageNode);
+    }
     
     // Allow the user to see the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -1515,6 +1625,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       this._originalURI = "";
       this._hideThePopup();
+      this._timer.cancel(); // in case there's a timer for the popup cursor.
       
       // We no longer need the image contents, and don't want them to show
       // next time we show the working dialog.  This also helps the garbage 
@@ -1524,6 +1635,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._currentThumb = null;
       
       this._hideCaption();
+      this._restoreCursor();
     } catch (e) {
       this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
@@ -1539,6 +1651,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handlePopupMove : function(aEvent) {
     let x = aEvent.screenX;
     let y = aEvent.screenY;
+
+    this._showPopupCursor();
 
     if (this._insideThumbBBox(this._thumbBBox, x, y)) {
       // Mouse is still over the thumbnail.  Ignore the move and don't
@@ -2139,8 +2253,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     this._openAndPositionPopup(aImageNode, imageSize, available);
-
     this._updateForActualScale(imageSize.width, imageWidth);
+    this._showPopupCursor();
     
     return true;
   },
