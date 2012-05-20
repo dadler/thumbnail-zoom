@@ -2238,30 +2238,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     
-    if (aImageNode && aImageNode.tagName != "BODY") {
+    if (focused && focused.tagName != "BODY") {
+      // The previously-focused element wasn't the document itself,
+      // so send synthetic focus events (more details below).  
+      // Note that we test 'focused' rather than 'aImageNode'; testing the 
+      // latter would cause popup cycling on Google's "Visually related images".
       this._logger.debug("_focusThePopup: aImageNode=" + aImageNode + "; sending mouseover event");
-
-      if (false) {
-        let node = aImageNode;
-        while (node && node.tagName != "HTML") {
-          if (node.onblur) {
-            this._logger.debug("_focusThePopup: not focusing since " + node + 
-                               " has onblur: " + aImageNode.onblur);
-            return;
-          }
-          if (node.onmouseover) {
-            this._logger.debug("_focusThePopup: not focusing since " + node + 
-                               " has onmouseover: " + aImageNode.onmouseover);
-            return;
-          }
-          if (node.onmouseout) {
-            this._logger.debug("_focusThePopup: not focusing since " + node + 
-                               " has onmouseout: " + aImageNode.onmouseout);
-            return;
-          }
-          node = node.parentNode;
-        }
-      }
       
       // The focused element will lose focus when we give the popup focus.  Make
       // it lose focus now so it'll send the inevitible blur (focus-loss) event.
