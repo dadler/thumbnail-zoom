@@ -226,17 +226,27 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   name: "Twitpic",   
   
   // Host includes twitter.com since twitter often hosts twitpic images.
-  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg)$/,
+  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg|skylin.es)$/,
   imageRegExp:
     /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com|photozou.jp\/p\/img\/)/,
 
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
-    // The currently-selected thumbnail in slideshow view has a div
+    // If thumbnail-active-border-inner, the currently-selected thumbnail 
+    // in slideshow view has a div
     // superimposed on it; find the corresponding img.
     // example: https://twitter.com/#!/TheRomMistress/media/slideshow?url=pic.twitter.com%2FfNwHmcGv
     if (nodeClass == "thumbnail-active-border-inner") {
       // Find child "img" nodes
       let imgNodes = node.parentNode.parentNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the last child.
+        node = imgNodes[imgNodes.length-1];
+      }
+    }
+    // If preview-hoverpart, then a popup on skylin.es
+    if ("preview-hoverpart" == node.id) {
+      // Find child "img" nodes
+      let imgNodes = node.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the last child.
         node = imgNodes[imgNodes.length-1];
@@ -1195,6 +1205,8 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://imgchili.com/show/7428/9998984_ie_011.jpg becomes
     // http://i2.imgchili.com/7428/9998984_ie_011.jpg
     aImageSrc = aImageSrc.replace(/\/\/imgchili\.com\/show\//, "i2.imgchili.com/");
+    
+    aImageSrc = aImageSrc.replace(/(\/\/img..g\.com)\/\?v=/i, "$1/images/");
     
     // For most sites, if there is no image suffix, add .jpg.
     let rex = new RegExp("tumblr\\.com/.*" + 
