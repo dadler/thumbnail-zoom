@@ -82,6 +82,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel image. */
   _panelImage : null,
 
+  /* the <div> parent of _panelImage; its background is used for the 
+     status icons rather than the background of the _panelImage itself;
+     otherwise Firefox's "image still loading" indicator to appear on top
+     of the status icon". */
+  _panelImageDiv : null,
+  
   /* The floating panel caption (a label). */
   _panelCaption : null,
 
@@ -217,6 +223,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
+    this._panelImageDiv = document.getElementById("thumbnailzoomplus-panel-image-div");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
     this._panelFocusHost = document.getElementById("thumbnailzoomplus-panel-focus-host");
     this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
@@ -251,6 +258,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._panelImageDiv = null;
     this._panelCaption = null;
     this._panelInfo = null;
     this._currentImage = null;
@@ -1947,18 +1955,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let bg =
       "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
-    if (this._panelImage.style.backgroundImage == bg) {
+    if (this._panelImageDiv.style.backgroundImage == bg) {
       this._logger.debug("_showStatusIcon: already showing " + iconName);
       return;
     }
-    this._panelImage.style.backgroundImage = bg;
-    let imageHeight = 16 + (this._panelInfo.hidden ? 0 : 20);
-    this._panelImage.style.maxWidth = iconWidth + "px";
-    this._panelImage.style.minWidth = iconWidth + "px";
-    this._panelImage.style.maxHeight = imageHeight + "px";
-    this._panelImage.style.minHeight = imageHeight + "px";
+    this._panelImageDiv.style.backgroundImage = bg;
+    
+    let iconHeight = 16 + (this._panelInfo.hidden ? 0 : 20);
+    this._setExactSize(this._panelImageDiv, iconWidth, iconHeight);
+    
     this._panelCaption.hidden = true;
-    let panelHeight = imageHeight + this._widthAddon + this._panelHeightAddon;
+    let panelHeight = iconHeight + this._widthAddon + this._panelHeightAddon;
     this._panel.sizeTo(iconWidth + this._widthAddon + this._panelWidthAddon,
                        panelHeight);
 
@@ -2029,7 +2036,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (/\.gif$/.test(aImageSrc)) {
         // Animated gif's can take much longer to load than the time when
         // they could first be dispalyed, so override the user's setting.
-        delay = Math.min(delay, 0.5);
+        delay = Math.min(delay, 0.1);
       }
       this._logger.debug("_checkIfImageLoaded: calling _imageOnLoad since have size, delayed "
                          + delay + " ms");
@@ -2281,6 +2288,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_preloadImage");
 
     let that = this;
+
+    /*
+       Create a new Image object, which isn't displayed anywhere.  The
+       more direct way would be to use the pop-up's img node without this node,
+       but testing indicates that a displayed img or image node doesn't set
+       its width and height properties as quickly when the image is only
+       partially loaded.  Using a separate Image node allows us to show
+       the partial image sooner. 
+     */
     let image = new Image();
     that._imageObjectBeingLoaded = image;
     
@@ -2427,7 +2443,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        this._panelCaption.value != " ")
     let pos = this._calcPopupPosition(imageSize, wantCaption, available);
     
-    this._panelImage.style.backgroundImage = ""; // hide status icon
+    this._panelImageDiv.style.backgroundImage = ""; // hide status icon
     
     this._panelCaption.hidden = ! wantCaption;
     this._setImageSize(imageSize);
@@ -2927,7 +2943,26 @@ ThumbnailZoomPlusChrome.Overlay = {
     return pos;
   },
   
+  _setExactSize : function(element, w, h) {
+    element.style.minWidth = w + "px";
+    element.style.width    = w + "px";
+    element.style.maxWidth = w + "px";
 
+    element.style.minHeight = h + "px";
+    element.style.height    = h + "px";
+    element.style.maxHeight = h + "px";
+  },
+  
+  _clearSize : function(element, w, h) {
+    element.style.minWidth = "0";
+    element.style.width    = "auto";
+    element.style.maxWidth = "none";
+
+    element.style.minHeight = "0";
+    element.style.height    = "auto";
+    element.style.maxHeight = "none";
+  },
+  
   /**
    * Shows the image at its full size in the panel.
    * Assumes the popup and image itself are already visible.
@@ -2938,10 +2973,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_setImageSize: setting size to " +
                        aScale.width + " x " + aScale.height);
 
-    this._panelImage.style.maxWidth = aScale.width + "px";
-    this._panelImage.style.minWidth = aScale.width + "px";
-    this._panelImage.style.maxHeight = aScale.height + "px";
-    this._panelImage.style.minHeight = aScale.height + "px";
+    // Set the size of the image and its surrounding div.  Tests indicate
+    // that doing clearSize() on the div wouldn't work; it'd leave a few extra
+    // pixels of spacing below the image.
+    this._setExactSize(this._panelImage, aScale.width, aScale.height);
+    this._setExactSize(this._panelImageDiv, aScale.width, aScale.height);
+    
     this._panelCaption.style.maxWidth = aScale.width + "px";
 
     // Set the size (redundantly) on the panel itself as a possible workaround
