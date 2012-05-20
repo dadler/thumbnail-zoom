@@ -226,7 +226,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   name: "Twitpic",   
   
   // Host includes twitter.com since twitter often hosts twitpic images.
-  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg|skylin.es)$/,
+  host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg|skylin.es|picfog\.com|twicsy\.com)$/,
   imageRegExp:
     /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com|photozou.jp\/p\/img\/)/,
 
