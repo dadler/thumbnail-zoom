@@ -42,6 +42,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   -moz-image-region: rect(16px, 15px, 31px, 0px);
 }
 
+
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
   padding: 5px;
@@ -72,19 +73,34 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   */
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
+  
+  // debug: background-color: red !important;
   background-color: white !important;
+  
   background-position: top left !important;
   image-rendering: optimizeQuality;
+}
+#thumbnailzoomplus-panel-image-vbox {
+  /*
+     make sure we don't see the focus widget behind the status icon; the
+     div's background-color doesn't apply during status icon since that icon
+     is shown using background-image (which overrides background-color).
+   */
+  background-color: white !important;
 }
 #thumbnailzoomplus-panel-image-div {
   background-repeat: no-repeat !important;
   background-position: top left !important;
+  
   background-color: white !important;
-  /* debug: background-color: #ccffcc !important; */
+  // debug: background-color: green !important; 
 }
 
 #thumbnailzoomplus-panel-vbox {
+  /* Set the caption's background.  We do it on the vbox rather
+     than the caption label so it'll span the entire width of the pop-up. */
   background-color: #AAA !important;
+  // debug: background-color: blue !important;
 }
 #thumbnailzoomplus-panel-info {
   /* The zoom percent label (eg " 100% "). */
@@ -101,6 +117,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 
 #thumbnailzoomplus-panel-caption {
   color: black;
+  // debug: background-color: olive;
 }
 
 .thumbnailzoomplus-options-pages-column {

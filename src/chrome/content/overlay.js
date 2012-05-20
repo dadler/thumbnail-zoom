@@ -162,7 +162,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // _panelWidthAddon is how much wider the entire panel is than the image
   // and its border.
   // Used when calling sizeTo().  Effect may be different on mac than Windows.
-  _panelWidthAddon : 0,
+  _panelWidthAddon : 10,
   _panelHeightAddon : 0,
   
   // pad is the blank space (in pixels) between the thumbnail and a popup
@@ -2166,6 +2166,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_preloadImage");
 
     let that = this;
+
+    /*
+       Create a new Image object, which isn't displayed anywhere.  The
+       more direct way would be to use the pop-up's img node without this node,
+       but testing indicates that a displayed img or image node doesn't set
+       its width and height properties as quickly when the image is only
+       partially loaded.  Using a separate Image node allows us to show
+       the partial image sooner. 
+     */
     let image = new Image();
     that._imageObjectBeingLoaded = image;
     
@@ -2838,8 +2847,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_setImageSize: setting size to " +
                        aScale.width + " x " + aScale.height);
 
+    // Set the size of the image and its surrounding div.  Tests indicate
+    // that doing clearSize() on the div wouldn't work; it'd leave a few extra
+    // pixels of spacing below the image.
     this._setExactSize(this._panelImage, aScale.width, aScale.height);
-    this._clearSize(this._panelImageDiv);
+    this._setExactSize(this._panelImageDiv, aScale.width, aScale.height);
     
     this._panelCaption.style.maxWidth = aScale.width + "px";
 
