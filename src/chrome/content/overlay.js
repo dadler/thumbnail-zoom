@@ -953,7 +953,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
 
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (! ThumbnailZoomPlus.getPref(that.PREF_PANEL_FOCUS_POPUP, true)) {
       return;
     }
 
