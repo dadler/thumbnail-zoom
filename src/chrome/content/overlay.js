@@ -456,7 +456,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Unregister for both key receivers in case the PREF_PANEL_FOCUS_POPUP 
     // pref changed while popped up.
-    [this._panel, this._currentWindow.document].forEach(function(keyReceiver) {
+    let receivers = [this._panel];
+    if (this._currentWindow != null) {
+      receivers.push(this._currentWindow.document);
+    }
+    receivers.forEach(function(keyReceiver) {
+        that._logger.debug("_removeListenersWhenPopupHidden: removing from " + keyReceiver);
         keyReceiver.removeEventListener("keydown", this._handleKeyDown, false);
         keyReceiver.removeEventListener("keyup", this._handleKeyUp, false);
         keyReceiver.removeEventListener("keypress", this._handleKeyPress, false);
@@ -1491,8 +1496,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
 
+      this._hideCaption();
+
       // Clearing _currentWindow prevents a zombie compartment
       // leak (issue #24).
+      // CAUTION: don't do anything after here which needs _currentWindow.
       this._currentWindow = null;
 
       if (this._imageObjectBeingLoaded) {
@@ -1509,15 +1517,13 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       this._originalURI = "";
       this._hideThePopup();
-      
+
       // We no longer need the image contents, and don't want them to show
       // next time we show the working dialog.  This also helps the garbage 
       // collector:
       this._panelImage.src = null;
       this._panelImage.removeAttribute("src");
       this._currentThumb = null;
-      
-      this._hideCaption();
     } catch (e) {
       this._logger.debug("_closePanel: EXCEPTION: " + e);
     }
