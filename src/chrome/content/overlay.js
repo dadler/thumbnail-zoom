@@ -1945,8 +1945,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showStatusIcon : function(aImageNode, iconName, iconWidth) {
     this._logger.trace("_showStatusIcon");
     
-    this._panelImage.style.backgroundImage =
+    let bg =
       "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
+    if (this._panelImage.style.backgroundImage == bg) {
+      this._logger.debug("_showStatusIcon: already showing " + iconName);
+      return;
+    }
+    this._panelImage.style.backgroundImage = bg;
     let imageHeight = 16 + (this._panelInfo.hidden ? 0 : 20);
     this._panelImage.style.maxWidth = iconWidth + "px";
     this._panelImage.style.minWidth = iconWidth + "px";
