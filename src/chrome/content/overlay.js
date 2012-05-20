@@ -1635,7 +1635,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       this._originalURI = "";
       this._hideThePopup();
-      
+
       // We no longer need the image contents, and don't want them to show
       // next time we show the working dialog.  This also helps the garbage 
       // collector:
