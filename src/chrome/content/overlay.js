@@ -1621,6 +1621,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._removeListenersWhenPopupHidden();
 
       this._hideCaption();
+      this._panelImageDiv.style.backgroundImage = ""; // hide status icon
       this._restoreCursor();
       this._timer.cancel(); // in case there's a timer for the popup cursor.
 
@@ -2308,7 +2309,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
 
-      if (this._currentImage != aImageSrc) {
+      if (that._currentImage != aImageSrc) {
         // A different image than our current one finished loading; ignore it.
         return;
       }
