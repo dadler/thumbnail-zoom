@@ -959,7 +959,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
 
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (! ThumbnailZoomPlus.getPref(that.PREF_PANEL_FOCUS_POPUP, true)) {
       return;
     }
 
@@ -2291,7 +2291,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // A different image than our current one finished loading; ignore it.
         return;
       }
-      this._hideCaption();
+      that._hideCaption();
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
       that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
       that._imageObjectBeingLoaded = null;
