@@ -108,7 +108,6 @@
     <menuitem id="thumbnailzoomplus-context-download" hidden="true"
       insertbefore="context-saveimage" class="menuitem-iconic"
       onclick="checkForMiddleClick(this, event);"
-      image="chrome://thumbnailzoomplus/skin/images/icon16.png"
       label="&thumbnailzoomplus.context.download.label;"
       accesskey="&thumbnailzoomplus.context.download.accesskey;"
       oncommand="ThumbnailZoomPlusChrome.Overlay.downloadImage();" />

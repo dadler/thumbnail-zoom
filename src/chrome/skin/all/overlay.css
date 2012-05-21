@@ -100,3 +100,9 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 .thumbnailzoomplus-options-pages-column {
   padding: 2px;
 }
+
+#thumbnailzoomplus-context-download {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(0px, 15px, 15px, 0px);
+}
