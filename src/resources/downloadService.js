@@ -44,7 +44,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 ThumbnailZoomPlus.DownloadService = {
   /* Logger for this object. */
   _logger : null,
-
+  
   /**
    * Initializes the resource.
    */
@@ -59,10 +59,28 @@ ThumbnailZoomPlus.DownloadService = {
    * @param aFilePath the destination file path.
    * @param aWin the window.
    */
-  downloadImage : function(aImage, aFilePath, aWin) {
-    this._logger.debug("downloadImage");
+  downloadImageAsOriginal : function(imageURL, aFilePath) {
+    this._logger.debug("downloadImageAsOriginal");
 
     let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+    file.initWithPath(aFilePath);
+    this._saveImage(imageURL, file);
+  },
+
+  /**
+   * Dowloads an image to an uncompressed PNG file.
+   * This is how TZP worked in version 1.7.2 and older.  That takes a lot of 
+   * disk space and ends up with files named .jpg containing png data. 
+   * @param aImage the image.
+   * @param aFilePath the destination file path.
+   * @param aWin the window.
+   */
+  downloadImageAsPNG : function(aImage, aFilePath, aWin) {
+    this._logger.debug("downloadImageAsPNG");
+
+    let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+    file.initWithPath(aFilePath);
+    
     let canvas =
       aWin.document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
     let canvasCtx = canvas.getContext('2d');
@@ -72,18 +90,17 @@ ThumbnailZoomPlus.DownloadService = {
     canvas.height = aImage.height;
     canvasCtx.drawImage(aImage, 0, 0);
     data = canvas.toDataURL("image/png", "");
-    file.initWithPath(aFilePath);
 
-    this._saveImage(data, file);
+    this._convertToPngAndSaveImage(data, file);
   },
 
   /**
-   * Saves an image locally.
+   * Converts an image to uncompressed PNG and saves it image locally.
    * @param aData the canvas data.
    * @param aFile the destination file.
    */
-  _saveImage : function(aData, aFile) {
-    this._logger.trace("_saveImage");
+  _convertToPngAndSaveImage : function(aData, aFile) {
+    this._logger.trace("_convertAndSaveImage");
 
     let ioService =
       Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
@@ -103,7 +120,40 @@ ThumbnailZoomPlus.DownloadService = {
     persist.progressListener = transfer;
     // save the canvas data to the file
     persist.saveURI(source, null, null, null, null, aFile);
+  },
+
+  /**
+   * Saves an image locally.
+   * @param aData the canvas data.
+   * @param aFile the destination file.
+   */
+  _saveImage : function(imageURL, aFile) {
+    this._logger.trace("_saveImage");
+
+    let ioService =
+      Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+    let persist =
+      Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
+        createInstance(Ci.nsIWebBrowserPersist);
+    let source = ioService.newURI(imageURL, "UTF8", null);
+    let target = ioService.newFileURI(aFile);
+
+    // set persist flags
+    persist.persistFlags =
+      (Ci.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+       Ci.nsIWebBrowserPersist.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION);
+
+    // Create a 'transfer' object and set it as the progress listener.
+    // This causes the downloaded image to appear in the Firefox
+    // "Downloads" dialog.
+    let transfer = Cc["@mozilla.org/transfer;1"].createInstance(Ci.nsITransfer);
+    transfer.init(source, target, "", null, null, null, persist);
+    persist.progressListener = transfer;
+    
+    // save the canvas data to the file
+    persist.saveURI(source, null, null, null, null, aFile);
   }
+  
 };
 
 /**
