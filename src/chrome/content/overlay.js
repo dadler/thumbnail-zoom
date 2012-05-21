@@ -903,7 +903,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     this._clearIgnoreBBox();
-    this._closePanel(true);
+    this._closePanel(false);
   },
 
   _handleMouseMove : function (aDocument, aEvent, aPage) {
