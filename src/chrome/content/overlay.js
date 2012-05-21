@@ -1896,7 +1896,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE);
+    let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE, true);
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
       that._logger.debug("_handleKeyUp: _closePanel since pressed Esc or x key");
