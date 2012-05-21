@@ -1462,7 +1462,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._originalCursor = aImageNode.style.cursor;
     this._originalCursorNode = aImageNode;
 
-    aImageNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),auto";
+    // Use our custom cursor, except in Firefox 3.6 where we'll fallback to 
+    // crosshair (some fallback is required to be specified).
+    aImageNode.style.cursor = "url(chrome://thumbnailzoomplus/skin/images/tzp-cursor.gif),crosshair";
   },
   
   _restoreCursor : function() {
@@ -1518,13 +1520,22 @@ ThumbnailZoomPlusChrome.Overlay = {
     a special cursor.
   */
   _isLinkSameAsImage : function(imageSourceNode, zoomImageSrc) {
+    this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
+                       "\", \"" + zoomImageSrc + "\"");
     if (String(imageSourceNode) != zoomImageSrc) {
       this._logger.debug("_isLinkSameAsImage(\"" + imageSourceNode + 
                        "\"): false since != \"" + zoomImageSrc + "\"");
       return false;
     }
 
-    let handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
+    var handler = null;
+    try {
+      handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
+    } catch (e) {
+      // Ignore the "Component is not available" exception we get in Firefix 3.6.
+      this._logger.debug("_isLinkSameAsImage: EXCEPTION: " + e);
+    }
+    
     if (handler) {
       handler = String(handler);
       if (! handler.match(/lightbox|save_href\(/i)) {
