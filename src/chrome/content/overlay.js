@@ -219,7 +219,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
-
+    this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._installToolbarButton();
     this._updateMenuButtonState();
     this._showPanelBorder();
@@ -2852,24 +2852,47 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     
-    let fileURL = this._currentImage;
+    let imageURL = this._currentImage;
     let filePickerResult = null;
-    let filePickerName =
-      fileURL.substring(fileURL.lastIndexOf('/') + 1, fileURL.length);
-    
-    this._filePicker.defaultString = filePickerName;
+    let pickerDefaultName =
+      imageURL.substring(imageURL.lastIndexOf('/') + 1);
+    let extension = /(\.[a-zA-Z0-9]+)[^.]*$/.exec(pickerDefaultName)[1] || "";
+    this._logger.debug("downloadImage: default ext='" + extension +
+                       "' from '" + pickerDefaultName + "'");
+
+    this._filePicker.defaultString = pickerDefaultName;
+    this._filePicker.defaultExtension = extension;
     filePickerResult = this._filePicker.show();
     
     if (Ci.nsIFilePicker.returnOK == filePickerResult ||
         Ci.nsIFilePicker.returnReplace == filePickerResult) {
       let filePath = this._filePicker.file.path;
-      let image = new Image();
+      this._logger.debug("downloadImage: picked '" + filePath +
+                         "'; url='" + this._filePicker.fileURL.path
+                         + "'");
+      if (false && ! /\.[a-zA-Z0-9]+/.test(filePath)) {
+        // no filename extension; add the original.
+        // Note that when the user clicks an existing file in the file picker
+        // (at least on OS X), firefox discards its existing extension.
+        // BUT DISABLED SINCE UNSAFE since the file dialog's Replace confirmation
+        // was based on the original filename.
+        filePath = filePath + extension;
+      }
       
-      image.onload = function() {
-        ThumbnailZoomPlus.DownloadService.downloadImage(
-                                                        image, filePath, window);
-      };
-      image.src = fileURL;
+      // If saveInPngFormat, saving is forced to uncompressed PNG format,
+      // like version 1.7.2 and older.  Recommended to use false.
+      let saveInPngFormat = false;
+      
+      if (saveInPngFormat) {
+        let image = new Image();
+        
+        image.onload = function() {
+          ThumbnailZoomPlus.DownloadService.downloadImageAsPNG(image, filePath, window);
+        };
+        image.src = imageURL;
+      } else {
+        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(imageURL, filePath);
+      }
     }
   },
 
