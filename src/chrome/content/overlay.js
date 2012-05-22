@@ -1525,7 +1525,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelImage.removeAttribute("src");
       this._currentThumb = null;
     } catch (e) {
-      this._logger.debug("_closePanel: EXCEPTION: " + e);
+      this._logger.debug("_closePanel: caught EXCEPTION: " + e);
+      this._logToConsole("ThumbnailZoomPlus: _closePanel: caught EXCEPTION: " + e);
     }
   },
 
@@ -2999,6 +3000,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     historyService2.addURI(nsIURI, false, true, null);  
     
+  },
+  
+  _logToConsole : function(msg) {
+    Cc["@mozilla.org/consoleservice;1"].
+      getService(Ci.nsIConsoleService).logStringMessage(msg);
   }
 
 };
