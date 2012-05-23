@@ -1663,7 +1663,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelImage.removeAttribute("src");
       this._currentThumb = null;
     } catch (e) {
-      this._logger.debug("_closePanel: EXCEPTION: " + e);
+      this._logger.debug("_closePanel: caught EXCEPTION: " + e);
+      this._logToConsole("ThumbnailZoomPlus: _closePanel: caught EXCEPTION: " + e);
     }
   },
 
@@ -3121,11 +3122,17 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _updateMenuButtonState : function() {
+    this._logger.trace("_updateMenuButtonState");
     let enable = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true);
     
     // Set tool button state
     let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
-    menuButton.setAttribute("tzpenabled", enable);
+    this._logger.debug("_updateMenuButtonState: menuButton=" + menuButton);
+    if (menuButton) {
+      // Set the tzpenabled attribute, which triggers our CSS to show
+      // the icon as enabled or disabled.
+      menuButton.setAttribute("tzpenabled", enable);
+    }
   },
   
   /**
@@ -3198,6 +3205,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     historyService2.addURI(nsIURI, false, true, null);  
     
+  },
+  
+  _logToConsole : function(msg) {
+    Cc["@mozilla.org/consoleservice;1"].
+      getService(Ci.nsIConsoleService).logStringMessage(msg);
   }
 
 };
