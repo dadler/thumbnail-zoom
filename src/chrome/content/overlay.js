@@ -542,6 +542,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // previous document anymore.  Clear them to avoid accessing dead
       // data (issue #75).
       this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+      this._originalCursorNode = null;
       this._currentThumb = null;
       
       this._closePanel(true);
