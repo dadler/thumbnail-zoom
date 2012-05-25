@@ -2093,8 +2093,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
-    let imageWidth = image.width;
-    let imageHeight = image.height;
+    
+    /*
+     * Get image size from naturalWidth, which tells us the image's true
+     * size, uninfluenced by CSS
+     */
+    let imageWidth = image.naturalWidth;
+    let imageHeight = image.naturalHeight;
     if (imageWidth == 0 || imageHeight == 0) {
       // Some images (such as .svg Scalable Vector Graphics) don't always have
       // an explicit size.  Give it an arbitrary resolution, at which it'll
@@ -2142,10 +2147,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._hideCaption();
       }
     }
-    // Help the garbage collector reclaim memory quickly.
-    // (Test by watching "images" size in about:memory.)
-    image.src = null;
-    image = null;
   },
 
   _redisplayPopup : function()
@@ -2310,7 +2311,7 @@ ThumbnailZoomPlusChrome.Overlay = {
        partially loaded.  Using a separate Image node allows us to show
        the partial image sooner. 
      */
-    let image = new Image();
+    let image = this._panelImage;
     that._imageObjectBeingLoaded = image;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
@@ -2342,7 +2343,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._imageObjectBeingLoaded = null;
     };
 
-    this._panelImage.src = aImageSrc;
     image.src = aImageSrc;
 
     /*
