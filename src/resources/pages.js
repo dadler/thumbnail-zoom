@@ -1212,7 +1212,7 @@ ThumbnailZoomPlus.Pages.Others = {
     let rex = new RegExp("tumblr\\.com/.*" + 
                          "|twimg[.0-9-]" +
                          "|twitpic\\.com" +
-                         "|(" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "(\\?.*)?$)"
+                         "|(" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$)"
                          , "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
