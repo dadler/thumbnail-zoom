@@ -1100,6 +1100,13 @@ ThumbnailZoomPlus.Pages.Others = {
        and then the youtube rule turns it into a jpg.
      */
     
+    if (/^https?:\/\/photo\.xuite\.net\/./.test(aImageSrc)) {
+      // Prohibit using links from photo.xuite.net since they look like
+      // .jpg URLs but are really html.  By rejecting them here we let the
+      // Thumbnails rule handle them.
+      return null;
+    }
+    
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
@@ -1545,6 +1552,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
                                              "$1_m$2");
     
+    // xuite.net
+    // http://c.share.photo.xuite.net/konwewe/1c8dee9/5609298/217205911_c.jpg becomes
+    // http://c.share.photo.xuite.net/konwewe/1c8dee9/5609298/217205911_x.jpg
+    aImageSrc = aImageSrc.replace(/(:\/\/[^/]*photo\.xuite\.net\/.*\/[0-9]+)_[a-z]\.jpg/i, 
+                                  "$1_x.jpg");
+
     // weheartit.com uses 
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg
