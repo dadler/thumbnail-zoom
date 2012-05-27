@@ -131,8 +131,13 @@
 
   <!-- Context menu item -->
   <popup id="contentAreaContextMenu">
-    <menuitem id="thumbnailzoomplus-context-download" hidden="true"
-      insertbefore="context-saveimage" class="menuitem-iconic"
+    <!-- insertbefore: command-separated list of items to insert before, though
+         the searching may not actually work.
+         See https://developer.mozilla.org/en/FirefoxOverlayPoints/Menus
+      -->
+    <menuitem id="thumbnailzoomplus-context-download" disabled="true"
+      insertbefore="context-viewpartialsource-selection,context-viewbgimage,context-saveimage" 
+      class="menuitem-iconic"
       onclick="checkForMiddleClick(this, event);"
       label="&thumbnailzoomplus.context.download.label;"
       accesskey="&thumbnailzoomplus.context.download.accesskey;"

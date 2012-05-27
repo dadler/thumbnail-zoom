@@ -115,3 +115,8 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   /* top, right, bottom, left */
   -moz-image-region: rect(0px, 15px, 15px, 0px);
 }
+#thumbnailzoomplus-context-download [disabled=true] {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(16px, 15px, 31px, 0px);
+}

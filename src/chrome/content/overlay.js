@@ -1591,9 +1591,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._setupCursor(aImageNode);
     }
     
-    // Allow the user to see the context (right-click) menu item for
+    // Allow the user to use the context (right-click) menu item for
     // "Save Enlarged Image As...".
-    this._contextMenu.hidden = false;
+    this._contextMenu.disabled = false;
     this._panelInfo.hidden = true;
 
     this._preloadImage(aImageNode, aImageSrc, 
@@ -1633,7 +1633,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.trace("_closePanel");
       
       if (clearContext) {
-        this._contextMenu.hidden = true;
+        this._contextMenu.disabled = true;
         this._currentImage = null;
       }
       this._timer.cancel();
