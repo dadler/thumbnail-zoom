@@ -1596,6 +1596,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/r-(.*)-(mini|small|medium|large)[0-9]*\.jpg/i,
                                   "$1/o-$2-570.jpg");
 
+    // coppermine gallery, e.g.
+    // http://coppermine-gallery.net/demo/cpg15x/ or
+    // http://photo.net.ph/albums/userpics/10002/thumb_DSCN5416a.jpg becomes
+    // http://photo.net.ph/albums/userpics/10002/DSCN5416a.jpg
+    // album names can vary or be nested.
+    // http://media.animegalleries.net/albums/rosario_vampire/moka_akashiya/thumb_rosario_moka_0192.jpg becomes
+    // http://media.animegalleries.net/albums/rosario_vampire/moka_akashiya/rosario_moka_0192.jpg
+    // 
+    aImageSrc = aImageSrc.replace(/(\/albums\/[^?&]+\/)thumb_([^?&\/]+\.(jpg|png|gif))/i, 
+                                  "$1$2");
+    
+    //
     aImageSrc = aImageSrc.replace(new RegExp("(tyimg\\.com/thumb)/[a-z]/[a-z]_(.*" + 
                                              ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
                                   "$1/l/l_$2");
