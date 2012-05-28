@@ -520,15 +520,15 @@ ThumbnailZoomPlus.Pages.Flickr = {
     
     /*
         spaceball:
-        Images tagged as "The owner has disabled downloading of their photos"
-        overlapped by a preceding <div> with this class.  We could find the 
-        actual image to allow it to pop-up, as follows.  But this would
-        also let the user open in new tab or save, which the site intends
-        to prevent, so don't allow a popup either (at least until we
-        can prevent saving).
+        Images in the new Favorites page have a "spaceball" div
+        node which overlaps the actual img.  The same happens for photos
+        tagged as "The owner has disabled downloading of their photos".
+        Find the actual img node to allow it to pop-up, as follows.  
+        Ideally we'd like to detect when the photo is disabled for saving by
+        the site so we could disable our own save, but I don't see how to tell
+        that from the html.
     */
-    if (false &&
-        -1 != nodeClass.indexOf("spaceball")) {
+    if (-1 != nodeClass.indexOf("spaceball")) {
       ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: saw spaceball");
       let imgNodes = aNode.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -1570,6 +1570,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(:\/\/[^/]*photo\.xuite\.net\/.*\/[0-9]+)_[a-z]\.jpg/i, 
                                   "$1_x.jpg");
 
+    // photo.net
+    // http://static.photo.net/thumbnails/97/42/9742906-tn-lg.jpg becomes
+    // http://gallery.photo.net/photo/9742906-lg.jpg
+    // http://thumbs.photo.net/photo/14271073-sm.jpg becomes
+    // http://gallery.photo.net/photo/14271073-lg.jpg
+    aImageSrc = aImageSrc.replace(/(:\/\/)(?:static|thumbs)\.photo\.net\/.*\/(.*?)-(?:tn-)?[a-z0-9]*\.jpg/i, 
+                                  "$1gallery.photo.net/photo/$2-lg.jpg");
+                                  
     // weheartit.com uses 
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg
