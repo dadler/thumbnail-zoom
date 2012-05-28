@@ -2048,7 +2048,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
     this._showStatusIcon(aImageNode, "working.png", 16);      
     
-    if (image.width > 0 && image.height > 0) {
+    if (image.naturalWidth > 0 && image.naturalHeight > 0) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
