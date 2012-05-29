@@ -52,7 +52,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   padding: 0px;
   border: none !important;
 }
-#thumbnailzoomplus-panel-image {
+#thumbnailzoomplus-panel-*-image {
   /* 
      The background-image is set dynamically as our "working" indicator, 
      and status/error indicators.

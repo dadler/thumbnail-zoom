@@ -84,7 +84,7 @@
       <vbox id="thumbnailzoomplus-panel-vbox" 
             align="center" pack="center" >
         <stack>
-          <!-- In a stack, the last item mentioned is on the top of the
+          <!-- In a stack, the LAST item mentioned is on the TOP of the
                stack.  All elements are overlaid at the same position
                by default. -->
                
@@ -94,22 +94,29 @@
                width="1px" height="1px" style="width: 1px; height: 1px" />
           
           <!-- 
-               For the image, we use an html <img> tag rather than xul
-               <image> since the former updates images more often while
-               loading, resolving issue #44.
-               xul requires img to be wrapped in div.  Both elements
+               For the image, we use either (both) an <html:img> tag and
+               an xul <image> tag, with only one active at a time.  We use
+               the <html:img> tag for most images since it updates the display
+               more often as the image loads, so the user doesn't see the image
+               pop on in large chunks but instead sees it scroll in; this resolves
+               issue #44.  xul requires img to be wrapped in div.  Both elements
                default transparent; we set a background on div in css so we don't
                see through to the focus-host.  We also find in Firefox 12.0 
                that we must wrap the div in a vbox to prevent extra vertical space
                after the image. 
-          -->
-          <vbox id="thumbnailzoomplus-panel-image-vbox">
+
+               But for gif's (which we assume may be animated) we use the 
+               xul <image> instead since using <html:img> causes the animation
+               to restart from the beginning after loading is complete;
+               see issue #77. -->
+          <vbox id="thumbnailzoomplus-panel-image-vbox" >
             <html:div id="thumbnailzoomplus-panel-image-div" >
-              <html:img id="thumbnailzoomplus-panel-image" />
+              <html:img id="thumbnailzoomplus-panel-html-image" />
             </html:div>
           </vbox>
-          <!-- <image id="XXXthumbnailzoomplus-panel-image" /> -->
-          
+
+          <image id="thumbnailzoomplus-panel-xul-image" />
+                    
           <!-- The following vbox just contains the info label
                (##%) and a spacer to force that label to the bottom
                of the image. -->

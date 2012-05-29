@@ -79,8 +79,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel. */
   _panel : null,
 
-  /* The floating panel image. */
+  /* The floating panel image.  We use _panelImage for images except
+     *.gif, where we use _panelXulImage to work around issue 
+     #77: gif animation restarts when fully loaded.  See explanation
+     in overlay.xul. */
   _panelImage : null,
+  _panelXulImage : null,
 
   /* the <div> parent of _panelImage; its background is used for the 
      status icons rather than the background of the _panelImage itself;
@@ -222,7 +226,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
-    this._panelImage = document.getElementById("thumbnailzoomplus-panel-image");
+    this._panelImage = document.getElementById("thumbnailzoomplus-panel-html-image");
+    this._panelXulImage = document.getElementById("thumbnailzoomplus-panel-xul-image");
     this._panelImageDiv = document.getElementById("thumbnailzoomplus-panel-image-div");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
     this._panelFocusHost = document.getElementById("thumbnailzoomplus-panel-focus-host");
@@ -258,6 +263,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel = null;
     this._panelImage = null;
+    this._panelXulImage = null;
     this._panelImageDiv = null;
     this._panelCaption = null;
     this._panelInfo = null;
@@ -1672,7 +1678,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // next time we show the working dialog.  This also helps the garbage 
       // collector:
       this._panelImage.src = null;
-      this._panelImage.removeAttribute("src");
+      this._panelXulImage.src = null;
       this._currentThumb = null;
     } catch (e) {
       this._logger.debug("_closePanel @2: caught EXCEPTION: " + e);
@@ -2014,6 +2020,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // We don't want to see any image on top of the icon.
     this._panelImage.src = null;
+    this._panelXulImage.src = null;
+    this._panelXulImage.hidden = true;
+    this._panelImage.hidden = false;
     this._showStatusIcon(aImageNode, iconName, iconWidth);
     
     // Hide the icon after a little while
@@ -2048,7 +2057,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
     this._showStatusIcon(aImageNode, "working.png", 16);      
     
-    if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+    let imageWidth  = image.naturalWidth;
+    let imageHeight = image.naturalHeight;
+    this._logger.debug("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
+                       "; width=" + image.width + "; iw=" + imageWidth);
+    if (imageWidth > 0 && imageHeight > 0) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
@@ -2058,7 +2071,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._timer.cancel();
       let that = this;
       let delay = this._getPartialLoadTime();
-      if (/\.gif$/.test(aImageSrc)) {
+      if (/\.gif/.test(aImageSrc)) {
         // Animated gif's can take much longer to load than the time when
         // they could first be dispalyed, so override the user's setting.
         delay = Math.min(delay, 0.1);
@@ -2110,7 +2123,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      * Get image size from naturalWidth, which tells us the image's true
      * size, uninfluenced by CSS
      */
-    let imageWidth = image.naturalWidth;
+    let imageWidth  = image.naturalWidth;
     let imageHeight = image.naturalHeight;
     if (imageWidth == 0 || imageHeight == 0) {
       // Some images (such as .svg Scalable Vector Graphics) don't always have
@@ -2158,6 +2171,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       } else {
         this._hideCaption();
       }
+    }
+    
+    if (image != this._panelImage) {
+      // Help the garbage collector reclaim memory quickly.
+      // (Test by watching "images" size in about:memory.)
+      // This also prevents the image from restarting at the start
+      // of image when it's done loading.
+      image.src = null;
+      image = null;
     }
   },
 
@@ -2323,8 +2345,24 @@ ThumbnailZoomPlusChrome.Overlay = {
        partially loaded.  Using a separate Image node allows us to show
        the partial image sooner. 
      */
-    let image = this._panelImage;
-    that._imageObjectBeingLoaded = image;
+    var image;
+    let loadInXulImage = /\.gif/.test(aImageSrc);
+    this._logger.debug("_preloadImage: loadInXulImage=" + loadInXulImage);
+
+    if (loadInXulImage) {
+      // We don't load solely into _panelXulImage since an xul image doesn't
+      // return a valid width when queried; we must also load into the
+      // _panelImage so we can query its size.
+      image = new Image();
+      
+      // TODO: need to make sure this gets deleted.
+    } else {
+      image = this._panelImage;
+    }
+    this._panelXulImage.hidden = ! loadInXulImage;
+    this._panelImage.hidden = loadInXulImage;
+
+    this._imageObjectBeingLoaded = image;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
@@ -2350,11 +2388,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       flags.requireImageBiggerThanThumb = false;
     }
     image.onload = function() {
-      that._imageOnLoad(aImageNode, aImageSrc, 
-                        flags, image);
+      that._imageOnLoad(aImageNode, aImageSrc, flags, image);
       that._imageObjectBeingLoaded = null;
     };
 
+    if (loadInXulImage) {
+      // We don't load solely into _panelXulImage since an xul image doesn't
+      // return a valid width when queried; we must also load into the
+      // _panelImage so we can query its size.
+      this._panelXulImage.src = aImageSrc;
+    }
     image.src = aImageSrc;
 
     /*
@@ -2984,6 +3027,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // that doing clearSize() on the div wouldn't work; it'd leave a few extra
     // pixels of spacing below the image.
     this._setExactSize(this._panelImage, aScale.width, aScale.height);
+    this._setExactSize(this._panelXulImage, aScale.width, aScale.height);
     this._setExactSize(this._panelImageDiv, aScale.width, aScale.height);
     
     this._panelCaption.style.maxWidth = aScale.width + "px";
