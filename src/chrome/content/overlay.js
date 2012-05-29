@@ -79,15 +79,15 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* The floating panel. */
   _panel : null,
 
-  /* The floating panel image.  We use _panelImage for images except
+  /* The floating panel image.  We use _panelHtmlImage for images except
      *.gif, where we use _panelXulImage to work around issue 
      #77: gif animation restarts when fully loaded.  See explanation
      in overlay.xul. */
-  _panelImage : null,
+  _panelHtmlImage : null,
   _panelXulImage : null,
 
-  /* the <div> parent of _panelImage; its background is used for the 
-     status icons rather than the background of the _panelImage itself;
+  /* the <div> parent of _panelHtmlImage; its background is used for the 
+     status icons rather than the background of the _panelHtmlImage itself;
      otherwise Firefox's "image still loading" indicator to appear on top
      of the status icon". */
   _panelImageDiv : null,
@@ -226,7 +226,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
-    this._panelImage = document.getElementById("thumbnailzoomplus-panel-html-image");
+    this._panelHtmlImage = document.getElementById("thumbnailzoomplus-panel-html-image");
     this._panelXulImage = document.getElementById("thumbnailzoomplus-panel-xul-image");
     this._panelImageDiv = document.getElementById("thumbnailzoomplus-panel-image-div");
     this._panelCaption = document.getElementById("thumbnailzoomplus-panel-caption");
@@ -262,7 +262,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("uninit");
 
     this._panel = null;
-    this._panelImage = null;
+    this._panelHtmlImage = null;
     this._panelXulImage = null;
     this._panelImageDiv = null;
     this._panelCaption = null;
@@ -1677,7 +1677,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // We no longer need the image contents, and don't want them to show
       // next time we show the working dialog.  This also helps the garbage 
       // collector:
-      this._panelImage.src = null;
+      this._panelHtmlImage.src = null;
       this._panelXulImage.src = null;
       this._currentThumb = null;
     } catch (e) {
@@ -2019,10 +2019,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_showStatusIconBriefly");
 
     // We don't want to see any image on top of the icon.
-    this._panelImage.src = null;
+    this._panelHtmlImage.src = null;
     this._panelXulImage.src = null;
     this._panelXulImage.hidden = true;
-    this._panelImage.hidden = false;
+    this._panelHtmlImage.hidden = false;
     this._showStatusIcon(aImageNode, iconName, iconWidth);
     
     // Hide the icon after a little while
@@ -2173,7 +2173,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     }
     
-    if (image != this._panelImage) {
+    if (image != this._panelHtmlImage) {
       // Help the garbage collector reclaim memory quickly.
       // (Test by watching "images" size in about:memory.)
       // This also prevents the image from restarting at the start
@@ -2352,15 +2352,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (loadInXulImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the
-      // _panelImage so we can query its size.
+      // _panelHtmlImage so we can query its size.
       image = new Image();
       
       // TODO: need to make sure this gets deleted.
     } else {
-      image = this._panelImage;
+      image = this._panelHtmlImage;
     }
     this._panelXulImage.hidden = ! loadInXulImage;
-    this._panelImage.hidden = loadInXulImage;
+    this._panelHtmlImage.hidden = loadInXulImage;
 
     this._imageObjectBeingLoaded = image;
     
@@ -2395,7 +2395,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (loadInXulImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the
-      // _panelImage so we can query its size.
+      // _panelHtmlImage so we can query its size.
       this._panelXulImage.src = aImageSrc;
     }
     image.src = aImageSrc;
@@ -3026,7 +3026,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Set the size of the image and its surrounding div.  Tests indicate
     // that doing clearSize() on the div wouldn't work; it'd leave a few extra
     // pixels of spacing below the image.
-    this._setExactSize(this._panelImage, aScale.width, aScale.height);
+    this._setExactSize(this._panelHtmlImage, aScale.width, aScale.height);
     this._setExactSize(this._panelXulImage, aScale.width, aScale.height);
     this._setExactSize(this._panelImageDiv, aScale.width, aScale.height);
     
