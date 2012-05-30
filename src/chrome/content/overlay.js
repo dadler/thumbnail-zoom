@@ -181,6 +181,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   // in overlay.xul
   _captionHeight : 14 + 4,
 
+  // _caption is the most recent hovered item's caption text (string).
+  // It is available whether or not the 'caption' pref is enabled.
+  _caption : "",
+  
   // _currentMaxScaleBy is the current image scale factor.  When a popup
   // is displayed, we initialize this based on the defalt zoom preference
   // PREF_PANEL_MAX_ZOOM.  Then we adjust _currentMaxScaleBy (but not
@@ -236,8 +240,6 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
-    this._filePicker.init(window, null, Ci.nsIFilePicker.modeSave);
-    this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._installToolbarButton();
     this._updateMenuButtonState();
     this._showPanelBorder();
@@ -1067,7 +1069,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                                       !keyActivates, true, aEvent);
     if (! keyActive) {
       this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
-      this._closePanel(true);
+      this._closePanel(false);
       return;
     }
 
@@ -1075,7 +1077,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let node = aEvent.target;
 
     // Close the previously displayed popup (if any).
-    this._closePanel(true);
+    this._closePanel(false);
 
     if (this._scrolledSinceMoved &&
         ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_ON_SCROLL, false)) {
@@ -1425,14 +1427,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
     this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
     this._hideCaption();
+    
+    this._caption = this._getEffectiveTitle(aImageNode);
+    this._logger.debug("_setupCaption: image title='" + 
+                       this._caption + "'");
     if (!allowCaption) {
       return;
     }
-    
-    let caption = this._getEffectiveTitle(aImageNode);
-    this._logger.debug("_setupCaption: image title='" + 
-                       caption + "'");
-    this._panelCaption.value = caption;
+    this._panelCaption.value = this._caption;
     this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = aImageNode;
     this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
 
@@ -1623,10 +1625,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Closes the panel.
    * @param: clearContext: true iff we should entirely clear this popup's
    *         context.  False if we should hide the popup, but still remember
-   *         its image as context e.g. for Save As...
-   *         Pass false for events where the mouse is still over the thumb,
-   *         but the user has requested a pop-down, e.g. pressing Escape or
-   *         losing keyboard focus.  Note that the act of popping up the
+   *         its image as context e.g. for Save Enlarged As...
+   *         Note that the act of popping up the
    *         context menu causes the popup to lose focus.
    */
   _closePanel : function(clearContext) {
@@ -1636,7 +1636,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // e.g. there is no this._contextMenu.  I suspect it's because the
       // chrome is already being destroyed when this is called.  So we
       // silently ignore exceptions here.
-      this._logger.trace("_closePanel");
+      this._logger.trace("_closePanel(clearContext=" + clearContext + ")");
       
       if (clearContext) {
         this._contextMenu.disabled = true;
@@ -1715,7 +1715,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // bbox calculation was a bit off; we don't want to popup again
     // if the mouse is still (barely) over the thumb.
     this._setIgnoreBBoxPageRelative();
-    this._closePanel(true);
+    this._closePanel(false);
   },
 
 
@@ -2029,7 +2029,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let that = this;
     this._timer.initWithCallback(
-        { notify: function() { that._closePanel(true); } }, 
+        { notify: function() { that._closePanel(false); } }, 
         1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
@@ -3089,10 +3089,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     let filePickerResult = null;
     let pickerDefaultName =
       imageURL.substring(imageURL.lastIndexOf('/') + 1);
-    let extension = /(\.[a-zA-Z0-9]+)[^.]*$/.exec(pickerDefaultName)[1] || "";
+    let extRe = /(\.[a-zA-Z0-9]+)[^.]*$/;
+    let match = extRe.exec(pickerDefaultName);
+    let extension = (match && match[1] || "");
     this._logger.debug("downloadImage: default ext='" + extension +
                        "' from '" + pickerDefaultName + "'");
 
+    let title = "Save Image: " + this._caption;
+    this._filePicker.init(window, title, Ci.nsIFilePicker.modeSave);
+    this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._filePicker.defaultString = pickerDefaultName;
     this._filePicker.defaultExtension = extension;
     filePickerResult = this._filePicker.show();
@@ -3103,14 +3108,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("downloadImage: picked '" + filePath +
                          "'; url='" + this._filePicker.fileURL.path
                          + "'");
-      if (false && ! /\.[a-zA-Z0-9]+/.test(filePath)) {
-        // no filename extension; add the original.
-        // Note that when the user clicks an existing file in the file picker
-        // (at least on OS X), firefox discards its existing extension.
-        // BUT DISABLED SINCE UNSAFE since the file dialog's Replace confirmation
-        // was based on the original filename.
-        filePath = filePath + extension;
-      }
       
       // If saveInPngFormat, saving is forced to uncompressed PNG format,
       // like version 1.7.2 and older.  Recommended to use false.
