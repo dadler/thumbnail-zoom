@@ -2007,6 +2007,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                        " size " + iconWidth + ", 16; state=" +
                        this._panel.state);
 
+    this._panelXulImage.hidden = true;
+    this._panelHtmlImage.hidden = false;
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
@@ -2021,8 +2023,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     // We don't want to see any image on top of the icon.
     this._panelHtmlImage.src = null;
     this._panelXulImage.src = null;
-    this._panelXulImage.hidden = true;
-    this._panelHtmlImage.hidden = false;
     this._showStatusIcon(aImageNode, iconName, iconWidth);
     
     // Hide the icon after a little while
@@ -2151,6 +2151,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
                          imageWidth + "x" + imageHeight);
+      // Make sure we close the 'working' status icon.
+      this._closePanel(false);
     } else {
       if (flags.requireImageBiggerThanThumb) {
         this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
@@ -2161,6 +2163,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._currentThumb = aImageNode;
       this._origImageWidth = imageWidth;
       this._origImageHeight = imageHeight;
+      
+      let loadInTempImage = (image != this._panelHtmlImage);
+      this._panelXulImage.hidden = ! loadInTempImage;
+      this._panelHtmlImage.hidden = loadInTempImage;
+
       let displayed =
         this._sizePositionAndDisplayPopup(this._currentThumb, aImageSrc,
                                           flags, 
@@ -2346,10 +2353,10 @@ ThumbnailZoomPlusChrome.Overlay = {
        the partial image sooner. 
      */
     var image;
-    let loadInXulImage = /\.gif/.test(aImageSrc);
-    this._logger.debug("_preloadImage: loadInXulImage=" + loadInXulImage);
+    let loadInTempImage = /\.gif/.test(aImageSrc);
+    this._logger.debug("_preloadImage: loadInTempImage=" + loadInTempImage);
 
-    if (loadInXulImage) {
+    if (loadInTempImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the
       // _panelHtmlImage so we can query its size.
@@ -2359,8 +2366,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else {
       image = this._panelHtmlImage;
     }
-    this._panelXulImage.hidden = ! loadInXulImage;
-    this._panelHtmlImage.hidden = loadInXulImage;
 
     this._imageObjectBeingLoaded = image;
     
@@ -2392,7 +2397,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._imageObjectBeingLoaded = null;
     };
 
-    if (loadInXulImage) {
+    if (loadInTempImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the
       // _panelHtmlImage so we can query its size.
