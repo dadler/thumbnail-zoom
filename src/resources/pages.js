@@ -1596,6 +1596,20 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/r-(.*)-(mini|small|medium|large)[0-9]*\.jpg/i,
                                   "$1/o-$2-570.jpg");
 
+    // smugmug.com
+    // http://fotomom.smugmug.com/Daily-Photos/My-Best-Daily-Shots/i-NV2b7Mx/0/Ti/IMG5190Cropped8X10-Ti.jpg becomes
+    // http://fotomom.smugmug.com/Daily-Photos/My-Best-Daily-Shots/i-NV2b7Mx/0/L/IMG5190Cropped8X10-L.jpg
+    // or src as Th; or dest as X1, X3, or X3 instead of L.
+    // Can be on other domains like on http://www.duffyknox.com/Personal/sports/Zion-Memorial-Day-adventure/23261775_gtCnDp#!i=1876521503&k=65764hV
+    aImageSrc = aImageSrc.replace(new RegExp("(/[0-9]+/)T[hi](/.*-)T[hi](-.*)?(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  "$1X2$2X2$3$4");
+                                  
+    // http://papanaturephotography.smugmug.com/Flowers/Papa-Nature-Photography/DSC5217pscrop/804122257_FaNFY-Ti-2.jpg becomes
+    // http://papanaturephotography.smugmug.com/Flowers/Papa-Nature-Photography/DSC5217pscrop/804122257_FaNFY-L-2.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.smugmug\\.com/.*-)T[hi](-.*)?(" + 
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  "$1X2$2$3");
     // coppermine gallery, e.g.
     // http://coppermine-gallery.net/demo/cpg15x/ or
     // http://photo.net.ph/albums/userpics/10002/thumb_DSCN5416a.jpg becomes
