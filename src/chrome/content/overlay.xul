@@ -70,6 +70,7 @@
          -->
         <XXXENTITYREF id="thumbnailzoomplus-entity-names"
            ENTITY_page_others="&thumbnailzoomplus.pages.names.others;" 
+           ENTITY_page_scanlinkedpage="&thumbnailzoomplus.pages.names.scanlinkedpage;"
            ENTITY_page_thumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
            ENTITY_page_google="&thumbnailzoomplus.pages.names.google;" 
            />

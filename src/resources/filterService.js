@@ -72,8 +72,15 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.YouTube, // 25
     ThumbnailZoomPlus.Pages.Wikipedia,
     
-    // The next two must be last so they are lower priority.
+    // These must be last so they are lower priority.
     ThumbnailZoomPlus.Pages.Others,
+    ThumbnailZoomPlus.Pages.ScanLinkedPage,
+
+    // TODO: We prioritize Thumbnail after ScanLinkedPage so that showing an
+    // enlarged version of the low-rez thumb is lower priority than showing
+    // an image from the linked page.  But it'd be better (faster) to
+    // handle recognized thumbnail rules before ScanLinkedPage.  That
+    // would require breaking up the Thumbnail rule into two rules.
     ThumbnailZoomPlus.Pages.Thumbnail
   ],
 
@@ -473,18 +480,37 @@ ThumbnailZoomPlus.FilterService = {
   filterImage : function(aImageSrc, aPage) {
     this._logger.debug("filterImage");
 
-    let validImage = false;
-    let exp = this.pageList[aPage].imageRegExp;
-    let regExp = new RegExp(exp);
-
-    if (regExp.test(aImageSrc)) {
-      validImage = true;
-      this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc + " using " + exp);
-    } else {
-      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + aImageSrc + " using " + exp);
+    let page = this.pageList[aPage];
+    let allowExp = new RegExp(page.imageRegExp);
+    if (! allowExp.test(aImageSrc)) {
+      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + 
+                        aImageSrc);
+      this._logger.debug("ThumbnailPreview: " + 
+                         "   REJECTED by imageRegExp: " + allowExp);
+      return false;
     }
 
-    return validImage;
+    if (page.imageDisallowRegExp) {
+      var disallowExp = new RegExp(page.imageDisallowRegExp);
+      if (disallowExp.test(aImageSrc)) {
+        this._logger.debug("ThumbnailPreview: filterImage REJECTED " + 
+                          aImageSrc);
+        this._logger.debug("ThumbnailPreview: " + 
+                           "   allowed by imageRegExp: " + allowExp);
+        this._logger.debug("ThumbnailPreview: " +
+                           "   REJECTED by imageDisallowRegExp: " + disallowExp);
+        return false;
+      }
+    } else {
+      var disallowExp = "(none)";
+    }
+    this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc);
+    this._logger.debug("ThumbnailPreview: " + 
+                       "   allowed by imageRegExp: " + allowExp);
+    this._logger.debug("ThumbnailPreview: " +
+                       "   allowed by imageDisallowRegExp: " + disallowExp);
+
+    return true;
   },
 
   /**

@@ -83,3 +83,4 @@ pref("extensions.thumbnailzoomplus.pinterest.enable",   true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
 pref("extensions.thumbnailzoomplus.others.enable",      true);
 pref("extensions.thumbnailzoomplus.thumbnail.enable",   false); // disabled by default since could be annoying.
+pref("extensions.thumbnailzoomplus.scanlinkedpage.enable", true);                

@@ -65,6 +65,7 @@
      To localize a name, add it to XXXENTITYREF in overlay.js
      and here (in each locale). -->
 <!ENTITY thumbnailzoomplus.pages.names.others                    "Otros">
+<!ENTITY thumbnailzoomplus.pages.names.scanlinkedpage            "(Linked page analyzer)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Thumbnail">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Imágenes de Google">
 

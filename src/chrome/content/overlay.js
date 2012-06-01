@@ -1149,7 +1149,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     @return 
             "rejectedPageMatchNode": the page's host URL doesn't match
             "disabled": page's host matches, but is disabled
-            "rejectedNode": the thumb/image URL doesn't match imageRegExp
+            "rejectedNode": the thumb/image URL doesn't match imageRegExp 
+                            or matches imageDisallowRegExp
             "launced": everything matched and we launched the popup.
    */
   _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
@@ -1211,7 +1212,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-      this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " imageRegExp rejected imageSource \n" +
+      this._debugToConsole("ThumbnailZoomPlus: page " + pageName + 
+                           " imageRegExp or imageDisallowRegExp rejected imageSource \n" +
                            imageSource);
 
       return "rejectedNode";
@@ -1254,9 +1256,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     return "launched";
   },
 
-  _isOthersThumbnailsPage : function(aPage) {
+  _isCatchallPage : function(aPage) {
     return (aPage == ThumbnailZoomPlus.Pages.Others.aPage ||
-            aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage);
+            aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
+            aPage == ThumbnailZoomPlus.Pages.ScanLinkedPage.aPage);
   },
   
   _findPageAndShowImage : function(aDocument, aEvent, minFullPageNum, node) {
@@ -1302,7 +1305,7 @@ ThumbnailZoomPlusChrome.Overlay = {
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
 
-      if (disallowOthers && this._isOthersThumbnailsPage(aPage)) {
+      if (disallowOthers && this._isCatchallPage(aPage)) {
         this._logger.debug("_findPageAndShowImage: Skipping Others or Thumbnails");
         continue;
       }
@@ -1313,7 +1316,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (status == "launched") {
           return;
         }
-        if (status == "disabled" && ! this._isOthersThumbnailsPage(aPage)) {
+        if (status == "disabled" && ! this._isCatchallPage(aPage)) {
           /*
            * If the host matches the page's host URL but the page is disabled,
            * then don't allow a popup due to the match-all pages

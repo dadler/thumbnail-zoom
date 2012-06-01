@@ -39,6 +39,7 @@ const Cu = Components.utils;
 // EXTS is a non-remembering expression which matches
 // image file suffixes.
 const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
+const EXTS_RE = new RegExp(EXTS, 'i');
 
 Cu.import("resource://thumbnailzoomplus/common.js");
 
@@ -50,7 +51,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   ThumbnailZoomPlus.Pages = {
     /* Logger for this object. */
     _logger : null,
-    
+
     /**
      * Initializes the resource.
      */
@@ -81,12 +82,16 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
-    * imageRegExp: the popup image URL produced by the rule must match this 
+    * imageRegExp: the popup image URL produced by getImageNode must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
-      Note that this is applied to the initial URL we hae after getImageNode, 
+      Note that this is applied to the initial URL we have after getImageNode, 
       but before getZoom Image (which is kind of odd; maybe we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
+      See also imageDisallowRegExp.
+      
+    * imageDisallowRegExp: optional.  Won't run the rule if the URL produced by 
+      getImageNode matches this pattern (even if it matches imageRegExp).
 
     * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
       Returns the node from which the popup image's link will be generated, or 
@@ -353,9 +358,8 @@ ThumbnailZoomPlus.Pages.Twitpic = {
       
       // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
       // But not for profile_images, which actually sometimes don't have a suffix.
-      let suffixRegex = new RegExp(EXTS, "i");
       if (/twitpic\.com|twimg/.test(image) &&
-          ! suffixRegex.test(image) &&
+          ! EXTS_RE.test(image) &&
           ! /\/profile_images\//.test(image)) {
         image += ".jpg";
       }
@@ -837,7 +841,7 @@ ThumbnailZoomPlus.Pages.GMail = {
  */
 ThumbnailZoomPlus.Pages.Google = {
   key: "google",
-  name: "", // Set in ENTITYgoogle.
+  name: "", // Set in ENTITY_page_google.
   
   // host is all of Google so it can work on images.google.com, 
   // www.google.com general search with image results, etc.
@@ -1012,6 +1016,7 @@ ThumbnailZoomPlus.Pages.Engadget = {
   }
 };
 
+
 /**
  * Others: this is for arbitrary sites which link directly to image files
  * and other situations for which we can determine an image linked from
@@ -1019,16 +1024,18 @@ ThumbnailZoomPlus.Pages.Engadget = {
  */
 ThumbnailZoomPlus.Pages.Others = {
   key: "others",
-  name: "", // Set in ENTITYothers.
+  name: "", // Set in ENTITY_page_others.
   host: /.*/,
   
-  // imgur.com links w/o image type suffix give page containing image.
+  // imgur.com links (except imgur.com/a/) w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
   // which getZoomImage will convert to a youtube thumb.
   // Note that we can't support imgur.com/a/ links (albums) since there is no
   // image named similarly to the link.
-  
+
   imageRegExp: new RegExp(
+      // We generally allow links which look like image files, except certain sites where
+      // we know an image-link link is really an html page (such as an imgur gallery).
       EXTS + "([?&].*)?$"
     + "|tumblr.com/(photo/|tumblr_)"
     + "|imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
@@ -1045,9 +1052,19 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$"
     + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + EXTS + ")"
     + "|^https?:\/\/([^/]*\.)?viddy\.com\/(play/)?video\/[^\/?]+"
+    + "|^https?://(instagr\\.am|instagram\\.com)/p/.*/media/"
+    + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
+    // end
+    , "i"),
+  
+    imageDisallowRegExp: new RegExp(
+      // We disallow certain sites where
+      // we know an image-link link is really an html page (such as an imgur gallery).
+      "^https?:\/\/([^/]*\.)?(imgur\\.com/a/|image.aven\\.net/img\\.php|image.enue\\.com/img\\.php)"
     // end
     , "i"),
                           
+
   _logger: ThumbnailZoomPlus.Pages._logger,
   
   // For "Others"
@@ -1263,13 +1280,17 @@ ThumbnailZoomPlus.Pages.Others = {
     
     aImageSrc = aImageSrc.replace(/(\/\/img..g\.com)\/\?v=/i, "$1/images/");
     
-    // For most sites, if there is no image suffix, add .jpg.
-    let rex = new RegExp("tumblr\\.com/.*" + 
-                         "|twimg[.0-9-]" +
-                         "|twitpic\\.com" +
-                         "|(" + EXTS + "([?&].*)?$)"
+    // For most sites, if there is no image suffix, add .jpg.  The rex below
+    // matches exceptions (where an image may not contain an image suffix).
+    let rex = new RegExp(  "tumblr\\.com/.*"
+                         + "|twimg[.0-9-]"
+                         + "|twitpic\\.com"
+                         + "|(" + EXTS + "([?&].*)?$)"
+                         + "|^https?://(instagr\\.am|instagram\\.com)/p/.*/media/"
+                         + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
                          , "i");
-    if (! rex.test(aImageSrc)) {
+    let isImage = rex.test(aImageSrc);
+    if (! isImage) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
       aImageSrc += ".jpg";
@@ -1280,12 +1301,377 @@ ThumbnailZoomPlus.Pages.Others = {
   }
 };
 
+
+/**
+ * Support for ScanLinkedPage
+ */
+ 
+ 
+// guessBestImg uses a heuristic to guess which <img> tag on a
+// page is likely to be the large image the page is displaying
+// (rather than another thumbnail or banner ad).
+// NOT CURRENTLY USED.
+let guessBestImg = function(body) {
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  logger.debug("body:" + body);
+  
+  let imgNodes = body.getElementsByTagName("img");
+  logger.debug("\n  Got " + imgNodes.length + "<img> nodes");
+
+  let result = null;
+  let bestScore = -1;
+  var i;
+  for (i=0; i < imgNodes.length; i++) {
+    let img = imgNodes[i];
+    let width = img.width;
+    let style = img.style;
+    let id = img.id;
+    let imgclass = img.className;
+    let src = imgNodes[i].src;
+    logger.debug("  img["+i+"]: width=" + width + 
+                 ", style.width=" + style.width + 
+                 ", id=" +  id + 
+                 ", class=" + imgclass +
+                 ", src=" + src);
+    if (/([0-9a-f]{5,30})/i.test(src)) {
+      logger.debug("    has number"); 
+      let number = src.replace(/.*?([0-9a-f]{5,30}).*/i, "$1");
+      let score = number.length;
+      logger.debug("    number=" + number); 
+      if (/big|full|large/i.test(imgclass)) {
+        logger.debug("    10-point bonus for class " + imgclass); 
+        score += 10;
+      }
+      if (/imgur.*h\./.test(imgclass)) {
+        // Appears to be an imgur high-res pic.
+        logger.debug("    10-point bonus for imgur h.*"); 
+        score += 10;
+      }
+      logger.debug("    bestScore=" + bestScore + "; this score=" + score); 
+      if (score > bestScore) {
+        bestScore = score;
+        result = src;
+      }
+    }
+  }
+  return result;
+};
+
+
+// readHtmlText reads an html doc from the specified URL and returns
+// the text of its html.
+let readHtmlText = function(pageUrl) {
+  // Retrieve the text of the HTML of the page.
+  // TODO: we do this synchronously, which is not acceptable for
+  // a released solution.
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+  // req.responseType = "document";
+  // req.timeout = 5000; // 5-second timeout (not supported for synchronous call)
+  req.open('GET', pageUrl, false);
+  req.setRequestHeader('Accept', 'text/html');
+  req.send();
+  if (req.status != 200) {
+    // error from site
+    logger.debug("readHtmlText: site returned error " + req.statusText);
+    return null;
+  }
+
+  // Check the doc type so we don't e.g. try to parse an image as if it were html.
+  let docType = req.getResponseHeader('Content-Type');
+  if (! /text\/html/.test(docType)) {
+    logger.debug("readHtmlText: unsupported doc type returned: " + docType);
+    return null;
+  }
+  
+  var aHTMLString = req.responseText;
+  if (! aHTMLString) {
+    logger.debug("readHtmlText: site returned empty/null text " + aHTMLString);
+    return null;
+  }
+  // parseFragment won't run javascript so we need to not ignore the contents
+  // of <noscript> tags.  Remove them.
+  aHTMLString = aHTMLString.replace(/\<\/?noscript *\>/ig, "");
+  logger.debug("  Got doc type " + docType + ":" + aHTMLString);
+  
+  return aHTMLString;
+}
+
+
+// parseHtmlDoc parses the specified html string and returns
+// a result object with result.doc and result.body set.
+let parseHtmlDoc = function(doc, pageUrl, aHTMLString) {
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  logger.debug("parseHtmlDoc: Building doc");
+  
+  var tempdoc = doc.implementation.createDocument("http://www.w3.org/1999/xhtml", "html", null);
+
+  var head = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "head");
+  tempdoc.documentElement.appendChild(head);
+  var base = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "base");
+  base.href = pageUrl;
+  head.appendChild(base);
+  
+  var body = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "body");
+  tempdoc.documentElement.appendChild(body);
+
+  logger.debug("parseHtmlDoc: parsing html fragment");
+  let tree = 
+    Components.classes["@mozilla.org/feed-unescapehtml;1"]
+    .getService(Components.interfaces.nsIScriptableUnescapeHTML)
+    .parseFragment(aHTMLString, false, null, body);
+
+  logger.debug("parseHtmlDoc: inserting tree into doc");
+  body.appendChild(tree);
+  
+  return {'doc': tempdoc, 'body': body};
+};
+
+
+let getImgFromHtmlText = function(aHTMLString) {
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  logger.trace("getImgFromHtmlText");
+
+  var re;
+
+  // liveleak.com and other flash player sites:
+  // Search for the jwplayer(...).setup(...) javascript call.  Note that
+  // the '.' pattern doesn't match newlines so we use [\\\S] instead.
+  re  = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  let match = re.exec(aHTMLString);
+  if (match) {
+    return match[1];
+  }
+  
+  re = /flv_player.*?<img src=\"([^\"]+)"/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  let match = re.exec(aHTMLString);
+  if (match) {
+    return match[1];
+  }
+  
+  re = /flash-player-embed.*?url_bigthumb=([^&]*)/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  let match = re.exec(aHTMLString);
+  if (match) {
+    return match[1];
+  }
+  
+  re = /<img src=\"([^\"]*image.enue.com\/loc[^"]*)/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  let match = re.exec(aHTMLString);
+  if (match) {
+    return match[1];
+  }
+  
+  // vimeo.com:  
+  // <meta itemprop="image" content="http://b.vimeocdn.com/ts/313/368/313368979_640.jpg">
+  // Also works on weather.com
+  // (I tried matching this in getImgFromSelectors but its contentattribute
+  // always came back null).
+  re = /<meta +itemprop="image" +content=\"([^\"]+)"/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  match = re.exec(aHTMLString);
+  if (match) {
+    return match[1];
+  }
+  
+  // flickr.com sets, dailymotion.com, yfrog, etc.
+  re = /<meta +property="og:image" +content=\"([^\"]+)"/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  match = re.exec(aHTMLString);
+  if (match) {
+    if (! /yfrog\.com\/.*\.mp4/.test(match[1])) {
+      // Return this unless it's a yfrog video, for which we can get a larger
+      // image via getImgFromSelectors().
+      return match[1];
+    }
+  }
+
+  // blip.tv, imgur.com/a/... (imgur may need .jpg added):
+  //	<meta name="twitter:image"
+  //     value="http://3.i.blip.tv/g?src=Rat2008-Micros02464-972.jpg&w=120&h=120&fmt=png&bc=FFFFFF&ac=0"/>
+  re = /<meta +name="twitter:image"\s+value=\"([^\"]+)"/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  match = re.exec(aHTMLString);
+  if (match) {
+    // Increase resolution of blip.tv thumb.
+    let result = match[1];
+    result = result.replace(/w=[0-9]+&/, "w=640&").replace(/h=[0-9]+&/, "h=480&");
+
+    if (/imgur\.com/.test(result) && ! EXTS_RE.test(result)) {
+      result = result + ".jpg";
+    }
+    return result;
+  }
+
+  // <link rel="image_src" href="http://...5192.jpg"
+  // but don't match for flickr.com since other rule gives higher res.
+  re = /<link +rel=\"image_src\" +href="([^"]+)"/;
+  logger.debug("getImgFromHtmlText: trying " + re);
+  match = re.exec(aHTMLString);
+  if (match && ! /flickr\.com/.test(match[1])) {
+    return match[1];
+  }
+
+  logger.debug("getImgFromHtmlText: didn't match");
+  return null;  
+};
+
+
+let getImgFromSelectors = function(body, selectors) {
+  let logger = ThumbnailZoomPlus.Pages._logger;
+
+  for (var i in selectors) {
+    var selector = selectors[i];
+    logger.debug("  Seeking with selector '" + selector + "'");
+    let node = null;
+    try {
+      node = body.querySelector(selector);
+    } catch (e) {
+      logger.debug("getImgFromSelectors: EXCEPTION trying selector '" +
+                         selector + "': " + e);
+    }
+    if (node != null) {
+      /*
+         Get URL from <img src=>, <a href=>
+       */
+      let src = node.getAttribute("src") || node.getAttribute("href");
+      logger.debug("  Found node " + node.localName + " url " + src);
+      return src;
+    }
+  }
+  return null;
+};
+
+
+// getImageFromLinkedPage returns the URL of an image determined by analyzing
+// the html at the specified URL.
+let getImageFromLinkedPage = function(doc, pageUrl)
+{
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl);
+  let aHTMLString = readHtmlText(pageUrl);
+  if (! aHTMLString) {
+    return null;
+  }
+  
+  let result = getImgFromHtmlText(aHTMLString);
+  if (result) {
+    // Parse the document to get its base for applyBaseURI.  Could be optimized.
+    logger.debug("getImageFromLinkedPage: from getImgFromHtmlText got " + result);
+    var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
+  } else {
+    var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
+
+    // Selectors is a list of CSS selector strings which identify the img or a
+    // node of the image.  See http://www.w3.org/TR/CSS2/selector.html
+    let selectors = [
+      'div#media-media a + a img',
+      'div#media-media img',
+      'img#thepic',
+      'div#imageContainer a + a',
+      'div#vi-container center img', // ebay.com item
+      'img#MyWorldImageIcon', // ebay.com myworld (profile) pic
+      'span.dd-image img', // ebay.com daily deal
+      'div#img center img#image', // image.aven.net
+      'div.wrap div#left table a img', // image.aven.net gallery
+      'div#show-photo img#mainphoto', // 500px.com photo page
+      'div#the-image a img', // yfrog.com pic
+      'div.the-image img#main_image', // yfrog.com video
+      'img#primary_photo_img', // flickr.com set
+      'div#allsizes-photo img', // flickr.com in All Sizes
+      'div#main-photo-container img[alt="photo"]' // flickr.com home page 'explore thumbs' or a page.
+    ];
+    
+    result = getImgFromSelectors(docInfo.body, selectors);
+  }
+  if (! result) {
+    // Use a general heuristic as a fall-back.
+    if (false) {
+      // We should only do this on sites where we really need it since it may
+      // prevent a successful use of the "Thumbnail" rule.
+      result = guessBestImg(docInfo.body);
+    }
+  }
+  
+  if (! result) {
+    return null;
+  }
+  
+  return ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
+};
+
+
+/**
+ * ScanLinkedPage: Determine if the target node is linked (like the Others)
+ * rule) and if it is, load and scan the linked page for a full-size image.
+ */
+ThumbnailZoomPlus.Pages.ScanLinkedPage = {
+  key: "scanlinkedpage",
+  name: "", // Set in ENTITY_page_scanlinkedpage.
+  host: /^(?!.*(vimeo\.com|vimeocdn\.com).*).*/,
+  
+  // Set imageRegExp to match pages which are likely to produce a thumbnail,
+  // due to a flash video player or something else we can recognize.  We want
+  // to exclude pages which won't produce anything since running getZoomImage
+  // can be slow (it has to load the target page).
+  //
+  // Expression Tips:
+  // Patterns in () must match starting from first slash (or earlier)
+  // up to end of entire URL, so typically start with // and end with .* .
+  imageRegExp: new RegExp(  "imgur\\.com/a/"
+                          + "|\\.ebay\\.com/itm/|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
+                          + "|flickr\\.com/photos/.*/[0-9]{7,20}/"
+                          + "|flickr\\.com/photos/[^@]*/sets/"
+                          + "|liveleak\\.com/view"
+                          + "|vimeo\\.com/(m/)?[0-9]{4,20}"
+                          + "|blip\\.tv/.*[/-][0-9]{4,20}$"
+                          + "|moth..l.s+\.com/.*[0-9A-F]{6,12}$"
+                          + "|/video[0-9]{6,20}(/.*)?$"
+                          + "|image.aven\\.net/(img\\.php|gallery\/)"
+                          + "|image.enue\\.com/(img|galshow)\\.php"
+                          + "|x.am.ter\\.com/movies/[0-9]{4,20}"
+                          + "|image.am\\.com/image/"
+                          + "|500px\\.com/photo/[0-9]+"
+                          + "|dailymotion\\.com/video/"
+                          + "|lockerz\\.com/./[0-9]{4,20}"
+                          + "|(instagram\\.com|instagr\\.am)/p/"
+                          // We include yfrog, but note that for pictures we 
+                          // could get a URL directly in the Others rule (faster)
+                          // by appending :tw1 or :twthumb.  But it doesn't work
+                          // for videos and we can't tell in advance that it's a video.
+                          + "|yfrog\\.com/([a-z]/)?[^/#]+(#.+)?$"
+                          // When testing to find new sites we can support,
+                          // uncomment the line below to allow the rule on all
+                          // links (this will slow TZP down so don't enable it
+                          // in production releases).
+                          // + "|.*"
+                          , "i"),
+  
+  // For "ScanLinkedPage"
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    node = ThumbnailZoomPlus.Pages.Others.getImageNode(node, nodeName, nodeClass, imageSource);
+    return node;
+  },
+  
+  // For "ScanLinkedPage"
+  getZoomImage : function(aImageSrc, node, flags) {
+    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc);
+    
+    return aImageSrc; 
+  }
+
+};
+
+
 /**
  * Thumbnail: returns the thumbnail itself as the image source.
  */
 ThumbnailZoomPlus.Pages.Thumbnail = {
   key: "thumbnail",
-  name: "", // Set in ENTITYthumbnail.
+  name: "", // Set in ENTITY_page_thumbnail.
   host: /.*/,
   
   // We basically match any image, but exclude some which are annoying to

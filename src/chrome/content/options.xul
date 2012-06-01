@@ -65,6 +65,8 @@
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
         name="extensions.thumbnailzoomplus.panel.history" type="bool"/>
+      <preference id="thumbnailzoomplus-options-scan-linked-page-pref"
+        name="extensions.thumbnailzoomplus.scanlinkedpage.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-activate-key-pref"
         name="extensions.thumbnailzoomplus.panel.activatekey" type="int"/>
       <preference id="thumbnailzoomplus-options-key-display-pref"
@@ -356,6 +358,9 @@ pop-up appears (eg on certain Linux machines)."
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
 
+          <checkbox label="&thumbnailzoomplus.pages.names.scanlinkedpage;" 
+            preference="thumbnailzoomplus-options-scan-linked-page-pref" />
+           
           <checkbox label="&thumbnailzoomplus.pages.names.thumbnail;"
             preference="thumbnailzoomplus-options-thumbnail-pref" />
 

@@ -3,7 +3,11 @@
 <h1><a href="https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/">
 Thumbnail Zoom Plus</a> Test Cases</h1>
 
-[<a href="http://0.0.0.0:8000/test/TestCases.html">local http version</a>]<br>
+Load this as the [<a href="http://0.0.0.0:8000/test/TestCases.html">local http version</a>] after
+starting the server like this:<br>
+<li>Run <kbd><b>python -m SimpleHTTPServer &amp;</b></kbd> in .../thumbnail-zoom/src to
+create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
+from your machine over http</a>
 
 <h2>General Instructions</h2>
 <p>Test in the most recent released version of Firefox, the beta, the nightly, and the oldest supported (eg version 3).
@@ -34,21 +38,34 @@ Set in about:config general.useragent.locale, with intl.locale.matchOS=false.
 toolbutton isn't in any toolbar.
 </ul>
 
-<h2>Direct Links To Images</h2>
-Note: Thumbnail Zoom Plus doesn't work on file:// links (it's a
-security restriction).  So to test these links, you must either:
-<ul>
-<li>temporarily set enableFileProtocol=true in filterService.js; or
-<li>Run <kbd>python -m SimpleHTTPServer &amp;</kbd> in .../thumbnail-zoom/src to
-create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
-from your machine over http</a>
-</ul>
 Tests:
 <ul>
 <li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
 should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
 YouTube videos should work too.
 <li><a href="http://www.redditp.com/r/pics#">RedditP</a> Shouldn't popup over main image (but should over "Image" link); manually Reload if doesn't show page's image.
+
+<li>A good way to find links to a given site is usng Reddit's domain search:<br> 
+<input type="text" id="SearchDomain" placeholder="Domain (eg flickr.com)" /> 
+<input type="button" value="Reddit Domain Search" 
+       onclick="var domain = document.getElementById('SearchDomain').value;
+                if (domain) {
+                  var url = 'http://reddit.com/domain/' + domain;;
+                  window.open(url, '_blank');
+                }" />
+Specific cases:<ul>
+<li><a href="http://www.reddit.com/domain/vimeo.com">vimeo.com</a>
+<li><a href="http://www.reddit.com/domain/dailymotion.com">dailymotion.com</a>
+<li><a href="http://www.reddit.com/domain/liveleak.com">liveleak.com</a>
+<li><a href="http://www.reddit.com/domain/blip.tv">blip.tv</a>
+<li><a href="http://www.reddit.com/domain/instagram.com">instagram.com</a>
+<li><a href="http://www.reddit.com/domain/instagr.am">instagr.am</a>
+<li><a href="http://www.reddit.com/domain/yfrog.com">yfrog.com</a>
+<li><a href="http://www.reddit.com/domain/lockerz.com">lockerz.com</a>
+<li><a href="http://www.reddit.com/domain/flickr.com">flickr.com</a>
+<li><a href="http://www.reddit.com/domain/500px.com">500px.com</a>
+</ul>
+
 <li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
 hosted on tumblr.com; those links should show popups.
 
