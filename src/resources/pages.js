@@ -1005,6 +1005,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
     + "|qkme.me/"
+    + "|^https?://memegenerator.net/instance/"
     + "|/index.php\?.*module=attach" // IP.board, eg rootzwiki.com
     + "|^(https?://(.*\\.)?twitpic.com/)(?!(upload))([a-z0-9A-Z]+)$"
     + "|^https?://twitter.com/.*\\?url=(http[^&]+)(&.*)?$"
@@ -1012,7 +1013,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|[\?&]img_?url="
     + "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$"
     + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
-    + "|^https?:\/\/[^/]+\.viddy\.com\/video\/[^\/?]+"
+    + "|^https?:\/\/([^/]*\.)?viddy\.com\/(play/)?video\/[^\/?]+"
     , "i"),
                           
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -1188,6 +1189,12 @@ ThumbnailZoomPlus.Pages.Others = {
     let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
     aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
 
+    // memegenerator.net:
+    // http://memegenerator.net/instance/21284704?.. becomes
+    // http://cdn.memegenerator.net/instances/600x/21284704.jpg
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/)memegenerator\.net\/instance\/([0-9]+)([?\/].*)?$/i,
+                                  "$1cdn.memegenerator.net/instances/600x/$2.jpg");
+
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
@@ -1205,8 +1212,10 @@ ThumbnailZoomPlus.Pages.Others = {
     // viddy.com (see also in Thumbnail rule)
     // http://www.viddy.com/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794 becomes
     // http://cdn.viddy.com/images/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794.jpg
-    aImageSrc = aImageSrc.replace(/^(https?:\/\/)[^/]+\.viddy\.com\/video\/([^\/?]+).*/i,
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:[^\/]+\.)?viddy\.com\/(?:play\/)?video\/([^\/?]+).*/i,
                                   "$1/cdn.viddy.com/images/video/$2.jpg");
+    // http://viddy.com/play/video/1c042fbd-66d5-4c19-9896-816a0347d2aa?source=Profile becomes
+    // http://cdn.viddy.com/images/video/1c042fbd-66d5-4c19-9896-816a0347d2aa?source=Profile
     
     // imgchili.com:
     // http://imgchili.com/show/7428/9998984_ie_011.jpg becomes
@@ -1610,6 +1619,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.smugmug\\.com/.*-)T[hi](-.*)?(" + 
                                              ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
                                   "$1X2$2$3");
+                                  
     // coppermine gallery, e.g.
     // http://coppermine-gallery.net/demo/cpg15x/ or
     // http://photo.net.ph/albums/userpics/10002/thumb_DSCN5416a.jpg becomes
