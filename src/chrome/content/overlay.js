@@ -216,6 +216,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _originalCursorNode : null,
   _originalCursor : "",
 
+  // Firefox version is the major version of Firefox as an integer, like
+  // 3 or 12.
+  _firefoxVersion : 0,
+  
   // observe is the function called when preferences change (set in init() ).
   observe : null,
   
@@ -226,6 +230,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlusChrome.Overlay");
     this._logger.debug("init");
 
+    // Get the major firefox version as an integer, e.g. 12.
+    var info = Components.classes["@mozilla.org/xre/app-info;1"]  
+                  .getService(Components.interfaces.nsIXULAppInfo);  
+    this._firefoxVersion = 1 * info.version.replace(/^([0-9]+).*/, "$1");
+    this._logger.debug("Detected firefox major version " + this._firefoxVersion);
+    
     this._preferencesService =
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
@@ -426,11 +436,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-
+  _popupTakesFocus : function() {
+    if (this._firefoxVersion < 4) {
+      // PopupTakesFocus doesn't work in Firefox 3.6 (it doesn't
+      // allow keyboard shortcuts to work).
+      return false;
+    }
+    return ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true);
+  },
+  
   /**
    * Adds listeners when the popup image is shown.  
    *
-   * The listener is added on the popup if PREF_PANEL_FOCUS_POPUP is true
+   * The listener is added on the popup if _popupTakesFocus()
    * (the default); otherwise it's added to the document itself.
    */
   _addListenersWhenPopupShown : function() {
@@ -447,7 +465,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      * may appear as 0 in keydown.
      */
     let useCapture = false;
-    if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (this._popupTakesFocus()) {
       var keyReceiver = this._panel;
       this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
     } else {
@@ -983,7 +1001,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
 
-    if (! ThumbnailZoomPlus.getPref(that.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (! that._popupTakesFocus()) {
       return;
     }
 
@@ -1734,6 +1752,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
+            aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS || // Firefox 15.0 and newer
             (aEvent.keyCode >= aEvent.DOM_VK_A &&
              aEvent.keyCode <= aEvent.DOM_VK_Z) ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
@@ -1856,12 +1875,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
-               aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
+               aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
+               aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS // Firefox 15.0 and newer
+              ) {
       // scale about 2x as fast as Firefox's 1.1, and bigger than the 1.12
       // checks used to decide if a size is enough larger to be worth covering
       // the thumb.
       let factor = 1.20; 
-      if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT) {
+      if (aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
+          aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS // Firefox 15.0 and newer
+          ) {
         factor = 1.0 / factor;
       }
       this._currentMaxScaleBy *= factor;
@@ -2431,7 +2454,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (! this._popupTakesFocus()) {
       return;
     }
     let doc = this._currentWindow.document;

@@ -52,7 +52,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   padding: 0px;
   border: none !important;
 }
-#thumbnailzoomplus-panel-*-image {
+#thumbnailzoomplus-panel-html-image, #thumbnailzoomplus-panel-xul-image {
   /* 
      The background-image is set dynamically as our "working" indicator, 
      and status/error indicators.
@@ -60,7 +60,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
   
-  // debug: background-color: red !important;
+  /* debug: background-color: red !important; */
   background-color: white !important;
   
   background-position: top left !important;
@@ -79,14 +79,14 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-position: top left !important;
   
   background-color: white !important;
-  // debug: background-color: green !important; 
+  /* debug: background-color: green !important; */
 }
 
 #thumbnailzoomplus-panel-vbox {
   /* Set the caption's background.  We do it on the vbox rather
      than the caption label so it'll span the entire width of the pop-up. */
   background-color: #AAA !important;
-  // debug: background-color: blue !important;
+  /* debug: background-color: blue !important; */
 }
 #thumbnailzoomplus-panel-info {
   /* The zoom percent label (eg " 100% "). */
@@ -103,7 +103,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 
 #thumbnailzoomplus-panel-caption {
   color: black;
-  // debug: background-color: olive;
+  /* debug: background-color: olive; */
 }
 
 .thumbnailzoomplus-options-pages-column {
