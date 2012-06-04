@@ -1316,6 +1316,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // For "Thumbnail"
   getZoomImage : function(aImageSrc, node, flags) {
     let verbose = false;
+    var before;
     
     let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
@@ -1586,7 +1587,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://gallery.photo.net/photo/14271073-lg.jpg
     aImageSrc = aImageSrc.replace(/(:\/\/)(?:static|thumbs)\.photo\.net\/.*\/(.*?)-(?:tn-)?[a-z0-9]*\.jpg/i, 
                                   "$1gallery.photo.net/photo/$2-lg.jpg");
-                                  
+    
+    // redbox.com
+    // http://images.redbox.com/Images/EPC/Thumb150/5584.jpg becomes
+    // http://images.redbox.com/Images/EPC/Detail370/5584.jpg
+    before = aImageSrc;
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/images\.redbox\.com\/Images\/EPC)\/Thumb[0-9]+\/([0-9]+\.jpg)$/i,
+                                  "$1/Detail370/$2");
+    if (before != aImageSrc) {
+      flags.popupAvoiderLREdge = 1;
+      flags.popupAvoiderWidth = 422;
+    }
+    
     // weheartit.com uses 
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_large.jpg ->
     // http://data.whicdn.com/images/24321233/6cj4w2c9qtgj_thumb.jpg

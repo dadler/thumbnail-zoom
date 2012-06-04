@@ -2595,9 +2595,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _applyPopupAvoider : function(available, flags) {    
     // Horizontal popup avoider:
     if (flags.popupAvoiderWidth > 0) {    
+      let zoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
       let availableForSitePopup = available.right +
                   (this._thumbBBox.xMax - this._thumbBBox.xMin + 1) * (1.0 - flags.popupAvoiderLREdge);
-      if (availableForSitePopup > flags.popupAvoiderWidth) {
+      if (availableForSitePopup > flags.popupAvoiderWidth * zoom) {
         // site's own popup would appear to right of thumb.
         flags.allowRight = false;
       }  else {
@@ -2605,7 +2606,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       this._logger.debug("_getAvailableSizeOutsideThumb: width availableForSitePopup=" +
                          availableForSitePopup + "; popupAvoiderWidth=" + 
-                         flags.popupAvoiderWidth + "; allowLeft=" + flags.allowLeft +
+                         flags.popupAvoiderWidth + "; scaled by zoom " + zoom + " = "
+                         + (flags.popupAvoiderWidth * zoom) +
+                         "allowLeft=" + flags.allowLeft +
                          "; allowRight=" + flags.allowRight);
     }
     
