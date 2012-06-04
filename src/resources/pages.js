@@ -136,7 +136,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/,
+  imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))/,
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
@@ -164,9 +164,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // Handle externally-linked images.
     let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
     if (rexExternal.test(aImageSrc)) {
-      let image = aImageSrc.replace(rexExternal, "$1");
-      image = decodeURIComponent(image);
-      return image;
+      aImageSrc = aImageSrc.replace(rexExternal, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
+      return aImageSrc;
     }
 
     let appRex = /.*\/app_full_proxy.php\?.*&src=([^&]+)$/;
@@ -176,15 +176,17 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return aImageSrc;
     }
     
-    // Check the thumbnail against rex1
-    let rex1 = new RegExp(/_[qstan]\./);
-    let rex2 = new RegExp(/([0-9]\/)[qsta]([0-9])/);
-    // Apply replacement for rex1 or rex2; reject if neither matches.
-    let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "_n.") :
-                (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, "$1n$2") : null));
-    if (image == null) {
-      return null;
-    }
+    aImageSrc = aImageSrc.replace(/_[qstan]\./, "_n.");
+    aImageSrc = aImageSrc.replace(/([0-9]\/)[qsta]([0-9])/, "$1n$2");
+
+    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/c0.0.133.133/p133x133/560586_10150817981981045_883718611_n.jpg becomes
+    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/560586_10150817981981045_883718611_n.jpg
+    // (handle the c0.0.133.133 part)
+    aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
+
+    let rex3 = new RegExp(/\/[sp][0-9]+x[0-9]+\//);
+    aImageSrc = aImageSrc.replace(rex3, "/");
+
     if (/_q\./.test(aImageSrc)) {
       // Make sure we avoid positioning our popup will Facebook's wil be.
       flags.popupAvoiderTBEdge = "midpage"; 
@@ -195,9 +197,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // profile name above the image.
       flags.allowAbove = false;
     }
-    let rex3 = new RegExp(/\/s[0-9]+x[0-9]+\//);
-    image = image.replace(rex3, "/");
-    return image;
+
+    return aImageSrc;
   }
 };
 
