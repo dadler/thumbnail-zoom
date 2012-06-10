@@ -137,9 +137,19 @@ ThumbnailZoomPlus.Pages.Facebook = {
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
   imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))/,
+  
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
+    }
+    if (/photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
+      // In June 2012 FB started rolling out new photo layouts on the wall.
+      // The dover detects a <div> and we need to find its child <img>.
+      let imgNodes = aNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the first child.
+        aNode = imgNodes[0];
+      }
     }
     return aNode;
   },
