@@ -354,7 +354,8 @@ ThumbnailZoomPlus.FilterService = {
   },
   
   /**
-   * Gets the image source, handle special cases.
+   * Gets the image source, handle special cases.  Uses the page's
+   * getImageNode().
    * @param aNode the html node.
    * @param aPage the page constant.
    * @return object with fields:
@@ -425,7 +426,7 @@ ThumbnailZoomPlus.FilterService = {
     // since it's probably just a minor graphic like a shadow.
     if ("html" == nodeName || "frame" == nodeName || "iframe" == nodeName ||
         "embed" == nodeName || "input" == nodeName) {
-      ThumbnailZoomPlus.Pages._logger.debug(
+      this._logger.debug(
             "getImageSource: ignoring due to node type '" + nodeName + "'");
       imageSource = null;
     } 
@@ -467,7 +468,7 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   /**
-   * Gets the zoomed image source.
+   * Gets the zoomed image source, using the page's getZoomImage().
    * @param aImageSrc the image source url.
    * @param flags: an object which this function may modify.  Members:
    *   .allowLeft, .allowRight, .allowAbove, .allowBelow

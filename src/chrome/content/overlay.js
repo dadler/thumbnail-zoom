@@ -333,6 +333,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   addMenuItems : function() {
     this._logger.trace("addMenuItems");
 
+    if (ThumbnailZoomPlus.logPath) {
+      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+    }
+
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
     if (menuPopup) {
       let menuSeparator =
@@ -556,6 +560,11 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _handlePageLoaded : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
+
+    if (ThumbnailZoomPlus.logPath) {
+      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+    }
+    
     let doc = aEvent.originalTarget;
     this._addEventListenersToDoc(doc);
 
@@ -1188,21 +1197,30 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (imageSourceInfo.node != null) {
       imageSourceNode = imageSourceInfo.node;
     }
-    
+
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+      this._logToConsole("ThumbnailZoomPlus: page " + pageName + " rejected imageSource " +
+                         imageSource);
+
       return "rejectedNode";
     }
+
+    this._logToConsole("ThumbnailZoomPlus: page " + pageName + " matches imageSource " +
+                       imageSource);
+
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
     let zoomImageSrc = ThumbnailZoomPlus.FilterService
                             .getZoomImage(imageSource, imageSourceNode, flags, aPage);
     if (zoomImageSrc == "") {
       this._logger.debug("_tryImageSource: getZoomImage returned '' (matched but disabled by user).");
+      this._logToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with ''");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
       this._logger.debug("_tryImageSource: getZoomImage returned null.");
+      this._logToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with null");
       return "rejectedNode";
     }
 
@@ -1218,6 +1236,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._originalURI = this._currentWindow.document.documentURI;
     this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
                        this._originalURI);
+
+    this._logToConsole("ThumbnailZoomPlus: page " + pageName + " launching " + zoomImageSrc);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
     this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
@@ -1256,6 +1276,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (aDocument != node) {
       nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
     }
+    this._logToConsole("ThumbnailZoomPlus: seeking image for " +
+                       node);
     var disallowOthers = false;
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
@@ -2174,6 +2196,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
                          imageWidth + "x" + imageHeight);
+      this._logToConsole("ThumbnailZoomPlus: skipping since too small: " + aImageSrc);
       // Make sure we close the 'working' status icon.
       this._closePanel(false);
     } else {
@@ -2341,8 +2364,10 @@ ThumbnailZoomPlusChrome.Overlay = {
         // see it bigger than could fit in the window.
         this._updateForActualScale(thumbWidth, imageWidth);
         this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
+        this._logToConsole("ThumbnailZoomPlus: too small (and warned): " + aImageSrc);
       } else {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
+        this._logToConsole("ThumbnailZoomPlus: too small (silently): " + aImageSrc);
       }
       
       return false;
@@ -2405,6 +2430,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
       that._hideCaption();
+      that._logToConsole("ThumbnailZoomPlus: error loading " + aImageSrc);
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
       that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
       that._imageObjectBeingLoaded = null;

@@ -52,6 +52,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     /* Logger for this object (common.js itself). */
     _logger : null,
 
+    // log file path as a string if logging enabled; else null.
+    logPath : null,
+    
     // Prefs caches preferences for faster retrieval.
     _prefs : {},
     
@@ -67,11 +70,14 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // getLogger()
       //
       // Log messages will be written to ThumbnailZoomPlus/log.txt under
-      // your profile dir, e.g. on Mac OSX it might be
+      // your profile dir.
+      // On Mac OSX it might be
       // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
+      // On Windows it might be
+      // 
       // To debug, set enableDebug above to true and monitor the log file
       // in a terminal using this command:
-      // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
+      // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
       //
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       // 
@@ -111,9 +117,18 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       } else {
         app.level = Log4Moz.Level["Warn"];
       }
+      
+      if (enableDebug || enableTrace) {
+        this.logPath = logFile.path;
+      } else {
+        this.logPath = null;
+      }
+      
       root.addAppender(app);
 
       this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.common");
+
+      this._logger.debug("ThumbnailZoomPlus.logPath = " + ThumbnailZoomPlus.logPath);
 
       // get the observer service.
       this._observerService =
