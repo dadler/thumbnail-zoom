@@ -1553,6 +1553,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
 
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://images[0-9]*\\.pin[a-z]+\\.com/" +
+                                             "images/pin[a-z]+/[0-9]+/[0-9]+/[0-9]+)/[0-9x]+/" +
+                                             "([0-9a-z]+" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                  "$1/620/$2");
     // imagetwist:
     // http://img8.imagetwist.com/th/01282/999sz25wbi76.jpg becomes
     // http://img8.imagetwist.com/i/01282/999sz25wbi76.jpg
