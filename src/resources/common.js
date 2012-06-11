@@ -49,6 +49,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     /* Reference to the observer service. */
     _observerService : null,
     
+    _consoleService : null,
+    
     /* Logger for this object (common.js itself). */
     _logger : null,
 
@@ -87,6 +89,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
       let formatter = new Log4Moz.AdvancedFormatter();
+      formatter.dateFormat = "%Y-%m-%d %H:%M:%S%%L";
       let root = Log4Moz.repository.rootLogger;
       let logFile = this.getExtensionDirectory();
       let app;
@@ -133,6 +136,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // get the observer service.
       this._observerService =
         Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+        
+      this._consoleService = Cc["@mozilla.org/consoleservice;1"].
+                                   getService(Ci.nsIConsoleService);
     },
 
     /**

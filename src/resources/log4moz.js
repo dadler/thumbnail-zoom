@@ -491,7 +491,12 @@ AdvancedFormatter.prototype = {
 
   format: function BF_format(message) {
     let date = new Date(message.time);
-    let stringLog = date.toLocaleFormat(this.dateFormat) + "\t" +
+    let timestamp = date.toLocaleFormat(this.dateFormat);
+
+    // Convert %%H as .milliseconds (e.g. ".592"); use after %S.
+    let millis = String(date.getMilliseconds() / 1000.).replace(/^0\./, ".");
+    timestamp = timestamp.replace("%L", millis);
+    let stringLog =  timestamp + "\t" + 
       message.levelDesc + "\t" + message.loggerName + " " +
       message.message + "\n";
 

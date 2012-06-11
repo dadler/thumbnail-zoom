@@ -60,11 +60,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 
-  /* Logger for this object. */
+  /* Logger for this object (for debug log file). */
   _logger : null,
   
   /* Preferences service. */
   _preferencesService : null, // TODO: same as ThumbnailZoomPlus.Application.prefs?
+  
+  // console logging service (Web Developer > Error Console, not debug file)
+  _consoleService : null,
   
   /* The timer, which is used:
    *   - for the user-configured delay from when the user hovers until
@@ -232,12 +235,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Get the major firefox version as an integer, e.g. 12.
     var info = Components.classes["@mozilla.org/xre/app-info;1"]  
-                  .getService(Components.interfaces.nsIXULAppInfo);  
+                  .getService(Components.interfaces.nsIXULAppInfo);
     this._firefoxVersion = 1 * info.version.replace(/^([0-9]+).*/, "$1");
     this._logger.debug("Detected firefox major version " + this._firefoxVersion);
     
     this._preferencesService =
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
+    this._consoleService = ThumbnailZoomPlus._consoleService;
+
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
     this._panelHtmlImage = document.getElementById("thumbnailzoomplus-panel-html-image");
@@ -1200,13 +1205,13 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-      this._logToConsole("ThumbnailZoomPlus: page " + pageName + " rejected imageSource " +
+      this._logToConsole("ThumbnailZoomPlus: page " + pageName + " rejected imageSource \n" +
                          imageSource);
 
       return "rejectedNode";
     }
 
-    this._logToConsole("ThumbnailZoomPlus: page " + pageName + " matches imageSource " +
+    this._logToConsole("ThumbnailZoomPlus: page " + pageName + " matches imageSource \n" +
                        imageSource);
 
     // Found a matching page with an image source!
@@ -1237,7 +1242,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
                        this._originalURI);
 
-    this._logToConsole("ThumbnailZoomPlus: page " + pageName + " launching " + zoomImageSrc);
+    this._logToConsole("ThumbnailZoomPlus: >>> page " + pageName + " launching \n" +
+                       zoomImageSrc);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
     this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
@@ -1276,8 +1282,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (aDocument != node) {
       nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
     }
-    this._logToConsole("ThumbnailZoomPlus: seeking image for " +
-                       node);
+
+    {
+      let nodeName = node.localName.toLowerCase();
+      let nodeClass = node.className;
+      this._logToConsole("ThumbnailZoomPlus: <<< SEEKING image for " +
+                         "name=\"" + nodeName + "\" class=\"" + nodeClass + "\" url=\n"
+                         + (node.getAttribute("src") || String(node))
+                         + "  pageUrl=" + aDocument.documentURI
+                         );
+    }
+         
     var disallowOthers = false;
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
@@ -1320,6 +1335,8 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
       }
     }
+    this._logToConsole("ThumbnailZoomPlus: >>> all pages rejected");
+
   },
   
   /**
@@ -2196,7 +2213,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          " and thumb is " + thumbWidth + "x" + thumbHeight +
                          " which is >= than raw image " +
                          imageWidth + "x" + imageHeight);
-      this._logToConsole("ThumbnailZoomPlus: skipping since too small: " + aImageSrc);
+      this._logToConsole("ThumbnailZoomPlus: >>> skipping since too small \n" + aImageSrc);
       // Make sure we close the 'working' status icon.
       this._closePanel(false);
     } else {
@@ -2364,10 +2381,10 @@ ThumbnailZoomPlusChrome.Overlay = {
         // see it bigger than could fit in the window.
         this._updateForActualScale(thumbWidth, imageWidth);
         this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
-        this._logToConsole("ThumbnailZoomPlus: too small (and warned): " + aImageSrc);
+        this._logToConsole("ThumbnailZoomPlus: >>> too small (and warned)\n" + aImageSrc);
       } else {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
-        this._logToConsole("ThumbnailZoomPlus: too small (silently): " + aImageSrc);
+        this._logToConsole("ThumbnailZoomPlus: >>> too small (silently)\n" + aImageSrc);
       }
       
       return false;
@@ -2430,7 +2447,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
       that._hideCaption();
-      that._logToConsole("ThumbnailZoomPlus: error loading " + aImageSrc);
+      that._logToConsole("ThumbnailZoomPlus: >>> error loading\n" + aImageSrc);
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
       that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
       that._imageObjectBeingLoaded = null;
@@ -3130,12 +3147,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
 
-
   /**
    * Downloads the full image.
    */
   downloadImage : function() {
-    this._logger.debug("downloadImage");
+    this._logger.trace("downloadImage");
 
     if (null == this._currentImage) {
       this._logger.debug("downloadImage: no _currentImage");
@@ -3318,8 +3334,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _logToConsole : function(msg) {
-    Cc["@mozilla.org/consoleservice;1"].
-      getService(Ci.nsIConsoleService).logStringMessage(msg);
+    let date = new Date();
+    let timeStamp = date.toLocaleTimeString() + 
+                        String((date.getMilliseconds() % 1000) / 1000.).replace(/^0\./, ".");
+    this._consoleService.logStringMessage(timeStamp + ": " + msg);
   }
 
 };

@@ -134,12 +134,17 @@
         name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
     </preferences>
 
+    <script type="application/x-javascript"
+            src="chrome://thumbnailzoomplus/content/options.js" />
+
     <!-- General -->
     <groupbox>
       <caption>
         <hbox width="580px">
           <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
           <spacer flex="1" />
+          <button label="Copy log" 
+                  oncommand="ThumbnailZoomPlusOptions.copyDebugLog()" />
           <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
               href="http://thumbnailzoomplus.wordpress.com/" />
           </hbox>
