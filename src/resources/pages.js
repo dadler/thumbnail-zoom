@@ -1515,12 +1515,28 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
                                   ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
                                   "$1/4$2");
-                                  
-    // For some sites where /images/thumb/(digits) changes thumb to full.
-    // This really belongs more in the Others rule, but it often wouldn't
-    // work since it'd instead follow the <a> link around the image.
-    let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
-    aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
+    
+    // mediawiki sites, e.g.
+    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/180px-Diagnostic.jpg becomes
+    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/800px-Diagnostic.jpg or
+    // http://torque-bhp.com/wiki/images/1/13/Diagnostic.jpg
+    // or
+    // http://wiki.the-big-bang-theory.com/images/thumb/2/2d/Kaley-Cuoco.jpg/140px-Kaley-Cuoco.jpg
+    // Others listed at http://s23.org/wikistats/largest_html.php?sort=users_desc&th=999&lines=999
+    // Mediawiki software is used by many sites including wikipedia.  The latter has its
+    // own page definition in this file, but perhaps they should be merged?
+    before = aImageSrc;
+    aImageSrc = aImageSrc.replace(/\/thumb\/([^\/]+\/[^\/]+)\/(.*)\/[0-9]+px-\2$/i,
+                                  "/$1/$2");
+    if (before == aImageSrc) {
+      // For some sites where /images/thumb/(digits) changes thumb to full.
+      // This really belongs more in the Others rule, but it often wouldn't
+      // work since it'd instead follow the <a> link around the image.
+      // This rule can mess up mediawiki links so we only do it if we didn't match
+      // mediawiki.
+      let regEx = new RegExp("(/images)/(thumb|mini)/([0-9]+/[0-9]+/[0-9]+\.)");
+      aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
+    }
     
     // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
     let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
@@ -1533,18 +1549,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
     
-    // mediawiki sites, e.g.
-    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/180px-Diagnostic.jpg becomes
-    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/800px-Diagnostic.jpg or
-    // http://torque-bhp.com/wiki/images/1/13/Diagnostic.jpg
-    // or
-    // http://wiki.the-big-bang-theory.com/images/thumb/2/2d/Kaley-Cuoco.jpg/140px-Kaley-Cuoco.jpg
-    // Others listed at http://s23.org/wikistats/largest_html.php?sort=users_desc&th=999&lines=999
-    // Mediawiki software is used by many sites including wikipedia.  The latter has its
-    // own page definition in this file, but perhaps they should be merged?
-    aImageSrc = aImageSrc.replace(/\/thumb\/([^\/]+\/[^\/]+)\/(.*)\/[0-9]+px-\2$/i,
-                                  "/$1/$2");
-
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
