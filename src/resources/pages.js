@@ -580,7 +580,7 @@ ThumbnailZoomPlus.Pages.Flickr = {
 ThumbnailZoomPlus.Pages.Wikipedia = {
   key: "wikipedia",
   name: "Wikipedia",
-  host: /^(.*\.)?wikipedia\.org$/,
+  host: /^(.*\.)?(wikipedia|wikisource|wiktionary|wikibooks)\.org$/,
   
   /*
      Examples:
@@ -1036,6 +1036,12 @@ ThumbnailZoomPlus.Pages.Others = {
     if (aNode.localName.toLowerCase() == "img") {
       imgNode = aNode;
       imgNodeURL = aNode.getAttribute("src");
+    }
+
+    if (/\/thumb\/([^\/]+\/[^\/]+)\/(.*)\/[0-9]+px-\2$/i.test(imgNodeURL)) {
+      // We handle mediawiki images by 'Thumbnails' rule; don't allow 'Others'
+      // rule even if filename looks like an image filename.
+      return null;
     }
 
     // try to find an enclosing <a> (link) tag.
@@ -1526,7 +1532,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
-                                  
+    
+    // mediawiki sites, e.g.
+    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/180px-Diagnostic.jpg becomes
+    // http://torque-bhp.com/wiki/images/thumb/1/13/Diagnostic.jpg/800px-Diagnostic.jpg or
+    // http://torque-bhp.com/wiki/images/1/13/Diagnostic.jpg
+    // or
+    // http://wiki.the-big-bang-theory.com/images/thumb/2/2d/Kaley-Cuoco.jpg/140px-Kaley-Cuoco.jpg
+    // Others listed at http://s23.org/wikistats/largest_html.php?sort=users_desc&th=999&lines=999
+    // Mediawiki software is used by many sites including wikipedia.  The latter has its
+    // own page definition in this file, but perhaps they should be merged?
+    aImageSrc = aImageSrc.replace(/\/thumb\/([^\/]+\/[^\/]+)\/(.*)\/[0-9]+px-\2$/i,
+                                  "/$1/$2");
+
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
