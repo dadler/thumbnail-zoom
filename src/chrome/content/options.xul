@@ -218,7 +218,11 @@
           </hbox>
           <hbox>
             <checkbox preference="thumbnailzoomplus-options-popup-on-scroll-pref"
-              label="&thumbnailzoomplus.options.popuponscroll.checkbox.label;" />
+              label="&thumbnailzoomplus.options.popuponscroll.checkbox.label;" 
+              tooltiptext="When on, scrolling the page under the mouse will trigger pop-ups to appear. 
+Enabling is useful on sites which aren’t too dense with thumbnails (eg reddit.com); 
+disabling is useful on sites with very many thumbs (eg Google Images).  
+Default is off."/>
             <checkbox preference="thumbnailzoomplus-options-focuspopup-pref"
               label="&thumbnailzoomplus.options.focuspopup.checkbox.label;" 
               tooltiptext="When on (the default) the pop-up takes keyboard focus
