@@ -34,6 +34,7 @@
 // General preferences.
 pref("extensions.thumbnailzoomplus.button.installed",   false);
 pref("extensions.thumbnailzoomplus.panel.enable",       true);
+pref("extensions.thumbnailzoomplus.panel.debug",        false);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
 pref("extensions.thumbnailzoomplus.panel.partialloadwait", "1.0"); // seconds
 

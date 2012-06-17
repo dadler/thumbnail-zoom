@@ -40,6 +40,8 @@
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Preferencias">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Habilitar">
+<!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Debug">
+<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copie registro">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostrar imagen parcial después (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom por defecto (&thumbnailzoomplus.PERCENT;): ">

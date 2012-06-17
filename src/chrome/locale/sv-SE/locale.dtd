@@ -28,7 +28,7 @@
  - POSSIBILITY OF SUCH DAMAGE.
  -->
 
-<!-- These Swedish translations were done by Mikael Hiort af Ornäs -->
+<!-- These Swedish translations were mostly done by Mikael Hiort af Ornäs -->
 
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
@@ -40,6 +40,8 @@
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
 <!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Inställningar">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Aktivera">
+<!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Felsöka">
+<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Kopiera Log">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">

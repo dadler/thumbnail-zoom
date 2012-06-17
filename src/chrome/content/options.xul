@@ -45,6 +45,8 @@
     <preferences>
       <preference id="thumbnailzoomplus-options-enable-pref"
         name="extensions.thumbnailzoomplus.panel.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-debug-pref"
+        name="extensions.thumbnailzoomplus.panel.debug" type="bool"/>
       <preference id="thumbnailzoomplus-options-delay-pref"
         name="extensions.thumbnailzoomplus.panel.wait" type="string"/>
       <preference id="thumbnailzoomplus-options-partialloadwait-pref"
@@ -143,8 +145,6 @@
         <hbox width="580px">
           <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
           <spacer flex="1" />
-          <button label="Copy log" 
-                  oncommand="ThumbnailZoomPlusOptions.copyDebugLog()" />
           <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
               href="http://thumbnailzoomplus.wordpress.com/" />
           </hbox>
@@ -155,8 +155,15 @@
           <column />
         </columns>
         <rows>
-          <checkbox preference="thumbnailzoomplus-options-enable-pref"
+          <row>
+            <checkbox preference="thumbnailzoomplus-options-enable-pref"
                     label="&thumbnailzoomplus.options.enable.checkbox.label;" />
+            <spacer flex="1" />
+            <checkbox preference="thumbnailzoomplus-options-debug-pref"
+                    label="&thumbnailzoomplus.options.debug.checkbox.label;" />
+            <button label="&thumbnailzoomplus.options.copylog.button.label;" 
+                    oncommand="ThumbnailZoomPlusOptions.copyDebugLog()" />
+          </row>
           <row align="center">
             <label value="&thumbnailzoomplus.options.delay.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-delay-pref" type="number"
