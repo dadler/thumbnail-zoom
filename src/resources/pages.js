@@ -1544,7 +1544,20 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
-                                  
+    
+    // Sites using Piwigo image gallery, eg
+    // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/thumbnail/TN-DSCN0585.jpg becomes
+    // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/DSCN0585.jpg
+    if ("thumbnail" == nodeClass && 
+        "wrap2" == node.parentNode.parentNode.getAttribute("class")) {
+      aImageSrc = aImageSrc.replace("/thumbnail/TN-", "/");
+    }
+    
+    // td-galerie:
+    // http://raxanathos.free.fr/modules/td-galerie/mini/20070407230812-4.jpg becomes
+    // http://raxanathos.free.fr/modules/td-galerie/imgs/20070407230812-3.jpg
+    aImageSrc = aImageSrc.replace("modules/td-galerie/mini/", "modules/td-galerie/imgs/");
+    
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
