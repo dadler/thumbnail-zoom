@@ -1133,6 +1133,13 @@ ThumbnailZoomPlus.Pages.Others = {
        and then the youtube rule turns it into a jpg.
      */
     
+    if (/^https?:\/\/[^\/]*\.wikipedia.org\/wiki\/File:/i.test(aImageSrc)) {
+      // wikipedia page URLs look like image URLs but they aren't.  We don't
+      // support showing images for wiki page links, but the Wikipedia rule does
+      // support wikipedia *thumbnails*.
+      return null;
+    }
+    
     if (/^https?:\/\/photo\.xuite\.net\/./.test(aImageSrc)) {
       // Prohibit using links from photo.xuite.net since they look like
       // .jpg URLs but are really html.  By rejecting them here we let the
