@@ -301,11 +301,15 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   _applyBaseURI : function(aDocument, url) {
+    return this._applyThisBaseURI(aDocument, aDocument.baseURI, url);
+  },
+  
+  _applyThisBaseURI : function(aDocument, baseURI, url) {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                       .getService(Components.interfaces.nsIIOService);
-    var baseUri = ioService.newURI(aDocument.baseURI, aDocument.characterSet, null);
+    var baseUri = ioService.newURI(baseURI, aDocument.characterSet, null);
     var uri = ioService.newURI(url, aDocument.characterSet, baseUri);
-    this._logger.debug("_applyBaseURI(" + aDocument.baseURI +
+    this._logger.debug("_applyThisBaseURI(" + baseURI +
                                       ", " + url + ") = " + uri.spec);
     return uri.spec;
   },

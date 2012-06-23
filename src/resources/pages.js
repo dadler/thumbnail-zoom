@@ -1535,7 +1535,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
     
     // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
-    let regEx = new RegExp("xh[a-z0-9]*ster.com.*(/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    let regEx = new RegExp("(xh[a-z0-9]*ster.com.*/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     
     aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
@@ -1697,6 +1697,41 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
                                   "$1/l/l_$2");
                                   
+    // phpThumb (on various sites).  You can test it here if you turn off
+    // the Others rule and on the Thumbnails rule (since the site's links are
+    // bad): http://phpthumb.sourceforge.net/demo/demo/phpThumb.demo.demo.php
+    // eg:
+    // http://timmy/phpThumb/phpThumb.php?w=80&h=60&f=png&src=http://timmy/timmy/emp_pix/110024668.jpeg becomes
+    // http://timmy/timmy/emp_pix/110024668.jpeg, or
+    // http://phpthumb.sourceforge.net/demo/phpThumb.php?src=images/animaple.gif&w=25&f=gif&hash=30654d06a0e509eca0d14d08bf2f01d8 becomes
+    // http://phpthumb.sourceforge.net/demo/images/animaple.gif
+    before = aImageSrc;
+    aImageSrc = aImageSrc.replace(/.*\/phpThumb\.php.*[?&]src=([^&]*).*/i,
+                                  "$1");
+    if (before != aImageSrc) {
+      aImageSrc = decodeURIComponent(aImageSrc);
+      aImageSrc = ThumbnailZoomPlus.FilterService._applyThisBaseURI(node.ownerDocument, before, aImageSrc);
+    }
+    
+    // nytimes.com:
+    // http://graphics8.nytimes.com/images/2012/06/22/us/JASPER-3/JASPER-3-articleInline.jpg becomes
+    // http://graphics8.nytimes.com/images/2012/06/22/us/JASPER-3/JASPER-3-popup.jpg ,
+    // http://i1.nyt.com/images/2012/06/22/theater/22MOTH_ASYOU/22MOTH_ASYOU-moth.jpg becomes
+    // http://graphics8.nytimes.com/images/2012/06/22/arts/22ASYOU_SPAN/22ASYOU_SPAN-articleLarge.jpg (removes MOTH_)
+    // http://i1.nyt.com/images/2012/06/22/arts/22MOTH_HOT/22MOTH_HOT-moth.jpg becomes
+    // http://graphics8.nytimes.com/images/2012/06/22/arts/22HOT/22HOT-popup.jpg (removes MOTH_)
+    // Some URLs become _SPAN-articleLarge but how do we know which?
+    before = aImageSrc;
+    aImageSrc = aImageSrc.replace(/(\.(?:nytimes|nyt)\.com\/images\/.*)-(articleInline|moth|thumbStandard|custom[0-9]*|blog[0-9]*)/,
+                                  "$1-popup");
+    aImageSrc = aImageSrc.replace(/(\.(?:nytimes|nyt)\.com\/images\/.*)-(videoThumb|sfSpan)/,
+                                  "$1-articleLarge");
+    if (before != aImageSrc) {
+      aImageSrc = aImageSrc.replace(/MOTH_/g, "");
+      // We don't always know which of -popup or -articleLarge to use.  Our
+      // framework doesn't support trying both, so we may see an error indicator.
+    }
+    
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
