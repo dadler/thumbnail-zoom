@@ -1724,12 +1724,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     before = aImageSrc;
     aImageSrc = aImageSrc.replace(/(\.(?:nytimes|nyt)\.com\/images\/.*)-(articleInline|moth|thumbStandard|custom[0-9]*|blog[0-9]*)/,
                                   "$1-popup");
-    aImageSrc = aImageSrc.replace(/(\.(?:nytimes|nyt)\.com\/images\/.*)-(videoThumb|sfSpan)/,
+    aImageSrc = aImageSrc.replace(/(\.(?:nytimes|nyt)\.com\/images\/.*)-(videoThumb|sfSpan|hpMedium)/,
                                   "$1-articleLarge");
     if (before != aImageSrc) {
       aImageSrc = aImageSrc.replace(/MOTH_/g, "");
       // We don't always know which of -popup or -articleLarge to use.  Our
-      // framework doesn't support trying both, so we may see an error indicator.
+      // framework doesn't support trying both, so suppress the error indicator.
+      flags.noErrorIndicator = true;
     }
     
     // Using the thumb itself as source; don't annoy the user with

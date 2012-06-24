@@ -131,6 +131,7 @@ ThumbnailZoomPlus.FilterService = {
     this.minImageHeight = 15;
     
     this.noTooSmallWarning = false;
+    this.noErrorIndicator = false;
     this.requireImageBiggerThanThumb = true;
   },
   

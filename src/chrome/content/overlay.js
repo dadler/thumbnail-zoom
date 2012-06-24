@@ -2450,7 +2450,13 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._hideCaption();
       that._debugToConsole("ThumbnailZoomPlus: >>> error loading\n" + aImageSrc);
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
-      that._showStatusIconBriefly(aImageNode, "warning16.png", 32);      
+
+      if (! flags.noErrorIndicator) {
+        that._showStatusIconBriefly(aImageNode, "warning16.png", 32);
+      } else {
+        // Close the "working" indicator. 
+        that._closePanel(false);
+      }
       that._imageObjectBeingLoaded = null;
     };
 
