@@ -413,12 +413,16 @@ ThumbnailZoomPlus.Pages.Hi5 = {
   key: "hi5",
   name: "Hi5",
   host: /^(.*\.)?hi5\.com$/,
-  imageRegExp: /(photos[0-9]+|pics)\.hi5\.com/,
+  imageRegExp: /photos|pics|image/,
   getZoomImage : function(aImageSrc, node, flags) {
     let rex1 = new RegExp(/\-01\./);
     let rex2 = new RegExp(/\.small\./);
+    let rex3 = new RegExp(".*/hi5image[0-9]+/([0-9]+/.*)-0[1m](" +
+                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr+")");
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "-02.") :
-      (rex2.test(aImageSrc) ? aImageSrc.replace(rex2, ".") : null));
+                 rex2.test(aImageSrc) ? aImageSrc.replace(rex2, ".") : 
+                 rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "http://photos3.hi5.com/$1-02$2") :
+                 null);
     return image;
   }
 };
@@ -1691,6 +1695,20 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // 
     aImageSrc = aImageSrc.replace(/(\/albums\/[^?&]+\/)thumb_([^?&\/]+\.(jpg|png|gif))/i, 
                                   "$1$2");
+    
+    // Powered by PhotoPost vBGallery, eg
+    // http://www.hondahookup.com/gallery/files/5/2/4/5/9/9/img_20120513_133135_thumb.jpg becomes
+    // http://www.hondahookup.com/gallery/files/5/2/4/5/9/9/img_20120513_133135.jpg
+    // and parent <a> tag includes "showimage.php".
+    // This rule works for many sites, but some images have .jpg in thumb but .JPG in image.
+    let photoPostRegEx = new RegExp("(/[0-9]+/.*)_thumb(" + 
+                                    ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+    if (photoPostRegEx.test(aImageSrc)) {
+      let parentName = String(node.parentNode)
+      if (/showimage\.php/.test(parentName)) {
+        aImageSrc = aImageSrc.replace(photoPostRegEx, "$1$2");
+      }     
+    }
     
     //
     aImageSrc = aImageSrc.replace(new RegExp("(tyimg\\.com/thumb)/[a-z]/[a-z]_(.*" + 
