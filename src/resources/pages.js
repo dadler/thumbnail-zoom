@@ -692,10 +692,15 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   key: "pinterest",
   name: "Pinterest",
   host: /^(.*\.)?pinterest\.com$/,
-  imageRegExp: /.*\/media-[^.\/]*\.pinterest\.com\/(upload|avatars)\/.*/,
+  
+  // eg https://s-media-cache-ec4.pinimg.com/upload/165225880049687299_GEFs3cp0_b.jpg
+  //       http://media-cache-ec9.pinterest.com/upload/76983474850615703_fCXJVbYR_f.jpg
+  imageRegExp: /.*\/(s-)?media-[^.\/]*\.(pinterest|pinimg)\.com\/(upload|avatars)\/.*/,
+  
   getZoomImage : function(aImageSrc, node, flags) {
     // for images:
     // eg seen at http://pinterest.com/pin/98164466848180792/
+    // https://pinterest.com/pin/76983474851009277/
     let rex = new RegExp("([0-9_a-zA-Z]+_)[tb](" + 
                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
     aImageSrc = aImageSrc.replace(rex, "$1f$2");
