@@ -1202,12 +1202,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageSourceNode = node;
     if (imageSourceInfo.node != null) {
       imageSourceNode = imageSourceInfo.node;
+      if (imageSourceNode != node) {
+        this._debugToConsole("ThumbnailZoomPlus: page " + pageName + ": imageSourceNode: <" +
+                           imageSourceNode.localName.toLowerCase() + "> url: \n" +
+                           String(imageSourceNode) + " \n" + imageSourceNode.getAttribute("src"));
+      }
     }
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " imageRegExp rejected imageSource \n" +
-                         imageSource);
+                           imageSource);
 
       return "rejectedNode";
     }

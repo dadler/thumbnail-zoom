@@ -1668,7 +1668,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://i.huffpost.com/gen/574638/thumbs/o-MILA-KUNIS-WITHOUT-MAKEUP-570.jpg
     // can also be -mini, -small.  Note that occasionally o-*570 doesn't exist,
     // but s-*large does.  We fail in that case.
-    aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/s-(.*)-(mini|small|large|[0-9]+x[0-9]+)[0-9]*\.jpg/i,
+    // .../a- case seen on aol.com
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/i.huffpost.com\/gen\/.*\/thumbs)\/[as]-(.*)-(mini|small|large|[0-9]+x[0-9]+)[0-9]*\.jpg/i,
                                   "$1/o-$2-570.jpg");
     // http://i.huffpost.com/gen/576806/thumbs/r-SECRET-LIVES-OF-MOMS-medium260.jpg becomes
     // http://i.huffpost.com/gen/576806/thumbs/o-SECRET-LIVES-OF-MOMS-570.jpg
@@ -1735,6 +1736,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = decodeURIComponent(aImageSrc);
       aImageSrc = ThumbnailZoomPlus.FilterService._applyThisBaseURI(node.ownerDocument, before, aImageSrc);
     }
+    
+    // patch.com (and possily others)
+    // http://o1.aolcdn.com/dims-shared/dims3/PATCH/thumbnail/178x88/crop/88x88+45+0/http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285 becomes
+    // http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285
+    //
+    // http://o1.aolcdn.com/dims-shared/dims3/PATCH/resize/273x203/http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285 becomes
+    // http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285
+    aImageSrc = aImageSrc.replace(/.*\/(?:resize|thumbnail)\/[0-9]+x[0-9]+(?:\/crop\/[0-9]+x[0-9]+(?:\+[0-9]+\+[0-9]+)?)?\/(https?:\/\/.*)/,
+                                  "$1");
     
     // nytimes.com:
     // http://graphics8.nytimes.com/images/2012/06/22/us/JASPER-3/JASPER-3-articleInline.jpg becomes
