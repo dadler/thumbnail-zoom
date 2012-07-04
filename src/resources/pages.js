@@ -1766,6 +1766,32 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       flags.noErrorIndicator = true;
     }
     
+    // Yelp.com
+    // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/xs.jpg becomes
+    // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/l.jpg
+    let yelpRe = new RegExp("(\\.yelpcdn\\.com/.*)/[0-9]*(?:xss|xs|ss|s|m|ms)(" + 
+                            ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i");
+    aImageSrc = aImageSrc.replace(yelpRe, "$1/l$2");
+    ThumbnailZoomPlus.Pages._logger.debug("yelp expr: " + yelpRe);
+
+    // Tripadvisor.com
+    // http://media-cdn.tripadvisor.com/media/photo-l/01/f8/09/8a/hotel-pool.jpg becomes
+    // http://media-cdn.tripadvisor.com/media/photo-s/01/f8/09/8a/hotel-pool.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.tripadvisor\\.com/media)/photo-[a-z]+/(.*" +
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")","i"),
+                                  "$1/photo-s/$2");
+    // http://media-cdn.tripadvisor.com/media/ProviderThumbnails/dirs/67/2b/672b18107d093b8e21f22da3dca956f92.jpg becomes
+    // http://media-cdn.tripadvisor.com/media/ProviderThumbnails/dirs/67/2b/672b18107d093b8e21f22da3dca956f92large.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.tripadvisor\\.com/media/.*/[0-9a-f]+)(?:small|)(" +
+                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                  "$1large$2");
+    // Tripadvisor uses flipkey.com for vacation rentals.
+    // http://images4.flipkey.com/img/photos/losangelesguestsuites/westhollywood3bedroom2bathroom/micro_losangelesguestsuites-westhollywood3bedroom2bathroom-003-1309232550.jpg becomes
+    // http://images4.flipkey.com/img/photos/losangelesguestsuites/westhollywood3bedroom2bathroom/640x480_losangelesguestsuites-westhollywood3bedroom2bathroom-003-1309232550.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.flipkey\.com/img/photos/.*)/(?:micro|regular|large)_(.*" + 
+                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                  "$1/640x480_$2");
+                                  
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     flags.noTooSmallWarning = true;
