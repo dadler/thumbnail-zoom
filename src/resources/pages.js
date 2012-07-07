@@ -36,6 +36,10 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+// EXTS is a non-remembering expression which matches
+// image file suffixes.
+const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
+
 Cu.import("resource://thumbnailzoomplus/common.js");
 
 /**
@@ -57,10 +61,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   };
   ThumbnailZoomPlus.Pages._init();
 };
-
-// _imageTypesRegExpStr is a non-remembering expression which matches
-// image file suffixes.
-ThumbnailZoomPlus.Pages._imageTypesRegExpStr = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 
 /***********
   Define rules for each page.
@@ -353,7 +353,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
       
       // If site is twimg or twitpic, make sure it has an image extension (.jpg default).
       // But not for profile_images, which actually sometimes don't have a suffix.
-      let suffixRegex = new RegExp(ThumbnailZoomPlus.Pages._imageTypesRegExpStr, "i");
+      let suffixRegex = new RegExp(EXTS, "i");
       if (/twitpic\.com|twimg/.test(image) &&
           ! suffixRegex.test(image) &&
           ! /\/profile_images\//.test(image)) {
@@ -418,7 +418,7 @@ ThumbnailZoomPlus.Pages.Hi5 = {
     let rex1 = new RegExp(/\-01\./);
     let rex2 = new RegExp(/\.small\./);
     let rex3 = new RegExp(".*/hi5image[0-9]+/([0-9]+/.*)-0[1m](" +
-                          ThumbnailZoomPlus.Pages._imageTypesRegExpStr+")");
+                          EXTS+")");
     let image = (rex1.test(aImageSrc) ? aImageSrc.replace(rex1, "-02.") :
                  rex2.test(aImageSrc) ? aImageSrc.replace(rex2, ".") : 
                  rex3.test(aImageSrc) ? aImageSrc.replace(rex3, "http://photos3.hi5.com/$1-02$2") :
@@ -469,8 +469,8 @@ ThumbnailZoomPlus.Pages.Netflix = {
   host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net|instantwatcher\.com)$/,
   imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
                           "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
-                          "\\.nflximg\\.com/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$|" +
-                          "netflix\\..*llnwd\\.net/.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "$"),
+                          "\\.nflximg\\.com/.*" + EXTS + "$|" +
+                          "netflix\\..*llnwd\\.net/.*" + EXTS + "$"),
                           
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     if (nodeName == "a" || nodeName == "img") {
@@ -702,7 +702,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     // eg seen at http://pinterest.com/pin/98164466848180792/
     // https://pinterest.com/pin/76983474851009277/
     let rex = new RegExp("([0-9_a-zA-Z]+_)[tb](" + 
-                         ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+                         EXTS + ")");
     aImageSrc = aImageSrc.replace(rex, "$1f$2");
 
     // for avatars:
@@ -1029,7 +1029,7 @@ ThumbnailZoomPlus.Pages.Others = {
   // image named similarly to the link.
   
   imageRegExp: new RegExp(
-      ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$"
+      EXTS + "([?&].*)?$"
     + "|tumblr.com/(photo/|tumblr_)"
     + "|imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
     + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
@@ -1043,7 +1043,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://([^/?&]*\.)?fotoblur\.com/images/[0-9+]"
     + "|[\?&]img_?url="
     + "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$"
-    + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"
+    + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + EXTS + ")"
     + "|^https?:\/\/([^/]*\.)?viddy\.com\/(play/)?video\/[^\/?]+"
     , "i"),
                           
@@ -1111,7 +1111,7 @@ ThumbnailZoomPlus.Pages.Others = {
       // tumblr-specific code and work better on all sites.
       let tumblrOrPhotoRegExp = 
         new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*" +
-                   "|(.*" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")" +
+                   "|(.*" + EXTS + ")" +
                    "|fotoblur\.com/images/[0-9]+", "i");
       if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
           ! /assets\.tumblr\.com/.test(imgNodeURL) &&
@@ -1266,7 +1266,7 @@ ThumbnailZoomPlus.Pages.Others = {
     let rex = new RegExp("tumblr\\.com/.*" + 
                          "|twimg[.0-9-]" +
                          "|twitpic\\.com" +
-                         "|(" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + "([?&].*)?$)"
+                         "|(" + EXTS + "([?&].*)?$)"
                          , "i");
     if (! rex.test(aImageSrc)) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
@@ -1474,7 +1474,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
     let wpContentEx = new RegExp("(egotastic\.com/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
-                                 ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+                                 EXTS + ")");
     aImageSrc = aImageSrc.replace(wpContentEx, "$1$2");
     
     // For blogger aka Blogspot, change
@@ -1512,7 +1512,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // http://193.164.197.30/thumbs/171/1716737621.jpg to
       // http://193.164.197.30/images/171/1716737621.jpg
       let leBonCoinRegExp = new RegExp("/thumbs/([0-9]+/[0-9]+" + 
-                                       ThumbnailZoomPlus.Pages._imageTypesRegExpStr +
+                                       EXTS +
                                        ")");
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }
@@ -1534,7 +1534,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
     // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
     aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
-                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                  EXTS + ")"),
                                   "$1/4$2");
                                   
     // For some sites where /images/thumb/(digits) changes thumb to full.
@@ -1581,26 +1581,26 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // https://diasp.org/uploads/images/d4abd1cd065ed5746b01.jpg
     // https://joindiaspora.com/uploads/images/thumb_small_Tf3hixImiB4d06d4482c174313aa001347.jpeg
     aImageSrc = aImageSrc.replace(new RegExp("/uploads/images/thumb_small_([a-z0-9]+" +
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "/uploads/images/$1");
     
     // modelmayhem.com:
     // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_t.jpg to
     // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_m.jpg
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://photos\\.modelmayhem\\.com/avatars/.*)_t(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "$1_m$2");
     // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef_m.jpg to
     // http://photos.modelmayhem.com/photos/111202/20/4ed9ac558b0ef.jpg
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://photos\\.modelmayhem\\.com/photos/.*)_[a-z](" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "$1$2");
 
     // viddy.com (see also in Others rule):
     // http://cdn.viddy.com/images/users/thumb/15dfd804-ab4f-4998-a1f4-fc56277fe0b3_150x150.jpg to
     // http://cdn.viddy.com/images/users/15dfd804-ab4f-4998-a1f4-fc56277fe0b3.jpg
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]+\\.viddy\\.com/.*)/thumb/(.*)_[0-9]+x[0-9]+(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "$1/$2$3");
     
     // imageporter.com
@@ -1608,7 +1608,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
 
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://images[0-9]*\\.pin[a-z]+\\.com/" +
                                              "images/pin[a-z]+/[0-9]+/[0-9]+/[0-9]+)/[0-9x]+/" +
-                                             "([0-9a-z]+" + ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             "([0-9a-z]+" + EXTS + ")", "i"),
                                   "$1/620/$2");
     // imagetwist:
     // http://img8.imagetwist.com/th/01282/999sz25wbi76.jpg becomes
@@ -1624,12 +1624,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
     // http://img29.pixiv.net/img/puppy/12345678_m.jpg
     aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_s(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "$1_m$2");
     // http://img01.pixiv.net/img/ajoritas/1234567_100.jpg?ctype=ranking becomes
     // http://img01.pixiv.net/img/ajoritas/1234567_m.jpg?ctype=ranking 
     aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_[0-9]{2,3}(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                              "$1_m$2");
     
     // xuite.net
@@ -1682,13 +1682,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // or src as Th; or dest as X1, X3, or X3 instead of L.
     // Can be on other domains like on http://www.duffyknox.com/Personal/sports/Zion-Memorial-Day-adventure/23261775_gtCnDp#!i=1876521503&k=65764hV
     aImageSrc = aImageSrc.replace(new RegExp("(/[0-9]+/)T[hi](/.*-)T[hi](-.*)?(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                             EXTS + ")"),
                                   "$1X2$2X2$3$4");
                                   
     // http://papanaturephotography.smugmug.com/Flowers/Papa-Nature-Photography/DSC5217pscrop/804122257_FaNFY-Ti-2.jpg becomes
     // http://papanaturephotography.smugmug.com/Flowers/Papa-Nature-Photography/DSC5217pscrop/804122257_FaNFY-L-2.jpg
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.smugmug\\.com/.*-)T[hi](-.*)?(" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                             EXTS + ")"),
                                   "$1X2$2$3");
                                   
     // coppermine gallery, e.g.
@@ -1708,7 +1708,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // and parent <a> tag includes "showimage.php".
     // This rule works for many sites, but some images have .jpg in thumb but .JPG in image.
     let photoPostRegEx = new RegExp("(/[0-9]+/.*)_thumb(" + 
-                                    ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")");
+                                    EXTS + ")");
     if (photoPostRegEx.test(aImageSrc)) {
       let parentName = String(node.parentNode)
       if (/showimage\.php/.test(parentName)) {
@@ -1718,7 +1718,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     //
     aImageSrc = aImageSrc.replace(new RegExp("(tyimg\\.com/thumb)/[a-z]/[a-z]_(.*" + 
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")"),
+                                             EXTS + ")"),
                                   "$1/l/l_$2");
                                   
     // phpThumb (on various sites).  You can test it here if you turn off
@@ -1770,7 +1770,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/xs.jpg becomes
     // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/l.jpg
     let yelpRe = new RegExp("(\\.yelpcdn\\.com/.*)/[0-9]*(?:xss|xs|ss|s|m|ms)(" + 
-                            ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i");
+                            EXTS + ")", "i");
     aImageSrc = aImageSrc.replace(yelpRe, "$1/l$2");
     ThumbnailZoomPlus.Pages._logger.debug("yelp expr: " + yelpRe);
 
@@ -1778,18 +1778,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://media-cdn.tripadvisor.com/media/photo-l/01/f8/09/8a/hotel-pool.jpg becomes
     // http://media-cdn.tripadvisor.com/media/photo-s/01/f8/09/8a/hotel-pool.jpg
     aImageSrc = aImageSrc.replace(new RegExp("(\\.tripadvisor\\.com/media)/photo-[a-z]+/(.*" +
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")","i"),
+                                             EXTS + ")","i"),
                                   "$1/photo-s/$2");
     // http://media-cdn.tripadvisor.com/media/ProviderThumbnails/dirs/67/2b/672b18107d093b8e21f22da3dca956f92.jpg becomes
     // http://media-cdn.tripadvisor.com/media/ProviderThumbnails/dirs/67/2b/672b18107d093b8e21f22da3dca956f92large.jpg
     aImageSrc = aImageSrc.replace(new RegExp("(\\.tripadvisor\\.com/media/.*/[0-9a-f]+)(?:small|)(" +
-                                             ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                             EXTS + ")", "i"),
                                   "$1large$2");
     // Tripadvisor uses flipkey.com for vacation rentals.
     // http://images4.flipkey.com/img/photos/losangelesguestsuites/westhollywood3bedroom2bathroom/micro_losangelesguestsuites-westhollywood3bedroom2bathroom-003-1309232550.jpg becomes
     // http://images4.flipkey.com/img/photos/losangelesguestsuites/westhollywood3bedroom2bathroom/640x480_losangelesguestsuites-westhollywood3bedroom2bathroom-003-1309232550.jpg
     aImageSrc = aImageSrc.replace(new RegExp("(\\.flipkey\.com/img/photos/.*)/(?:micro|regular|large)_(.*" + 
-                                  ThumbnailZoomPlus.Pages._imageTypesRegExpStr + ")", "i"),
+                                  EXTS + ")", "i"),
                                   "$1/640x480_$2");
                                   
     // Using the thumb itself as source; don't annoy the user with
