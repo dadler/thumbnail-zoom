@@ -1,0 +1,137 @@
+<html>
+<body>
+<h1>Add-ons Similar To Thumbnail Zoom Plus</h1>
+This document lists add-ons for various browsers which are similar to Thumbnail Zoom Plus.  These
+can be inspiration for new features or for web site support.
+<h2>Thumbnail Zoom (firefox)</h2>
+This is the add-on from which Thumbnail Zoom Plus forked.  It is now obsolete
+since TZP has all its capabilities and many more, and Thumbnail Zoom hasn't
+been updated for a long time.
+<p>
+Sites are defined by explicit javascript rules like this:
+<pre>
+// For 500px.com change
+// http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
+// http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
+aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
+                                  EXTS + ")"),
+                                  "$1/4$2");
+</pre>
+Some sites have their own "page" and preferences checkbox, which
+involves more lines of declaration, but most sites are like above
+in either the Others or Thumbnails rule.
+<p>
+Note that we include (as a comment) an example transformation; it
+might be useful to automate use of these as test cases.
+
+<h2>HoverZoom (chrome)</h2>
+This is a strong competitor to TZP, on the Google Chrome browser.  IT has some
+features and site support which TZP doesn't and vice versa. The author says
+he's working on porting it to Firefox.
+<p>
+Recently the developer has added several features which mimic ones in 
+Thumbnail Zoom Plus, reportedly after users suggested them
+(presumably after using TZP).
+<p>
+I think HoverZoom's code base is somewhat cleaner than TZP's and
+its site definitions are in a better plug-in architecture to
+encourage other developers to submit new site support.
+
+<p>Each site is defined in its own .js file in the plugins directory.
+A site definition sets a global variable named like the source file.
+It appends to that variable a json dict, one of whose fields is
+an arbitrary javascript function which could do
+anything.  It uses jquery.  Here's an example:
+
+<pre>
+// Copyright (c) 2012 Romain Vallet <romain.vallet@gmail.com>
+// Licensed under the MIT license, read license.txt
+
+var hoverZoomPlugins = hoverZoomPlugins || [];
+hoverZoomPlugins.push( {
+        name: '500px',
+        version: '0.2',
+        prepareImgLinks: function(callback) {
+                var res = [];
+                hoverZoom.urlReplace(res, 
+                        'img[src*="/1.jpg"], img[src*="/2.jpg"], img[src*="/3.jpg"]',
+                        /(.*pcdn.*)\/[123]\.jpg/,
+                        '$1/4.jpg'
+                );              
+                hoverZoom.urlReplace(res, 
+                        'a img.changed[src*="/4.jpg"]',
+                        '/4.jpg',
+                        '/4.jpg#'
+                );              
+                callback($(res));       
+        }
+});
+</pre>
+Links:
+<ul>
+<li><a href="http://code.google.com/p/hoverzoom/">Developer Site</a>
+<li><a href="https://chrome.google.com/webstore/detail/nonjdcjchghhkdoolnlbekcfllmednbl">
+Chrome Store</a>
+<li><a href="https://www.facebook.com/hoverzoom">Facebook Page</a>
+<li><a href="http://code.google.com/p/hoverzoom/source/browse/src/trunk/plugins/500px.js">
+Example site definition</a>
+</ul>
+
+<h2>Photozoom for Google+, Facebook, ... (chrome)</h2>
+This is a fork of HoverZoom "with some new features".  Reported not working
+anymore, though.
+<br>
+links:
+<ul>
+<li><a href="https://chrome.google.com/webstore/detail/nbblefhfkhablnohejfhhagjaadfijel">
+Chrome Store Page</a>
+</ul>
+
+<h2>Mouseover Popup Image Viewer (userscript)</h2>
+This is a userscript for various browsers including Firefox via Greasemonkey.
+<br>
+It has a nice concise JSON list of dicts syntax for defining the site rules.
+Here are a couple examples:
+<pre>
+{r:/500px\.com\/photo\//, q:'#mainphoto'},
+{r:/(https?:\/\/[\w\.\-]+?fbcdn\.net\/[\w\/\.\-]+?)_[a-z]\.jpg/, html:true, 
+ s:function(m) { return m[1].replace(/\/[spc][\d\.x]+/g, '') + '_n.jpg'; }},
+</pre>
+The approach it takes for 500px.com is interesting: instead of doing find-and-replace
+in the thumb's URL, it reads the linked-to page, and displays the image
+that page defines for id "mainphoto".  It's slower since it must read the 
+page but may be easier to define.
+<br>
+Links:
+<ul>
+<li><a href="http://userscripts.org/scripts/show/109262">Main userscripts.org page</a>
+<li><a href="http://userscripts.org/topics/109791#posts-437845">How to add sites</a>
+</ul>
+<h2>ImagePreviewer &amp; LinkRedirector (opera, chrome, Firefox)</h2>
+Rules are defined as preferences like this:
+<pre>
+{
+"name"     :"Facebook",
+"update"   :"2012-04-09T15:10:00+09:00",
+"use"      : true,
+"url"      :"^https?://www\\.facebook\\.com/photo\\.php\\?",
+"img"      :"(?:/\\w\\d+x\\d+)?(/[^/]*)_[a-z]\\.(?:jpeg?|jpg|gif|bmp|png)$",
+"replace"  :"$1_n.$2",
+"type"     :"image/jpeg"
+},
+</pre>
+Links:
+<ul>
+<li><a href="https://addons.opera.com/en/extensions/details/imagepreviewer/?display=en">
+Opera add-on site</a>
+<li><a href="https://addons.opera.com/en/extensions/details/linkredirector5/?display=en">
+Opera Link Redirector add-on (which it says is required)</a>
+<li><a href="http://my.opera.com/whochan/blog/filters-gallery">Filters forum (example of
+how site rules are encoded)</a>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/imagepreviewer/">Firefox add-on page</a> and 
+<a href="https://addons.mozilla.org/en-US/firefox/files/browse/151720/">source code</a>
+and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/">LinkRedirector source code</a> 
+and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/file/resources/linkredirector/data/preferences/filter.js#top">filter definitions</a>
+</ul>
+</body>
+</html>
