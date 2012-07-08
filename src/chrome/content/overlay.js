@@ -2316,13 +2316,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   /**
-   * _getFileType returns the file type (such as ".jpg" or ".gif")
-   * of the specified filename, or "" if it's null.
+   * _getFileType returns the file type (such as ".jpg" or ".gif" or "")
+   * of the specified filename, or null if filename is null.
    */
   _getFileType : function(filename)
   {
     if (filename == null) {
-      return "";
+      return null;
     }
     let fileTypeRex = /^[^?&]*(\.[a-z0-9]+)([?&].*)?$/i;
     // image URLs sometimes don't have an explicit type; default to .jpg.
@@ -2357,7 +2357,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        aImageNode.localName + " " + thumbSrc + 
                        " and image=" + aImageSrc);
     if (! imageSize.allow) {
-      if (thumbType != imageType) {
+      if (thumbType != "" && thumbType != imageType) {
         // If file types are different, show it even if it's not bigger, since
         // it may be better quality or an animated gif from a static thumb.
         this._logger.debug("_sizePositionAndDisplayPopup: forcing allow since different file types"); 

@@ -1440,7 +1440,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
     let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
     
-    // For Wordpress and Bing Images, etc., get URL from
+    // For Wordpress and (formerly) Bing Images, etc., get URL from
     // imgurl=... part.
     // eg, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to

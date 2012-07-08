@@ -48,6 +48,7 @@ Tests:
 <li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
 should show popup images (except Imgur galleries, which have /a/ in their link).  Links to
 YouTube videos should work too.
+<li><a href="http://www.redditp.com/r/pics#">RedditP</a> Shouldn't popup over main image (but should over "Image" link); manually Reload if doesn't show page's image.
 <li><a href="http://www.tumblr.com/tagged/japan">Tumblr</a>: images sometimes link to images
 hosted on tumblr.com; those links should show popups.
 
@@ -70,9 +71,10 @@ than the text of the link itself.</a>
 <img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
 </a>
 
-<li>Big gif image named as .gif; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
+<li>Big gif image named as .gif; good for testing busy cursor (clear cache to see slow loading again).  Also has thumb larger than
+gif, but popup should still display fdue to thumbType test:<br>&nbsp;&nbsp;
 <a href="http://imgur.com/7ZFpN.gif">text part of link
-<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
+<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" width=500 height=300 />
 </a>
 
 <li>Another big gif which takes a while to fully load:
@@ -287,6 +289,29 @@ Make sure popups appear consistently; the horizontally-scrolling banner used to 
 
 </ul>
 
+<h2>yelp.com</h2>
+<ul>
+<li><a href="http://www.yelp.com/search?find_desc=pizza&find_loc=new+york&ns=1">yelp: pizza in new york</a>
+<li><a href="http://www.yelp.es/search?find_desc=pizza&find_loc=new+york&ns=1">yelp: https in Spanish</a>
+
+</ul>
+
+<h2>tripadvisor.com</h2>
+<ul>
+<li><a href="http://www.tripadvisor.com/Hotels-g45963-Las_Vegas_Nevada-Hotels.html">Hotels</a>
+<li><a href="http://www.tripadvisor.com/VacationRentals-g45963-Reviews-Las_Vegas_Nevada-Vacation_Rentals.html">
+Vacation Rentals</a>
+</ul>
+
+<h2>huffingtonpost.com</h2>
+Expect many but not images to work on <a href="http://www.huffingtonpost.com/">
+huffingtonpost.com</a>
+
+<h2>The New York Times</h2>
+<a href="http://www.nytimes.com/">nytimes.com</a>
+
+<h2>Patch.com</h2>
+<a href="http://centurycity.patch.com/">The Patch (local news)</a>
 
 <h2>Last.fm</h2>
 <ul>
@@ -301,16 +326,10 @@ Make sure popups appear consistently; the horizontally-scrolling banner used to 
 You should see large images when hovering thumbs in
 <a href="http://www.okcupid.com/match?fromWhoOnline=1">okcupid Who's Online</a>.
 
-<h2>Hi5</h2>
-
-
-<h2>Tagged</h2>
-
-
 <h2>Photobucket</h2>
 
 <h2>Pinterest</h2>
-<a href="http://pinterest.com/">Pinterest</a>
+<a href="http://pinterest.com/">http Pinterest</a> and <a href="https://pinterest.com">https Pinterest</a>
 
 <h2>Wikipedia</h2>
 <ul><li><a href="http://en.wikipedia.org/wiki/Main_Page">Main page (English)</a>
@@ -320,10 +339,7 @@ You should see large images when hovering thumbs in
 </ul>
 
 <h2>IMDB</h2>
-
-
-<h2>DailyMile</h2>
-
+<a href="http://www.imdb.com/">imdb.com</a>
 
 <h2>Engadget</h2>
 <a href="http://mobile.engadget.com/#latest">Engadget</a>
