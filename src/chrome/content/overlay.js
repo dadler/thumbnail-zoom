@@ -2317,14 +2317,16 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /**
    * _getFileType returns the file type (such as ".jpg" or ".gif" or "")
-   * of the specified filename, or null if filename is null.
+   * of the specified filename, or null if filename is blank or null.
+   * In addition to regular URLs we support background-image styles
+   * such as url("http://i.imgur.com/jA4dH.jpg") .
    */
   _getFileType : function(filename)
   {
-    if (filename == null) {
+    if (filename == null || filename == "") {
       return null;
     }
-    let fileTypeRex = /^[^?&]*(\.[a-z0-9]+)([?&].*)?$/i;
+    let fileTypeRex = /^[^?&]*(\.[a-z0-9]+)([?&\)].*)?$/i;
     // image URLs sometimes don't have an explicit type; default to .jpg.
     let type = ".jpg";
     if (fileTypeRex.test(filename)) {
@@ -2348,7 +2350,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // being too big to fit on-screen).
     let imageSize = this._getScaleDimensions(imageWidth, imageHeight, available,
                                              flags, thumbWidth, thumbHeight);
-    let thumbSrc = aImageNode.getAttribute("src");
+    let thumbSrc = aImageNode.getAttribute("src") || aImageNode.style.backgroundImage;
     let thumbType = this._getFileType(thumbSrc);
     let imageType = this._getFileType(aImageSrc);
     this._logger.debug("_sizePositionAndDisplayPopup: file types: thumb=" + 
