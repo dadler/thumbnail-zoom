@@ -1469,11 +1469,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
     
-    // egotastic.com; may generalize to other wordpress sites (not necessarily 
-    // wordpress.com) but don't know.
+    // egotastic.com, etc. (various wordpress sites); 
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
-    let wpContentEx = new RegExp("(egotastic\.com/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
+    let wpContentEx = new RegExp("(/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
                                  EXTS + ")");
     aImageSrc = aImageSrc.replace(wpContentEx, "$1$2");
     
@@ -1553,6 +1552,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
+    
+    aImageSrc = aImageSrc.replace(/(\/cms\/ul\/)t-([0-9]{4,20})/, "$1$2");
     
     // Sites using Piwigo image gallery, eg
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/thumbnail/TN-DSCN0585.jpg becomes
