@@ -1045,6 +1045,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(https?)://(?!(?:www|today|groups|muro|chat|forum|critiques|portfolio|help|browse)\\.)([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$"
     + "|stumbleupon.com\/(to|su)\/[^\/]+\/(.*" + EXTS + ")"
     + "|^https?:\/\/([^/]*\.)?viddy\.com\/(play/)?video\/[^\/?]+"
+    // end
     , "i"),
                           
   _logger: ThumbnailZoomPlus.Pages._logger,
@@ -1309,6 +1310,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     if (/gii_folder_link/.test(nodeClass) ||
+        (/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass))) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1324,7 +1326,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       } else if (/date|notes/.test(nodeClass)) {
         generationsUp = 3;
       }
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected minus.com or possible tumblr.com; going up "
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected possible minus.com, tumblr.com, or dailymotion.com; going up "
           + generationsUp + " levels and then finding img.");
       let ancestor = node;
       while (generationsUp > 0 && ancestor) {
@@ -1336,8 +1338,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         let imgNodes = ancestor.getElementsByTagName("img");
         if (imgNodes.length > 0) {
           // Confirm that it's tumblr or minus.com.
+          var ancestorClass = ancestor.className;
           if (/gii_folder_link/.test(nodeClass) ||
-              /photo/.test(ancestor.getAttribute("class"))) {
+              /preview_link/.test(ancestorClass) ||  // dailymotion
+              /photo/.test(ancestorClass) ) {
             // take the last child.
             node = imgNodes[imgNodes.length-1];
           } else {
@@ -1361,7 +1365,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
                                           + " class='" + nodeClass + "'" +
                                           " baseURI=" + node.baseURI);
-
 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
@@ -1535,7 +1538,23 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
                                   EXTS + ")"),
                                   "$1/4$2");
-                                  
+    
+    // vimeo.com:
+    // http://b.vimeocdn.com/ts/313/757/313757860_150.jpg becomes
+    // http://b.vimeocdn.com/ts/313/757/313757860_640.jpg
+    aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
+                                  "$1_640.jpg");
+    
+    // dailymotion.com:
+    // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_sprite.jpg becomes
+    // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_large.jpg
+    aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/video\/.*:jpeg_preview)_(?:sprite|small|medium)/,
+                                  "$1_large");
+    // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_small.jpg?20100906012025 becomes
+    // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_large.jpg?20100906012025
+    aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/user\/.*:avatar)_(?:sprite|small|medium)/,
+                                  "$1_large");
+    
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
@@ -1800,7 +1819,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p99: so far have " + aImageSrc);
 
-    return aImageSrc; 
+    return aImageSrc;
   }
-
 };
