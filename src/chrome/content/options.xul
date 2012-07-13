@@ -218,7 +218,12 @@
             <checkbox preference="thumbnailzoomplus-options-border-pref"
               label="&thumbnailzoomplus.options.border.checkbox.label;    " />
             <checkbox preference="thumbnailzoomplus-options-large-image-pref"
-              label="&thumbnailzoomplus.options.largeimage.checkbox.label;" />
+              label="&thumbnailzoomplus.options.largeimage.checkbox.label;" 
+              tooltiptext="Allows the pop-up to *overlap* the thumbnail or link you hovered over.
+This lets the pop-up appear larger, but you may not see the original thumbnail or link anymore.
+The pop-up will disappear when you move the mouse outside the area of the original 
+thumbnail or link, when you click the mouse, or when you press the “esc” (Escape) key.
+Shortcut: press 'a' while a pop-up is displayed." />
           </hbox>
           <hbox>
             <checkbox preference="thumbnailzoomplus-options-show-percent-pref"
