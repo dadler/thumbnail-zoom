@@ -1404,7 +1404,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = fullPhoto;
     }
     
-    aImageSrc = ThumbnailZoomPlus.FilterService._applyBaseURI(node.ownerDocument, aImageSrc);
+    aImageSrc = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, aImageSrc);
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p06: so far have " + aImageSrc);
 
