@@ -522,11 +522,26 @@ ThumbnailZoomPlus.FilterService = {
    * @return the zoomed image source, null if none could be found, or "" if
    *  one was found, but for a site which the user disabled.
    */
-  getZoomImage : function(aImageSrc, node, flags, aPage) {
+  getZoomImage : function(aImageSrc, node, flags, aPage, completionFunc) {
     this._logger.debug("getZoomImage");
 
     let pageInfo = this.pageList[aPage];
-    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags);
+    
+    let that = this;
+    let pageCompletionFunc =  function(zoomImageResult) {
+      that._logger.debug("ThumbnailPreview: getZoomImage deferred returned flags allow:" +
+                     (+flags.allowLeft) + "<>" + (+flags.allowRight) +
+                     " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
+                     " " + zoomImage);
+      completionFunc(zoomImageResult, true);
+    };      
+    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags,
+                                          pageCompletionFunc);
+      
+    if (zoomImage == "deferred") {
+      return zoomImage;
+    }
+    
     this._logger.debug("ThumbnailPreview: getZoomImage returned flags allow:" +
                        (+flags.allowLeft) + "<>" + (+flags.allowRight) +
                        " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
@@ -535,10 +550,10 @@ ThumbnailZoomPlus.FilterService = {
     if (! /^https?:\/\/./i.test(zoomImage)) {
       // As a security precaution, we only allow http and https.
       this._logger.debug("ThumbnailPreview: rejecting URL not beginning with http or https");
-      return null;
+      zoomImage = null;
     }
     
-    return zoomImage;
+    return completionFunc(zoomImage, false);
   }
 };
 

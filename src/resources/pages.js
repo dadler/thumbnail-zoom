@@ -103,7 +103,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       node isn't an image or link.  The default function returns
       the image node itself.  
       
-    * getZoomImage: required function(aImageSrc, node, popupFlags); returns the image URL.
+    * getZoomImage: required function(aImageSrc, node, popupFlags, pageCompletionFunc);
+      returns the image URL.
+     
       Translates the aImageSrc URL from the previous functions into the final
       URL of the full-size image for the popup, for example by
       removing ".thumb" from the URL.  Returns null if it can't produce a 
@@ -117,6 +119,14 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       you'd need to use getImageNode).  Also, if you use a different node,
       that node will not be considered by site enable flags.
 
+      The last argument pageCompletionFunc is optional and is for supporting
+      asynchronous functions.  If getZoomImage wants to work asynchronously,
+      it should return the string "deferred".  In that case, it must cause
+      pageCompletionFunc(result) to be called sometime later (e.g. due to
+      some event handler).  The result passed into pageCompletionFunc is the
+      same as would be returned from this function in a synchronous call: the
+      image URL.
+      
     * aPage: the index of this page in 
       ThumbnailZoomPlus.FilterService.pageList[].  Not set in pages.js; 
       assigned by calculation in filterService.js.
@@ -1358,46 +1368,6 @@ let guessBestImg = function(body) {
 };
 
 
-// readHtmlText reads an html doc from the specified URL and returns
-// the text of its html.
-let readHtmlText = function(pageUrl) {
-  // Retrieve the text of the HTML of the page.
-  // TODO: we do this synchronously, which is not acceptable for
-  // a released solution.
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-  // req.responseType = "document";
-  // req.timeout = 5000; // 5-second timeout (not supported for synchronous call)
-  req.open('GET', pageUrl, false);
-  req.setRequestHeader('Accept', 'text/html');
-  req.send();
-  if (req.status != 200) {
-    // error from site
-    logger.debug("readHtmlText: site returned error " + req.statusText);
-    return null;
-  }
-
-  // Check the doc type so we don't e.g. try to parse an image as if it were html.
-  let docType = req.getResponseHeader('Content-Type');
-  if (! /text\/html/.test(docType)) {
-    logger.debug("readHtmlText: unsupported doc type returned: " + docType);
-    return null;
-  }
-  
-  var aHTMLString = req.responseText;
-  if (! aHTMLString) {
-    logger.debug("readHtmlText: site returned empty/null text " + aHTMLString);
-    return null;
-  }
-  // parseFragment won't run javascript so we need to not ignore the contents
-  // of <noscript> tags.  Remove them.
-  aHTMLString = aHTMLString.replace(/\<\/?noscript *\>/ig, "");
-  logger.debug("  Got doc type " + docType + ":" + aHTMLString);
-  
-  return aHTMLString;
-}
-
-
 // parseHtmlDoc parses the specified html string and returns
 // a result object with result.doc and result.body set.
 let parseHtmlDoc = function(doc, pageUrl, aHTMLString) {
@@ -1546,17 +1516,9 @@ let getImgFromSelectors = function(body, selectors) {
 };
 
 
-// getImageFromLinkedPage returns the URL of an image determined by analyzing
-// the html at the specified URL.
-let getImageFromLinkedPage = function(doc, pageUrl)
+let getImageFromHtml = function(doc, pageUrl,aHTMLString)
 {
   let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl);
-  let aHTMLString = readHtmlText(pageUrl);
-  if (! aHTMLString) {
-    return null;
-  }
-  
   let result = getImgFromHtmlText(aHTMLString);
   if (result) {
     // Parse the document to get its base for applyBaseURI.  Could be optimized.
@@ -1580,6 +1542,7 @@ let getImageFromLinkedPage = function(doc, pageUrl)
       'div#show-photo img#mainphoto', // 500px.com photo page
       'div#the-image a img', // yfrog.com pic
       'div.the-image img#main_image', // yfrog.com video
+      'img#gmi-ResViewSizer_fullimg', // deviantart photo
       'img#primary_photo_img', // flickr.com set
       'div#allsizes-photo img', // flickr.com in All Sizes
       'div#main-photo-container img[alt="photo"]' // flickr.com home page 'explore thumbs' or a page.
@@ -1602,6 +1565,92 @@ let getImageFromLinkedPage = function(doc, pageUrl)
   
   return ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
 };
+
+/**
+ * getImageFromLinkedPageGen is a generator which reads the html doc
+ * at specified pageUrl and calls pageCompletionFunc when it has determined
+ * the appropriate image URL.  It operates asynchronously (and thus can call
+ * pageCompletionFunc after it returns).  Each yield of the generator 
+ * corresponds to an update of the html page's loading.  The generator is
+ * created and invoked from getImageFromLinkedPage().
+ */
+let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
+{
+  let logger = ThumbnailZoomPlus.Pages._logger;
+  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl);
+
+  // The first call to generator.send() passes in the generator itself.
+  let generator = yield;
+  
+  let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+
+  // Call the generator's next() function whenever readystate is updated.
+  req.onreadystatechange = function() {
+    if (req.readyState >= req.HEADERS_RECEIVED) {
+      try {
+        generator.next();
+      } catch (e if e instanceof StopIteration) {
+        // normal completion of generator.
+      }
+    }
+  };
+
+  // req.responseType = "document";
+  // req.timeout = 5000; // 5-second timeout (not supported for synchronous call)
+  let asynchronous = true;
+  req.open('GET', pageUrl, asynchronous);
+  req.setRequestHeader('Accept', 'text/html');
+  req.send();
+
+  // Wait for headers to be available.
+  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for headers");
+  yield;
+  
+  if (req.status != 200) {
+    // error from site
+    logger.debug("readHtmlText: site returned error " + req.statusText);
+    pageCompletionFunc(null);
+  }
+
+  // Check the doc type so we don't e.g. try to parse an image as if it were html.
+  let docType = req.getResponseHeader('Content-Type');
+  if (! /text\/html/.test(docType)) {
+    logger.debug("readHtmlText: unsupported doc type returned: " + docType);
+    pageCompletionFunc(null);
+  }
+
+  // Wait for content to be done loading.
+  while (req.readyState < req.DONE) {
+    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for body; readyState=" + req.readyState);
+    yield;
+  }
+  
+  var aHTMLString = req.responseText;
+  if (! aHTMLString) {
+    logger.debug("readHtmlText: site returned empty/null text " + aHTMLString);
+    pageCompletionFunc(null);
+  }
+  // parseFragment won't run javascript so we need to not ignore the contents
+  // of <noscript> tags.  Remove them.
+  aHTMLString = aHTMLString.replace(/\<\/?noscript *\>/ig, "");
+  logger.debug("  Got doc type " + docType + ":" + aHTMLString);
+  
+  let url = getImageFromHtml(doc, pageUrl, aHTMLString);
+  
+  pageCompletionFunc(url);
+};
+
+
+// getImageFromLinkedPage returns the URL of an image determined by analyzing
+// the html at the specified URL.
+let getImageFromLinkedPage = function(doc, pageUrl, pageCompletionFunc)
+{
+  let generator = getImageFromLinkedPageGen(doc, pageUrl, pageCompletionFunc);
+  generator.next();
+  generator.send(generator);
+  
+  return "deferred";
+}
 
 
 /**
@@ -1657,8 +1706,8 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
   },
   
   // For "ScanLinkedPage"
-  getZoomImage : function(aImageSrc, node, flags) {
-    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc);
+  getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
+    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc, pageCompletionFunc);
     
     return aImageSrc; 
   }

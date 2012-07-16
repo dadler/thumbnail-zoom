@@ -1142,28 +1142,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-  _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
-                             aEvent, aPage, node, completionGenerator) {
-    status = this._tryImageSourceSynchronously(aDocument, pageMatchNode, pageMatchHost,
-                             aEvent, aPage, node);
-    // return now for synchronous
-    // return status;
-    
-    // asynchronous
-    let that = this;
-    setTimeout(function() {  
-      that._logger.debug("... _tryImageSource: completionGenerator.send('" + status + "')");
-      try {
-        completionGenerator.send(status);
-      } catch (e if e instanceof StopIteration) {
-        // normal completion of generator.
-      }
-    }, 0);
-    return "deferred";
-  },
-  
   /**
-    _tryImageSourceSynchronously tries to display a popup using rule aPage, returning
+    _tryImageSource tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
     make the popup appear later).
     @return 
@@ -1176,8 +1156,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                         when it's ready, the function will notify the caller by
                         calling completionGenerator.send(status)
    */
-  _tryImageSourceSynchronously : function(aDocument, pageMatchNode, pageMatchHost,
-                             aEvent, aPage, node) {
+  _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
+                             aEvent, aPage, node, completionGenerator) {
     var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
     let requireImageBiggerThanThumb = false;
     let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
@@ -1247,15 +1227,70 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
-    let zoomImageSrc = ThumbnailZoomPlus.FilterService
-                            .getZoomImage(imageSource, imageSourceNode, flags, aPage);
+    flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
+
+    let that = this;
+    /*
+     * completionFunc is a function which ThumbnailZoomPlus.FilterService
+     * .getZoomImage() calls.  It passes in the zoomImageSrc and a flag
+     * indicating whether it is being called as a deferred callback.
+     * It returns a status just like _tryImageSource() returns
+     * (except never "deferred").
+     *
+     * If getZoomImage() can determine the result synchronously, it calls 
+     * completionFunc() and that function's result as its own result.
+     *
+     * Otherwise (when asynchronous) it returns "deferred" immediately
+     * (without calling completionFunc) and later asynchronously calls
+     * completionFunc.
+     *
+     * Note that in both cases, completionFunc() is only invoked once per
+     * call to getZoomImage().
+     */
+    let completionFunc = function(zoomImageSrc, calledFromDeferred) {
+      return that._getZoomImageCompletion(aDocument, aEvent, aPage, node,
+                                   imageSourceNode, 
+                                   flags, pageName, completionGenerator,
+                                   zoomImageSrc, calledFromDeferred);
+    };
+
+    return ThumbnailZoomPlus.FilterService
+                      .getZoomImage(imageSource, imageSourceNode, flags, aPage,
+                                    completionFunc);
+  },
+
+  _getZoomImageCompletion : function(aDocument, aEvent, aPage, node,
+                                     imageSourceNode, 
+                                     flags, pageName, completionGenerator,
+                                     zoomImageSrc, calledFromDeferred) {
+    var status = this._getZoomImageCompletionImmediate
+                                  (aDocument, aEvent, aPage, node,
+                                   imageSourceNode, 
+                                   flags, pageName,
+                                   zoomImageSrc);
+    if (calledFromDeferred) {
+      // Send status to the completionGenerator.
+      this._logger.debug("... _getZoomImageCompletion: completionGenerator.send('" + status + "')");
+      try {
+        completionGenerator.send(status);
+      } catch (e if e instanceof StopIteration) {
+        // normal completion of generator.
+      }
+    }
+    return status;
+  },
+
+  _getZoomImageCompletionImmediate : function(aDocument, aEvent, aPage, node,
+                                              imageSourceNode, 
+                                              flags, pageName,
+                                              zoomImageSrc) {
     if (zoomImageSrc == "") {
-      this._logger.debug("_tryImageSource: getZoomImage returned '' (matched but disabled by user).");
+      this._logger.debug("_getZoomImageCompletion: getZoomImage returned '' (matched but disabled by user).");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with ''");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
-      this._logger.debug("_tryImageSource: getZoomImage returned null.");
+      this._logger.debug("_getZoomImageCompletion: getZoomImage returned null.");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with null");
       return "rejectedNode";
     }
@@ -1266,15 +1301,21 @@ ThumbnailZoomPlusChrome.Overlay = {
     flags.linkSameAsImage = this._isLinkSameAsImage(imageSourceNode, zoomImageSrc);
     flags.imageSourceNode = imageSourceNode;
     
+    if (! aDocument.defaultView) {
+      // The document doesn't have a window; don't pop-up.  I've seen this
+      // happen when an asynchronous pop-up tried to pop-up after the
+      // tab was closed.
+      this._logger.debug("_getZoomImageCompletion: no defaultView");
+      return "";
+    }
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
-    this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
+    this._logger.debug("_getZoomImageCompletion: *** Setting _originalURI=" + 
                        this._originalURI);
 
     this._debugToConsole("ThumbnailZoomPlus: >>> page " + pageName + " launching \n" +
                        zoomImageSrc);
     
-    flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
     this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
     return "launched";
   },
@@ -1411,6 +1452,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           status = yield;
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
+        this._logger.debug("_findPageAndShowImageGen: got status " + status);
       }
 
       if (status == "launched") {
@@ -3442,6 +3484,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _debugToConsole : function(msg) {
+    this._logger.debug("### CONSOLE: " + msg);
     if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
       this._logToConsole(msg);
     }
