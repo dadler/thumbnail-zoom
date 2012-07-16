@@ -1544,6 +1544,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://b.vimeocdn.com/ts/313/757/313757860_640.jpg
     aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
                                   "$1_640.jpg");
+    // http://b.vimeocdn.com/ps/116/353/1163539_75.jpg (profile pic) becomes
+    // http://b.vimeocdn.com/ps/116/353/1163539_300.jpg
+    aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/ps\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
+                                  "$1_300.jpg");
+    
     
     // dailymotion.com:
     // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_sprite.jpg becomes
