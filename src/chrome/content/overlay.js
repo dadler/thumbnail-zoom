@@ -1142,8 +1142,28 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
+                             aEvent, aPage, node, completionGenerator) {
+    status = this._tryImageSourceSynchronously(aDocument, pageMatchNode, pageMatchHost,
+                             aEvent, aPage, node);
+    // return now for synchronous
+    // return status;
+    
+    // asynchronous
+    let that = this;
+    setTimeout(function() {  
+      that._logger.debug("... _tryImageSource: completionGenerator.send('" + status + "')");
+      try {
+        completionGenerator.send(status);
+      } catch (e if e instanceof StopIteration) {
+        // normal completion of generator.
+      }
+    }, 0);
+    return "deferred";
+  },
+  
   /**
-    _tryImageSource tries to display a popup using rule aPage, returning
+    _tryImageSourceSynchronously tries to display a popup using rule aPage, returning
     true iff aPage's rule matches (in which case it starts a timer to
     make the popup appear later).
     @return 
@@ -1152,8 +1172,11 @@ ThumbnailZoomPlusChrome.Overlay = {
             "rejectedNode": the thumb/image URL doesn't match imageRegExp 
                             or matches imageDisallowRegExp
             "launced": everything matched and we launched the popup.
+            "deferred": the request is deferred (awaiting some event).
+                        when it's ready, the function will notify the caller by
+                        calling completionGenerator.send(status)
    */
-  _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
+  _tryImageSourceSynchronously : function(aDocument, pageMatchNode, pageMatchHost,
                              aEvent, aPage, node) {
     var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
     let requireImageBiggerThanThumb = false;
@@ -1262,8 +1285,49 @@ ThumbnailZoomPlusChrome.Overlay = {
             aPage == ThumbnailZoomPlus.Pages.ScanLinkedPage.aPage);
   },
   
-  _findPageAndShowImage : function(aDocument, aEvent, minFullPageNum, node) {
-    this._logger.trace("_findPageAndShowImage"); 
+  _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+    let completionGenerator = this._findPageAndShowImageGen(aDocument, aEvent, aPage, node);
+    completionGenerator.next(); 
+    try {
+      completionGenerator.send(completionGenerator);
+    } catch (e if e instanceof StopIteration) {
+      // normal completion of generator.
+    }
+  },
+
+  /**
+   * _findPageAndShowImageGen is a generator function which tries page rules
+   * until it finds one which matches, and launches the pop-up (if possible).
+   * It's a generator so that it can support rules which run asynchronously
+   * without blocking the main thread.
+   *
+   * The initial call doesn't do anything except return a generator object.
+   * Then call next() and send(generator) to initialize it; the generator
+   * is the return from the function call (the generator itself).
+   *
+   * That first send() call also causes the function to do all its work,
+   * though potentially asynchronously (i.e. after it returns).  A given
+   * send() call resumes the function from the point of one of its yield
+   * statements.  The function continues to run and try pages until it
+   * hits an asynchronous (deferred) page, at which point it doesa yield
+   * to return to the caller.  When the async function is ready (typically
+   * triggered by some other event handler), it'll call the generator's
+   * send() method again and the function will resume again from the point
+   * of a yield.
+   *
+   * For info about generators see
+   * https://developer.mozilla.org/en/IndexedDB/Using_IndexedDB/Using_JavaScript_Generators_in_Firefox
+   * https://developer.mozilla.org/en/Core_JavaScript_1.5_Guide/Iterators_and_Generators#Generators.3a_a_better_way_to_build_Iterators
+   */
+  _findPageAndShowImageGen : function(aDocument, aEvent, minFullPageNum, node) {
+    this._logger.trace("_findPageAndShowImageGen"); 
+    
+    // Get the completion generator (i.e. ourselves), which the caller 
+    // passes into the _findPageAndShowImageGen generator in the first
+    // send() call after the first next() call.  We'll call this' yield
+    // when we need to run asynchronously; such a yield will be followed
+    // sometime later by an asynchronous send() call.
+    let completionGenerator = yield;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
@@ -1305,17 +1369,22 @@ ThumbnailZoomPlusChrome.Overlay = {
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
 
+      var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
       if (disallowOthers && this._isCatchallPage(aPage)) {
-        this._logger.debug("_findPageAndShowImage: Skipping Others or Thumbnails");
+        this._logger.debug("_findPageAndShowImageGen: Skipping catch-all page " + pageName);
         continue;
       }
       
       let status="notTried";
-      if (aPage >= minFullPageNum && docHost != null) {        
-        status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node);
-        if (status == "launched") {
-          return;
+      if (aPage >= minFullPageNum && docHost != null) {
+        status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node, completionGenerator);
+        if (status == "deferred") {
+          this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
+          status = yield;
+          this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
+        this._logger.debug("_findPageAndShowImageGen: got status " + status);
+
         if (status == "disabled" && ! this._isCatchallPage(aPage)) {
           /*
            * If the host matches the page's host URL but the page is disabled,
@@ -1326,7 +1395,7 @@ ThumbnailZoomPlusChrome.Overlay = {
            * other page to launch a popup.
            */
           disallowOthers = true;
-          this._logger.debug("_findPageAndShowImage: Disabling Others & Thumbnails since " +
+          this._logger.debug("_findPageAndShowImageGen: Disabling Others & Thumbnails since " +
                              ThumbnailZoomPlus.FilterService.pageList[aPage].key +
                              " is disabled");
         }
@@ -1336,10 +1405,16 @@ ThumbnailZoomPlusChrome.Overlay = {
           nodeHost != null && nodeHost != docHost) {
         // The try above failed due to rejecting aDocument as the pageMatchNode.
         // Try again using the thumb itself as pageMatchNode
-        status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node);
-        if (status == "launched") {
-          return;
+        status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node, completionGenerator);
+        if (status == "deferred") {
+          this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
+          status = yield;
+          this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
+      }
+
+      if (status == "launched") {
+        return;
       }
     }
     this._debugToConsole("ThumbnailZoomPlus: >>> all pages rejected");

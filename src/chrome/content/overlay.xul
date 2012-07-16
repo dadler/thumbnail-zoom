@@ -37,9 +37,9 @@
 <overlay id="thumbnailzoomplus-browser-overlay"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
     src="chrome://thumbnailzoomplus/content/common.js" />
-  <script type="application/x-javascript"
+  <script type="application/javascript"
     src="chrome://thumbnailzoomplus/content/overlay.js" />
 
   <!-- Toolbar button -->
