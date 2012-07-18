@@ -113,7 +113,7 @@ ThumbnailZoomPlus.FilterService = {
     // The presumption is that the site's popup tries to position to the right
     // of that edge if it fits, or else to the left of the thumb.
     //
-    // Set popupAvoiderWidth by resizing the browser narrow until the site 
+    // Determine popupAvoiderWidth by resizing the browser narrow until the site 
     // just starts showing its popup to the left; then look at the TZP
     // debug messages to find the corresponding availableForSitePopup value.
     this.popupAvoiderWidth = 0;
@@ -319,39 +319,54 @@ ThumbnailZoomPlus.FilterService = {
    * _getUrlFromNode returns a URL based on imageNode, using
    * the first of these rules which gives a non-blank URL:
    * 1. the node's src attribute (eg for <img>)
-   * 2. the nodes href attribute (eg for <a>)
-   * 3. the node's background-image style
+   * 2. the node's background-image style
+   * 3. the nodes href attribute (eg for <a>)
    * 4. return null
+   *
+   * If preferLinkOverThumb, it takes background-image has lower priority
+   * than href.
    *
    * It also has special logic to handle t.co links.
    */
-  _getUrlFromNode : function(imageNode) {
+  _getUrlFromNode : function(imageNode, preferLinkOverThumb) {
     let imageSource = null;
     
     if (imageNode.hasAttribute("src")) {
       imageSource = imageNode.getAttribute("src");
       this._logger.debug("_getUrlFromNode: got image source from src attr of " + imageNode);
-      
-    } else {
-      let backImage = imageNode.style.backgroundImage;
-          
-      if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-        this._logger.debug("_getUrlFromNode: got image source from backgroundImage of " + imageNode);
-        imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
-                               .replace(new RegExp("\"\\)"), "");
-      }
-      if (! imageSource &&
-          imageNode.hasAttribute("href")) {
-        // for an <a href=> node, use javascript string conversion rather
-        // than retrieving the html attribute so it'll apply the base
-        // document's URL for missing components of the URL (eg domain).
-        imageSource = String(imageNode);
-        this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
-        if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
-          // Special case for twitter http://t.co links; the actual
-          // URL is in the link's tooltip.
-          imageSource = imageNode.title;
+      return imageSource;
+    }      
+    for (let caseNum = 0; caseNum <= 1; caseNum++) {
+      switch (preferLinkOverThumb ? 1-caseNum : caseNum) {
+      case 0:
+        this._logger.debug("_getUrlFromNode: trying background-image; preferLinkOverThumb=" +
+                           preferLinkOverThumb);
+        let backImage = imageNode.style.backgroundImage;
+        if (backImage && "" != backImage && ! /none/i.test(backImage)) {
+          this._logger.debug("_getUrlFromNode: got image source from backgroundImage of " + imageNode);
+          imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
+                                 .replace(new RegExp("\"\\)"), "");
+          return imageSource;
         }
+        break;
+      
+      case 1:
+        this._logger.debug("_getUrlFromNode: trying href; preferLinkOverThumb=" +
+                           preferLinkOverThumb);
+        if (imageNode.hasAttribute("href")) {
+          // for an <a href=> node, use javascript string conversion rather
+          // than retrieving the html attribute so it'll apply the base
+          // document's URL for missing components of the URL (eg domain).
+          imageSource = String(imageNode);
+          this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
+          if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
+            // Special case for twitter http://t.co links; the actual
+            // URL is in the link's tooltip.
+            imageSource = imageNode.title;
+          }
+          return imageSource;
+        }
+        break;
       }
     }
     
@@ -385,7 +400,8 @@ ThumbnailZoomPlus.FilterService = {
     /*
      * Get initial imageSource attempt from imageNode's image or link.
      */
-    let imageSource = this._getUrlFromNode(imageNode);
+    let preferLinkOverThumb = !!pageInfo.preferLinkOverThumb;
+    let imageSource = this._getUrlFromNode(imageNode, preferLinkOverThumb);
     
     // Call getImageNode if defined.
     if (pageInfo.getImageNode) {
@@ -404,7 +420,7 @@ ThumbnailZoomPlus.FilterService = {
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
-          imageSource = this._getUrlFromNode(imageNode);
+          imageSource = this._getUrlFromNode(imageNode, preferLinkOverThumb);
         } else {
           imageNode = null;
           imageSource = null; // disable.
