@@ -1238,10 +1238,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Test whether the link URL of the hovered-over node is the same as the full-size
     // image we're showing; indicate that clicking the link wouldn't be
     // useful by using our custom cursor on the link/thumb.
-    // TODO: might want to also look for onclick and similar handlers which
-    // might cause click to do something different than show this URL
-    // (example: reddit.com).
     flags.linkSameAsImage = this._isLinkSameAsImage(imageSourceNode, zoomImageSrc);
+    flags.imageSourceNode = imageSourceNode;
     
     this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
@@ -2243,7 +2241,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
         this._addListenersWhenPopupShown();
-        this._addToHistory(aImageSrc);
+        this._addItemsToHistory(aImageSrc, flags.imageSourceNode);
       } else {
         this._hideCaption();
       }
@@ -3320,13 +3318,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   
-  _addToHistory : function(url) {
-    let allowRecordingHistory = ThumbnailZoomPlus.getPref(this.PREF_PANEL_HISTORY, false);
-    if (! allowRecordingHistory) {
-      this._logger.debug("_addToHistory: history pref is off.");  
-      return;
-    }
-    
+  _addToHistory : function(url) {    
     // We don't need to check for Private Browsing mode; addURI is automatically
     // ignored in that mode.
     if (url.indexOf(" ") != -1   
@@ -3335,7 +3327,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;  
     }  
     
-    this._logger.debug("_addToHistory: '" + url + "'");  
+    this._logger.debug("_addToHistory: ADDING '" + url + "'");  
     let ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                           .getService(Components.interfaces.nsIIOService);
     let nsIURI = ioService.newURI(url, null, null);
@@ -3347,6 +3339,30 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
   
+  _addItemsToHistory : function(url, imageSourceNode) {
+    let allowRecordingHistory = ThumbnailZoomPlus.getPref(this.PREF_PANEL_HISTORY, false);
+    if (! allowRecordingHistory) {
+      this._logger.debug("_addItemsToHistory: history pref is off.");  
+      return;
+    }
+
+    // Add the URL of the image we popped-up.
+    this._addToHistory(url);
+    
+    // The image URL may be different than the URL which provoked it, e.g.
+    // because a page rule transformed it.  Mark that original URL in
+    // history so it'll turn purple on reddit.com, for example.
+    this._logger.debug("_addItemsToHistory: imageSourceNode is <" + imageSourceNode.localName.toLowerCase() + ">");
+    var url2 = ThumbnailZoomPlus.FilterService.getUrlFromNode(imageSourceNode);
+    if (url2) {
+      this._logger.debug("_addItemsToHistory: aImageNode raw URL = " + url2);
+      url2 = ThumbnailZoomPlus.FilterService.applyBaseURI(imageSourceNode.ownerDocument, url2);
+      if (url2 != url) {
+        this._addToHistory(url2);
+      }
+    }
+  },
+
   _debugToConsole : function(msg) {
     if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
       this._logToConsole(msg);

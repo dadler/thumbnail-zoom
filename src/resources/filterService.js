@@ -133,6 +133,12 @@ ThumbnailZoomPlus.FilterService = {
     this.noTooSmallWarning = false;
     this.noErrorIndicator = false;
     this.requireImageBiggerThanThumb = true;
+    
+    // imageSourceNode is the URL of the thumb or link which the user
+    // hovered over (not necessarily the URL of the popup we ended up displaying).
+    // This is useful so we can record it in the browser's history.
+    // Should never be null if we've found an image to pop-up.
+    this.imageSourceNode = null;
   },
   
   /**
@@ -301,7 +307,12 @@ ThumbnailZoomPlus.FilterService = {
     }
   },
 
-  _applyBaseURI : function(aDocument, url) {
+  /**
+   * applyBaseURI applies the specified document's base URL to fill in
+   * missing parts of url.  The returned value is a complete absolute URL.
+   * For aDocument you may find it convenient to use elementNode.ownerDocument.
+   */
+  applyBaseURI : function(aDocument, url) {
     return this._applyThisBaseURI(aDocument, aDocument.baseURI, url);
   },
   
@@ -316,7 +327,7 @@ ThumbnailZoomPlus.FilterService = {
   },
   
   /**
-   * _getUrlFromNode returns a URL based on imageNode, using
+   * getUrlFromNode returns a URL based on imageNode, using
    * the first of these rules which gives a non-blank URL:
    * 1. the node's src attribute (eg for <img>)
    * 2. the node's background-image style
@@ -328,22 +339,22 @@ ThumbnailZoomPlus.FilterService = {
    *
    * It also has special logic to handle t.co links.
    */
-  _getUrlFromNode : function(imageNode, preferLinkOverThumb) {
+  getUrlFromNode : function(imageNode, preferLinkOverThumb) {
     let imageSource = null;
     
     if (imageNode.hasAttribute("src")) {
       imageSource = imageNode.getAttribute("src");
-      this._logger.debug("_getUrlFromNode: got image source from src attr of " + imageNode);
+      this._logger.debug("getUrlFromNode: got image source from src attr of " + imageNode);
       return imageSource;
     }      
     for (let caseNum = 0; caseNum <= 1; caseNum++) {
       switch (preferLinkOverThumb ? 1-caseNum : caseNum) {
       case 0:
-        this._logger.debug("_getUrlFromNode: trying background-image; preferLinkOverThumb=" +
+        this._logger.debug("getUrlFromNode: trying background-image; preferLinkOverThumb=" +
                            preferLinkOverThumb);
         let backImage = imageNode.style.backgroundImage;
         if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-          this._logger.debug("_getUrlFromNode: got image source from backgroundImage of " + imageNode);
+          this._logger.debug("getUrlFromNode: got image source from backgroundImage of " + imageNode);
           imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
                                  .replace(new RegExp("\"\\)"), "");
           return imageSource;
@@ -351,14 +362,14 @@ ThumbnailZoomPlus.FilterService = {
         break;
       
       case 1:
-        this._logger.debug("_getUrlFromNode: trying href; preferLinkOverThumb=" +
+        this._logger.debug("getUrlFromNode: trying href; preferLinkOverThumb=" +
                            preferLinkOverThumb);
         if (imageNode.hasAttribute("href")) {
           // for an <a href=> node, use javascript string conversion rather
           // than retrieving the html attribute so it'll apply the base
           // document's URL for missing components of the URL (eg domain).
           imageSource = String(imageNode);
-          this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
+          this._logger.debug("getUrlFromNode: got image source from href of " + imageNode);
           if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
             // Special case for twitter http://t.co links; the actual
             // URL is in the link's tooltip.
@@ -401,7 +412,7 @@ ThumbnailZoomPlus.FilterService = {
      * Get initial imageSource attempt from imageNode's image or link.
      */
     let preferLinkOverThumb = !!pageInfo.preferLinkOverThumb;
-    let imageSource = this._getUrlFromNode(imageNode, preferLinkOverThumb);
+    let imageSource = this.getUrlFromNode(imageNode, preferLinkOverThumb);
     
     // Call getImageNode if defined.
     if (pageInfo.getImageNode) {
@@ -420,7 +431,7 @@ ThumbnailZoomPlus.FilterService = {
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
                            "; class=" + nodeClass);
-          imageSource = this._getUrlFromNode(imageNode, preferLinkOverThumb);
+          imageSource = this.getUrlFromNode(imageNode, preferLinkOverThumb);
         } else {
           imageNode = null;
           imageSource = null; // disable.
@@ -453,7 +464,7 @@ ThumbnailZoomPlus.FilterService = {
     } 
 
     if (imageSource != null) {
-      imageSource = this._applyBaseURI(aDocument, imageSource);
+      imageSource = this.applyBaseURI(aDocument, imageSource);
     }
     
     this._logger.debug("getImageSource: using image source       " + imageSource +
@@ -492,7 +503,7 @@ ThumbnailZoomPlus.FilterService = {
    * Gets the zoomed image source, using the page's getZoomImage().
    * @param aImageSrc the image source url.
    * @param flags: an object which this function may modify.  Members:
-   *   .allowLeft, .allowRight, .allowAbove, .allowBelow
+   *   see PopupFlags() constructor above.
    * @param aPage the filtered page.
    * @return the zoomed image source, null if none could be found, or "" if
    *  one was found, but for a site which the user disabled.
