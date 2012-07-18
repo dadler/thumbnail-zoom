@@ -2391,6 +2391,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       } else {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
         this._debugToConsole("ThumbnailZoomPlus: >>> too small (silently)\n" + aImageSrc);
+        // close the popup in case we showed the 'working' indicator:
+        this._closePanel(false);
       }
       
       return false;
