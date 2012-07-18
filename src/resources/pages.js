@@ -81,10 +81,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
-    * preferLinkOverThumb: optional boolean indicates that when the hovered
-      node has both an href and a background-image, prefer to use the
-      link rather than the background-image.  Defaults false.
-    
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
@@ -1025,7 +1021,6 @@ ThumbnailZoomPlus.Pages.Others = {
   key: "others",
   name: "", // Set in ENTITYothers.
   host: /.*/,
-  preferLinkOverThumb: true,
   
   // imgur.com links w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
@@ -1161,7 +1156,7 @@ ThumbnailZoomPlus.Pages.Others = {
       // Thumbnails rule handle them.
       return null;
     }
-        
+    
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
@@ -1357,12 +1352,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
     }
     
-    if (nodeName == "img" && /\/blank\.gif$/.test(imageSource)) {
-      // meetup.com sometimes has image in background-image of <a> in
-      // <a><img src=".../blank.gif"></a>.
-      node = node.parentNode;
-    }
-    
     return node;
   },
   
@@ -1396,11 +1385,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let backImage = node.style.backgroundImage;
     let urlRegExp = /url\("(.*)"\)$/i;
     if (backImage && "" != backImage && urlRegExp.test(backImage)) {
-      if (node.children.length > 0 && ! /thumb|mem-photo-small/.test(nodeClass)) {
+      if (node.children.length > 0 && ! /thumb/.test(nodeClass)) {
         // Ignore e.g. in Google Offers, where a big map image is the background
         // around the guts of the page.
         // But we explicitly allow using background image if nodeClass
-        // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com
+        // contains "thummb", as in 
         ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage: ignoring background image since has " +
             node.children.length + " children > 0");
@@ -1620,32 +1609,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              EXTS + ")", "i"),
                                              "/uploads/images/$1");
     
-    // meetup.com
-    // http://photos3.meetupstatic.com/photos/event/4/a/1/c/global_131178972.jpeg becomes
-    // http://photos3.meetupstatic.com/photos/event/4/a/1/c/highres_131178972.jpeg
-    aImageSrc = aImageSrc.replace(/(\.meetupstatic\.com\/photos\/(?!member.*).*\/)(?:global|thumb|member|iab120x90)_(.*\.jpeg)/,
-                                  "$1highres_$2");
-    // Note that member pics sometimes have highres, but sometimes member size is the
-    // highest available.  If we're already displaying 'member', popup 'highres'.
-    // http://photos3.meetupstatic.com/photos/member/9/6/c/thumb_26162412.jpeg becomes
-    // http://photos3.meetupstatic.com/photos/member/9/6/c/member_26162412.jpeg
-    aImageSrc = aImageSrc.replace(/(\.meetupstatic\.com\/photos\/member\/.*\/)member_(.*\.jpeg)/,
-                                  "$1highres_$2");
-    if (/mem-photo-small/.test(node.parentNode.getAttribute("class"))) {
-      // We don't popup large member photos from thumbs for which the site shows its
-      // own popup.
-      // http://photos3.meetupstatic.com/photos/member/9/6/c/thumb_26162412.jpeg becomes
-      // http://photos3.meetupstatic.com/photos/member/9/6/c/member_26162412.jpeg
-      aImageSrc = aImageSrc.replace(/(\.meetupstatic\.com\/photos\/member\/.*\/)(?:global|thumb|member|iab120x90)_(.*\.jpeg)/,
-                                  "$1member_$2");
-    }
-
-    // rostr.d.....com:
-    // https://rostr....com/ROSTRWS/rest/photos/rostrid/12345678/width/32/height/32/aspect/true/fill/true becomes
-    // https://rostr....com/ROSTRWS/rest/photos/rostrid/12345678/width/32/height/150
-    aImageSrc = aImageSrc.replace(/^(https?:\/\/rostr\..*\.com\/.*\/rostrid\/[0-9]+\/width)\/.*/,
-                                  "$1/150");
-                                  
     // modelmayhem.com:
     // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_t.jpg to
     // http://photos.modelmayhem.com/avatars/6/1/6/5/8/3/4f8d45b8e42d2_m.jpg
