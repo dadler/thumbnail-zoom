@@ -1483,6 +1483,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
     
+    // gravatar (eg wordpress profile images):
+    // https://2.gravatar.com/avatar/bdd58a13c7539fe81d07607a3aac6cd5?s=100&d=https%3A%2F%2Fsecure.gravatar.com... becomes
+    // https://2.gravatar.com/avatar/bdd58a13c7539fe81d07607a3aac6cd5?s=300 (or any size).
+    aImageSrc = aImageSrc.replace(/(gravatar\.com\/avatar\/.*?[\?&])s=.*/,
+                                  "$1s=300");
+                                  
     // egotastic.com, etc. (various wordpress sites); 
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
