@@ -3176,7 +3176,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let filePickerResult = null;
     let pickerDefaultName =
       imageURL.substring(imageURL.lastIndexOf('/') + 1);
-    let extRe = /(\.[a-zA-Z0-9]+)[^.]*$/;
+    // Get extension (without dot) for picker's defaultExtension.
+    let extRe = /\.([a-zA-Z0-9]{3,4})[^.]*$/;
     let match = extRe.exec(pickerDefaultName);
     let extension = (match && match[1] || "");
     this._logger.debug("downloadImage: default ext='" + extension +
@@ -3186,6 +3187,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker.init(window, title, Ci.nsIFilePicker.modeSave);
     this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._filePicker.defaultString = pickerDefaultName;
+    // On Windows, defaultExtension is an extension appended to the user's
+    // entry if the user doesn't specify any extension (without a '.').
     this._filePicker.defaultExtension = extension;
     filePickerResult = this._filePicker.show();
     

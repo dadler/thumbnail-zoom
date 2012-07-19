@@ -150,7 +150,7 @@ ThumbnailZoomPlus.DownloadService = {
     transfer.init(source, target, "", null, null, null, persist);
     persist.progressListener = transfer;
     
-    // save the canvas data to the file
+    // save the image to the file
     persist.saveURI(source, null, null, null, null, aFile);
   }
   
