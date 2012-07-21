@@ -352,12 +352,11 @@ ThumbnailZoomPlus.FilterService = {
       case 0:
         this._logger.debug("getUrlFromNode: trying background-image; preferLinkOverThumb=" +
                            preferLinkOverThumb);
-        let backImage = imageNode.style.backgroundImage;
-        if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-          this._logger.debug("getUrlFromNode: got image source from backgroundImage of " + imageNode);
-          imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
-                                 .replace(new RegExp("\"\\)"), "");
-          return imageSource;
+        let backImage = imageNode.style.backgroundImage || "";
+        let match = /url\(\"?(.+?)"?\)/.exec(backImage);
+        if (match) {
+          this._logger.debug("getUrlFromNode: got image source from backgroundImage: " + match[1]);
+          return match[1];
         }
         break;
       
