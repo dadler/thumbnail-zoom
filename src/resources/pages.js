@@ -1916,12 +1916,23 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/[?&]crop=[0-9]+/, "");
     }
     
+    // gravatar (eg wordpress profile images):
+    // https://2.gravatar.com/avatar/bdd58a13c7539fe81d07607a3aac6cd5?s=100&d=https%3A%2F%2Fsecure.gravatar.com... becomes
+    // https://2.gravatar.com/avatar/bdd58a13c7539fe81d07607a3aac6cd5?s=300 (or any size).
+    aImageSrc = aImageSrc.replace(/(gravatar\.com\/avatar\/.*?[\?&])s=.*/,
+                                  "$1s=300");
+                                  
     // egotastic.com, etc. (various wordpress sites); 
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
+    before = aImageSrc;
     let wpContentEx = new RegExp("(/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
                                  EXTS + ")");
     aImageSrc = aImageSrc.replace(wpContentEx, "$1$2");
+    if (aImageSrc != before) {
+      // this rule doesn't always work so don't show error indicator.
+      flags.noErrorIndicator = true;
+    }
     
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to

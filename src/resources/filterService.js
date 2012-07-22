@@ -357,26 +357,25 @@ ThumbnailZoomPlus.FilterService = {
     for (let caseNum = 0; caseNum <= 1; caseNum++) {
       switch (preferLinkOverThumb ? 1-caseNum : caseNum) {
       case 0:
-        this._logger.debug("_getUrlFromNode: trying background-image; preferLinkOverThumb=" +
+        this._logger.debug("getUrlFromNode: trying background-image; preferLinkOverThumb=" +
                            preferLinkOverThumb);
-        let backImage = imageNode.style.backgroundImage;
-        if (backImage && "" != backImage && ! /none/i.test(backImage)) {
-          this._logger.debug("_getUrlFromNode: got image source from backgroundImage of " + imageNode);
-          imageSource = backImage.replace(new RegExp("url\\(\"", "i"), "")
-                                 .replace(new RegExp("\"\\)"), "");
-          return imageSource;
+        let backImage = imageNode.style.backgroundImage || "";
+        let match = /url\(\"?(.+?)"?\)/.exec(backImage);
+        if (match) {
+          this._logger.debug("getUrlFromNode: got image source from backgroundImage: " + match[1]);
+          return match[1];
         }
         break;
       
       case 1:
-        this._logger.debug("_getUrlFromNode: trying href; preferLinkOverThumb=" +
+        this._logger.debug("getUrlFromNode: trying href; preferLinkOverThumb=" +
                            preferLinkOverThumb);
         if (imageNode.hasAttribute("href")) {
           // for an <a href=> node, use javascript string conversion rather
           // than retrieving the html attribute so it'll apply the base
           // document's URL for missing components of the URL (eg domain).
           imageSource = String(imageNode);
-          this._logger.debug("_getUrlFromNode: got image source from href of " + imageNode);
+          this._logger.debug("getUrlFromNode: got image source from href of " + imageNode);
           if (/^https?:\/\/t\.co[\/]/.test(imageSource)) {
             // Special case for twitter http://t.co links; the actual
             // URL is in the link's tooltip.

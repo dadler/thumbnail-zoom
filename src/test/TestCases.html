@@ -38,6 +38,17 @@ Set in about:config general.useragent.locale, with intl.locale.matchOS=false.
 toolbutton isn't in any toolbar.
 </ul>
 
+<h2>Test Document Server</h2>
+Run 
+
+<kbd><pre>
+cd ~/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src ; \
+python -m SimpleHTTPServer &amp;
+</pre></kbd> 
+
+to create a local web site and access the page <a href="http://0.0.0.0:8000/TestCases.html">
+from your machine over http</a>
+</ul>
 Tests:
 <ul>
 <li><a href="http://www.reddit.com/r/all">Reddit</a> links to images on imgur, quickmeme.com, and qkme.me
@@ -83,13 +94,17 @@ than the text of the link itself.</a>
 <img src="http://d.thumbs.redditmedia.com/Z4st3vIRrgG81YQ-.jpg" />
 </a>
 
-<li>Big gif image named as .jpg; good for testing busy cursor (clear cache to see slow loading again):<br>&nbsp;&nbsp;
-<a href="http://imgur.com/7ZFpN.jpg">text part of link
-<img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" />
+<li>Big gif image named as .jpg; good for testing busy cursor (clear cache to see slow loading again).  And uses background-image.:<br>&nbsp;&nbsp;
+<a href="http://imgur.com/7ZFpN.jpg">
+text part of link
+<p style="background-image: url(http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg)" >
+This is text inside of an 'a' tag, with a<br>
+background-image tag supplying the image.<br>
+</p>
 </a>
 
 <li>Big gif image named as .gif; good for testing busy cursor (clear cache to see slow loading again).  Also has thumb larger than
-gif, but popup should still display fdue to thumbType test:<br>&nbsp;&nbsp;
+gif when default zoom is 100%, but popup should still display fdue to thumbType test.:<br>&nbsp;&nbsp;
 <a href="http://imgur.com/7ZFpN.gif">text part of link
 <img src="http://d.thumbs.redditmedia.com/49LfQjFPXCoXYC-W.jpg" width=500 height=300 />
 </a>
