@@ -1492,9 +1492,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // egotastic.com, etc. (various wordpress sites); 
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07-94x94.jpg becomes
     // http://cdn02.cdn.egotastic.com/wp-content/uploads/2012/04/30/miley-cyrus-striped-top-pilates-07.jpg
+    before = aImageSrc;
     let wpContentEx = new RegExp("(/wp-content/uploads/.*)-[0-9]+x[0-9]+(" + 
                                  EXTS + ")");
     aImageSrc = aImageSrc.replace(wpContentEx, "$1$2");
+    if (aImageSrc != before) {
+      // this rule doesn't always work so don't show error indicator.
+      flags.noErrorIndicator = true;
+    }
     
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
