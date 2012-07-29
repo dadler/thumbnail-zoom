@@ -446,13 +446,56 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-  _popupTakesFocus : function() {
+  _popupTakesFocus : function(aImageNode) {
     if (this._firefoxVersion < 4) {
       // PopupTakesFocus doesn't work in Firefox 3.6 (it doesn't
       // allow keyboard shortcuts to work).
       return false;
     }
-    return ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true);
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+      return false;
+    }
+    return true;
+  },
+  
+  /**
+   * _allowPopupTakesFocusForNode returns true iff the popup is allowed
+   * to take focus when popuping up for aImageNode (assuming popup takes
+   * focus is enabled to begin with).  
+   *
+   * This lets us disable it in troublesome areas like certain popup
+   * menus, where taking focus would cause the site to dismiss the menu
+   * and the source of our popup.  If we didn't prevent taking focus
+   * we could get into a popup/popdown cycle.
+   */
+  _allowPopupTakesFocusForNode : function(aImageNode) {
+    let parent = aImageNode.parentNode || aImageNode;
+    let parent2 = parent.parentNode || parent;
+    let parent3 = parent2.parentNode || parent2;
+    let parent2Class = parent2.className;
+    let parent3id = parent3.id;
+    this._logger.debug("_allowPopupTakesFocusForNode: aImageNode=" + aImageNode +
+                       "; class=" + aImageNode.className + 
+                       "; p.class=" + parent.className + 
+                       "; p.p.class=" + parent2Class +
+                       "; p.p.p.id=" + parent3id);
+    if (parent2Class.indexOf("deviants") >= 0 ||
+        parent2Class.indexOf("grp hh") >= 0) {
+      // This is the deviantart.com Deviants or Groups pulldown menu.
+      // Focusing would immediately dismiss the menu so we don't.
+      // TODO: it'd be better to detect this more generically if we knew how.
+      this._logger.debug("_allowPopupTakesFocusForNode: deviantart; not focusing since p.p.class=" + 
+                         parent2Class);
+      return false;
+    }
+    if (aImageNode.className.indexOf("photo") >= 0 &&
+        parent3id.indexOf("typeahead_list") >= 0) {
+      // Completions menu from Facebook search.
+      this._logger.debug("_allowPopupTakesFocusForNode: fb search; not focusing since p.p.p.id=" + 
+                         parent3id);
+      return false;
+    }
+    return true;
   },
   
   /**
@@ -461,7 +504,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * The listener is added on the popup if _popupTakesFocus()
    * (the default); otherwise it's added to the document itself.
    */
-  _addListenersWhenPopupShown : function() {
+  _addListenersWhenPopupShown : function(aImageNode) {
     this._logger.trace("_addListenersWhenPopupShown");
     
     /*
@@ -473,9 +516,15 @@ ThumbnailZoomPlusChrome.Overlay = {
      * 
      * Note that some compound keys like "?" can appear in keypress but
      * may appear as 0 in keydown.
+     *
+     * We only do this if the user preference for it is enabled and Firefox
+     * is new enough.  Note that this test is independent of the aImageNode
+     * test done by _allowPopupTakesFocusForNode(); if that routine causes
+     * TZP not to grab focus, we don't want TZP to take keyboard focus at all 
+     * since text may be destined for a field like Facebook's Search.
      */
     let useCapture = false;
-    if (this._popupTakesFocus()) {
+    if (this._popupTakesFocus(aImageNode)) {
       var keyReceiver = this._panel;
       this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
     } else {
@@ -1016,7 +1065,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
 
-    if (! that._popupTakesFocus()) {
+    if (! that._popupTakesFocus(that._currentThumb)) {
       return;
     }
 
@@ -2200,7 +2249,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
     } 
     this._focusThePopup(aImageNode);
-    this._addListenersWhenPopupShown();
+    this._addListenersWhenPopupShown(aImageNode);
   },
   
   _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
@@ -2360,7 +2409,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           flags, 
                                           this._origImageWidth, this._origImageHeight);
       if (displayed) {
-        this._addListenersWhenPopupShown();
+        this._addListenersWhenPopupShown(aImageNode);
         this._addItemsToHistory(aImageSrc, flags.imageSourceNode);
       } else {
         this._hideCaption();
@@ -2404,7 +2453,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                                         this._origImageWidth, this._origImageHeight);
 
       // re-add back the listeners.
-      this._addListenersWhenPopupShown();
+      this._addListenersWhenPopupShown(this._currentThumb);
     }
   },
   
@@ -2631,35 +2680,23 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
-    if (! this._popupTakesFocus()) {
+    if (! this._popupTakesFocus(aImageNode)) {
       return;
     }
-    let doc = this._currentWindow.document;
-    let focused = doc.activeElement;
-
-    this._logger.debug("_focusThePopup: aImageNode=" + aImageNode +
-                       "; class=" + aImageNode.className + 
-                       "; p.class=" + aImageNode.parentNode.className + 
-                       "; p.p.class=" + aImageNode.parentNode.parentNode.className + 
-                       "; focused=" + focused);
-    let parent = aImageNode.parentNode || aImageNode;
-    let parent = parent.parentNode || parent;
-    if (parent.className.indexOf("deviants") >= 0 ||
-        parent.className.indexOf("grp hh") >= 0) {
-      // This is the deviantart.com Deviants or Groups pulldown menu.
-      // Focusing would immediately dismiss the menu so we don't.
-      // TODO: it'd be better to detect this more generically if we knew how.
-      this._logger.debug("_focusThePopup: not focusing since ancestor class=" + 
-                         parent.className);
+    if (! this._allowPopupTakesFocusForNode(aImageNode)) {
       return;
     }
     
+    let doc = this._currentWindow.document;
+    let focused = doc.activeElement;
+
     if (focused && focused.tagName != "BODY") {
       // The previously-focused element wasn't the document itself,
       // so send synthetic focus events (more details below).  
       // Note that we test 'focused' rather than 'aImageNode'; testing the 
       // latter would cause popup cycling on Google's "Visually related images".
-      this._logger.debug("_focusThePopup: aImageNode=" + aImageNode + "; sending mouseover event");
+      this._logger.debug("_focusThePopup: aImageNode=" + aImageNode + 
+                         "; focused=" + focused + "; sending mouseover event");
       
       // The focused element will lose focus when we give the popup focus.  Make
       // it lose focus now so it'll send the inevitible blur (focus-loss) event.

@@ -122,7 +122,16 @@ install4: $(build_dir) $(xpi_built)
 	@echo "Installing in profile folder. Done!"
 	@echo
 
+conflictFiles := $(shell echo ` find . -name '*.LOCAL.*' -or -name '*.REMOTE.*' -or -name '*.BACKUP.*' -or -name '*.BASE.*' `)
+
 $(xpi_file): $(build_dir) $(xpi_built)
+	@if [ ! -z '$(conflictFiles)' ]; \
+	then \
+	    echo 'Please remove merge conflict files before building:'; \
+		echo '  $(conflictFiles)'; \
+		exit 1 ;\
+	fi
+	
 	@echo "Creating XPI files."
 	@cd $(build_dir); $(ZIP) ../$(xpi_file) $(xpi_built_no_dir)
 	# @cp -f $(xpi_file) $(xpi_file_date)
