@@ -88,7 +88,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
     * imageRegExp: the popup image URL produced by the rule must match this 
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
-      Note that this is applied to the initial URL we hae after getImageNode, 
+      Note that this is applied to the initial URL we have after getImageNode, 
       but before getZoom Image (which is kind of odd; maybe we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
 
@@ -1182,6 +1182,13 @@ ThumbnailZoomPlus.Pages.Others = {
       if (! /^https?:\/\/./.test(aImageSrc)) {
         aImageSrc = "http://" + aImageSrc;
       }
+    }
+
+    // https://www.facebook.com/l.php?u=http%3A%2F%2Fi.imgur.com%2FmLR3d.jpg
+    let rexFBExternal = /.*\.facebook\.com\/l\.php\?(?:.*&)?u=([^&]+).*/;
+    if (rexFBExternal.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(rexFBExternal, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
     }
 
     // Deviantart external links: change
