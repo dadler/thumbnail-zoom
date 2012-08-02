@@ -1309,7 +1309,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "(//.*\\.google\\.com?[.a-z]*/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
                           + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
-                          + "|(//maps\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images
+                          + "|(//.*\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images, google drive file type icons
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
                           + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
                           + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
@@ -1457,13 +1457,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
-    // For Google Play Android Apps, change
-    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
-    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
-    // and ...=w124 and ...==w78-h78
-    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
-    let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
-    
     // For Wordpress and (formerly) Bing Images, etc., get URL from
     // imgurl=... part.
     // eg, change:
@@ -1624,13 +1617,24 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://raxanathos.free.fr/modules/td-galerie/imgs/20070407230812-3.jpg
     aImageSrc = aImageSrc.replace("modules/td-galerie/mini/", "modules/td-galerie/imgs/");
     
+    // For Google Play Android Apps, change
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
+    // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
+    // and ...=w124 and ...==w78-h78
+    let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
+    let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
+    
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w1000
     // and
     // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=2&source=ge-web-market to
     // https://encrypted.google.com/books?id=bgMiAFs66bwC&printsec=frontcover&img=2&zoom=0&source=ge-web-market
-    aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*=)w[0-9][0-9][0-9]?$/, "$1w1000");
+    // google play magazines: remove =w128-h175
+    // and for drive.google.com:
+    // change https://lh4.googleusercontent.com/M-wf8mn...EkY8tNA=s260 to
+    // change https://lh4.googleusercontent.com/M-wf8mn...EkY8tNA
+    aImageSrc = aImageSrc.replace(/(\.googleusercontent\.com\/.*)=[-swh0-9]+$/, "$1");
     aImageSrc = aImageSrc.replace(/(\.google\.com\/books?.*)&zoom=1&/, "$1&zoom=0&");
 
     // For diasp.org:
