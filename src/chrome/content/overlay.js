@@ -1686,6 +1686,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // restore original title / tooltip:
       if (this._panelCaption.value != "") {
         this._panelCaption.hidden = true;
+        // Firefox 17 reports an error on printing this._panelCaption.ThumbnailZoomPlusOriginalTitleNode:
+        // Error: TypeError: can't access dead object
+        // Happens after moving tab to new window, moving that tab into an existing
+        // window, etc.  This may be the condition which caused the popup
+        // to appear on the wrong window in older firefox.
         this._logger.debug("_hideCaption: restoring title to " + 
                            this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
                            + ": " + 
