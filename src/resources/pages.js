@@ -1315,8 +1315,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
                           + "|(//[^/]*tiles\\.virtualearth\\.net/.*)" // bing.com/maps tiles
                           + "|(//[^/]*.maps.live.com/i/.*)" // bing.com/maps directions pin
-                          + "|(^data:image/gif;base64,R0lGODlhEAA)" // LastPass icon in input fields
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
+                          + "|.*\\$live\\.controls\\.images/" // microsoft outlook.com
+                          + "|.*\\.hotmail.com/cal/" // microsoft hotmail/live calendar
+                          + "|.*-(word|excel|powerpoint|onenote).*\.msecnd\.net/./" // microsoft office on skydrive
+                          + "|editImageHandler\.ashx" // microsoft powerpoint slide thumbs
                           + ")).*", "i"),
   
   // For "Thumbnail"
