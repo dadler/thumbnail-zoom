@@ -3203,6 +3203,27 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
 
+  _getFilenameFromURL : function(url) {
+    let fname =
+      url.substring(url.lastIndexOf('/') + 1);
+    
+    // Change ms windows reserved chars to -
+    fname = fname.replace(/[\/~\\:<>"|?*]+/g, '-');
+    // fix syntax highlighting: "
+
+    // For the mac prohibit '.' at the start.
+    // And starting with certain chars just looks bad.
+    fname = fname.replace(/^[\._ -]+/, '');
+    
+    // For Windows doesn't allow ending with a space or period.
+    fname = fname.replace(/[\. ]+$/, '');
+    
+    // Some Windows names are reserved, too:
+    fname = fname.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
+
+    return fname;
+  },
+  
   /**
    * Downloads the full image.
    */
@@ -3216,8 +3237,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let imageURL = this._currentImage;
     let filePickerResult = null;
-    let pickerDefaultName =
-      imageURL.substring(imageURL.lastIndexOf('/') + 1);
+    let pickerDefaultName = this._getFilenameFromURL(imageURL);
+    
+    // find extension
     let extRe = /(\.[a-zA-Z0-9]+)[^.]*$/;
     let match = extRe.exec(pickerDefaultName);
     let extension = (match && match[1] || "");
