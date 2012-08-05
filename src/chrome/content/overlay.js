@@ -858,10 +858,65 @@ ThumbnailZoomPlusChrome.Overlay = {
     return innerText;
     
   },
-               
+
   /**
    * _getEffectiveTitle gets the text to be shown in the caption when
-   * showing a popupfor aNode.
+   * showing a popup for aNode.
+   */
+    _getEffectiveTitle : function(aNode) {
+      let cls = aNode.className;
+      
+      this._logger.debug("_getEffectiveTitle: seeking starting node from " +
+                         aNode + " class \"" + cls + "\""); 
+
+      let queryNode = null;
+      let querySelectors = [];
+
+      // We select an alternate starting node instead of aNode for specific
+      // situations by setting queryNode to an ancestor node under which to
+      // run a CSS selector query, and setting querySelectors to a list of
+      // query rules a la http://www.w3.org/TR/CSS2/selector.html.
+      // In particular, use .classname and #id.
+      // Rules in the array are in priority order, with highest priority
+      // first.
+      if (/uiPhotoThumb/.test(cls)) {
+        this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (uiPhotoThumb)");
+        queryNode = aNode.parentNode.parentNode.parentNode;
+        querySelectors = [".messageBody", ".uiStreamHeadline"];
+
+      } else if (/photoWrap/.test(cls)) {
+        this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (photoWrap)");
+        queryNode = aNode.parentNode.parentNode.parentNode.parentNode;
+        querySelectors = [".messageBody", ".uiStreamHeadline" /* ,".uiStreamPassive"*/ ];
+
+      } else if (/profilePic .* img|-cx-PRIVATE-uiSquareImage.* img/.test(cls)) {
+        this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
+        queryNode = aNode.parentNode.parentNode;
+        querySelectors = [".passiveName", ".actorName"];
+      }
+      
+      if (queryNode) {
+        this._logger.debug("_getEffectiveTitle: selecting beneath " +
+                           queryNode + " class \"" + queryNode.className +
+                           "\" for CSS selectors " + querySelectors);
+        for (var i=0; i < querySelectors.length; i++) {
+          let s = querySelectors[i];
+          let found = queryNode.querySelector(s);
+          if (found) {
+            this._logger.debug("_getEffectiveTitle: found node " + 
+                               found + " class \"" + found.className + "\"" +
+                               " using selector \"" + s + "\"");
+            aNode = found;
+            break;
+          }
+        }
+      }
+      return this._getEffectiveTitleForNode(aNode);
+    },
+
+  /**
+   * _getEffectiveTitleForNode gets the text to be shown in the caption,
+   * given a reference node from which to search for caption text.
    *
    * Here are some situations this wants to work in:
    * - image with 'title' text
@@ -892,20 +947,22 @@ ThumbnailZoomPlusChrome.Overlay = {
    *   peer of that <div> is <div><div><h4><a class="title">, which encloses the
    *   doc text title.
    */
-  _getEffectiveTitle : function(aNode) {
+  _getEffectiveTitleForNode : function(aNode) {
     // Search ancestors for a node with non-blank textContent.
     let title = "";
     while (aNode != null && aNode.localName.toLowerCase() != "body") {
       if (aNode.title != undefined && 
           aNode.title != "" ) {
         title = aNode.title;
+        this._logger.debug("_getEffectiveTitleForNode: got title from title: '" +
+                           title + "'");
         break;
       }
       let alt = aNode.getAttribute("alt");
       if (alt != undefined && alt != "" &&
           ! /^\s*Thumbnail\s*$/i.test(alt)) {
         // use alt text; useful e.g. with twitpic.  Exclusion for youtube.com.
-        this._logger.debug("_getEffectiveTitle: got title from alt: '" +
+        this._logger.debug("_getEffectiveTitleForNode: got title from alt: '" +
                            alt + "'");
         title = alt;
         break;
@@ -918,34 +975,34 @@ ThumbnailZoomPlusChrome.Overlay = {
       text = text.replace(/\s+$/, "");
 
       if (text != "") {
-        // change newlines to spaces to simplify the next test.
+        // change (repeated) newlines to spaces to simplify the next test.
         text = text.replace(/\s+/gm, " ");
         let exp = /^ ?[0-9]+:[0-9]+ ?Add to ?$/m;
         if (exp.test(text) || text == "Add to ") {
-          this._logger.debug("_getEffectiveTitle: ignoring youtube element: " +
+          this._logger.debug("_getEffectiveTitleForNode: ignoring youtube element: " +
                              "node=" + aNode + "; textContent='" + text + "'");
         } if (aNode.className == "tagWrapper") {
           // skip Facebook theater image level which just says "Already tagged"
           // so we can traverse up higher.
-          this._logger.debug("_getEffectiveTitle: skipping tagWrapper (eg facebook)");
+          this._logger.debug("_getEffectiveTitleForNode: skipping tagWrapper (eg facebook)");
         } else {
           if (/rg_/.test(aNode.className)) {
-            // Specia clean-up for Google Images.  EG change from ... to ...
-            // pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
-            // pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
+            // Specia clean-up for Google Images.  EG change
+            // from: pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
+            //   to: pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
             // The - and x are non-ASCII characters.
-            this._logger.debug("_getEffectiveTitle: doing Google Images cleanup on '" +
+            this._logger.debug("_getEffectiveTitleForNode: doing Google Images cleanup on '" +
                                text + "'");
             // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
             text = text.replace(/ +[0-9]+ . [0-9]+ /i, "");
             text = text.replace(/ +Similar . More sizes */i, "");
           }
           if (/sg_/.test(aNode.className)) {
-            // Specia clean-up for Bing Images.  EG change from ... to ...
-            // prefer to make my pizza in a 15 inch pizza pan 900 x 602 . 544 kB . jpeg www.perfecthomemadepizza.com More sizes
-            // prefer to make my pizza in a 15 inch pizza pan . www.perfecthomemadepizza.com
+            // Specia clean-up for Bing Images.  EG change
+            // from: prefer to make my pizza in a 15 inch pizza pan 900 x 602 . 544 kB . jpeg www.perfecthomemadepizza.com More sizes
+            //   to: prefer to make my pizza in a 15 inch pizza pan . www.perfecthomemadepizza.com
             // The - and x are non-ASCII characters.
-            this._logger.debug("_getEffectiveTitle: doing Bing Images cleanup on '" +
+            this._logger.debug("_getEffectiveTitleForNode: doing Bing Images cleanup on '" +
                                text + "'");
             // Note that this isn't a regular "x"; it's a special character, so we use match-anything:
             text = text.replace(/ +[0-9]+ . [0-9]+ . [0-9]+ kB */i, "");
@@ -954,12 +1011,13 @@ ThumbnailZoomPlusChrome.Overlay = {
           }
 
           title = text;
-          this._logger.debug("_getEffectiveTitle: found with className: " + aNode.className);
+          this._logger.debug("_getEffectiveTitleForNode: found " + aNode + " className \"" +
+                             aNode.className + "\"");
           break;
         }
       }
-      this._logger.debug("_getEffectiveTitle: trying parent of " + aNode +
-                        ": " + aNode.parentNode);
+      this._logger.debug("_getEffectiveTitleForNode: trying parent of " + aNode +
+                        ": node " + aNode.parentNode + " class \"" + aNode.parentNode.className + "\"");
       aNode = aNode.parentNode;
       if (aNode.localName && aNode.localName.toLowerCase() == "ul") {
         // don't traverse up to a "<ul>" since it's likely to
@@ -968,7 +1026,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         break;
       }
     }
-    this._logger.debug("_getEffectiveTitle: initial title='" + title + 
+    this._logger.debug("_getEffectiveTitleForNode: initial title='" + title + 
                        "' from node " + aNode);
     
     // Fix for sites like tumblr which sets title to lots of spaces;
@@ -991,7 +1049,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       title = "";
     }
 
-    this._logger.debug("_getEffectiveTitle: after compacting='" + title + "'");
+    this._logger.debug("_getEffectiveTitleForNode: after compacting='" + title + "'");
     return title;
   },
     
@@ -3203,17 +3261,56 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
 
-  _getFilenameFromURL : function(url) {
-    let fname =
-      url.substring(url.lastIndexOf('/') + 1);
+  _friendlyTruncate : function(s, maxChars, minChars) {    
+    if (s.length <= maxChars) {
+      return s;
+    }
+    if (minChars < 0) minChars = 0;
+    let separators = /\W/;
+    for (let i=maxChars; i >= minChars; --i) {
+      let c = s.substring(i, i+1);
+      if (separators.test(c)) {
+        // position i is a separator; return fname up to but excluding that point.
+        return s.substring(0, i);
+        break;
+      }
+    }
+
+    // Couldn't find a word break giving a string at least minChars long;
+    // truncate without regard to word breaks.
+    return fname.substring(0, maxChars);
+  },
+  
+  _getDefaultFilename : function(extension) {
+
+    if (this._caption) {
+      var fname = this._caption;
+    } else {
+      var fname =
+          url.substring(this._currentImage.lastIndexOf('/') + 1);
+    }
     
     // Change ms windows reserved chars to -
-    fname = fname.replace(/[\/~\\:<>"|?*]+/g, '-');
+    fname = fname.replace(/[\000-\031\/~\\:<>"|?*]+/g, '-');
     // fix syntax highlighting: "
-
+    
     // For the mac prohibit '.' at the start.
     // And starting with certain chars just looks bad.
     fname = fname.replace(/^[\._ -]+/, '');
+    
+    // Limit length.
+    let maxChars = 32;
+    if (fname.length > maxChars) {
+      // Truncate after the last word break before position maxChars.
+      fname = this._friendlyTruncate(fname, maxChars, maxChars - 12);
+    }
+    if (this._caption && extension) {
+      // Add file extension.
+      if (! /\.$/.test(fname)) {
+        fname += '.';
+      }
+      fname += extension;
+    }
     
     // For Windows doesn't allow ending with a space or period.
     fname = fname.replace(/[\. ]+$/, '');
@@ -3237,12 +3334,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     let imageURL = this._currentImage;
     let filePickerResult = null;
-    let pickerDefaultName = this._getFilenameFromURL(imageURL);
     
     // find extension
-    let extRe = /(\.[a-zA-Z0-9]+)[^.]*$/;
-    let match = extRe.exec(pickerDefaultName);
+    // Get extension (without dot) for picker's defaultExtension.
+    let extRe = /\.([a-zA-Z0-9]{3,4})[^.]*$/;
+    let match = extRe.exec(imageURL);
     let extension = (match && match[1] || "");
+    let pickerDefaultName = this._getDefaultFilename(extension);
     this._logger.debug("downloadImage: default ext='" + extension +
                        "' from '" + pickerDefaultName + "'");
 
@@ -3250,6 +3348,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker.init(window, title, Ci.nsIFilePicker.modeSave);
     this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._filePicker.defaultString = pickerDefaultName;
+
+    // On Windows, defaultExtension is an extension appended to the user's
+    // entry if the user doesn't specify any extension (without a '.').
     this._filePicker.defaultExtension = extension;
     filePickerResult = this._filePicker.show();
     
