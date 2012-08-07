@@ -893,6 +893,17 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
         queryNode = aNode.parentNode.parentNode;
         querySelectors = [".passiveName", ".actorName"];
+      } else if (/title/.test(cls) && "a" == aNode.localName &&
+                 /title/.test(aNode.parentNode.className)) {
+        this._logger.debug("_getEffectiveTitle: recognized reddit link");
+        // go up a level so we include not just the title but also the domain.
+        queryNode = aNode.parentNode.parentNode;
+        querySelectors = [".title"];
+      } else if (/thumbs.redditmedia.com/.test(aNode.src) &&
+                 /thing/.test(aNode.parentNode.parentNode.className)) {
+        this._logger.debug("_getEffectiveTitle: recognized reddit thumb");
+        queryNode = aNode.parentNode.parentNode;
+        querySelectors = [".title"];
       }
       
       if (queryNode) {
