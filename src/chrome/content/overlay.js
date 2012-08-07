@@ -867,9 +867,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       let cls = aNode.className;
       
       this._logger.debug("_getEffectiveTitle: seeking starting node from " +
-                         aNode + " class \"" + cls + "\""); 
+                         aNode + " class \"" + cls + "\"" + " src " + aNode.getAttribute("src")); 
 
-      let queryNode = null;
       let querySelectors = [];
 
       // We select an alternate starting node instead of aNode for specific
@@ -879,46 +878,60 @@ ThumbnailZoomPlusChrome.Overlay = {
       // In particular, use .classname and #id.
       // Rules in the array are in priority order, with highest priority
       // first.
+      let levelsUp = -1;
       if (/uiPhotoThumb/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (uiPhotoThumb)");
-        queryNode = aNode.parentNode.parentNode.parentNode;
+        levelsUp = 3;
         querySelectors = [".messageBody", ".uiStreamHeadline"];
 
       } else if (/photoWrap/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (photoWrap)");
-        queryNode = aNode.parentNode.parentNode.parentNode.parentNode;
+        levelsUp = 4;
         querySelectors = [".messageBody", ".uiStreamHeadline" /* ,".uiStreamPassive"*/ ];
 
       } else if (/profilePic .* img|-cx-PRIVATE-uiSquareImage.* img/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
-        queryNode = aNode.parentNode.parentNode;
+        levelsUp = 2;
         querySelectors = [".passiveName", ".actorName"];
       } else if (/title/.test(cls) && "a" == aNode.localName &&
                  /title/.test(aNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit link");
         // go up a level so we include not just the title but also the domain.
-        queryNode = aNode.parentNode.parentNode;
+        levelsUp = 2;
         querySelectors = [".title"];
       } else if (/thumbs.redditmedia.com/.test(aNode.src) &&
                  /thing/.test(aNode.parentNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit thumb");
-        queryNode = aNode.parentNode.parentNode;
+        levelsUp = 2;
+        querySelectors = [".title"];
+      } else if (aNode.getAttribute("alt") == "Thumbnail" &&
+                 /\.ytimg\.com\/.*\/[a-z]+default\.jpg/.test(aNode.getAttribute("src"))) {
+        this._logger.debug("_getEffectiveTitle: recognized youtube");
+        levelsUp = 6;
         querySelectors = [".title"];
       }
       
-      if (queryNode) {
-        this._logger.debug("_getEffectiveTitle: selecting beneath " +
-                           queryNode + " class \"" + queryNode.className +
-                           "\" for CSS selectors " + querySelectors);
-        for (var i=0; i < querySelectors.length; i++) {
-          let s = querySelectors[i];
-          let found = queryNode.querySelector(s);
-          if (found) {
-            this._logger.debug("_getEffectiveTitle: found node " + 
-                               found + " class \"" + found.className + "\"" +
-                               " using selector \"" + s + "\"");
-            aNode = found;
-            break;
+      if (levelsUp >= 0) {
+        let queryNode = null;
+        this._logger.debug("_getEffectiveTitle: selecting parent " + levelsUp +
+                           " levels up");
+        for (queryNode = aNode; levelsUp > 0 && queryNode; levelsUp--) {
+          queryNode = queryNode.parentNode;
+        }
+        if (queryNode) {
+          this._logger.debug("_getEffectiveTitle: selecting beneath " +
+                             queryNode + " class \"" + queryNode.className +
+                             "\" for CSS selectors " + querySelectors);
+          for (var i=0; i < querySelectors.length; i++) {
+            let s = querySelectors[i];
+            let found = queryNode.querySelector(s);
+            if (found) {
+              this._logger.debug("_getEffectiveTitle: found node " + 
+                                 found + " class \"" + found.className + "\"" +
+                                 " using selector \"" + s + "\"");
+              aNode = found;
+              break;
+            }
           }
         }
       }

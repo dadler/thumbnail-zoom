@@ -788,7 +788,7 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
       return aImageSrc.replace(rex3, "/photo.jpg");
     }
     
-    // example photo thumb: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/w402/065.JPG
+    // example photo thumb:       https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/w402/065.JPG
     // corresponding large image: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/065.JPG
     // the w402 field supports arbitrary width, height, and size specifications with
     // w###, h###, s###.  I've also seen a "-k" suffix.
