@@ -971,8 +971,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       let alt = aNode.getAttribute("alt");
       if (alt != undefined && alt != "" &&
-          ! /^\s*Thumbnail\s*$/i.test(alt)) {
-        // use alt text; useful e.g. with twitpic.  Exclusion for youtube.com.
+          ! /^\s*Thumbnail\s*$|^[0-9]+$/i.test(alt)) {
+        // use alt text; useful e.g. with twitpic.  
+        // Exclusion for youtube.com and sites like 500px.com which just put a 
+        // picture number in alt, when an actual title may be available.
         this._logger.debug("_getEffectiveTitleForNode: got title from alt: '" +
                            alt + "'");
         title = alt;
@@ -3272,6 +3274,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
 
+  _endsWith : function(str, suffix) {
+    let endsWith = str.indexOf(suffix, str.length - suffix.length) !== -1;
+    this._logger.debug("_endsWith('"+str+"','"+suffix+"')="+endsWith);
+    return endsWith;
+  },
+
   _friendlyTruncate : function(s, maxChars, minChars) {    
     if (s.length <= maxChars) {
       return s;
@@ -3289,13 +3297,15 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Couldn't find a word break giving a string at least minChars long;
     // truncate without regard to word breaks.
-    return fname.substring(0, maxChars);
+    return s.substring(0, maxChars);
   },
   
   _getDefaultFilename : function(extension) {
 
+    let useCaption = false;
     if (this._caption) {
       var fname = this._caption;
+      useCaption = true;
     } else {
       var fname =
           url.substring(this._currentImage.lastIndexOf('/') + 1);
@@ -3315,7 +3325,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Truncate after the last word break before position maxChars.
       fname = this._friendlyTruncate(fname, maxChars, maxChars - 12);
     }
-    if (this._caption && extension) {
+    if (useCaption && extension && 
+        !this._endsWith(fname, '.' + extension)) {
       // Add file extension.
       if (! /\.$/.test(fname)) {
         fname += '.';
