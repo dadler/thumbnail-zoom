@@ -596,7 +596,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // don't reject next move as trivial.
     this._clearIgnoreBBox();
-    this._logger.debug("_handleTabSelected: _closePanel since tab selected");
+    this._debugToConsole("_handleTabSelected: _closePanel(true) since tab selected");
     this._closePanel(true);
   },
   
@@ -635,6 +635,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._originalCursorNode = null;
       this._currentThumb = null;
       
+      this._debugToConsole("_handlePageLoaded: _closePanel(true) since page loaded & need to popdown");
       this._closePanel(true);
     }
   },
@@ -771,7 +772,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
 
-    if (typeof(gBrowser) == "undefined") {
+    if (typeof(gBrowser) == "undefined" ||
+        typeof(gBrowser.selectedBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
       // I think the problem is taht events are still registered on the <img>
@@ -1101,6 +1103,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     this._clearIgnoreBBox();
+    // this._debugToConsole("_handleMouseOut: _closePanel(false)");
     this._closePanel(false);
   },
 
@@ -1157,6 +1160,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Prevent another popup from immediately happening and taking focus back.
     that._setIgnoreBBoxPageRelative();
+    // that._debugToConsole("_losingPopupFocus: _closePanel(false)");
     that._closePanel(false);
   },
   
@@ -1208,7 +1212,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
     if (this._needToPopDown(aDocument.defaultView.top)) {
-      this._logger.debug("_handleMouseOver: _closePanel since different doc.");
+      this._debugToConsole("_handleMouseOverImpl: _closePanel(true) since different doc.");
       this._closePanel(true);
       return;
     }
@@ -1236,15 +1240,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
                                       !keyActivates, true, aEvent);
     if (! keyActive) {
-      this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
+      // this._debugToConsole("_handleMouseOverImpl: _closePanel(false) since hot key not active");
       this._closePanel(false);
       return;
     }
 
+    // Seen in ff 15:
+    // Error: TypeError: can't access dead object
     this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
     let node = aEvent.target;
 
     // Close the previously displayed popup (if any).
+    // this._debugToConsole("_handleMouseOverImpl: _closePanel(false)");
     this._closePanel(false);
 
     if (this._scrolledSinceMoved &&
@@ -1650,24 +1657,33 @@ ThumbnailZoomPlusChrome.Overlay = {
   _hideCaption : function() {
       this._logger.trace("_hideCaption");
       // restore original title / tooltip:
-      if (this._panelCaption.value != "") {
-        this._panelCaption.hidden = true;
-        // Firefox 17 reports an error on printing this._panelCaption.ThumbnailZoomPlusOriginalTitleNode:
-        // Error: TypeError: can't access dead object
-        // Happens after moving tab to new window, moving that tab into an existing
-        // window, etc.  This may be the condition which caused the popup
-        // to appear on the wrong window in older firefox.
-        this._logger.debug("_hideCaption: restoring title to " + 
-                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
-                           + ": " + 
-                           this._panelCaption.value);
-        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
-                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+      if (this._panelCaption) {
+        let titleNode = null;
+        let titleNodeName = "?";
+        if (this._panelCaption.value != "") {
+          this._panelCaption.hidden = true;
+          // Try to get in titleNode the element node which the title came
+          // from, so we can restore its tooltip.  But this may throw
+          // TypeError, e.g. if the user reload the page while a popup was
+          // displayed, so catch and ignore that situation (prevents
+          // problem in firefox 15).
+          try {
+            titleNode = this._panelCaption.ThumbnailZoomPlusOriginalTitleNode;
+            titleNodeName = String(titleNode);
+          } catch (e) {
+            titleNode = null;
+          }
+        }        
+        if (titleNode) {
+          this._logger.debug("_hideCaption: restoring title of " + 
+                             titleNodeName
+                             + ": " + 
+                             this._panelCaption.value);
+          titleNode.title = this._panelCaption.ThumbnailZoomPlusOriginalTitle;
         }
+        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+        this._panelCaption.value = "";
       }
-      this._panelCaption.value = "";
   },
   
   _setupCursor : function(aImageNode) {
@@ -1688,6 +1704,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.trace("_restoreCursor");
 
       if (this._originalCursorNode) {
+        try {
+          var nodeName = String(this._originalCursorNode);
+        } catch (e) {
+          // In Firefox 15 and newer, converting this._originalCursorNode to
+          // String can throw "TypeError: can't access dead object" (e.g.
+          // when reloading while working cursor is displayed).  So we
+          // trap and ignore that.
+          this._originalCursorNode = null;
+          return;
+        }
         this._logger.debug("_restoreCursor: restoring cursor to " + 
                            this._originalCursorNode
                            + ": " + this._originalCursor);
@@ -1783,12 +1809,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
-    this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
 
     // Close the panel to ensure that we can popup the new panel at a specified
     // location.  Note that we temporarily save _currentWindow since _closePanel
     // clears it.
     let currentWindow = this._currentWindow;
+    this._debugToConsole("_showPanel: _closePanel(true) since closing any prev popup before loading new one");
     this._closePanel(true);
     this._currentWindow = currentWindow;
     
@@ -1847,6 +1873,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._removeListenersWhenPopupHidden();
 
       this._hideCaption();
+      this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
       this._panelImageDiv.style.backgroundImage = ""; // hide status icon
       this._restoreCursor();
       this._timer.cancel(); // in case there's a timer for the popup cursor.
@@ -1868,6 +1895,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._imageObjectBeingLoaded = null;
       }
     } catch (e) {
+      // This message has been seen in ff15.
       this._logger.debug("_closePanel @1: caught EXCEPTION: " + e);
       this._logToConsole("ThumbnailZoomPlus: _closePanel @1: caught EXCEPTION: " + e);
     }
@@ -1910,12 +1938,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     // moved outside bbox of thumb; dismiss popup.
-    this._logger.debug("_handlePopupMove: closing with mouse at " +
-                        aEvent.screenX + "," + aEvent.screenY);
     // ignore a mouseOver event over the thumb's bbox, in case our
     // bbox calculation was a bit off; we don't want to popup again
     // if the mouse is still (barely) over the thumb.
     this._setIgnoreBBoxPageRelative();
+    // this._debugToConsole("_handlePopupMove: _closePanel(false) with mouse at " +
+    //                     aEvent.screenX + "," + aEvent.screenY);
     this._closePanel(false);
   },
 
@@ -1924,6 +1952,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
     this._setIgnoreBBoxPageRelative();
+    // this._debugToConsole("_handlePopupClick: _closePanel(false) with mouse at " +
+    //                    aEvent.screenX + "," + aEvent.screenY);
     this._closePanel(false);
   },
   
@@ -2124,7 +2154,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE, true);
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
-      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc or x key");
+      that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or x key");
       that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
     }
@@ -2174,7 +2204,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let affectedWindow = aEvent.originalTarget.defaultView.top;
     that._logger.trace("_handlePageHide");
     if (that._currentWindow == affectedWindow) {
-      that._logger.debug("_handlePageHide: closing panel");
+      that._debugToConsole("_handlePageHide: _closePanel(true)");
       that._closePanel(true);
     }
     return true; // allow page to hide
@@ -2183,7 +2213,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleHashChange : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.trace("_handleHashChange");
-    that._logger.debug("_handleHashChange: closing panel");
+    that._debugToConsole("_handleHashChange: _closePanel(true)");
     that._closePanel(true);
   },
   
@@ -2235,7 +2265,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let that = this;
     this._timer.initWithCallback(
-        { notify: function() { that._closePanel(false); } }, 
+        { notify: function() { 
+            // that._debugToConsole("_showStatusIconBriefly callback: _closePanel(false)");
+            that._closePanel(false); } }, 
         1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
@@ -2321,7 +2353,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onload = null;
     
     this._timer.cancel();
-    
+
+    // Seen in ff15: Error: TypeError: can't access dead object
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
     
@@ -2359,6 +2392,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          imageWidth + "x" + imageHeight);
       this._debugToConsole("ThumbnailZoomPlus: >>> skipping since too small \n" + aImageSrc);
       // Make sure we close the 'working' status icon.
+      // this._debugToConsole("_imageOnLoad: _closePanel(false)");
       this._closePanel(false);
     } else {
       if (flags.requireImageBiggerThanThumb) {
@@ -2532,6 +2566,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
         this._debugToConsole("ThumbnailZoomPlus: >>> too small (silently)\n" + aImageSrc);
         // close the popup in case we showed the 'working' indicator:
+        // this._debugToConsole("_sizePositionAndDisplayPopup: _closePanel(false)");
         this._closePanel(false);
       }
       
@@ -2602,6 +2637,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         that._showStatusIconBriefly(aImageNode, "warning16.png", 32);
       } else {
         // Close the "working" indicator. 
+        // that._debugToConsole("_preloadImage onerror: _closePanel(false)");
         that._closePanel(false);
       }
       that._imageObjectBeingLoaded = null;
@@ -2750,6 +2786,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let result = {};
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    
+    // ff 15 warning: Error: TypeError: can't access dead object
+    // when cliking the "Older" link in Engadget Mobile or when opening Tools > Addons.
     var box = aImageNode.getBoundingClientRect();
 
     this._logger.debug("_calcThumbBBox: x,y offset = " +
