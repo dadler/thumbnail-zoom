@@ -555,18 +555,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Unregister for both key receivers in case the PREF_PANEL_FOCUS_POPUP 
     // pref changed while popped up.
-    let receivers = [this._panel];
-    if (this._currentWindow != null) {
-      receivers.push(this._currentWindow.document);
+    let receivers = [that._panel];
+    if (that._currentWindow != null) {
+      receivers.push(that._currentWindow.document);
     }
     receivers.forEach(function(keyReceiver) {
         that._logger.debug("_removeListenersWhenPopupHidden: removing from " + keyReceiver);
         keyReceiver.removeEventListener("keydown", this._handleKeyDown, false);
         keyReceiver.removeEventListener("keyup", this._handleKeyUp, false);
         keyReceiver.removeEventListener("keypress", this._handleKeyPress, false);
-      }, this);
+      }, that);
     
-    this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
+    that._panelFocusHost.removeEventListener("blur", that._losingPopupFocus, false);
 
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -585,7 +585,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     /*
      * When a tab is dragged from one window to another pre-existing window,
      * we need to update its listeners to be ones in chrome of the new host
-     * window.
+     * window (where 'that' lives).
      */
     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                 .getService(Components.interfaces.nsIWindowMediator);
@@ -1063,6 +1063,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // reddit text ends up having vote counts at the start, e.g.
     // "1294812I'm linking this".  Detect reddit by looking for
     // ")submitted".  Remove the number and "submitted" and what follows.
+    // TODO: may not be needed anymore since we have site-specific logic
+    // in _getEffectiveTitle().
     title = title.replace(/^[0-9]+(.*\))submitted .*/, "$1");
     
     // youtube fix: extract title from something like
@@ -2171,7 +2173,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     let affectedWindow = aEvent.originalTarget.defaultView.top;
     that._logger.trace("_handlePageHide");
-    if (this._currentWindow == affectedWindow) {
+    if (that._currentWindow == affectedWindow) {
       that._logger.debug("_handlePageHide: closing panel");
       that._closePanel(true);
     }
