@@ -1966,6 +1966,8 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS || // Firefox 15.0 and newer
+            aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
+            aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET ||
             (aEvent.keyCode >= aEvent.DOM_VK_A &&
              aEvent.keyCode <= aEvent.DOM_VK_Z) ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
@@ -2024,6 +2026,30 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  _offsetUrl : function(url, delta) {
+    this._logger.debug("_offsetURL: from " + url);
+    let re = /(.*?)([0-9]+)([^\/0-9]*)$/;
+    let match = re.exec(url);
+    if (match) {
+      this._logger.debug("_offsetURL: match=" + match[1] + ", " + match[2] + ", " + match[3]);
+    }
+    let newUrl = url.replace(re, function(matchPart, prefix, num, suffix) {
+                      let adj = String((+num) + delta);
+                      if (num[0] == "0" && 
+                          num.length > adj.length) {
+                        // 0-pad.
+                        adj = "0000000000".substring(0, num.length - adj.length) + adj;
+                      }
+                      let result = prefix + adj + suffix
+                      return result;
+                    });
+    if (newUrl == url) {
+      return null;
+    }
+    this._logger.debug("_offsetURL: got " + newUrl);
+    return newUrl;
+  },
+  
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._doHandleKeyDown(aEvent);
@@ -2110,6 +2136,23 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_doHandleKeyDown: reset scale = 1.0");
       this._redisplayPopup();
       
+    } else if (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
+               aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET) {
+      this._logger.debug("_doHandleKeyDown: increment/decrement URL");
+      let delta = aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ? -1 : +1;
+      let aImageSrc = this._offsetUrl(this._currentImage, delta);
+      this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
+                           aImageSrc);
+      if (aImageSrc) {
+        // use default flags; TODO: ought to use same flags as prior popup.
+        let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
+        flags.requireImageBiggerThanThumb = false;
+        flags.imageSourceNode = this._currentThumb;
+        this._currentImage = aImageSrc;
+        this._preloadImage(this._currentThumb, aImageSrc, 
+                           flags, aEvent);
+      }
+
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
       // Set default scale based on current scale.
       this._logger.debug("_doHandleKeyDown: set default zoom pref");
