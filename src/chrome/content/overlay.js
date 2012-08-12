@@ -1392,7 +1392,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        zoomImageSrc);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
-    this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
+    this._showZoomImage(zoomImageSrc, flags, node, aEvent);
     return "launched";
   },
 
@@ -1602,10 +1602,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Shows the zoom image panel.
    * @param aImageSrc the image source
    * @param aImageNode the image node
-   * @param aPage the page constant
    */
   _showZoomImage : function(zoomImageSrc, flags, aImageNode, 
-                            aPage, aEvent) {
+                            aEvent) {
     this._logger.trace("_showZoomImage");
     
     // Popping up a new image; reset zoom to the preference value.
@@ -1966,6 +1965,8 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS || // Firefox 15.0 and newer
+            aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
+            aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET ||
             (aEvent.keyCode >= aEvent.DOM_VK_A &&
              aEvent.keyCode <= aEvent.DOM_VK_Z) ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
@@ -2024,6 +2025,41 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  /**
+   * _offsetUrl returns an image's url with an appropriate numeric part
+   * offset by adding delta (typically -1 or +1).  Returns the adjusted url or
+   * null if it couldn't find an appropriate numeric part.
+   * Example:
+   *   On page http://my.opera.com/Milano1/albums/showpic.dml?album=7138392&picture=107119352 image
+   *   http://files.myopera.com/Milano1/albums/7138392/11.jpg with offset=1 becomes 
+   *   http://files.myopera.com/Milano1/albums/7138392/12.jpg
+   */
+  _offsetUrl : function(url, delta) {
+    this._logger.debug("_offsetURL: from " + url);
+    let re = /(.*?)([0-9]+)([^\/0-9]*)$/;
+    let match = re.exec(url);
+    if (match) {
+      this._logger.debug("_offsetURL: match=" + match[1] + ", " + match[2] + ", " + match[3]);
+    }
+    let newUrl = url.replace(re, function(matchPart, prefix, num, suffix) {
+                      let adj = String((+num) + delta);
+                      if (num[0] == "0" && 
+                          num.length > adj.length) {
+                        // original image has 0-pading; pad to the same length.
+                        // Note that when decrementing eg down from 10 we don't
+                        // know whether or not to pad (to 9 or 09) so we don't pad.
+                        adj = "0000000000".substring(0, num.length - adj.length) + adj;
+                      }
+                      let result = prefix + adj + suffix
+                      return result;
+                    });
+    if (newUrl == url) {
+      return null;
+    }
+    this._logger.debug("_offsetURL: got " + newUrl);
+    return newUrl;
+  },
+  
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._doHandleKeyDown(aEvent);
@@ -2110,6 +2146,29 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_doHandleKeyDown: reset scale = 1.0");
       this._redisplayPopup();
       
+    } else if (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
+               aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET) {
+      this._logger.debug("_doHandleKeyDown: increment/decrement URL");
+      let delta = aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ? -1 : +1;
+      let aImageSrc = this._offsetUrl(this._currentImage, delta);
+      this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
+                           aImageSrc);
+      if (aImageSrc && this._currentThumb) {
+        // use default flags; TODO: ought to use same flags as prior popup.
+        let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
+        flags.requireImageBiggerThanThumb = false;
+        flags.imageSourceNode = this._currentThumb;
+        this._currentImage = aImageSrc;
+        this._debugToConsole("ThumbnailZoomPlus: >>> [ or ] launching \n" +
+                             aImageSrc);
+                             
+        // displaying the new image will close the current one; we don't
+        // want that to cause a popup of the current image again.
+        this._setIgnoreBBoxPageRelative();
+        this._showZoomImage(aImageSrc, flags, this._currentThumb,
+                            aEvent);
+      }
+
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
       // Set default scale based on current scale.
       this._logger.debug("_doHandleKeyDown: set default zoom pref");
@@ -3597,7 +3656,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // because a page rule transformed it.  Mark that original URL in
     // history so it'll turn purple on reddit.com, for example.
     this._logger.debug("_addItemsToHistory: imageSourceNode is <" + imageSourceNode.localName.toLowerCase() + ">");
-    var url2 = ThumbnailZoomPlus.FilterService.getUrlFromNode(imageSourceNode);
+    var url2 = ThumbnailZoomPlus.FilterService.getUrlFromNode(imageSourceNode, false);
     if (url2) {
       this._logger.debug("_addItemsToHistory: aImageNode raw URL = " + url2);
       url2 = ThumbnailZoomPlus.FilterService.applyBaseURI(imageSourceNode.ownerDocument, url2);
