@@ -2203,7 +2203,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     let affectedWindow = aEvent.originalTarget.defaultView.top;
     that._logger.trace("_handlePageHide");
-    if (that._currentWindow == affectedWindow) {
+    if (that._needToPopDown(affectedWindow)) {
       that._debugToConsole("_handlePageHide: _closePanel(true)");
       that._closePanel(true);
     }
@@ -2756,6 +2756,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
     this._focusThePopup(aImageNode);
+    this._debugToConsole("ThumbnailZoomPlus: showed popup");
   },
   
   _clearIgnoreBBox : function() {
