@@ -995,6 +995,14 @@ ThumbnailZoomPlusChrome.Overlay = {
         title = alt;
         break;
       }
+      // imgur.com uses original-title="title"
+      alt = aNode.getAttribute("original-title");
+      if (alt != undefined && alt != "") {
+        this._logger.debug("_getEffectiveTitleForNode: got title from origina-title: '" +
+                           alt + "'");
+        title = alt;
+        break;
+      }
 
       // Look for document text enclosed by aNode (or its descendents).
       let text = this._getInnerText(aNode);
