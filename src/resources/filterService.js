@@ -141,6 +141,26 @@ ThumbnailZoomPlus.FilterService = {
     this.imageSourceNode = null;
   },
   
+  _allowProtocol : function(protocol, host) {
+    // If enableFileProtocol, then the add-on is enabled for file:// URLs
+    // (typically used with the Others page type).  This is useful during
+    // debugging, but we don't normally enable it in the released version
+    // since we aren't sure if there might be subtle security risks.
+    let enableFileProtocol = false;
+
+    if (("http:" == protocol ||
+        "https:" == protocol ||
+        (enableFileProtocol && "file:" == protocol))) {
+      return true;
+    }
+    
+    if ("chrome:" == protocol && "prevnextarrows" == host) {
+      // allow a gallery created by the PrevNextArrows add-on.
+      return true;
+    }
+    return false;
+},
+  
   /**
    * Gets the host of the specified document (if it has one and the
    * protocol is supported by TZP); otherwise returns null.
@@ -148,13 +168,7 @@ ThumbnailZoomPlus.FilterService = {
    * Caution: this routine is somewhat slow; avoid calling it more than
    * necessary.
    */
-  getHostOfDoc : function(aDocument) {
-    // If enableFileProtocol, then the add-on is enabled for file:// URLs
-    // (typically used with the Others page type).  This is useful during
-    // debugging, but we don't normally enable it in the released version
-    // since we aren't sure if there might be subtle security risks.
-    let enableFileProtocol = false;
-    
+  getHostOfDoc : function(aDocument) {    
     // Get location from document or image.
     // TODO: to really do this right we'd need to split part of
     // getImageSource up so we can properly find the image/link URL
@@ -208,9 +222,7 @@ ThumbnailZoomPlus.FilterService = {
       return null;
     }
 
-    if (("http:" == protocol ||
-         "https:" == protocol ||
-         (enableFileProtocol && "file:" == protocol))) {
+    if (this._allowProtocol(protocol, host)) {
       return host;
     }
     this._logger.debug("    getHostOfDoc: Reject by protocol for " + 
