@@ -1400,7 +1400,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        zoomImageSrc);
     
     flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
-    this._showZoomImage(zoomImageSrc, flags, node, aPage, aEvent);
+    this._showZoomImage(zoomImageSrc, flags, node, aEvent);
     return "launched";
   },
 
@@ -1610,10 +1610,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Shows the zoom image panel.
    * @param aImageSrc the image source
    * @param aImageNode the image node
-   * @param aPage the page constant
    */
   _showZoomImage : function(zoomImageSrc, flags, aImageNode, 
-                            aPage, aEvent) {
+                            aEvent) {
     this._logger.trace("_showZoomImage");
     
     // Popping up a new image; reset zoom to the preference value.
@@ -2034,6 +2033,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  /**
+   * _offsetUrl returns an image's url with an appropriate numeric part
+   * offset by adding delta (typically -1 or +1).  Returns the adjusted url or
+   * null if it couldn't find an appropriate numeric part.
+   * Example:
+   *   On page http://my.opera.com/Milano1/albums/showpic.dml?album=7138392&picture=107119352 image
+   *   http://files.myopera.com/Milano1/albums/7138392/11.jpg with offset=1 becomes 
+   *   http://files.myopera.com/Milano1/albums/7138392/12.jpg
+   */
   _offsetUrl : function(url, delta) {
     this._logger.debug("_offsetURL: from " + url);
     let re = /(.*?)([0-9]+)([^\/0-9]*)$/;
@@ -2045,7 +2053,9 @@ ThumbnailZoomPlusChrome.Overlay = {
                       let adj = String((+num) + delta);
                       if (num[0] == "0" && 
                           num.length > adj.length) {
-                        // 0-pad.
+                        // original image has 0-pading; pad to the same length.
+                        // Note that when decrementing eg down from 10 we don't
+                        // know whether or not to pad (to 9 or 09) so we don't pad.
                         adj = "0000000000".substring(0, num.length - adj.length) + adj;
                       }
                       let result = prefix + adj + suffix
@@ -2157,8 +2167,14 @@ ThumbnailZoomPlusChrome.Overlay = {
         flags.requireImageBiggerThanThumb = false;
         flags.imageSourceNode = this._currentThumb;
         this._currentImage = aImageSrc;
-        this._preloadImage(this._currentThumb, aImageSrc, 
-                           flags, aEvent);
+        this._debugToConsole("ThumbnailZoomPlus: >>> [ or ] launching \n" +
+                             aImageSrc);
+                             
+        // displaying the new image will close the current one; we don't
+        // want that to cause a popup of the current image again.
+        this._setIgnoreBBoxPageRelative();
+        this._showZoomImage(aImageSrc, flags, this._currentThumb,
+                            aEvent);
       }
 
     } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
