@@ -354,7 +354,7 @@ ThumbnailZoomPlus.FilterService = {
   getUrlFromNode : function(imageNode, preferLinkOverThumb) {
     let imageSource = null;
     
-    if (imageNode.hasAttribute("src")) {
+    if ("img" == imageNode.localName.toLowerCase() && imageNode.hasAttribute("src")) {
       imageSource = imageNode.getAttribute("src");
       this._logger.debug("getUrlFromNode: got image source from src attr of " + imageNode);
       return imageSource;
