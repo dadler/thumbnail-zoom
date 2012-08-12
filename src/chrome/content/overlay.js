@@ -555,18 +555,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // Unregister for both key receivers in case the PREF_PANEL_FOCUS_POPUP 
     // pref changed while popped up.
-    let receivers = [this._panel];
-    if (this._currentWindow != null) {
-      receivers.push(this._currentWindow.document);
+    let receivers = [that._panel];
+    if (that._currentWindow != null) {
+      receivers.push(that._currentWindow.document);
     }
     receivers.forEach(function(keyReceiver) {
         that._logger.debug("_removeListenersWhenPopupHidden: removing from " + keyReceiver);
         keyReceiver.removeEventListener("keydown", this._handleKeyDown, false);
         keyReceiver.removeEventListener("keyup", this._handleKeyUp, false);
         keyReceiver.removeEventListener("keypress", this._handleKeyPress, false);
-      }, this);
+      }, that);
     
-    this._panelFocusHost.removeEventListener("blur", this._losingPopupFocus, false);
+    that._panelFocusHost.removeEventListener("blur", that._losingPopupFocus, false);
 
     window.removeEventListener(
       "pagehide", that._handlePageHide, false);
@@ -585,7 +585,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     /*
      * When a tab is dragged from one window to another pre-existing window,
      * we need to update its listeners to be ones in chrome of the new host
-     * window.
+     * window (where 'that' lives).
      */
     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                 .getService(Components.interfaces.nsIWindowMediator);
@@ -596,7 +596,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // don't reject next move as trivial.
     this._clearIgnoreBBox();
-    this._logger.debug("_handleTabSelected: _closePanel since tab selected");
+    this._debugToConsole("_handleTabSelected: _closePanel(true) since tab selected");
     this._closePanel(true);
   },
   
@@ -635,6 +635,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._originalCursorNode = null;
       this._currentThumb = null;
       
+      this._debugToConsole("_handlePageLoaded: _closePanel(true) since page loaded & need to popdown");
       this._closePanel(true);
     }
   },
@@ -771,7 +772,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       return false;
     }
 
-    if (typeof(gBrowser) == "undefined") {
+    if (typeof(gBrowser) == "undefined" ||
+        typeof(gBrowser.selectedBrowser) == "undefined") {
       // This happens after moving the final remaining tab in a window
       // to a different window, and then hovering an image in the moved tab.
       // I think the problem is taht events are still registered on the <img>
@@ -867,9 +869,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       let cls = aNode.className;
       
       this._logger.debug("_getEffectiveTitle: seeking starting node from " +
-                         aNode + " class \"" + cls + "\""); 
+                         aNode + " class \"" + cls + "\"" + " src " + aNode.getAttribute("src")); 
 
-      let queryNode = null;
       let querySelectors = [];
 
       // We select an alternate starting node instead of aNode for specific
@@ -879,35 +880,60 @@ ThumbnailZoomPlusChrome.Overlay = {
       // In particular, use .classname and #id.
       // Rules in the array are in priority order, with highest priority
       // first.
+      let levelsUp = -1;
       if (/uiPhotoThumb/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (uiPhotoThumb)");
-        queryNode = aNode.parentNode.parentNode.parentNode;
+        levelsUp = 3;
         querySelectors = [".messageBody", ".uiStreamHeadline"];
 
       } else if (/photoWrap/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook posted photo in timeline (photoWrap)");
-        queryNode = aNode.parentNode.parentNode.parentNode.parentNode;
+        levelsUp = 4;
         querySelectors = [".messageBody", ".uiStreamHeadline" /* ,".uiStreamPassive"*/ ];
 
       } else if (/profilePic .* img|-cx-PRIVATE-uiSquareImage.* img/.test(cls)) {
         this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
-        queryNode = aNode.parentNode.parentNode;
+        levelsUp = 2;
         querySelectors = [".passiveName", ".actorName"];
+      } else if (/title/.test(cls) && "a" == aNode.localName &&
+                 /title/.test(aNode.parentNode.className)) {
+        this._logger.debug("_getEffectiveTitle: recognized reddit link");
+        // go up a level so we include not just the title but also the domain.
+        levelsUp = 2;
+        querySelectors = [".title"];
+      } else if (/thumbs.redditmedia.com/.test(aNode.src) &&
+                 /thing/.test(aNode.parentNode.parentNode.className)) {
+        this._logger.debug("_getEffectiveTitle: recognized reddit thumb");
+        levelsUp = 2;
+        querySelectors = [".title"];
+      } else if (aNode.getAttribute("alt") == "Thumbnail" &&
+                 /\.ytimg\.com\/.*\/[a-z]+default\.jpg/.test(aNode.getAttribute("src"))) {
+        this._logger.debug("_getEffectiveTitle: recognized youtube");
+        levelsUp = 6;
+        querySelectors = [".title"];
       }
       
-      if (queryNode) {
-        this._logger.debug("_getEffectiveTitle: selecting beneath " +
-                           queryNode + " class \"" + queryNode.className +
-                           "\" for CSS selectors " + querySelectors);
-        for (var i=0; i < querySelectors.length; i++) {
-          let s = querySelectors[i];
-          let found = queryNode.querySelector(s);
-          if (found) {
-            this._logger.debug("_getEffectiveTitle: found node " + 
-                               found + " class \"" + found.className + "\"" +
-                               " using selector \"" + s + "\"");
-            aNode = found;
-            break;
+      if (levelsUp >= 0) {
+        let queryNode = null;
+        this._logger.debug("_getEffectiveTitle: selecting parent " + levelsUp +
+                           " levels up");
+        for (queryNode = aNode; levelsUp > 0 && queryNode; levelsUp--) {
+          queryNode = queryNode.parentNode;
+        }
+        if (queryNode) {
+          this._logger.debug("_getEffectiveTitle: selecting beneath " +
+                             queryNode + " class \"" + queryNode.className +
+                             "\" for CSS selectors " + querySelectors);
+          for (var i=0; i < querySelectors.length; i++) {
+            let s = querySelectors[i];
+            let found = queryNode.querySelector(s);
+            if (found) {
+              this._logger.debug("_getEffectiveTitle: found node " + 
+                                 found + " class \"" + found.className + "\"" +
+                                 " using selector \"" + s + "\"");
+              aNode = found;
+              break;
+            }
           }
         }
       }
@@ -960,8 +986,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       let alt = aNode.getAttribute("alt");
       if (alt != undefined && alt != "" &&
-          ! /^\s*Thumbnail\s*$/i.test(alt)) {
-        // use alt text; useful e.g. with twitpic.  Exclusion for youtube.com.
+          ! /^\s*Thumbnail\s*$|^[0-9]+$/i.test(alt)) {
+        // use alt text; useful e.g. with twitpic.  
+        // Exclusion for youtube.com and sites like 500px.com which just put a 
+        // picture number in alt, when an actual title may be available.
         this._logger.debug("_getEffectiveTitleForNode: got title from alt: '" +
                            alt + "'");
         title = alt;
@@ -1037,6 +1065,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // reddit text ends up having vote counts at the start, e.g.
     // "1294812I'm linking this".  Detect reddit by looking for
     // ")submitted".  Remove the number and "submitted" and what follows.
+    // TODO: may not be needed anymore since we have site-specific logic
+    // in _getEffectiveTitle().
     title = title.replace(/^[0-9]+(.*\))submitted .*/, "$1");
     
     // youtube fix: extract title from something like
@@ -1073,6 +1103,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     this._clearIgnoreBBox();
+    // this._debugToConsole("_handleMouseOut: _closePanel(false)");
     this._closePanel(false);
   },
 
@@ -1129,6 +1160,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Prevent another popup from immediately happening and taking focus back.
     that._setIgnoreBBoxPageRelative();
+    // that._debugToConsole("_losingPopupFocus: _closePanel(false)");
     that._closePanel(false);
   },
   
@@ -1180,7 +1212,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
     if (this._needToPopDown(aDocument.defaultView.top)) {
-      this._logger.debug("_handleMouseOver: _closePanel since different doc.");
+      this._debugToConsole("_handleMouseOverImpl: _closePanel(true) since different doc.");
       this._closePanel(true);
       return;
     }
@@ -1208,15 +1240,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
                                       !keyActivates, true, aEvent);
     if (! keyActive) {
-      this._logger.debug("_handleMouseOver: _closePanel since hot key not active");
+      // this._debugToConsole("_handleMouseOverImpl: _closePanel(false) since hot key not active");
       this._closePanel(false);
       return;
     }
 
+    // Seen in ff 15:
+    // Error: TypeError: can't access dead object
     this._logger.debug("_handleMouseOver: this win=" + this._currentWindow);
     let node = aEvent.target;
 
     // Close the previously displayed popup (if any).
+    // this._debugToConsole("_handleMouseOverImpl: _closePanel(false)");
     this._closePanel(false);
 
     if (this._scrolledSinceMoved &&
@@ -1742,24 +1777,33 @@ ThumbnailZoomPlusChrome.Overlay = {
   _hideCaption : function() {
       this._logger.trace("_hideCaption");
       // restore original title / tooltip:
-      if (this._panelCaption.value != "") {
-        this._panelCaption.hidden = true;
-        // Firefox 17 reports an error on printing this._panelCaption.ThumbnailZoomPlusOriginalTitleNode:
-        // Error: TypeError: can't access dead object
-        // Happens after moving tab to new window, moving that tab into an existing
-        // window, etc.  This may be the condition which caused the popup
-        // to appear on the wrong window in older firefox.
-        this._logger.debug("_hideCaption: restoring title to " + 
-                           this._panelCaption.ThumbnailZoomPlusOriginalTitleNode
-                           + ": " + 
-                           this._panelCaption.value);
-        if (this._panelCaption.ThumbnailZoomPlusOriginalTitleNode) {
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode.title = 
-                             this._panelCaption.ThumbnailZoomPlusOriginalTitle;
-          this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+      if (this._panelCaption) {
+        let titleNode = null;
+        let titleNodeName = "?";
+        if (this._panelCaption.value != "") {
+          this._panelCaption.hidden = true;
+          // Try to get in titleNode the element node which the title came
+          // from, so we can restore its tooltip.  But this may throw
+          // TypeError, e.g. if the user reload the page while a popup was
+          // displayed, so catch and ignore that situation (prevents
+          // problem in firefox 15).
+          try {
+            titleNode = this._panelCaption.ThumbnailZoomPlusOriginalTitleNode;
+            titleNodeName = String(titleNode);
+          } catch (e) {
+            titleNode = null;
+          }
+        }        
+        if (titleNode) {
+          this._logger.debug("_hideCaption: restoring title of " + 
+                             titleNodeName
+                             + ": " + 
+                             this._panelCaption.value);
+          titleNode.title = this._panelCaption.ThumbnailZoomPlusOriginalTitle;
         }
+        this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
+        this._panelCaption.value = "";
       }
-      this._panelCaption.value = "";
   },
   
   _setupCursor : function(aImageNode) {
@@ -1780,6 +1824,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.trace("_restoreCursor");
 
       if (this._originalCursorNode) {
+        try {
+          var nodeName = String(this._originalCursorNode);
+        } catch (e) {
+          // In Firefox 15 and newer, converting this._originalCursorNode to
+          // String can throw "TypeError: can't access dead object" (e.g.
+          // when reloading while working cursor is displayed).  So we
+          // trap and ignore that.
+          this._originalCursorNode = null;
+          return;
+        }
         this._logger.debug("_restoreCursor: restoring cursor to " + 
                            this._originalCursorNode
                            + ": " + this._originalCursor);
@@ -1875,12 +1929,12 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
-    this._logger.debug("_showPanel: _closePanel since closing any prev popup before loading new one");
 
     // Close the panel to ensure that we can popup the new panel at a specified
     // location.  Note that we temporarily save _currentWindow since _closePanel
     // clears it.
     let currentWindow = this._currentWindow;
+    this._debugToConsole("_showPanel: _closePanel(true) since closing any prev popup before loading new one");
     this._closePanel(true);
     this._currentWindow = currentWindow;
     
@@ -1939,6 +1993,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._removeListenersWhenPopupHidden();
 
       this._hideCaption();
+      this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
       this._panelImageDiv.style.backgroundImage = ""; // hide status icon
       this._restoreCursor();
       this._timer.cancel(); // in case there's a timer for the popup cursor.
@@ -1960,6 +2015,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._imageObjectBeingLoaded = null;
       }
     } catch (e) {
+      // This message has been seen in ff15.
       this._logger.debug("_closePanel @1: caught EXCEPTION: " + e);
       this._logToConsole("ThumbnailZoomPlus: _closePanel @1: caught EXCEPTION: " + e);
     }
@@ -2002,12 +2058,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     // moved outside bbox of thumb; dismiss popup.
-    this._logger.debug("_handlePopupMove: closing with mouse at " +
-                        aEvent.screenX + "," + aEvent.screenY);
     // ignore a mouseOver event over the thumb's bbox, in case our
     // bbox calculation was a bit off; we don't want to popup again
     // if the mouse is still (barely) over the thumb.
     this._setIgnoreBBoxPageRelative();
+    // this._debugToConsole("_handlePopupMove: _closePanel(false) with mouse at " +
+    //                     aEvent.screenX + "," + aEvent.screenY);
     this._closePanel(false);
   },
 
@@ -2016,6 +2072,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_handlePopupClick: mouse at " +
                         aEvent.screenX + "," + aEvent.screenY);
     this._setIgnoreBBoxPageRelative();
+    // this._debugToConsole("_handlePopupClick: _closePanel(false) with mouse at " +
+    //                    aEvent.screenX + "," + aEvent.screenY);
     this._closePanel(false);
   },
   
@@ -2216,7 +2274,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE, true);
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
-      that._logger.debug("_handleKeyUp: _closePanel since pressed Esc or x key");
+      that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or x key");
       that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
     }
@@ -2265,8 +2323,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     let affectedWindow = aEvent.originalTarget.defaultView.top;
     that._logger.trace("_handlePageHide");
-    if (this._currentWindow == affectedWindow) {
-      that._logger.debug("_handlePageHide: closing panel");
+    if (that._currentWindow == affectedWindow) {
+      that._debugToConsole("_handlePageHide: _closePanel(true)");
       that._closePanel(true);
     }
     return true; // allow page to hide
@@ -2275,7 +2333,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handleHashChange : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._logger.trace("_handleHashChange");
-    that._logger.debug("_handleHashChange: closing panel");
+    that._debugToConsole("_handleHashChange: _closePanel(true)");
     that._closePanel(true);
   },
   
@@ -2327,7 +2385,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._timer.cancel();
     let that = this;
     this._timer.initWithCallback(
-        { notify: function() { that._closePanel(false); } }, 
+        { notify: function() { 
+            // that._debugToConsole("_showStatusIconBriefly callback: _closePanel(false)");
+            that._closePanel(false); } }, 
         1.5 * 1000, Ci.nsITimer.TYPE_ONE_SHOT);
   },
   
@@ -2413,7 +2473,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     image.onload = null;
     
     this._timer.cancel();
-    
+
+    // Seen in ff15: Error: TypeError: can't access dead object
     let thumbWidth = aImageNode.clientWidth;
     let thumbHeight = aImageNode.clientHeight;
     
@@ -2451,6 +2512,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                          imageWidth + "x" + imageHeight);
       this._debugToConsole("ThumbnailZoomPlus: >>> skipping since too small \n" + aImageSrc);
       // Make sure we close the 'working' status icon.
+      // this._debugToConsole("_imageOnLoad: _closePanel(false)");
       this._closePanel(false);
     } else {
       if (flags.requireImageBiggerThanThumb) {
@@ -2624,6 +2686,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
         this._debugToConsole("ThumbnailZoomPlus: >>> too small (silently)\n" + aImageSrc);
         // close the popup in case we showed the 'working' indicator:
+        // this._debugToConsole("_sizePositionAndDisplayPopup: _closePanel(false)");
         this._closePanel(false);
       }
       
@@ -2694,6 +2757,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         that._showStatusIconBriefly(aImageNode, "warning16.png", 32);
       } else {
         // Close the "working" indicator. 
+        // that._debugToConsole("_preloadImage onerror: _closePanel(false)");
         that._closePanel(false);
       }
       that._imageObjectBeingLoaded = null;
@@ -2842,6 +2906,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     let result = {};
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    
+    // ff 15 warning: Error: TypeError: can't access dead object
+    // when cliking the "Older" link in Engadget Mobile or when opening Tools > Addons.
     var box = aImageNode.getBoundingClientRect();
 
     this._logger.debug("_calcThumbBBox: x,y offset = " +
@@ -3381,6 +3448,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     
   },
 
+  _endsWith : function(str, suffix) {
+    let endsWith = str.indexOf(suffix, str.length - suffix.length) !== -1;
+    this._logger.debug("_endsWith('"+str+"','"+suffix+"')="+endsWith);
+    return endsWith;
+  },
+
   _friendlyTruncate : function(s, maxChars, minChars) {    
     if (s.length <= maxChars) {
       return s;
@@ -3398,13 +3471,15 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     // Couldn't find a word break giving a string at least minChars long;
     // truncate without regard to word breaks.
-    return fname.substring(0, maxChars);
+    return s.substring(0, maxChars);
   },
   
   _getDefaultFilename : function(extension) {
 
+    let useCaption = false;
     if (this._caption) {
       var fname = this._caption;
+      useCaption = true;
     } else {
       var fname =
           url.substring(this._currentImage.lastIndexOf('/') + 1);
@@ -3424,7 +3499,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Truncate after the last word break before position maxChars.
       fname = this._friendlyTruncate(fname, maxChars, maxChars - 12);
     }
-    if (this._caption && extension) {
+    if (useCaption && extension && 
+        !this._endsWith(fname, '.' + extension)) {
       // Add file extension.
       if (! /\.$/.test(fname)) {
         fname += '.';

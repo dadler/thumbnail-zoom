@@ -802,7 +802,7 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
       return aImageSrc.replace(rex3, "/photo.jpg");
     }
     
-    // example photo thumb: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/w402/065.JPG
+    // example photo thumb:       https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/w402/065.JPG
     // corresponding large image: https://lh6.googleusercontent.com/-sHGfoG3xxXX/TnlXXz7dHmI/AAXXAAAAAI8/upXXI3JTguI/065.JPG
     // the w402 field supports arbitrary width, height, and size specifications with
     // w###, h###, s###.  I've also seen a "-k" suffix.
@@ -1739,7 +1739,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp("^(?![^/]*("
-                          + "(//.*\\.google\\.com?[.a-z]*/(.*/)?(images|logos)/)" // google logos
+                          + "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
                           + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images, google drive file type icons
