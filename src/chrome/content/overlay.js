@@ -2161,7 +2161,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       let aImageSrc = this._offsetUrl(this._currentImage, delta);
       this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
                            aImageSrc);
-      if (aImageSrc) {
+      if (aImageSrc && this._currentThumb) {
         // use default flags; TODO: ought to use same flags as prior popup.
         let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
         flags.requireImageBiggerThanThumb = false;
@@ -3664,7 +3664,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // because a page rule transformed it.  Mark that original URL in
     // history so it'll turn purple on reddit.com, for example.
     this._logger.debug("_addItemsToHistory: imageSourceNode is <" + imageSourceNode.localName.toLowerCase() + ">");
-    var url2 = ThumbnailZoomPlus.FilterService.getUrlFromNode(imageSourceNode);
+    var url2 = ThumbnailZoomPlus.FilterService.getUrlFromNode(imageSourceNode, false);
     if (url2) {
       this._logger.debug("_addItemsToHistory: aImageNode raw URL = " + url2);
       url2 = ThumbnailZoomPlus.FilterService.applyBaseURI(imageSourceNode.ownerDocument, url2);
