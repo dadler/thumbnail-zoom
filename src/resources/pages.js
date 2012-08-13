@@ -950,7 +950,7 @@ ThumbnailZoomPlus.Pages.Imgur = {
  * Photosight.ru and Photosight.com
  *
  * ex1:
- * http://s.photosight.ru/img/4/aef/4167500_icon.jpg
+ * http://s.photosight.ru/img/4/aef/4167500_icon.jpg or ..._thumb
  * http://s.photosight.ru/img/4/aef/4167500_large.jpg
  * ex2:
  * http://img-1.photosight.ru/e68/4167692_top_of_day.jpg
@@ -972,8 +972,15 @@ ThumbnailZoomPlus.Pages.Photosight = {
   host: /^(.*\.)?photosight\.(ru|com)$/i,
   imageRegExp: /\.photosight\.(ru|com)/i,
   
+  getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
+    if (aNode.localName.toLowerCase() == "a") {
+      aNode = aNode.querySelector("div");
+    }
+    return aNode;
+  },
+
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex1 = new RegExp(/_(icon)\./);
+    let rex1 = new RegExp(/_(thumb|icon)\./);
     let rex2 = new RegExp(/_(crop)_[0-9]+\./);
     let rex3 = new RegExp(/_top_of_day\./);
     let rex4 = new RegExp("//prv-(.*/)pv_([0-9]+\\.)");
