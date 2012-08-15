@@ -2323,9 +2323,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
     this._logger.trace("_showStatusIconBriefly");
 
-    // We don't want to see any image on top of the icon.
-    this._panelHtmlImage.src = null;
-    this._panelXulImage.src = null;
+    // Note that we don't clear this._panelHtmlImage.src nor
+    // this._panelXulImage.src since we need them if the user presses Shift
+    // after a too-small warning (to display the image overlapping the thumb).
+    
     this._showStatusIcon(aImageNode, iconName, iconWidth);
     
     // Hide the icon after a little while
@@ -2500,7 +2501,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _redisplayPopup : function()
   {
-    this._logger.trace("_redisplayPopup");
+    this._logger.trace("_redisplayPopup " + this._currentImage);
 
     if (this._currentThumb != null) {
       // Close the panel to ensure that we can popup the new panel at a specified
