@@ -2599,7 +2599,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        aImageNode.localName + " " + thumbSrc + 
                        " and image=" + aImageSrc);
     if (! imageSize.allow) {
-      if (thumbType != "" && thumbType != imageType) {
+      if (thumbType && thumbType != imageType) {
         // If file types are different, show it even if it's not bigger, since
         // it may be better quality or an animated gif from a static thumb.
         this._logger.debug("_sizePositionAndDisplayPopup: forcing allow since different file types"); 
