@@ -61,6 +61,8 @@
         name="extensions.thumbnailzoomplus.panel.focuspopup" type="bool"/>
       <preference id="thumbnailzoomplus-options-show-percent-pref"
         name="extensions.thumbnailzoomplus.panel.showpercent" type="bool"/>
+      <preference id="thumbnailzoomplus-options-popup-size-pref"
+        name="extensions.thumbnailzoomplus.panel.popupsize" type="string"/>
       <preference id="thumbnailzoomplus-options-caption-pref"
         name="extensions.thumbnailzoomplus.panel.caption" type="bool"/>
       <preference id="thumbnailzoomplus-options-history-pref"
@@ -225,9 +227,18 @@ The pop-up will disappear when you move the mouse outside the area of the origin
 thumbnail or link, when you click the mouse, or when you press the “esc” (Escape) key.
 Shortcut: press 'a' while a pop-up is displayed." />
           </hbox>
-          <hbox>
+          <hbox align="center">
+            <label value="&thumbnailzoomplus.options.popupsize.selection.label;" />
+            <menulist preference="thumbnailzoomplus-options-popup-size-pref">
+              <menupopup>
+                <menuitem value="webpage" label="&thumbnailzoomplus.options.popupsize.item.webpage.label;" />
+                <menuitem value="window" label="&thumbnailzoomplus.options.popupsize.item.window.label;" />
+                <menuitem value="screen" label="&thumbnailzoomplus.options.popupsize.item.screen.label;" />
+              </menupopup>
+            </menulist>
+
             <checkbox preference="thumbnailzoomplus-options-show-percent-pref"
-              label="&thumbnailzoomplus.options.showpercent.checkbox.label;" />
+              label=" &thumbnailzoomplus.options.showpercent.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-caption-pref"
               label="&thumbnailzoomplus.options.caption.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-history-pref"

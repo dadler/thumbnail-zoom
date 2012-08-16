@@ -45,6 +45,8 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 
 #thumbnailzoomplus-panel {
   border: 1px solid #000 !important;
+  
+  /* the padding value here must match _borderWidth in overlay.js. */
   padding: 5px;
   z-index: 10100;
 }

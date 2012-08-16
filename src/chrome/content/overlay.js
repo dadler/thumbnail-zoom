@@ -49,6 +49,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_POPUP_SIZE : ThumbnailZoomPlus.PrefBranch + "panel.popupsize",
   PREF_PANEL_POPUP_ON_SCROLL : ThumbnailZoomPlus.PrefBranch + "panel.popuponscroll",
   PREF_PANEL_FOCUS_POPUP : ThumbnailZoomPlus.PrefBranch + "panel.focuspopup",
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
@@ -60,6 +61,11 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
+
+  // Values for PREF_PANEL_POPUP_SIZE:
+  PREF_VALUE_POPUP_SIZE_WEB_PAGE : "webpage",
+  PREF_VALUE_POPUP_SIZE_WINDOW : "window",
+  PREF_VALUE_POPUP_SIZE_SCREEN : "screen",
 
   /* Logger for this object (for debug log file). */
   _logger : null,
@@ -161,7 +167,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   // loss of focus from showing the popup.
   _movedSincePoppedUp : false,
   
-  // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
+  // _borderWidth is the spacing in pixels between the edge of the thumb 
+  // and the popup when the border is displayed.  This must equal the
+  // #thumbnailzoomplus-panel "padding" value in overlay.css.
+  // Debugging tip: set large (30) when debugging popup positioning.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
   
   // _widthAddon is additional image width due to border if enabled:
@@ -175,8 +184,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   _panelHeightAddon : 0,
   
   // pad is the blank space (in pixels) between the thumbnail and a popup
-  // to be shown adjacenetly to it, and between the popup and the window
+  // to be shown adjacently to it, and between the popup and the window
   // edge.  This is unrelated to the border preference.
+  // Debugging tip: set large (30) when debugging popup positioning.
   _pad : 5,
   
   // _captionHeight is the additional height of the popup when the caption 
@@ -2617,8 +2627,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                        available.windowWidth + "," + available.windowHeight);
     this._logger.debug("_sizePositionAndDisplayPopup: " + 
                        "; _currentMaxScaleBy=" + this._currentMaxScaleBy +
-                       "; win width=" + content.window.innerWidth*pageZoom +
-                       "; win height=" + content.window.innerHeight*pageZoom +
+                       "; win width=" + available.windowWidth +
+                       "; win height=" + available.windowHeight +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
     
@@ -2897,7 +2907,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }  else {
         flags.allowLeft = false;
       }
-      this._logger.debug("_getAvailableSizeOutsideThumb: width availableForSitePopup=" +
+      this._logger.debug("_applyPopupAvoider: width availableForSitePopup=" +
                          availableForSitePopup + "; popupAvoiderWidth=" + 
                          flags.popupAvoiderWidth + "; scaled by zoom " + zoom + " = "
                          + (flags.popupAvoiderWidth * zoom) +
@@ -2914,7 +2924,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         } else {
           flags.allowBelow = false;
         }
-        this._logger.debug("_getAvailableSizeOutsideThumb: popupAvoiderTBEdge: midpage" +
+        this._logger.debug("_applyPopupAvoider: popupAvoiderTBEdge: midpage" +
                            "; allowAbove=" + flags.allowAbove +
                            "; allowBelow=" + flags.allowBelow);
       } else {
@@ -2926,7 +2936,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           // site's preferred direction is below thumb.
           availableForSitePopup = available.top;
         } else {
-          this._logger.debug("_getAvailableSizeOutsideThumb: ERROR: popupAvoiderTBEdge: " +
+          this._logger.debug("_applyPopupAvoider: ERROR: popupAvoiderTBEdge: " +
                              flags.popupAvoiderTBEdge);
         }
         let siteUsesPreferred = (availableForSitePopup > flags.popupAvoiderHeight);
@@ -2938,7 +2948,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         } else {
           flags.allowBelow = false;
         }
-        this._logger.debug("_getAvailableSizeOutsideThumb: height availableForSitePopup=" +
+        this._logger.debug("_applyPopupAvoider: height availableForSitePopup=" +
                            availableForSitePopup + "; popupAvoiderHeight=" + 
                            flags.popupAvoiderHeight + "; allowAbove=" + flags.allowAbove +
                            "; allowBelow=" + flags.allowBelow);
@@ -2954,18 +2964,46 @@ ThumbnailZoomPlusChrome.Overlay = {
    * above/below the thumbnail without overlapping it.
    *
    * @param aImageNode the image node.
-   * @return An object with .left, .right, .top, .bottom, .windowWidth, and
-   *    .windowHeight.  .width and .height are the min of .left, .right and
+   * @return An object with .left, .right, .top, .bottom, .windowWidth, 
+   *    .windowHeight, .windowX, .windowY;
+   *    .width and .height are the min of .left, .right and
    *    .top, .bottom, respectively.  All sizes are reduced by padding
    *    so that they reflect possible image size, not entire popup size.
-   * fields.
    */
   _getAvailableSizeOutsideThumb : function(aImageNode, flags) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
+    let maxSizePref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_SIZE, 
+                                                this.PREF_VALUE_POPUP_SIZE_WEB_PAGE);
+
+    if (maxSizePref == this.PREF_VALUE_POPUP_SIZE_SCREEN) {
+      // fit within screen (excluding areas marked as disallowed, such as
+      // the menubar on mac or task bar on Windows)
+      var pageX = window.screen.availLeft;
+      var pageY = window.screen.availTop;
+      var pageWidth = window.screen.availWidth;
+      var pageHeight = window.screen.availHeight;
+      
+    } else if (maxSizePref == this.PREF_VALUE_POPUP_SIZE_WINDOW) {
+      // Fit within the entire firefox window (eg covering toolbars)
+      var pageX = window.screenX;
+      var pageY = window.screenY;
+      var pageWidth  = window.outerWidth;
+      var pageHeight = window.outerHeight;
+    
+    } else {
+      // assume this.PREF_VALUE_POPUP_SIZE_WEB_PAGE
+      // fit within the web page's screen area.
+      var pageX = content.window.mozInnerScreenX * pageZoom;
+      var pageY = content.window.mozInnerScreenY * pageZoom;
+      var pageWidth = content.window.innerWidth * pageZoom;
+      var pageHeight = content.window.innerHeight * pageZoom;
+    }
+    
+    this._logger.debug("_getAvailableSizeOutsideThumb: window at (" +
+                       pageX + "," + pageY +
+                       ") " + pageWidth + " x " + pageHeight);
     
     /*
      * pageLeft is the space available to the left of the thumb. 
@@ -2973,10 +3011,11 @@ ThumbnailZoomPlusChrome.Overlay = {
      */
     let available = {left:0, right:0, top:0, bottom: 0,
                      windowWidth: pageWidth,
-                     windowHeight: pageHeight};
+                     windowHeight: pageHeight,
+                     windowX: pageX, windowY: pageY};
 
-    available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
-    available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
+    available.left = this._thumbBBox.xMin - pageX;
+    available.top = this._thumbBBox.yMin - pageY;
     
     /*
      * pageRight is the space available to the right of the thumbnail,
@@ -3011,6 +3050,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; captionHeight=" + this._captionHeight +
                        "; reducing available by " + 
                        xadjustment + "," + yadjustment);
+                       
+    // adjust the widths and heights which apply if the image were placed
+    // to the left, right, top, or bottom of the thumb, or in the entire window.
+    // In all cases we adjust by [xy]adjutment, which accounts for extra
+    // space on both sides of the popup.
     available.left -= xadjustment;
     available.right -= xadjustment;
     available.top -= yadjustment;
@@ -3183,33 +3227,44 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _calcPopupPosition : function(imageSize, wantCaption, available) {
     let pos = {};
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
-    let windowStartX = content.window.mozInnerScreenX * pageZoom;
-    let windowStartY = content.window.mozInnerScreenY * pageZoom;
-    this._logger.debug("_calcPopupPosition: pageZoom=" +
-                       pageZoom + "; innerHeight=" + 
-                       content.window.innerHeight + 
-                       "; pageHeight=" + pageHeight);
-    let popupWidth = imageSize.width + this._widthAddon;
-    let popupHeight = imageSize.height + this._widthAddon;
-    if (wantCaption)
-      popupHeight += this._captionHeight;
-
+    
+    // Note that pageWidth and pageHeight were already reduced by 
+    // _pad and _widthAddon and _captionHeight as appropriate, so that they
+    // reflect the space available for the image itself, not counting its padding or border.
+    let pageWidth = available.windowWidth;
+    let pageHeight = available.windowHeight;
+    
+    let windowStartX = available.windowX;
+    let windowStartY = available.windowY;
+    
+    // popupWidth and height are the size of the image which we'll display.
+    // Note that these were already reduced due to this._widthAddon if necessary 
+    // to allow the image plus its border to fit in the available space.  
+    // PopupHeight doesn't include the additional height due to captionHeight.
+    let popupWidth = imageSize.width;
+    let popupHeight = imageSize.height;
+    let captionHeight = wantCaption ? this._captionHeight : 0;
+      
+    // padding is pixels of padding between the thumb or window edge and
+    // the popup, on one side of width or height of the image.
+    // Note that it doesn't include the border's size this._widthAddon since
+    // we've already adjusted popupWidth and popupHeight for it.
+    let padding = this._pad;
+    
     if (imageSize.height <= available.height) {
+      // Position above or below thumb.
       // We prefer above/below thumb to avoid tooltip.
       // Unless we're prohibited from positioning to the right,
       // position the popup horizontally flush with the right of the window or
       // left-aligned with the left of the thumbnail, whichever is left-most.
       if (available.right > 0) {
-        let popupXPageCoords = pageWidth - (popupWidth + this._pad);
+        let popupXPageCoords = pageWidth - popupWidth + padding;
         var popupXScreenCoords = popupXPageCoords + windowStartX;
-        if (popupXScreenCoords > this._thumbBBox.xMin) {
-          popupXScreenCoords = this._thumbBBox.xMin;
-        }
+        popupXScreenCoords = Math.min(popupXScreenCoords, 
+                                      this._thumbBBox.xMin);
       } else {
-        var popupXScreenCoords = this._thumbBBox.xMax - (popupWidth + this._pad);
+        // Align right edge of popup with right edge of thumb (if possible).
+        var popupXScreenCoords = this._thumbBBox.xMax - popupWidth;
         popupXScreenCoords = Math.max(popupXScreenCoords, windowStartX);
       }
       pos.x = popupXScreenCoords;
@@ -3217,14 +3272,17 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "windowStartX=" + windowStartX +
                          "; pageWidth=" + pageWidth +
                          "; popupXScreenCoords=" + popupXScreenCoords);
+
       if (imageSize.height <= available.top) {
         this._logger.debug("_calcPopupPosition: display above thumb"); 
-        pos.y = this._thumbBBox.yMin - this._pad - popupHeight;
+        pos.y = this._thumbBBox.yMin - padding - popupHeight - captionHeight
+                - this._widthAddon;
       } else {
         this._logger.debug("_calcPopupPosition: display below thumb"); 
-        pos.y = this._thumbBBox.yMax + this._pad;
+        pos.y = this._thumbBBox.yMax + padding;
       }
     } else if (imageSize.width <= available.width) {
+      // Position to the left or right of the thumb.
       // We prefer left-of thumb to right-of thumb since tooltip
       // typically extends to the right.
       
@@ -3233,11 +3291,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       // We don't simply use a 0 offset and rely on Firefox's logic since
       // on Windows that can position the thumb under an always-on-top
       // Windows task bar.
-      let popupYPageCoords = pageHeight - (popupHeight + this._pad);
+      let popupYPageCoords = pageHeight - popupHeight + padding;
       let popupYScreenCoords = popupYPageCoords + windowStartY;
-      if (popupYScreenCoords > this._thumbBBox.yMin) {
-        popupYScreenCoords = this._thumbBBox.yMin;
-      }
+      popupYScreenCoords = Math.min(popupYScreenCoords, this._thumbBBox.yMin);
       pos.y = popupYScreenCoords;
       this._logger.debug("_calcPopupPosition: " +
                          "windowStartY=" + windowStartY +
@@ -3246,10 +3302,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "; popupYScreenCoords=" + popupYScreenCoords);
       if (imageSize.width <= available.left) {
         this._logger.debug("_calcPopupPosition: display to left of thumb"); 
-        pos.x = this._thumbBBox.xMin - this._pad - popupWidth;
+        pos.x = this._thumbBBox.xMin - padding - popupWidth  - captionHeight 
+                - this._widthAddon;
       } else {
         this._logger.debug("_calcPopupPosition: display to right of thumb"); 
-        pos.x = this._thumbBBox.xMax + this._pad;
+        pos.x = this._thumbBBox.xMax + padding;
       }
     } else {
       // cover thumb (at least partially).  Center in window for any dimensions
@@ -3257,14 +3314,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       // cover it, allow thumb to be partially visible.
 
       // First calc centered position:
-      pos.x = windowStartX + (available.windowWidth - imageSize.width) / 2;
-      pos.y = windowStartY + (available.windowHeight - imageSize.height) / 2;
+      pos.x = windowStartX + (available.windowWidth - popupWidth) / 2 + padding;
+      pos.y = windowStartY + (available.windowHeight - popupHeight) / 2 + padding;
 
       this._logger.debug("_calcPopupPosition: " +
-                         "overlap thumb.  Centered x,y = " +
+                         "overlap thumb.  start x,y which centers image over thumb = " +
                          pos.x + "," + pos.y);
 
-      let openSize = available.windowWidth - imageSize.width;
+      // openSize is the amount of available width which isn't covered by the
+      // popup.
+      let openSize = available.windowWidth - popupWidth;
       this._logger.debug("_calcPopupPosition: " +
                          "available.width = " + available.width +
                          " vs openSize width = " + openSize);
@@ -3273,23 +3332,26 @@ ThumbnailZoomPlusChrome.Overlay = {
         // Part of the thumb could be visible horizontally.  Make it so.
         // Typically happens with horizontally-long links, e.g. on reddit.com
         if (available.left < available.right) {
-          // There is left free space to the left of the thumb; thus the
+          // There is less free space to the left of the thumb; thus the
           // thumb is closer to the left edge of the window, and
           // we should position against right edge of window
-          pos.x = windowStartX + (available.windowWidth - imageSize.width);
+          pos.x = windowStartX + (available.windowWidth - popupWidth)
+                  + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against right edge of window.  x = " +
                               pos.x);
         } else {
           // position against left edge of window.
-          pos.x = windowStartX + this._pad;
+          pos.x = windowStartX + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against left edge of window.  x = " +
                               pos.x);
         }
       }
       
-      openSize = available.windowHeight - imageSize.height;
+      // openSize is the amount of available height which isn't covered by the
+      // popup.
+      openSize = available.windowHeight - popupHeight;
       this._logger.debug("_calcPopupPosition: " +
                          "available.height = " + available.height +
                          " vs openSize height = " + openSize);
@@ -3301,19 +3363,23 @@ ThumbnailZoomPlusChrome.Overlay = {
           // There is left free space to the top of the thumb; thus the
           // thumb is closer to the top edge of the window, and
           // we should position against bottom edge of window
-          pos.y = windowStartY + (available.windowHeight - imageSize.height);
+          pos.y = windowStartY + (available.windowHeight - popupHeight)
+                  + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against bottom edge of window.  y = " +
                               pos.y);
         } else {
           // position against top edge of window.
-          pos.y = windowStartY + this._pad;
+          pos.y = windowStartY + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against top edge of window.  y = " +
                               pos.y);
         }
       }
     }
+    this._logger.debug("_calcPopupPosition: positioning at (" + pos.x + 
+                      ", " + pos.y + ")");
+
     return pos;
   },
   

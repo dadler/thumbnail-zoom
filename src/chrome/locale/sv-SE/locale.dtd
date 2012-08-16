@@ -52,6 +52,10 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label  "Web page">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label   "Window">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label   "Screen">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Visa &thumbnailzoomplus.PERCENT;">
