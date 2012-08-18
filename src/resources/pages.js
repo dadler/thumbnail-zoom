@@ -1325,8 +1325,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
                           + "|.*\\$live\\.controls\\.images/" // microsoft outlook.com
                           + "|.*\\.hotmail.com/cal/" // microsoft hotmail/live calendar
-                          + "|.*-(word|excel|powerpoint|onenote).*\.msecnd\.net/./" // microsoft office on skydrive
-                          + "|editImageHandler\.ashx" // microsoft powerpoint slide thumbs
+                          + "|.*-(word|excel|powerpoint|onenote).*\\.msecnd\\.net/" // microsoft office on skydrive
+                          + "|.*\\.wlxrs\\.com/" // microsoft office on skydrive
+                          + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
                           + ")).*", "i"),
   
   // For "Thumbnail"
