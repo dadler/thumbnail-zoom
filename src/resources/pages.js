@@ -1126,7 +1126,7 @@ ThumbnailZoomPlus.Pages.Others = {
       // the <a> node linking to the high-res image has id="high_res_link_1234567890"
       let id=imgNode.id;
       id = id.replace("thumbnail_photo_", "high_res_link_");
-      let related = imgNode.ownerDocument.getElementById(id);
+      let related = id ? imgNode.ownerDocument.getElementById(id) : null;
       this._logger.debug("Others: related ID=" + id + "; related=" +
                          String(related));
       if (related && related.getAttribute("href") != "") {
@@ -1758,8 +1758,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
                           + "|.*\\$live\\.controls\\.images/" // microsoft outlook.com
                           + "|.*\\.hotmail.com/cal/" // microsoft hotmail/live calendar
-                          + "|.*-(word|excel|powerpoint|onenote).*\.msecnd\.net/./" // microsoft office on skydrive
-                          + "|editImageHandler\.ashx" // microsoft powerpoint slide thumbs
+                          + "|.*-(word|excel|powerpoint|onenote).*\\.msecnd\\.net/" // microsoft office on skydrive
+                          + "|.*\\.wlxrs\\.com/" // microsoft office on skydrive
+                          + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
                           + ")).*", "i"),
   
   // For "Thumbnail"
