@@ -1572,6 +1572,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                   EXTS + ")"),
                                   "$1/4$2");
     
+    // For pbase.com (limited support; only works if the image exists as
+    // 'large' size, and sometimes the actual image isn't on the same server
+    // as the thumb and it doesn't work): change
+    // http://www.pbase.com/fishit/image/65083612/medium.jpg to
+    // http://www.pbase.com/fishit/image/65083612/large.jpg (or original or upload)
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.pbase\\.com/.*)/(?:small|medium|large\)(.*" +
+                                             EXTS + ")"), "$1/large$2");
+    // Change http://i.pbase.com/t4/98/946498/4/142131724.HUWxuYPm.jpg to
+    //        http://i.pbase.com/g4/98/946498/2/142131724.HUWxuYPm.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.pbase\\.com)/[a-z]([0-9]/.*" +
+                                             ")/[0-9]/([^/]*" +
+                                             EXTS + ")"), "$1/g$2/2/$3");
     // vimeo.com:
     // http://b.vimeocdn.com/ts/313/757/313757860_150.jpg becomes
     // http://b.vimeocdn.com/ts/313/757/313757860_640.jpg
