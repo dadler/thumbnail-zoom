@@ -2251,6 +2251,16 @@ ThumbnailZoomPlusChrome.Overlay = {
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
       
+    } else if (aEvent.keyCode == aEvent.DOM_VK_G) {
+      // open 'Google Images' search in new tab
+      this._logger.debug("_doHandleKeyDown: google search for image " +this._currentImage);
+      let options = {referrerURI: null, relatedToCurrent: true};
+      // Example full URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg&encoded_image=&image_content=&filename=&num=10&hl=en&safe=off&bih=711&biw=1366
+      // Example minimal URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg
+      let url = "https://www.google.com/searchbyimage?image_url=" + encodeURIComponent(this._currentImage);
+      let tab = openUILinkIn(url, "tab", options);
+      gBrowser.selectedTab = tab;
+      
     } else if (aEvent.keyCode == aEvent.DOM_VK_S) {
       this._logger.debug("_doHandleKeyDown: save image");
       this.downloadImage();

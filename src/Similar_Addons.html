@@ -133,6 +133,28 @@ how site rules are encoded)</a>
 and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/">LinkRedirector source code</a> 
 and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/file/resources/linkredirector/data/preferences/filter.js#top">filter definitions</a>
 </ul>
+
+<h2>PopTip User Script</h2>
+Sites defined using "SITEINFO" format.  Example:
+<pre>
+    {
+        description: 'Amazon.co.jp SearchResult',
+        url: '^http://www\\.amazon\\.co\\.jp/s/',
+        linkElement: '//td[@class="imageColumn"]//a',
+        popupElement: 'id("productDescription")',
+        delay: 300,
+        stripe: true,
+        style: {
+            fontSize: '80%',
+            width: '500px',
+            padding: '5px',
+            border: '1px solid orange'
+        }
+    },</pre>
+<br>
+Link: <a href="https://userscripts.org/scripts/show/32219">userscripts.org</a>
+
+
 <h2>Imagus for Opera</h2>
 Not on the official add-on site so I didn't install it.  The site indicates it has some interesting features:
 <ul>
@@ -157,6 +179,21 @@ Links:
 <ul>
 <li><a href="http://my.opera.com/Deathamns/blog/opera-extension-imagus">Opera add-on site</a>
 </ul>
+
+<h1>Other Types of Software</h1>
+These are software other than thumbnail popup icons, but which may provide inspiration.
+
+<h2>htts-finder Firefox add-on</h2>
+Its preferences GUI lets the user define site-specific rules.
+<br>
+Link: <a href="https://addons.mozilla.org/en-us/firefox/addon/https-finder/">https-finder</a>
+<h2>AutoPager Firefox Add-on</h2>
+This has a very elaborate editor for adding sites based partly on clicking on relevant areas of the page
+being added.  It also supports multiple rule sets and importing and publishing rules.  
+<br>
+Its "Manage Setting" tab's "sites"
+area is an example of a preference-window editor which lets you select something and then
+edit the data fields of that thing.
 
 <h2>Site Blacklisting GUIs</h2>
 Hoverzoom:
