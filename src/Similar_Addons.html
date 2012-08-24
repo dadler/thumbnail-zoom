@@ -133,5 +133,73 @@ how site rules are encoded)</a>
 and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/">LinkRedirector source code</a> 
 and <a href="https://addons.mozilla.org/en-US/firefox/files/browse/151699/file/resources/linkredirector/data/preferences/filter.js#top">filter definitions</a>
 </ul>
+<h2>Imagus for Opera</h2>
+Not on the official add-on site so I didn't install it.  The site indicates it has some interesting features:
+<ul>
+<li>Send Image To... sends to online service such as reverse image search, 
+image editor, gif frame extractor, etc.  New services can be added in preference
+<li>"Sieve" rules to find larger image.  Configurable in preferences as set of replacements.
+But add-on updates require user to manually update his "sieve".
+<li>Grants to enable/disable on certain sites.  Grant syntax
+<pre>
+ Syntax: grant operator (optionally followed by rules separated with commas) colon address
+(!|!!|~|~~)[rule1,rule2,...]:(*|string|regular expression)
+Also there is possibility to add comment lines, simply by starting the line with a ; (semicolon).
+When you double the grant operator (! or ~), then it means that you want use regular expression in the URL. "*" means everything.
+</pre> (see link for more).<br>
+The UI is just a big text field, but what cool is that it's an ordered list of allow/deny rules, which
+support both black-listing and white-listing and regular expressions.
+<li>Has preference to enable loading higher resolution images.  Users 'Tab' key to switch between
+lo/hi on a particular popup.
+<li>Doc has nice detailed descriptions (though aimed at very technical users).
+</ul>
+Links:
+<ul>
+<li><a href="http://my.opera.com/Deathamns/blog/opera-extension-imagus">Opera add-on site</a>
+</ul>
+
+<h2>Site Blacklisting GUIs</h2>
+Hoverzoom:
+<ul><li>Has a list of sites as domain names or domain/path.  <li>
+Has Add, Remove, Clear buttons.  <li>
+Help text: "Be aware that domain filters can overlap. Example: if you have filtered "picasaweb.google.com"
+ and "google.com", removing "picasaweb.google.com" will not reactivate Picasa Web Albums, as it will still
+ be excluded by the "google.com" filter."<li>
+Location bar has Hoverzoom with icon to disable for the current site; it addes eg reddit.com to the blacklist.  
+<li>
+Location bar popup also has "Disable for all sites", which turns off its global "Enable" checkbox.
+</ul>
+Imagus:
+<ul
+<li>As far as I can tell from reading its page, configuration is just a multi-line
+text field, with a powerful language for defining include/exclude rules.
+The last matching rule is used.
+</ul>
+Autopager:
+<ul>
+<li>Has 'Ignore Sites' list, with  * and ? wildcards.
+<li>Add button defaults to last-viewed page.
+<li>Also has list of autopager config files, with Up/Down buttons and Enable checkbox for
+in a line's editor.
+</ul>
+
+Proposal for Thumbnail Zoom Plus:
+<ul>
+<li>Enable/Disable sites: the first matching rule in this list applies.
+<li>Initial GUI could just be a big text field parsing lines
+<li>Improved GUI could be list box with editor widgets for currently-selected
+item, Add, Remove, Edit, Up, and Down buttons.
+<li>Fields for each rule:<br>
+Site | Enable/Disable/Unchanged[?]
+<li>Unclear whether there should be a single 'disable' flag, which eg filters
+only based on site's web page, or whether it should also filter
+based on the image's site, using the same or a separate Enable checkbox.
+<li>For "Site", use "*" for simple wildcards (in the future might support
+regexp if there's a need).
+<li>If it's disabled for a site, should it still register any event handlers?
+Should it allow popups with Shift?
+<li>This will require enough space in the Preferences dialog that we'll
+need to start using tabs.
+</ul>
 </body>
 </html>
