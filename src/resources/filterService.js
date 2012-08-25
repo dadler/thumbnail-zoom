@@ -145,7 +145,7 @@ ThumbnailZoomPlus.FilterService = {
     if ("http:" == protocol || "https:" == protocol) {
       return true;
     }
-    if ("chrome:" == protocol && ! strict) {
+    if (!strict && ("chrome:" == protocol || "data:" == protocol)) {
       // allow the hosting page to be in chrome://, e.g. for
       // extensions like PrevNextArrows and showmemore.
       return true;
@@ -182,7 +182,7 @@ ThumbnailZoomPlus.FilterService = {
         this._logger.debug("getHostOfDoc: unable to get host or protocol (a): " + e);
       }      
     }
-    if (! host || !protocol) {
+    if (host == null || !protocol) {
       // Try to get from an image node's src attr.  TODO: should it also
       // try href?
       let imageSource = aDocument.src;
@@ -195,7 +195,7 @@ ThumbnailZoomPlus.FilterService = {
         try {
           host = uri.host;
           protocol = uri.scheme + ":";
-          if (! host || !protocol) {
+          if (host == null || !protocol) {
             this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
                                imageSrc + "; got " + protocol + "//" + host);
             return null;
@@ -211,7 +211,7 @@ ThumbnailZoomPlus.FilterService = {
         uri = null;
       }
     }
-    if (! host || !protocol) {
+    if (host == null || !protocol) {
       this._logger.debug("    getHostOfDoc: Reject; couldn't get host from " + 
                          aDocument + "; got " + protocol + "//" + host);
       return null;
