@@ -61,6 +61,29 @@ ThumbnailZoomPlus.ClipboardService = {
   copyImageToClipboard : function(image) {
     this._logger.debug("copyImageToClipboard");
     
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=750108#c17
+    var imagedata = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1JREFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jqch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0vr4MkhoXe0rZigAAAABJRU5ErkJggg==';
+
+    var ioSvc       = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+    var channel     = ioSvc.newChannel(imagedata, null, null);
+    var input       = channel.open();
+    var imgToolsSvc = Components.classes["@mozilla.org/image/tools;1"].getService(Components.interfaces.imgITools);
+
+    var container  = {};
+    imgToolsSvc.decodeImageData(input, channel.contentType, container);
+    
+    var wrapped = Components.classes["@mozilla.org/supports-interface-pointer;1"].createInstance(Components.interfaces.nsISupportsInterfacePointer);
+    wrapped.data = container.value;
+    
+    var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+    trans.addDataFlavor(channel.contentType);
+    trans.setTransferData(channel.contentType, wrapped, -1);
+    
+    var clipid = Components.interfaces.nsIClipboard;
+    var clip   = Components.classes["@mozilla.org/widget/clipboard;1"].getService(clipid);
+    clip.setData(trans, null, clipid.kGlobalClipboard);
+    
+/*
     var copytext = "Text to copy";
     
     var str = Cc["@mozilla.org/supports-string;1"].
@@ -80,7 +103,10 @@ ThumbnailZoomPlus.ClipboardService = {
     var clip = Cc["@mozilla.org/widget/clipboard;1"].getService(clipid);
     if (!clip) return false;
     
-    clip.setData(trans, null, clipid.kGlobalClipboard);  }
+    clip.setData(trans, null, clipid.kGlobalClipboard);
+*/
+  }
+  
 };
 
 /**
