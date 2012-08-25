@@ -34,6 +34,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
 Cu.import("resource://thumbnailzoomplus/downloadService.js");
+Cu.import("resource://thumbnailzoomplus/clipboardService.js");
 Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 
 /**
@@ -2085,8 +2086,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._redisplayPopup();
     }
     
+    if (aEvent.keyCode == aEvent.DOM_VK_C && 
+        (aEvent.metaKey || aEvent.ctrlKey) ) {
+      this._logger.debug("_doHandleKeyDown: copy to clipboard");
+      this.copyToClipboard();
+    }
+
     if (aEvent.metaKey || aEvent.ctrlKey) {
-      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      // we don't interpret most Command+ or Ctrl+ keys as hotkeys.
       return false;
     }
 
@@ -3464,6 +3471,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     fname = fname.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
 
     return fname;
+  },
+  
+  copyToClipboard : function() {
+    this._logger.trace("copyToClipboard");
+
+    if (null == this._currentImage) {
+      this._logger.debug("copyToClipboard: no _currentImage");
+      return;
+    }
+    ThumbnailZoomPlus.ClipboardService.copyImageToClipboard(this._currentImage);
   },
   
   /**
