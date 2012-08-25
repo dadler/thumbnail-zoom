@@ -1431,10 +1431,10 @@ ThumbnailZoomPlusChrome.Overlay = {
      * That's important since this routine is called whenever the users moves
      * the mouse pointer into a different element -- even a different paragraph.
      */
-    let docHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(aDocument);
+    let docHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(aDocument, false);
     let nodeHost = docHost;
     if (aDocument != node) {
-      nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
+      nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node, true);
     }
 
     {
