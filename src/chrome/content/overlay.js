@@ -2562,9 +2562,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._timer.cancel();
 
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+
     // Seen in ff15: Error: TypeError: can't access dead object
-    let thumbWidth = aImageNode.clientWidth;
-    let thumbHeight = aImageNode.clientHeight;
+    let thumbWidth = aImageNode.clientWidth * pageZoom;
+    let thumbHeight = aImageNode.clientHeight * pageZoom;
     
     /*
      * Get image size from naturalWidth, which tells us the image's true
@@ -2595,9 +2597,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       // TODO: ought to allow if file types are different (like the
       // check already done in _sizePositionAndDisplayPopup).
       this._logger.debug("_imageOnLoad: skipping popup since requireImageBiggerThanThumb" +
-                         " and thumb is " + thumbWidth + "x" + thumbHeight +
+                         " and thumb is " + thumbWidth + " x " + thumbHeight +
                          " which is >= than raw image " +
-                         imageWidth + "x" + imageHeight);
+                         imageWidth + " x " + imageHeight);
       this._debugToConsole("ThumbnailZoomPlus: >>> skipping since too small \n" + aImageSrc);
       // Make sure we close the 'working' status icon.
       // this._debugToConsole("_imageOnLoad: _closePanel(false)");
@@ -2605,9 +2607,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else {
       if (flags.requireImageBiggerThanThumb) {
         this._logger.debug("_imageOnLoad: showing popup since requireImageBiggerThanThumb" +
-                         " and thumb is " + thumbWidth + "x" + thumbHeight +
+                         " and thumb is " + thumbWidth + " x " + thumbHeight +
                          " which is < raw image " +
-                         imageWidth + "x" + imageHeight);
+                         imageWidth + " x " + imageHeight);
       }
       this._currentThumb = aImageNode;
       this._origImageWidth = imageWidth;
@@ -2722,9 +2724,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     
     let available = this._getAvailableSizeOutsideThumb(aImageNode, flags);
-    let thumbWidth = aImageNode.offsetWidth * pageZoom;
-    let thumbHeight = aImageNode.offsetHeight * pageZoom;
-    
+    let thumbWidth = aImageNode.clientWidth * pageZoom;
+    let thumbHeight = aImageNode.clientHeight * pageZoom;
+    this._logger.debug("_sizePositionAndDisplayPopup: thumb size = " +
+                       thumbWidth + " x " + thumbHeight +
+                       "; pageZoom=" + pageZoom);
+
     // Get the popup image's display size, which is the largest we
     // can display the image (without magnifying it and without it
     // being too big to fit on-screen).
@@ -3255,7 +3260,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale.height = scale.width / scaleRatio;
     }
     this._logger.debug("_getScaleDimensions: after w/h limiting, display size = " +
-                       scale.width + "x" + scale.height);
+                       scale.width + " x " + thumbHeight);
 
     // Calc sideScale as the biggest size we can use for the image without
     // overlapping the thumb.  Start out with large size and reduce to fit.
