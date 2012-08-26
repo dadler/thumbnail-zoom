@@ -53,58 +53,132 @@ ThumbnailZoomPlus.ClipboardService = {
   },
 
   /**
-   * Dowloads an image.
-   * @param aImage the image.
-   * @param aFilePath the destination file path.
-   * @param aWin the window.
+   * copies the specified image URL and/or the image contents it represents
+   * to the clipboard.
    */
-  copyImageToClipboard : function(image) {
-    this._logger.debug("copyImageToClipboard");
+  copyImageToClipboard : function(imageURL, copyImage, copyImageURL) {
+  /*
+     It's hard to find documentation about how to copy an image to the clipcboard
+     in Firefox.  Here are some helpful links:
+     https://developer.mozilla.org/en-US/docs/Using_the_Clipboard
+     https://forums.mozilla.org/addons/viewtopic.php?p=20877&sid=15a46a06940d3f697ee04dc34766241b (eg using goDoCommand)
+     https://bugzilla.mozilla.org/show_bug.cgi?id=750108#c17
+     http://mxr.mozilla.org/mozilla-central/source/widget/gtk2/nsClipboard.cpp#573
+     http://mxr.mozilla.org/mozilla-central/source/content/base/src/nsCopySupport.cpp#530 (see ImageCopy)
+     http://mxr.mozilla.org/mozilla-central/source/widget/nsITransferable.idl#19
+     http://mxr.mozilla.org/mozilla-central/source/widget/xpwidgets/nsTransferable.cpp (see setTransferData)
+     http://doxygen.db48x.net/mozilla/html/classnsContentUtils.html#a68c806cfbde4041e999c9471ede0d6ee (see getContentFromImage)
+     http://stackoverflow.com/questions/6365550/xul-xpcom-copy-image-from-string-to-clipboard
+     http://mxr.mozilla.org/mozilla-release/source/image/src/imgTools.cpp
+     http://mxr.mozilla.org/mozilla-release/source/image/src/RasterImage.cpp
+     http://mxr.mozilla.org/mozilla-central/source/widget/cocoa/nsClipboard.mm
+     https://github.com/ehsan/mozilla-history/blob/master/content/base/src/nsContentUtils.cpp
+   */
+    this._logger.debug("copyImageToClipboard: " + imageURL + ", copyImage=" + copyImage + 
+                       ", copyImageURL=" + copyImageURL);
     
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=750108#c17
-    var imagedata = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1JREFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jqch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0vr4MkhoXe0rZigAAAABJRU5ErkJggg==';
+    // var imagedata = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1JREFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jqch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0vr4MkhoXe0rZigAAAABJRU5ErkJggg==';
+    var ioSvc     = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+    var trans     = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+    if (copyImage) {
+      /**
+       * Put the image on the clipboard
+       */
+      var imgToolsSvc = Components.classes["@mozilla.org/image/tools;1"].getService(Components.interfaces.imgITools);
+      var channel     = ioSvc.newChannel(imageURL, null, null);
+      var input       = channel.open();
+      
+      var detectedType = channel.contentType;
+      if (detectedType == "image/jpeg") {
+        // Firefox seems to tag jpg images as image/jpeg, but clients such as
+        // Photoshop (OSX) and Thunderbird (OSX) don't seem to accept image/jpeg,
+        // but they do accept image/jpg, so use that instead.
+        detectedType = "image/jpg";
+      }
+      
+      /*
+         jpeg test results:
+         
+           decodeImageData=image/jpeg, addDataFlavor=image/jpg:  works but large
+           decodeImageData=image/jpeg, addDataFlavor=image/jpeg: ff won't paste
+           decodeImageData=image/jpg,  addDataFlavor=image/jpeg: ff won't paste
+           decodeImageData=image/jpg,  addDataFlavor=image/jpg: 
+      */
+      /*
+       * Sites don't always tag imags with the correct mime type, so we 
+       * try first the claimed type but if that fails to convert we try other
+       * image types.
+       */
+      var mimes = [detectedType, "image/gif", "image/png", "image/jpg"];
+      
+      for (var i = 0; i < mimes.length; i++) {
+        channel.contentType = mimes[i];
+        if (i > 0 && channel.contentType == mimes[0]) {
+          // already tried this one.
+          continue;
+        }
+        if (channel.contentType == "text/html" || channel.contentType == "text/plain") {
+          // the mimie type was mistagged, and couldn't possibly parse into an image with
+          // that type.  Skip it.
+          continue;
+        }
+        this._logger.debug("copyImageToClipboard: channel=" + 
+                           channel + "; channel.contentType=" + channel.contentType);
+        
+        var container  = {};
+        try {
+          imgToolsSvc.decodeImageData(input, channel.contentType, container);
+          this._logger.debug("copyImageToClipboard: succeeded with type " + channel.contentType);
+          break;
+        } catch (e) {
+          // We can get an exception if the mime type is wrong.
+          this._logger.debug("copyImageToClipboard: caught exception: " + e);
+        }
+        
+        // We need to re-read the image to try a different mimetype.  Close the
+        // stream and re-open the channel to get a new stream.
+        input.close();
+        channel = ioSvc.newChannel(imageURL, null, null);
+        input = channel.open();
+      }
+      
+      this._logger.debug("copyImageToClipboard: container=" + container +
+                         "; container.value=" + container.value +
+                         "; contentLength=" + channel.contentLength);
 
-    var ioSvc       = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    var channel     = ioSvc.newChannel(imagedata, null, null);
-    var input       = channel.open();
-    var imgToolsSvc = Components.classes["@mozilla.org/image/tools;1"].getService(Components.interfaces.imgITools);
-
-    var container  = {};
-    imgToolsSvc.decodeImageData(input, channel.contentType, container);
+      if (! container.value) {
+        return;
+      }
+      
+      var wrapped = Components.classes["@mozilla.org/supports-interface-pointer;1"].createInstance(Components.interfaces.nsISupportsInterfacePointer);
+      wrapped.data = container.value;
+      
+      this._logger.debug("copyImageToClipboard: wrapped=" + wrapped);
+      
+      var flavor = channel.contentType;
+      // flavor = "image/jpg";
+      // flavor = "application/x-moz-nativeimage";
+      trans.addDataFlavor(flavor);
+      trans.setTransferData(flavor, wrapped, channel.contentLength);
+    }
     
-    var wrapped = Components.classes["@mozilla.org/supports-interface-pointer;1"].createInstance(Components.interfaces.nsISupportsInterfacePointer);
-    wrapped.data = container.value;
-    
-    var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
-    trans.addDataFlavor(channel.contentType);
-    trans.setTransferData(channel.contentType, wrapped, -1);
-    
+    if (copyImageURL) {
+      /*
+       * Put the URL on the clipboard (second priority result, for
+       * clients which can't accept an image).
+       */
+      var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+      if (str) {
+        
+        str.data = imageURL;
+        
+        trans.addDataFlavor("text/unicode");
+        trans.setTransferData("text/unicode", str, imageURL.length * 2);
+      }      
+    }
     var clipid = Components.interfaces.nsIClipboard;
     var clip   = Components.classes["@mozilla.org/widget/clipboard;1"].getService(clipid);
     clip.setData(trans, null, clipid.kGlobalClipboard);
-    
-/*
-    var copytext = "Text to copy";
-    
-    var str = Cc["@mozilla.org/supports-string;1"].
-    createInstance(Ci.nsISupportsString);
-    if (!str) return false;
-    
-    str.data = copytext;
-    
-    var trans = Cc["@mozilla.org/widget/transferable;1"].
-    createInstance(Ci.nsITransferable);
-    if (!trans) return false;
-    
-    trans.addDataFlavor("text/unicode");
-    trans.setTransferData("text/unicode", str, copytext.length * 2);
-    
-    var clipid = Ci.nsIClipboard;
-    var clip = Cc["@mozilla.org/widget/clipboard;1"].getService(clipid);
-    if (!clip) return false;
-    
-    clip.setData(trans, null, clipid.kGlobalClipboard);
-*/
   }
   
 };

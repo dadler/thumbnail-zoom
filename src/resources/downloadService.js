@@ -89,7 +89,8 @@ ThumbnailZoomPlus.DownloadService = {
     canvas.width = aImage.width;
     canvas.height = aImage.height;
     canvasCtx.drawImage(aImage, 0, 0);
-    data = canvas.toDataURL("image/png", "");
+    var jpegQuality = 0.95;
+    data = canvas.toDataURL("image/png", jpegQuality);
 
     this._convertToPngAndSaveImage(data, file);
   },

@@ -2086,12 +2086,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._redisplayPopup();
     }
     
-    if (aEvent.keyCode == aEvent.DOM_VK_C && 
-        (aEvent.metaKey || aEvent.ctrlKey) ) {
-      this._logger.debug("_doHandleKeyDown: copy to clipboard");
-      this.copyToClipboard();
-    }
-
     if (aEvent.metaKey || aEvent.ctrlKey) {
       // we don't interpret most Command+ or Ctrl+ keys as hotkeys.
       return false;
@@ -2103,9 +2097,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
+      this._logger.debug("_doHandleKeyDown: copy image to clipboard");
+      this._copyToClipboard(true, false);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_L) {
+      this._logger.debug("_doHandleKeyDown: copy image location to clipboard");
+      this._copyToClipboard(false, true);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_I) {
       // toggle caption
       let allowCaption = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_CAPTION);
-      this._logger.debug("_doHandleKeyDown: toggle caption to " + allowCaption +
+      this._logger.debug("_doHandleKeyDown: toggle caption-info to " + allowCaption +
                          " since pressed c key");      
       // redisplay to update displayed caption.
       if (this._currentThumb) {
@@ -3473,14 +3475,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     return fname;
   },
   
-  copyToClipboard : function() {
+  _copyToClipboard : function(copyImage, copyImageURL) {
     this._logger.trace("copyToClipboard");
 
     if (null == this._currentImage) {
       this._logger.debug("copyToClipboard: no _currentImage");
       return;
     }
-    ThumbnailZoomPlus.ClipboardService.copyImageToClipboard(this._currentImage);
+    ThumbnailZoomPlus.ClipboardService
+        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
   },
   
   /**
