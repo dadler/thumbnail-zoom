@@ -398,7 +398,8 @@ ThumbnailZoomPlus.Pages.Amazon = {
   // Product images seem to come from exc.images-amazon.com.  Static graphics
   // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com,
   // or have /buttons/ or /gui/ in their URL.
-  imageRegExp: /^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui)\/).*/,
+  // See similar rule at start of Thumbnails rule.
+  imageRegExp: /^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui|ontv)\/).*/,
 
   getZoomImage : function(aImageSrc, node, flags) {
     let ex = /\._[a-z0-9].+_\./i;
@@ -1320,7 +1321,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
                           + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
-                          + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
+                          + "|((.*\\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui|ontv)/)" // amazon buttons; see also Amazon rule.
                           + "|(//[^/]*tiles\\.virtualearth\\.net/.*)" // bing.com/maps tiles
                           + "|(//[^/]*.maps.live.com/i/.*)" // bing.com/maps directions pin
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
