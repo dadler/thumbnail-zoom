@@ -3483,7 +3483,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     ThumbnailZoomPlus.ClipboardService
-        .copyImageToClipboard(window, this._currentImage, copyImage, copyImageURL);
+        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
   },
   
   /**

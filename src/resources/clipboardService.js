@@ -43,9 +43,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 ThumbnailZoomPlus.ClipboardService = {
   /* Logger for this object. */
   _logger : null,
-  
-  _imageBeingCopied : null,
-  
+    
   /**
    * Initializes the resource.
    */
@@ -53,33 +51,16 @@ ThumbnailZoomPlus.ClipboardService = {
     this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.ClipboardService");
     this._logger.trace("_init");
   },
-
-  _goDoCommand : function(doc, aCommand) {
-    // copied from chrome://global/content/globalOverlay.js
-    try {
-      var controller = doc.commandDispatcher
-        .getControllerForCommand(aCommand);
-      if (controller && controller.isCommandEnabled(aCommand))
-        controller.doCommand(aCommand);
-    }
-    catch (e) {
-      Components.utils.reportError("An error occurred executing the " +
-                                   aCommand + " command: " + e);
-      this._logger.debug("Error running comand " + aCommand + ": " + e);
-    }
-  },
   
   /**
    * copies the specified image URL and/or the image contents it represents
    * to the clipboard.
-   * win is an XUL window (not the html window).
    */
-  copyImageToClipboard : function(win, imageURL, copyImage, copyImageURL) {
+  copyImageToClipboard : function(imageURL, copyImage, copyImageURL) {
   /*
      It's hard to find documentation about how to copy an image to the clipcboard
      in Firefox.  Here are some helpful links:
      https://developer.mozilla.org/en-US/docs/Using_the_Clipboard
-     https://forums.mozilla.org/addons/viewtopic.php?p=20877&sid=15a46a06940d3f697ee04dc34766241b (eg using goDoCommand)
      https://bugzilla.mozilla.org/show_bug.cgi?id=750108#c17
      http://mxr.mozilla.org/mozilla-central/source/widget/gtk2/nsClipboard.cpp#573
      http://mxr.mozilla.org/mozilla-central/source/content/base/src/nsCopySupport.cpp#530 (see ImageCopy)
@@ -91,6 +72,7 @@ ThumbnailZoomPlus.ClipboardService = {
      http://mxr.mozilla.org/mozilla-release/source/image/src/RasterImage.cpp
      http://mxr.mozilla.org/mozilla-central/source/widget/cocoa/nsClipboard.mm
      https://github.com/ehsan/mozilla-history/blob/master/content/base/src/nsContentUtils.cpp
+     https://forums.mozilla.org/addons/viewtopic.php?p=20877&sid=15a46a06940d3f697ee04dc34766241b (eg using goDoCommand)
    */
     this._logger.debug("copyImageToClipboard: " + imageURL + ", copyImage=" + copyImage + 
                        ", copyImageURL=" + copyImageURL);
@@ -99,41 +81,8 @@ ThumbnailZoomPlus.ClipboardService = {
     var ioSvc     = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     var trans     = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
     if (copyImage) {
-    
-      if (false) {
-        // Alternate approach, but which doesn't let us include html favor.
-        
-        // this._imageBeingCopied = win.document.createElement("image");
-        // this._imageBeingCopied = new win.Image();
-        this._imageBeingCopied = win.document.createElementNS("http://www.w3.org/1999/xhtml", "img");
-        let that = this;
-        this._imageBeingCopied.onload = function() {
-          that._logger.debug("copyImageToClipboard onload: copying to clipboard");
-          var node = win.document.popupNode;
-          that._logger.debug("copyImageToClipboard onload 2: copying to clipboard");
-          win.document.popupNode = that._imageBeingCopied;
-          that._logger.debug("copyImageToClipboard onload 3: copying to clipboard.");
-          that._goDoCommand(win.document, "cmd_copyImage");
-          that._logger.debug("copyImageToClipboard onload 4: copying to clipboard");
-          win.document.popupNode = node;
-          that._logger.debug("copyImageToClipboard onload: copied to clipboard");
-          that._imageBeingCopied = null;
-        };
-        this._imageBeingCopied.onerror = function() {
-          that._logger.debug("copyImageToClipboard onerror");
-          that._imageBeingCopied = null;
-        }
-        
-        this._imageBeingCopied.src = imageURL;
-        this._logger.debug("copyImageToClipboard: submitted to image for load and then copy; image=" + this._imageBeingCopied);
-        
-        return;
-      }
-    
-    
-    
       /**
-       * Put the image on the clipboard
+       * Put the image itself on the clipboard
        */
       var imgToolsSvc = Components.classes["@mozilla.org/image/tools;1"].getService(Components.interfaces.imgITools);
       var channel     = ioSvc.newChannel(imageURL, null, null);
@@ -193,7 +142,8 @@ ThumbnailZoomPlus.ClipboardService = {
         return;
       }
       
-      var wrapped = Components.classes["@mozilla.org/supports-interface-pointer;1"].createInstance(Components.interfaces.nsISupportsInterfacePointer);
+      var wrapped = Components.classes["@mozilla.org/supports-interface-pointer;1"]
+                      .createInstance(Components.interfaces.nsISupportsInterfacePointer);
       wrapped.data = container.value;
       
       this._logger.debug("copyImageToClipboard: wrapped=" + wrapped);
@@ -214,7 +164,6 @@ ThumbnailZoomPlus.ClipboardService = {
        */
       var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
       if (str) {
-        
         str.data = "<img src=\"" + imageURL + "\" />";
         trans.addDataFlavor("text/html");
         trans.setTransferData("text/html", str, str.data.length * 2);
