@@ -1310,13 +1310,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // We basically match any image, but exclude some which are annoying to
   // show.   
   // Expression Tips:
-  // Patterns in () must match starting from first slash (or earlier)
+  // Patterns in () must (?) match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp("^(?![^/]*("
                           + "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
                           + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images, google drive file type icons
+                          + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
                           + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
                           + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
