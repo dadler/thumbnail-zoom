@@ -44,6 +44,8 @@ ThumbnailZoomPlus.ClipboardService = {
   /* Logger for this object. */
   _logger : null,
   
+  _imageBeingCopied : null,
+  
   /**
    * Initializes the resource.
    */
@@ -52,11 +54,27 @@ ThumbnailZoomPlus.ClipboardService = {
     this._logger.trace("_init");
   },
 
+  _goDoCommand : function(doc, aCommand) {
+    // copied from chrome://global/content/globalOverlay.js
+    try {
+      var controller = doc.commandDispatcher
+        .getControllerForCommand(aCommand);
+      if (controller && controller.isCommandEnabled(aCommand))
+        controller.doCommand(aCommand);
+    }
+    catch (e) {
+      Components.utils.reportError("An error occurred executing the " +
+                                   aCommand + " command: " + e);
+      this._logger.debug("Error running comand " + aCommand + ": " + e);
+    }
+  },
+  
   /**
    * copies the specified image URL and/or the image contents it represents
    * to the clipboard.
+   * win is an XUL window (not the html window).
    */
-  copyImageToClipboard : function(imageURL, copyImage, copyImageURL) {
+  copyImageToClipboard : function(win, imageURL, copyImage, copyImageURL) {
   /*
      It's hard to find documentation about how to copy an image to the clipcboard
      in Firefox.  Here are some helpful links:
@@ -81,6 +99,39 @@ ThumbnailZoomPlus.ClipboardService = {
     var ioSvc     = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     var trans     = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
     if (copyImage) {
+    
+      if (false) {
+        // Alternate approach, but which doesn't let us include html favor.
+        
+        // this._imageBeingCopied = win.document.createElement("image");
+        // this._imageBeingCopied = new win.Image();
+        this._imageBeingCopied = win.document.createElementNS("http://www.w3.org/1999/xhtml", "img");
+        let that = this;
+        this._imageBeingCopied.onload = function() {
+          that._logger.debug("copyImageToClipboard onload: copying to clipboard");
+          var node = win.document.popupNode;
+          that._logger.debug("copyImageToClipboard onload 2: copying to clipboard");
+          win.document.popupNode = that._imageBeingCopied;
+          that._logger.debug("copyImageToClipboard onload 3: copying to clipboard.");
+          that._goDoCommand(win.document, "cmd_copyImage");
+          that._logger.debug("copyImageToClipboard onload 4: copying to clipboard");
+          win.document.popupNode = node;
+          that._logger.debug("copyImageToClipboard onload: copied to clipboard");
+          that._imageBeingCopied = null;
+        };
+        this._imageBeingCopied.onerror = function() {
+          that._logger.debug("copyImageToClipboard onerror");
+          that._imageBeingCopied = null;
+        }
+        
+        this._imageBeingCopied.src = imageURL;
+        this._logger.debug("copyImageToClipboard: submitted to image for load and then copy; image=" + this._imageBeingCopied);
+        
+        return;
+      }
+    
+    
+    
       /**
        * Put the image on the clipboard
        */
@@ -92,18 +143,10 @@ ThumbnailZoomPlus.ClipboardService = {
       if (detectedType == "image/jpeg") {
         // Firefox seems to tag jpg images as image/jpeg, but clients such as
         // Photoshop (OSX) and Thunderbird (OSX) don't seem to accept image/jpeg,
-        // but they do accept image/jpg, so use that instead.
+        // but they do accept image/jpg in he transferable's flavor, so use jpg instead.
         detectedType = "image/jpg";
       }
       
-      /*
-         jpeg test results:
-         
-           decodeImageData=image/jpeg, addDataFlavor=image/jpg:  works but large
-           decodeImageData=image/jpeg, addDataFlavor=image/jpeg: ff won't paste
-           decodeImageData=image/jpg,  addDataFlavor=image/jpeg: ff won't paste
-           decodeImageData=image/jpg,  addDataFlavor=image/jpg: 
-      */
       /*
        * Sites don't always tag imags with the correct mime type, so we 
        * try first the claimed type but if that fails to convert we try other
@@ -156,16 +199,32 @@ ThumbnailZoomPlus.ClipboardService = {
       this._logger.debug("copyImageToClipboard: wrapped=" + wrapped);
       
       var flavor = channel.contentType;
-      // flavor = "image/jpg";
-      // flavor = "application/x-moz-nativeimage";
       trans.addDataFlavor(flavor);
       trans.setTransferData(flavor, wrapped, channel.contentLength);
+      
+      /*
+       * Also put the image's html <img> tag on the clipboard.  This is 
+       * important (at least on OSX): if we copy just jpg image data,
+       * programs like Photoshop and Thunderbird seem to receive it as
+       * uncompressed png data, which is very large, bloating emails and
+       * causing randomly truncated data.  But if we also include a
+       * text/html flavor referring to the jpg image on the Internet, 
+       * those programs retrieve the image directly as the original jpg
+       * data, so there is no data bloat.
+       */
+      var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+      if (str) {
+        
+        str.data = "<img src=\"" + imageURL + "\" />";
+        trans.addDataFlavor("text/html");
+        trans.setTransferData("text/html", str, str.data.length * 2);
+      }      
+
     }
     
     if (copyImageURL) {
       /*
-       * Put the URL on the clipboard (second priority result, for
-       * clients which can't accept an image).
+       * Put the URL on the clipboard as plain text.
        */
       var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
       if (str) {
@@ -173,7 +232,7 @@ ThumbnailZoomPlus.ClipboardService = {
         str.data = imageURL;
         
         trans.addDataFlavor("text/unicode");
-        trans.setTransferData("text/unicode", str, imageURL.length * 2);
+        trans.setTransferData("text/unicode", str, str.data.length * 2);
       }      
     }
     var clipid = Components.interfaces.nsIClipboard;
