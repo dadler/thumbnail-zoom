@@ -412,7 +412,8 @@ ThumbnailZoomPlus.Pages.Amazon = {
   // Product images seem to come from exc.images-amazon.com.  Static graphics
   // like banners, "Prime" buttons, etc. seem to come from g-exc.images-amazon.com,
   // or have /buttons/ or /gui/ in their URL.
-  imageRegExp: /^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui)\/).*/,
+  // See similar rule at start of Thumbnails rule.
+  imageRegExp: /^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui|ontv)\/).*/,
 
   getZoomImage : function(aImageSrc, node, flags) {
     let ex = /\._[a-z0-9].+_\./i;
@@ -1743,16 +1744,17 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   // We basically match any image, but exclude some which are annoying to
   // show.   
   // Expression Tips:
-  // Patterns in () must match starting from first slash (or earlier)
+  // Patterns in () must (?) match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp("^(?![^/]*("
                           + "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
                           + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images, google drive file type icons
+                          + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
                           + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
-                          + "|((.*\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui)/)" // amazon buttons
+                          + "|((.*\\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui|ontv)/)" // amazon buttons; see also Amazon rule.
                           + "|(//[^/]*tiles\\.virtualearth\\.net/.*)" // bing.com/maps tiles
                           + "|(//[^/]*.maps.live.com/i/.*)" // bing.com/maps directions pin
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
