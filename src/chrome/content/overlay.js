@@ -34,6 +34,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
 Cu.import("resource://thumbnailzoomplus/downloadService.js");
+Cu.import("resource://thumbnailzoomplus/clipboardService.js");
 Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 
 /**
@@ -2216,7 +2217,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (aEvent.metaKey || aEvent.ctrlKey) {
-      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      // we don't interpret most Command+ or Ctrl+ keys as hotkeys.
       return false;
     }
 
@@ -2226,9 +2227,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
+      this._logger.debug("_doHandleKeyDown: copy image to clipboard");
+      this._copyToClipboard(true, false);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_L) {
+      this._logger.debug("_doHandleKeyDown: copy image location to clipboard");
+      this._copyToClipboard(false, true);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_I) {
       // toggle caption
       let allowCaption = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_CAPTION);
-      this._logger.debug("_doHandleKeyDown: toggle caption to " + allowCaption +
+      this._logger.debug("_doHandleKeyDown: toggle caption-info to " + allowCaption +
                          " since pressed c key");      
       // redisplay to update displayed caption.
       if (this._currentThumb) {
@@ -3665,6 +3674,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     fname = fname.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
 
     return fname;
+  },
+  
+  _copyToClipboard : function(copyImage, copyImageURL) {
+    this._logger.trace("copyToClipboard");
+
+    if (null == this._currentImage) {
+      this._logger.debug("copyToClipboard: no _currentImage");
+      return;
+    }
+    ThumbnailZoomPlus.ClipboardService
+        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
   },
   
   /**
