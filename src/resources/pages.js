@@ -653,15 +653,26 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   // http://th06.deviantart.net/images/i/2003/47/c/5/aaa.jpg
   // Also
   // http://th06.deviantart.net/fs70/300W/f/2011/279/a/e/aaa.jpg
-  //
+  // and
+  // http://th04.deviantart.net/fs70/200H/f/2012/075/3/a/bake_a_cake_by_krisada-d4sz00q.jpg
   // Note: doesn't currently work for gifs since multiple parts of their URLS change and
   // I don't know how to predict that, e.g.
   //   http://fc06.deviantart.net/fs70/i/2011/331/1/4/charmander_the_stray_by_brittanytucker-d4hijn7.gif to
   //   http://fc04.deviantart.net/fs70/f/2011/331/b/3/charmander_the_stray_by_brittanytucker-d4hijn7.gif
+  // And note that the hover might be on the img or on a span which follows the img.
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
   imageRegExp: /(th[0-9]+|[as])\.deviantart\.(net|com)\/.*\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/,
+
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    let image = aNode;
+    if ("span" == aNodeName  && /tt-bb[hw]/.test(aNodeClass) && aNode.previousSibling) {
+      image = aNode.previousSibling;
+    }
+    return image;
+  },
+
   getZoomImage : function(aImageSrc, node, flags) {
     let picRex = new RegExp(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1") : 
