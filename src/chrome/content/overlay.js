@@ -405,10 +405,11 @@ ThumbnailZoomPlusChrome.Overlay = {
 
 
   /**
-   * Adds the event listeners.
+   * Adds the event listeners for the window (i.e. for all tabs/documents 
+   * in a Firefox window).
    */
   _addEventListeners : function() {
-    this._logger.trace("_addEventListeners");
+    this._logger.trace("_addEventListeners for document=" + window.document);
 
     let that = this;
 
@@ -441,12 +442,14 @@ ThumbnailZoomPlusChrome.Overlay = {
      */
     for (let i=0; i < gBrowser.browsers.length; i++) {
       this._logger.debug("_addEventListeners: " +
-                         " pre-existing doc #" + i + ": " + gBrowser.getBrowserAtIndex(i).contentDocument);
+                         " adding for pre-existing doc #" + i + ": " + 
+                         gBrowser.getBrowserAtIndex(i).contentDocument +
+                         " " + gBrowser.getBrowserAtIndex(i).contentDocument.documentURI);
       this._addEventListenersToDoc(gBrowser.getBrowserAtIndex(i).contentDocument);
     }
   },
 
-  _popupTakesFocus : function(aImageNode) {
+  _popupTakesFocus : function() {
     if (this._firefoxVersion < 4) {
       // PopupTakesFocus doesn't work in Firefox 3.6 (it doesn't
       // allow keyboard shortcuts to work).
@@ -524,7 +527,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      * since text may be destined for a field like Facebook's Search.
      */
     let useCapture = false;
-    if (this._popupTakesFocus(aImageNode)) {
+    if (this._popupTakesFocus()) {
       var keyReceiver = this._panel;
       this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
     } else {
@@ -561,9 +564,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     receivers.forEach(function(keyReceiver) {
         that._logger.debug("_removeListenersWhenPopupHidden: removing from " + keyReceiver);
-        keyReceiver.removeEventListener("keydown", this._handleKeyDown, false);
-        keyReceiver.removeEventListener("keyup", this._handleKeyUp, false);
-        keyReceiver.removeEventListener("keypress", this._handleKeyPress, false);
+        keyReceiver.removeEventListener("keydown", that._handleKeyDown, false);
+        keyReceiver.removeEventListener("keyup", that._handleKeyUp, false);
+        keyReceiver.removeEventListener("keypress", that._handleKeyPress, false);
       }, that);
     
     that._panelFocusHost.removeEventListener("blur", that._losingPopupFocus, false);
@@ -650,7 +653,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // since "this" belongs to the window.  That causes complications, like the
   // popup appearing in the old window when a tab is dragged to a new window.
   _addEventListenersToDoc: function(doc) {
-    this._logger.trace("_addEventListenersToDoc");
+    this._logger.trace("_addEventListenersToDoc " + doc.documentElement);
 
     this._clearIgnoreBBox();
 
@@ -1162,7 +1165,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("___________________________");
     that._logger.debug("_losingPopupFocus; closing popup.");
 
-    if (! that._popupTakesFocus(that._currentThumb)) {
+    if (! that._popupTakesFocus()) {
       return;
     }
 
@@ -1964,12 +1967,49 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel(false);
   },
   
+ _asciiName : function(code) {
+    var name = "";
+    if (code >= 32 && code < 127) {
+      name += "'" + String.fromCharCode(code) + "'=";
+    }
+    name += code;
+    return name;
+ },
+ 
+ /**
+  * _keyName() returns a string indicating the keyboard key of a keyboard event
+  * for debugging.  For special keys which don't show ascii in the log you 
+  * can look up the codes here: 
+  * https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent
+  */
+  _keyName : function(aEvent) {
+    var name = ("keyCode=" + this._asciiName(aEvent.keyCode) + "; " +
+                "charCode=" + this._asciiName(aEvent.charCode) + "; " +
+                "which=" + this._asciiName(aEvent.which) );
+    if (aEvent.ctrlKey) {
+      name += " +Ctrl";
+    }
+    if (aEvent.altKey) {
+      name += " +Alt";
+    }
+    if (aEvent.shiftKey) {
+      name + " +Shift";
+    }
+    if (aEvent.metaKey) {
+      name += " +Meta";
+    }
+    return name;
+  },
+  
   _recognizedKey : function(aEvent) {
     if (aEvent.metaKey || aEvent.ctrlKey) {
       // we don't interpret Command+ or Ctrl+ keys as hotkeys.
       return false;
     }
-    return (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
+    return (aEvent.keyCode == aEvent.DOM_VK_CONTROL ||
+            aEvent.keyCode == aEvent.DOM_VK_SHIFT ||
+            aEvent.keyCode == aEvent.DOM_VK_ALT ||
+            aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
             aEvent.keyCode == aEvent.DOM_VK_ADD || // "=" on Windows XP
             aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
             aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS || // Firefox 15.0 and newer
@@ -1994,6 +2034,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Command+Shift+F full-screen).
       return false;
     }
+    if (! this._popupTakesFocus()) {
+      // If the popup doesn't take focus, the page still has focus and the
+      // event will automatically get to the page.  So we don't need to
+      // explicitly pass it.  If we did, we could cause event cycling.
+      return;
+    }
+
+    this._debugToConsole("_passKeyEventToPage for " + this._keyName(aEvent));    
 
     if (aEvent.keyCode == aEvent.DOM_VK_DOWN ||
         aEvent.keyCode == aEvent.DOM_VK_UP) {
@@ -2008,6 +2056,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._currentWindow.scrollBy(delta, 0);
       }
     } else {
+    
       // Send synthetic event to the web page itself.
       // This allows e.g. Return to follow the link.
       // Note that it doesn't allow scrolling to work; perhaps
@@ -2033,51 +2082,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-  /**
-   * _offsetUrl returns an image's url with an appropriate numeric part
-   * offset by adding delta (typically -1 or +1).  Returns the adjusted url or
-   * null if it couldn't find an appropriate numeric part.
-   * Example:
-   *   On page http://my.opera.com/Milano1/albums/showpic.dml?album=7138392&picture=107119352 image
-   *   http://files.myopera.com/Milano1/albums/7138392/11.jpg with offset=1 becomes 
-   *   http://files.myopera.com/Milano1/albums/7138392/12.jpg
-   */
-  _offsetUrl : function(url, delta) {
-    this._logger.debug("_offsetURL: from " + url);
-    let re = /(.*?)([0-9]+)([^\/0-9]*)$/;
-    let match = re.exec(url);
-    if (match) {
-      this._logger.debug("_offsetURL: match=" + match[1] + ", " + match[2] + ", " + match[3]);
-    }
-    let newUrl = url.replace(re, function(matchPart, prefix, num, suffix) {
-                      let adj = String((+num) + delta);
-                      if (num[0] == "0" && 
-                          num.length > adj.length) {
-                        // original image has 0-pading; pad to the same length.
-                        // Note that when decrementing eg down from 10 we don't
-                        // know whether or not to pad (to 9 or 09) so we don't pad.
-                        adj = "0000000000".substring(0, num.length - adj.length) + adj;
-                      }
-                      let result = prefix + adj + suffix
-                      return result;
-                    });
-    if (newUrl == url) {
-      return null;
-    }
-    this._logger.debug("_offsetURL: got " + newUrl);
-    return newUrl;
-  },
-  
   _handleKeyDown : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._doHandleKeyDown(aEvent);
   },
   
   _doHandleKeyDown : function(aEvent) {
-    this._logger.debug("_doHandleKeyDown for keyCode="  + aEvent.keyCode +
-                       "(charCode=" + aEvent.charCode + "; which=" +
-                       aEvent.which + ")");
-    
+    this._debugToConsole("_doHandleKeyDown for " + this._keyName(aEvent));    
     if (this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, false, aEvent)) {
       this._logger.debug("_doHandleKeyDown: maximize image since max-key is down");
       this._currentMaxScaleBy = Math.max(this._currentMaxScaleBy, this._maximizingMaxScaleBy);
@@ -2212,7 +2223,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handleKeyUp : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeyUp for code "  + aEvent.keyCode );
+    that._debugToConsole("_handleKeyUp for " + that._keyName(aEvent));    
 
     // Handle Escape or x to cancel popup in key-up.  We couldn't do it in
     // key-down because key-down would then unregister key listeners,
@@ -2236,15 +2247,15 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handleKeyPress : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("_handleKeyPress for "  + aEvent.keyCode );
-    
+    that._debugToConsole("_handleKeyPress for " + that._keyName(aEvent));    
+
     if (that._recognizedKey(aEvent)) {
       // Ignore this key.  
       that._logger.debug("_handleKeyPress: ignoring key event");
       aEvent.stopPropagation(); // the web page should ignore the key.
       aEvent.preventDefault();
     } else {
-      // Unlike the other key events keyPress gets
+      // Unlike the other key events, keyPress gets
       // code 0 when regular letters are entered, so
       // we ignore them by checking for 0 (so we don't eg enter them
       // into a gmail compose window).
@@ -2282,6 +2293,41 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.trace("_handleHashChange");
     that._debugToConsole("_handleHashChange: _closePanel(true)");
     that._closePanel(true);
+  },
+  
+  /**
+   * _offsetUrl returns an image's url with an appropriate numeric part
+   * offset by adding delta (typically -1 or +1).  Returns the adjusted url or
+   * null if it couldn't find an appropriate numeric part.
+   * Example:
+   *   On page http://my.opera.com/Milano1/albums/showpic.dml?album=7138392&picture=107119352 image
+   *   http://files.myopera.com/Milano1/albums/7138392/11.jpg with offset=1 becomes 
+   *   http://files.myopera.com/Milano1/albums/7138392/12.jpg
+   */
+  _offsetUrl : function(url, delta) {
+    this._logger.debug("_offsetURL: from " + url);
+    let re = /(.*?)([0-9]+)([^\/0-9]*)$/;
+    let match = re.exec(url);
+    if (match) {
+      this._logger.debug("_offsetURL: match=" + match[1] + ", " + match[2] + ", " + match[3]);
+    }
+    let newUrl = url.replace(re, function(matchPart, prefix, num, suffix) {
+                      let adj = String((+num) + delta);
+                      if (num[0] == "0" && 
+                          num.length > adj.length) {
+                        // original image has 0-pading; pad to the same length.
+                        // Note that when decrementing eg down from 10 we don't
+                        // know whether or not to pad (to 9 or 09) so we don't pad.
+                        adj = "0000000000".substring(0, num.length - adj.length) + adj;
+                      }
+                      let result = prefix + adj + suffix
+                      return result;
+                    });
+    if (newUrl == url) {
+      return null;
+    }
+    this._logger.debug("_offsetURL: got " + newUrl);
+    return newUrl;
   },
   
   _showStatusIcon : function(aImageNode, iconName, iconWidth) {
@@ -2760,7 +2806,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we get a key event at all.
    */
   _focusThePopup : function(aImageNode) {
-    if (! this._popupTakesFocus(aImageNode)) {
+    if (! this._popupTakesFocus()) {
       return;
     }
     if (! this._allowPopupTakesFocusForNode(aImageNode)) {
@@ -3681,6 +3727,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _debugToConsole : function(msg) {
+    this._logger.debug("### CONSOLE: " + msg);
     if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
       this._logToConsole(msg);
     }
