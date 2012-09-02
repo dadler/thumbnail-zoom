@@ -1481,7 +1481,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_getZoomImageCompletion: no defaultView");
       return "";
     }
-    this._currentWindow = aDocument.defaultView.top;
     this._originalURI = this._currentWindow.document.documentURI;
     this._logger.debug("_getZoomImageCompletion: *** Setting _originalURI=" + 
                        this._originalURI);
@@ -1500,6 +1499,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+    // record the current window in case we want to show a status icon for it.
+    this._currentWindow = aDocument.defaultView.top;
     let completionGenerator = this._findPageAndShowImageGen(aDocument, aEvent, aPage, node);
     completionGenerator.next(); 
     try {
@@ -1517,13 +1518,13 @@ ThumbnailZoomPlusChrome.Overlay = {
    *
    * The initial call doesn't do anything except return a generator object.
    * Then call next() and send(generator) to initialize it; the generator
-   * is the return from the function call (the generator itself).
+   * is the return from the _findPageAndShowImageGen function call (the generator itself).
    *
    * That first send() call also causes the function to do all its work,
    * though potentially asynchronously (i.e. after it returns).  A given
    * send() call resumes the function from the point of one of its yield
    * statements.  The function continues to run and try pages until it
-   * hits an asynchronous (deferred) page, at which point it doesa yield
+   * hits an asynchronous (deferred) page, at which point it does a yield
    * to return to the caller.  When the async function is ready (typically
    * triggered by some other event handler), it'll call the generator's
    * send() method again and the function will resume again from the point
@@ -1594,6 +1595,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node, completionGenerator);
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
+          this._showStatusIcon(node, "working-2dots.png", 16);      
           status = yield;
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
@@ -1623,6 +1625,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
           status = yield;
+          this._showStatusIcon(node, "working-2dots.png", 16);      
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
         this._logger.debug("_findPageAndShowImageGen: got status " + status);
@@ -2023,6 +2026,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._removeListenersWhenPopupHidden();
 
       this._hideCaption();
+      this._panelInfo.hidden = true;
       this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
       this._panelImageDiv.style.backgroundImage = ""; // hide status icon
       this._restoreCursor();
@@ -2565,7 +2569,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // loaded to know its dimensions; but it may appear for a while if the
     // image loads slowly.
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-    this._showStatusIcon(aImageNode, "working.png", 16);      
+    this._showStatusIcon(aImageNode, "working-3dots.png", 16);      
     
     let imageWidth  = image.naturalWidth;
     let imageHeight = image.naturalHeight;
