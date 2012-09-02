@@ -910,17 +910,25 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
         levelsUp = 2;
         querySelectors = [".passiveName", ".actorName"];
+        
       } else if (/title/.test(cls) && "a" == aNode.localName &&
                  /title/.test(aNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit link");
         // go up a level so we include not just the title but also the domain.
         levelsUp = 2;
         querySelectors = [".title"];
+      
       } else if (/thumbs.redditmedia.com/.test(aNode.src) &&
                  /thing/.test(aNode.parentNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit thumb");
         levelsUp = 2;
         querySelectors = [".title"];
+      
+      } else if (/RESImage/.test(cls)) {
+        this._logger.debug("_getEffectiveTitle: recognized reddit thumb RESImage");
+        levelsUp = 3;
+        querySelectors = [".title"];
+      
       } else if (aNode.getAttribute("alt") == "Thumbnail" &&
                  /\.ytimg\.com\/.*\/[a-z]+default\.jpg/.test(aNode.getAttribute("src"))) {
         this._logger.debug("_getEffectiveTitle: recognized youtube");
