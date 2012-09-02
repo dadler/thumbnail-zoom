@@ -95,7 +95,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       See also imageDisallowRegExp.
       
     * imageDisallowRegExp: optional.  Won't run the rule if the URL produced by 
-      getImageNode matches this pattern (even if it matches imageRegExp).
+      getImageNode matches this pattern (even if it matches imageRegExp).  Using
+      this can run faster and be easier to understand than using a negative 
+      look-ahead pattern in imageRegExp.
 
     * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
       Returns the node from which the popup image's link will be generated, or 
@@ -1752,29 +1754,30 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   name: "", // Set in ENTITY_page_thumbnail.
   host: /.*/,
   
+  imageRegExp: new RegExp(".*", "i"),
+  
   // We basically match any image, but exclude some which are annoying to
-  // show.   
-  // Expression Tips:
-  // Patterns in () must (?) match starting from first slash (or earlier)
-  // up to end of entire URL, so typically start with // and end with .* .
-  imageRegExp: new RegExp("^(?![^/]*("
-                          + "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
-                          + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=.*)" // google maps tiles
-                          + "|(//maps\\.google\\.com?[.a-z]*/.*)" // google maps user photo popups, etc.
-                          + "|(//.*\\.gstatic\\.com?[.a-z]*/.*)" // google maps button images, google drive file type icons
+  // show.  Expression Tips:
+  // Patterns in () must match starting from first slash (or earlier), 
+  // so typically start with // .  Remember to use double backslash to quote.
+  imageDisallowRegExp : new RegExp("^[^/]*("
+                          +  "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
+                          + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=)" // google maps tiles
+                          + "|(//maps\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
+                          + "|(//.*\\.gstatic\\.com?[.a-z]*/)" // google maps button images, google drive file type icons
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
-                          + "|(//st\\.deviantart\\.net/.*)" // deviantart logo
+                          + "|(//st\\.deviantart\\.net/)" // deviantart logo
                           + "|((.*\\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui|ontv)/)" // amazon buttons; see also Amazon rule.
-                          + "|(//[^/]*tiles\\.virtualearth\\.net/.*)" // bing.com/maps tiles
-                          + "|(//[^/]*.maps.live.com/i/.*)" // bing.com/maps directions pin
+                          + "|(//[^/]*tiles\\.virtualearth\\.net/)" // bing.com/maps tiles
+                          + "|(//[^/]*.maps.live.com/i/)" // bing.com/maps directions pin
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
                           + "|.*\\$live\\.controls\\.images/" // microsoft outlook.com
                           + "|.*\\.hotmail.com/cal/" // microsoft hotmail/live calendar
                           + "|.*-(word|excel|powerpoint|onenote).*\\.msecnd\\.net/" // microsoft office on skydrive
                           + "|.*\\.wlxrs\\.com/" // microsoft office on skydrive
                           + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
-                          + ")).*", "i"),
+                          + ").*", "i"),
   
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
@@ -1834,6 +1837,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   getZoomImage : function(aImageSrc, node, flags) {
     let verbose = false;
     var before;
+    var match;
     
     let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
@@ -1916,9 +1920,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // eg, change:
     // http://s2.wp.com/imgpress?w=222&url=http%3A%2F%2Fthreehundredsixtysixdaysdotcom.files.wordpress.com%2F2012%2F02%2Fvalentines_me.jpg to
     // http://threehundredsixtysixdaysdotcom.files.wordpress.com/2012/02/valentines_me.jpg
-    let imgurlEx = /.*[\?&](img_?)?url=([^&]+).*$/;
-    if (imgurlEx.test(aImageSrc)) {
-      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
+    let imgurlEx = /[\?&](img_?)?url=([^&]+)/;
+    match = imgurlEx.exec(aImageSrc);
+    if (match) {
+      aImageSrc = match[2];
       aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./i.test(aImageSrc)) {
         ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: adding http:// prefix after finding url=" +
@@ -2283,10 +2288,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://phpthumb.sourceforge.net/demo/phpThumb.php?src=images/animaple.gif&w=25&f=gif&hash=30654d06a0e509eca0d14d08bf2f01d8 becomes
     // http://phpthumb.sourceforge.net/demo/images/animaple.gif
     before = aImageSrc;
-    aImageSrc = aImageSrc.replace(/.*\/phpThumb\.php.*[?&]src=([^&]*).*/i,
-                                  "$1");
-    if (before != aImageSrc) {
-      aImageSrc = decodeURIComponent(aImageSrc);
+    match = /\/phpThumb\.php.*[?&]src=([^&]*)/i.exec(aImageSrc);
+    if (match) {
+      aImageSrc = decodeURIComponent(match[1]);
       aImageSrc = ThumbnailZoomPlus.FilterService._applyThisBaseURI(node.ownerDocument, before, aImageSrc);
     }
     
@@ -2296,8 +2300,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     //
     // http://o1.aolcdn.com/dims-shared/dims3/PATCH/resize/273x203/http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285 becomes
     // http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285
-    aImageSrc = aImageSrc.replace(/.*\/(?:resize|thumbnail)\/[0-9]+x[0-9]+(?:\/crop\/[0-9]+x[0-9]+(?:\+[0-9]+\+[0-9]+)?)?\/(https?:\/\/.*)/,
-                                  "$1");
+    match = /\/(?:resize|thumbnail)\/[0-9]+x[0-9]+(?:\/crop\/[0-9]+x[0-9]+(?:\+[0-9]+\+[0-9]+)?)?\/(https?:\/\/.*)/.exec(aImageSrc);
+    if (match) {
+      aImageSrc = match[1];
+    }
     
     // nytimes.com:
     // http://graphics8.nytimes.com/images/2012/06/22/us/JASPER-3/JASPER-3-articleInline.jpg becomes

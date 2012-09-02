@@ -507,6 +507,7 @@ ThumbnailZoomPlus.FilterService = {
                          "   REJECTED by imageRegExp: " + allowExp);
       return false;
     }
+    this._logger.debug("filterImage: matched imageRegExp");
 
     if (page.imageDisallowRegExp) {
       var disallowExp = new RegExp(page.imageDisallowRegExp);
