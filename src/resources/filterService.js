@@ -354,6 +354,19 @@ ThumbnailZoomPlus.FilterService = {
    * It also has special logic to handle t.co links.
    */
   getUrlFromNode : function(imageNode, preferLinkOverThumb) {
+    let imageSource = this._getUrlFromNodeUnlimited(imageNode, preferLinkOverThumb);
+    if (imageSource && imageSource.length > 1000) {
+      // Very long URLs cause excessive slowness during regular expression checking,
+      // and probably aren't useful URLs anyway, so we ignore them.  
+      // Typically this prevents large
+      // data:/ URLs from slowing Firefox down, e.g. in the "Share" popup dialog
+      // of a Zynga game like "The Ville".
+      return null;
+    }
+    return imageSource;
+  },
+  
+  _getUrlFromNodeUnlimited : function(imageNode, preferLinkOverThumb) {
     let imageSource = null;
     
     if ("img" == imageNode.localName.toLowerCase() && imageNode.hasAttribute("src")) {
