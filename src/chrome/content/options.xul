@@ -77,6 +77,8 @@
         name="extensions.thumbnailzoomplus.panel.maxkey" type="int"/>
       <preference id="thumbnailzoomplus-options-defaultzoom-pref"
         name="extensions.thumbnailzoomplus.panel.defaultzoom" type="int"/>
+      <preference id="thumbnailzoomplus-options-savefilename-pref"
+        name="extensions.thumbnailzoomplus.panel.savefilename" type="string"/>
 
       <!-- site-specific checkboxes -->
       
@@ -159,7 +161,7 @@
           <column />
         </columns>
         <rows>
-          <row>
+          <hbox>
             <checkbox preference="thumbnailzoomplus-options-enable-pref"
                     label="&thumbnailzoomplus.options.enable.checkbox.label;" />
             <spacer flex="1" />
@@ -167,37 +169,40 @@
                     label="&thumbnailzoomplus.options.debug.checkbox.label;" />
             <button label="&thumbnailzoomplus.options.copylog.button.label;" 
                     oncommand="ThumbnailZoomPlusOptions.copyDebugLog()" />
-          </row>
+          </hbox>
+          
           <row align="center">
             <label value="&thumbnailzoomplus.options.delay.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-delay-pref" type="number"
               size="4" maxlength="4" min="0" max="60" width="50"
               decimalplaces="1" increment="0.1" />
           </row>
+          
           <row align="center">
             <label value="&thumbnailzoomplus.options.partialloadwait.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-partialloadwait-pref" type="number"
               size="4" maxlength="4" min="0" max="60" width="50"
               decimalplaces="1" increment="0.1" />
           </row>
+
           <row align="center">
             <label value="&thumbnailzoomplus.options.defaultzoom.selection.label;" />
             <textbox preference="thumbnailzoomplus-options-defaultzoom-pref" type="number"
               size="4" maxlength="8" width="50"
               increment="10" />
           </row>
-          <row align="center">
-            <hbox align="center">
-              <label value="&thumbnailzoomplus.options.key1.selection.label;" />
-              <menulist preference="thumbnailzoomplus-options-key-display-pref"
-                        width="125">
-                <menupopup>
-                  <menuitem value="false" label="&thumbnailzoomplus.options.key.notdisplay.label;" />
-                  <menuitem value="true"  label="&thumbnailzoomplus.options.key.display.label;" />
-                </menupopup>
-              </menulist>
-              <label value="&thumbnailzoomplus.options.key2.selection.label;" />
-            </hbox>
+
+          <hbox align="center">
+            <label value="&thumbnailzoomplus.options.key1.selection.label;" />
+            <menulist preference="thumbnailzoomplus-options-key-display-pref"
+                      width="125">
+              <menupopup>
+                <menuitem value="false" label="&thumbnailzoomplus.options.key.notdisplay.label;" />
+                <menuitem value="true"  label="&thumbnailzoomplus.options.key.display.label;" />
+              </menupopup>
+            </menulist>
+
+            <label value="&thumbnailzoomplus.options.key2.selection.label;" />
             <menulist preference="thumbnailzoomplus-options-activate-key-pref">
               <menupopup>
                 <menuitem value="0"
@@ -207,8 +212,9 @@
                 <menuitem value="3" label="ALT" />
               </menupopup>
             </menulist>
-          </row>
-          <row align="center">
+          </hbox>
+          
+          <hbox align="center">
             <label value="&thumbnailzoomplus.options.maxkey.selection.label;" />
             <menulist preference="thumbnailzoomplus-options-max-key-pref">
               <menupopup>
@@ -217,7 +223,17 @@
                 <menuitem value="3" label="ALT" />
               </menupopup>
             </menulist>
-          </row>
+            <label value="&thumbnailzoomplus.options.savefilename.label;" />
+            <menulist preference="thumbnailzoomplus-options-savefilename-pref">
+              <menupopup>
+                <menuitem value="caption" label="&thumbnailzoomplus.options.savefilename.item.caption.label;" />
+                <menuitem value="web" label="&thumbnailzoomplus.options.savefilename.item.web.label;" />
+                <menuitem value="caption+web" label="&thumbnailzoomplus.options.savefilename.item.captionweb.label;" />
+                <menuitem value="web+caption" label="&thumbnailzoomplus.options.savefilename.item.webcaption.label;" />
+              </menupopup>
+            </menulist>
+          </hbox>
+          
           <hbox>
             <checkbox preference="thumbnailzoomplus-options-border-pref"
               label="&thumbnailzoomplus.options.border.checkbox.label;    " />
@@ -246,6 +262,7 @@ Shortcut: press 'a' while a pop-up is displayed." />
             <checkbox preference="thumbnailzoomplus-options-history-pref"
               label="&thumbnailzoomplus.options.history.checkbox.label;" />
           </hbox>
+          
           <hbox>
             <checkbox preference="thumbnailzoomplus-options-popup-on-scroll-pref"
               label="&thumbnailzoomplus.options.popuponscroll.checkbox.label;" 

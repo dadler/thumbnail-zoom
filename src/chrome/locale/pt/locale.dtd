@@ -40,24 +40,29 @@
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Habilitar">
 <!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Debug">
 <!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copie log">
-<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir a imagem (seg):">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Atraso antes de exibir  (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra imagem parcial após (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom pré-definido (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label           "Tecla para">
-<!ENTITY thumbnailzoomplus.options.key.display.label             "exibir">
-<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "não exibir">
-<!ENTITY thumbnailzoomplus.options.key2.selection.label          "a imagem:">
+<!ENTITY thumbnailzoomplus.options.key.display.label                 "exibir">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "não exibir">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar a imagem:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">
-<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label  "Web page">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label   "Window">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label   "Screen">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Screen">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Mostra &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Mostra título">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Save As name:">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Caption">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Web Location">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Caption &amp; Web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; Caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Adicionar a história">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nenhuma">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Geral">

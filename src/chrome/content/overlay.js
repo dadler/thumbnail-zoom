@@ -57,6 +57,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
+  PREF_PANEL_SAVE_FILENAME : ThumbnailZoomPlus.PrefBranch + "panel.savefilename",
   PREF_PANEL_ENABLE : ThumbnailZoomPlus.PrefBranch + "panel.enable",
   PREF_PANEL_DEBUG : ThumbnailZoomPlus.PrefBranch + "panel.debug",
   
@@ -3664,7 +3665,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return s;
     }
     if (minChars < 0) minChars = 0;
-    let separators = /\W/;
+    let separators = /[\W_]/;
     for (let i=maxChars; i >= minChars; --i) {
       let c = s.substring(i, i+1);
       if (separators.test(c)) {
@@ -3679,58 +3680,60 @@ ThumbnailZoomPlusChrome.Overlay = {
     return s.substring(0, maxChars);
   },
   
-  _getDefaultFilename : function(extension) {
+  _getDefaultFilename : function(basename, extension) {
+    var caption = this._caption || "";
+    var shortCaption = this._friendlyTruncate(caption, 22, 22 - 6);
+    var pref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SAVE_FILENAME, "caption");
 
-    let useCaption = false;
-    if (this._caption) {
-      var fname = this._caption;
-      useCaption = true;
+    var separator = "";
+    if (shortCaption && basename) {
+      separator = "_";
+    }
+    if ("web" == pref) {
+      var name = basename;
+    
+    } else if ("caption+web" == pref) {
+      var name = shortCaption + separator + basename;
+    
+    } else if ("web+caption" == pref) {
+      var name = basename + separator + shortCaption;
+    
     } else {
-      var fname =
-          url.substring(this._currentImage.lastIndexOf('/') + 1);
+      // "caption"
+      var name = caption;
+    }
+    if (name == "") {
+      name = "image";
     }
     
     // Change ms windows reserved chars to -
-    fname = fname.replace(/[\000-\031\/~\\:<>"|?*]+/g, '-');
+    name = name.replace(/[\000-\031\/~\\:<>"|?*]+/g, '-');
     // fix syntax highlighting: "
     
     // For the mac prohibit '.' at the start.
     // And starting with certain chars just looks bad.
-    fname = fname.replace(/^[\._ -]+/, '');
+    name = name.replace(/^[\._ -]+/, '');
     
     // Limit length.
     let maxChars = 32;
-    if (fname.length > maxChars) {
-      // Truncate after the last word break before position maxChars.
-      fname = this._friendlyTruncate(fname, maxChars, maxChars - 12);
-    }
-    if (useCaption && extension && 
-        !this._endsWith(fname, '.' + extension)) {
+    // Truncate after the last word break before position maxChars.
+    name = this._friendlyTruncate(name, maxChars, maxChars - 12);
+    if (extension && 
+        !this._endsWith(name, '.' + extension)) {
       // Add file extension.
-      if (! /\.$/.test(fname)) {
-        fname += '.';
+      if (! /\.$/.test(name)) {
+        name += '.';
       }
-      fname += extension;
+      name += extension;
     }
     
     // For Windows doesn't allow ending with a space or period.
-    fname = fname.replace(/[\. ]+$/, '');
+    name = name.replace(/[\. ]+$/, '');
     
     // Some Windows names are reserved, too:
-    fname = fname.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
+    name = name.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
 
-    return fname;
-  },
-  
-  _copyToClipboard : function(copyImage, copyImageURL) {
-    this._logger.trace("copyToClipboard");
-
-    if (null == this._currentImage) {
-      this._logger.debug("copyToClipboard: no _currentImage");
-      return;
-    }
-    ThumbnailZoomPlus.ClipboardService
-        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
+    return name;
   },
   
   /**
@@ -3749,10 +3752,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // find extension
     // Get extension (without dot) for picker's defaultExtension.
-    let extRe = /\.([a-zA-Z0-9]{3,4})[^.]*$/;
-    let match = extRe.exec(imageURL);
-    let extension = (match && match[1] || "");
-    let pickerDefaultName = this._getDefaultFilename(extension);
+    let fnameRE = /([^/\\\?\%]*?)\.([a-zA-Z0-9]{3,4})[^.]*$/;
+    let match = fnameRE.exec(imageURL);
+    let extension = (match && match[2] || "");
+    let basename = (match && match[1] || imageURL || "");
+    let pickerDefaultName = this._getDefaultFilename(basename, extension);
     this._logger.debug("downloadImage: default ext='" + extension +
                        "' from '" + pickerDefaultName + "'");
 
@@ -3790,6 +3794,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
+  _copyToClipboard : function(copyImage, copyImageURL) {
+    this._logger.trace("copyToClipboard");
+
+    if (null == this._currentImage) {
+      this._logger.debug("copyToClipboard: no _currentImage");
+      return;
+    }
+    ThumbnailZoomPlus.ClipboardService
+        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
+  },
+  
 
   /**
    * Toggles the preference value.
