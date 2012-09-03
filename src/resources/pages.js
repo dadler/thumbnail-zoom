@@ -60,6 +60,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       this._logger.trace("_init");
     }
   };
+  
   ThumbnailZoomPlus.Pages._init();
 };
 
@@ -1605,10 +1606,12 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
  * corresponds to an update of the html page's loading.  The generator is
  * created and invoked from getImageFromLinkedPage().
  */
-let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
+let getImageFromLinkedPageGen = function(doc, pageUrl, invocationNumber,
+                                         pageCompletionFunc)
 {
   let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl);
+  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl +
+               " invocationNumber " + invocationNumber);
 
   // The first call to generator.send() passes in the generator itself.
   let generator = yield;
@@ -1619,7 +1622,9 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
   req.onreadystatechange = function() {
     if (req.readyState >= req.HEADERS_RECEIVED) {
       try {
-        generator.next();
+        if (generator) {
+          generator.next();
+        }
       } catch (e if e instanceof StopIteration) {
         // normal completion of generator.
       }
@@ -1637,6 +1642,15 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
   logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for headers");
   yield;
   
+  if (invocationNumber != ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber) {
+    // This request is obsolete.
+    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
+    // we don't abort since it causes 'already executing generator' error in generator.next() call above:
+    // disabled: req.abort();
+    generator = null;
+    return;
+  }
+  
   if (req.status != 200) {
     // error from site
     logger.debug("readHtmlText: site returned error " + req.statusText);
@@ -1653,7 +1667,17 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
   // Wait for content to be done loading.
   while (req.readyState < req.DONE) {
     logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for body; readyState=" + req.readyState);
+    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage:   invocationNumber=" + invocationNumber + 
+                 "; this.invocationNumber=" + ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber);
     yield;
+    if (invocationNumber != ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber) {
+      // This request is obsolete.
+      logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
+      // we don't abort since it causes 'already executing generator' error in generator.next() call above:
+      // disabled: req.abort();
+      generator = null;
+      return;
+    }
   }
   
   var aHTMLString = req.responseText;
@@ -1674,9 +1698,9 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
 
 // getImageFromLinkedPage returns the URL of an image determined by analyzing
 // the html at the specified URL.
-let getImageFromLinkedPage = function(doc, pageUrl, pageCompletionFunc)
+let getImageFromLinkedPage = function(doc, pageUrl, invocationNumber, pageCompletionFunc)
 {
-  let generator = getImageFromLinkedPageGen(doc, pageUrl, pageCompletionFunc);
+  let generator = getImageFromLinkedPageGen(doc, pageUrl, invocationNumber, pageCompletionFunc);
   
   // start the generator.
   generator.next();
@@ -1694,6 +1718,12 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
   key: "scanlinkedpage",
   name: "", // Set in ENTITY_page_scanlinkedpage.
   host: /^(?!.*(vimeo\.com|vimeocdn\.com).*).*/,
+  
+  // invocationNumber increments at the start of each invocation of
+  // getZoomImage.  We use this to detect and abort a request if a
+  // newer request has been made (so we don't see a prior request's
+  // pop-up appear after hovering a different thumb).
+  invocationNumber : 0,
   
   // Set imageRegExp to match pages which are likely to produce a thumbnail,
   // due to a flash video player or something else we can recognize.  We want
@@ -1740,7 +1770,9 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
   
   // For "ScanLinkedPage"
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
-    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc, pageCompletionFunc);
+    this.invocationNumber++;
+    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc, 
+                                       this.invocationNumber, pageCompletionFunc);
     
     return aImageSrc; 
   }

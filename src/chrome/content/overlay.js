@@ -1653,11 +1653,12 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
 
       if (status == "launched") {
+        completionGenerator = null;
         return;
       }
     }
     this._debugToConsole("ThumbnailZoomPlus: >>> all pages rejected");
-
+    completionGenerator = null;
   },
   
   /**
