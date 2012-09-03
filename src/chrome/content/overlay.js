@@ -925,6 +925,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         querySelectors = [".title"];
       
       } else if (/RESImage/.test(cls)) {
+        // Reddit with the Reddit Enhancement Suite add-on in "View Images" tab.
         this._logger.debug("_getEffectiveTitle: recognized reddit thumb RESImage");
         levelsUp = 3;
         querySelectors = [".title"];
@@ -1432,10 +1433,18 @@ ThumbnailZoomPlusChrome.Overlay = {
                                     completionFunc);
   },
 
+  /**
+   * _getZoomImageCompletion is called indirectly when an image source is 
+   * determined or determined to be "deferred"; see comments at the end of 
+   * _tryImageSource (above) for more details.
+   *
+   * If calledFromDeferred, it sends status to the completionGenerator.
+   */
   _getZoomImageCompletion : function(aDocument, aEvent, aPage, node,
                                      imageSourceNode, 
                                      flags, pageName, completionGenerator,
                                      zoomImageSrc, calledFromDeferred) {
+
     var status = this._getZoomImageCompletionImmediate
                                   (aDocument, aEvent, aPage, node,
                                    imageSourceNode, 
@@ -1453,6 +1462,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     return status;
   },
 
+  /**
+   * _getZoomImageCompletionImmediate determines where a image source was
+   * detected, and launches the popup and returns "launched" or
+   * returns a reason it isn't valid.
+   */
   _getZoomImageCompletionImmediate : function(aDocument, aEvent, aPage, node,
                                               imageSourceNode, 
                                               flags, pageName,
@@ -1466,6 +1480,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_getZoomImageCompletion: getZoomImage returned null.");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with null");
       return "rejectedNode";
+    }
+    if (! this._currentWindow) {
+      this._debugToConsole("_getZoomImageCompletion: ignoring since ! _currentWindow (user moved off thumb?)");
+      return;
     }
 
     // Test whether the link URL of the hovered-over node is the same as the full-size
@@ -1499,11 +1517,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
-    // record the current window in case we want to show a status icon for it.
+    // record the current window now in case we want to show a status icon for it.
     this._currentWindow = aDocument.defaultView.top;
+    this._logger.debug("_findPageAndShowImage: setting this._currentWindow = " + this._currentWindow);
+    
     let completionGenerator = this._findPageAndShowImageGen(aDocument, aEvent, aPage, node);
     completionGenerator.next(); 
     try {
+      // Start the generator by giving it a handle to itself.
       completionGenerator.send(completionGenerator);
     } catch (e if e instanceof StopIteration) {
       // normal completion of generator.
@@ -1962,15 +1983,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
-
-    // Close the panel to ensure that we can popup the new panel at a specified
-    // location.  Note that we temporarily save _currentWindow since _closePanel
-    // clears it.
-    let currentWindow = this._currentWindow;
-    this._debugToConsole("_showPanel: _closePanel(true) since closing any prev popup before loading new one");
-    this._closePanel(true);
-    this._currentWindow = currentWindow;
-    
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
     

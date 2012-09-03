@@ -1677,6 +1677,8 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, pageCompletionFunc)
 let getImageFromLinkedPage = function(doc, pageUrl, pageCompletionFunc)
 {
   let generator = getImageFromLinkedPageGen(doc, pageUrl, pageCompletionFunc);
+  
+  // start the generator.
   generator.next();
   generator.send(generator);
   
