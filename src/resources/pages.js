@@ -1864,6 +1864,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       node = node.parentNode;
     }
     
+    if (/olTileImage|olButton/.test(nodeClass) ||
+        /openlayers/i.test(node.id)) {
+      // Don't show pop-ups on maps from the http://openlayers.org API
+      // (including http://earthquake.usgs.gov/earthquakes/map/ ).
+      return null;
+    }
+    
     return node;
   },
   
