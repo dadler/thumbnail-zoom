@@ -1659,6 +1659,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     this._debugToConsole("ThumbnailZoomPlus: >>> all pages rejected");
     completionGenerator = null;
+    
+    // Close the "working" indicator (eg shown if there was a deferred page). 
+    this._closePanel(false);
   },
   
   /**
@@ -2065,6 +2068,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // This message has been seen in ff15.
       this._logger.debug("_closePanel @1: caught EXCEPTION: " + e);
       this._logToConsole("ThumbnailZoomPlus: _closePanel @1: caught EXCEPTION: " + e);
+      this._currentWindow = null;
     }
     try {
       this._originalURI = "";
