@@ -2060,7 +2060,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             "thumbnail getZoomImage p30: so far have " + aImageSrc);
 
     // minus.com
-    let minusRegexp = new RegExp("([.\\/]minus\\.com/.*)_(e|xs)\\.jpg");
+    let minusRegexp = new RegExp("([.\\/]minus\\.com/.*)_(e|xs|xss|ss|m|ms)\\.jpg");
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage: testing " + aImageSrc + " against " + minusRegexp +
             ": " + minusRegexp.test(aImageSrc));
