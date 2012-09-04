@@ -1484,9 +1484,10 @@ let getImgFromHtmlText = function(aHTMLString) {
   logger.debug("getImgFromHtmlText: trying " + re);
   match = re.exec(aHTMLString);
   if (match) {
-    if (! /yfrog\.com\/.*\.mp4/.test(match[1])) {
-      // Return this unless it's a yfrog video, for which we can get a larger
-      // image via getImgFromSelectors().
+    if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
+        ! /ebaystatic\.com\/./.test(match[1])) {
+      // Return this unless it's a yfrog video or ebay thumb,
+      // for which we can get a larger image via getImgFromSelectors().
       return match[1];
     }
   }
@@ -1566,7 +1567,8 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
       'div#media-media img',
       'img#thepic',
       'div#imageContainer a + a',
-      'div#vi-container center img', // ebay.com item
+      'div#vi-container center img', // ebay.com item (old layout?)
+      'img#icImg', // ebay.com item
       'img#MyWorldImageIcon', // ebay.com myworld (profile) pic
       'span.dd-image img', // ebay.com daily deal
       'div#img center img#image', // image.aven.net
@@ -1595,7 +1597,16 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
     return null;
   }
   
-  return ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
+  result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
+  
+  /*
+   * Special rules to get bigger images from the result so far
+   */
+   // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
+   // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
+  result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
+  // or _3 for somewhat lower rez?
+  return result;
 };
 
 /**
@@ -1734,7 +1745,8 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp(  "imgur\\.com/a/"
-                          + "|\\.ebay\\.com/itm/|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
+                          + "|\\.ebay\\.com/(itm|viewitem|ebaymotors|ctg)|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
+                          + "|\\.ebay\\.com/ws/eBayISAPI\\.dll\\?viewItem"
                           + "|flickr\\.com/photos/.*/[0-9]{7,20}/"
                           + "|flickr\\.com/photos/[^@]*/sets/"
                           + "|liveleak\\.com/view"
