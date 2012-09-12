@@ -1347,58 +1347,6 @@ ThumbnailZoomPlus.Pages.Others = {
 /**
  * Support for ScanLinkedPage
  */
- 
- 
-// guessBestImg uses a heuristic to guess which <img> tag on a
-// page is likely to be the large image the page is displaying
-// (rather than another thumbnail or banner ad).
-// NOT CURRENTLY USED.
-let guessBestImg = function(body) {
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.debug("body:" + body);
-  
-  let imgNodes = body.getElementsByTagName("img");
-  logger.debug("\n  Got " + imgNodes.length + "<img> nodes");
-
-  let result = null;
-  let bestScore = -1;
-  var i;
-  for (i=0; i < imgNodes.length; i++) {
-    let img = imgNodes[i];
-    let width = img.width;
-    let style = img.style;
-    let id = img.id;
-    let imgclass = img.className;
-    let src = imgNodes[i].src;
-    logger.debug("  img["+i+"]: width=" + width + 
-                 ", style.width=" + style.width + 
-                 ", id=" +  id + 
-                 ", class=" + imgclass +
-                 ", src=" + src);
-    if (/([0-9a-f]{5,30})/i.test(src)) {
-      logger.debug("    has number"); 
-      let number = src.replace(/.*?([0-9a-f]{5,30}).*/i, "$1");
-      let score = number.length;
-      logger.debug("    number=" + number); 
-      if (/big|full|large/i.test(imgclass)) {
-        logger.debug("    10-point bonus for class " + imgclass); 
-        score += 10;
-      }
-      if (/imgur.*h\./.test(imgclass)) {
-        // Appears to be an imgur high-res pic.
-        logger.debug("    10-point bonus for imgur h.*"); 
-        score += 10;
-      }
-      logger.debug("    bestScore=" + bestScore + "; this score=" + score); 
-      if (score > bestScore) {
-        bestScore = score;
-        result = src;
-      }
-    }
-  }
-  return result;
-};
-
 
 // parseHtmlDoc parses the specified html string and returns
 // a result object with result.doc and result.body set.
@@ -1584,15 +1532,7 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
     
     result = getImgFromSelectors(docInfo.body, selectors);
   }
-  if (! result) {
-    // Use a general heuristic as a fall-back.
-    if (false) {
-      // We should only do this on sites where we really need it since it may
-      // prevent a successful use of the "Thumbnail" rule.
-      result = guessBestImg(docInfo.body);
-    }
-  }
-  
+
   if (! result) {
     return null;
   }

@@ -359,6 +359,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (menuPopup) {
       let menuSeparator =
         document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
+      let menuSeparator2 =
+        document.getElementById("thumbnailzoomplus-toolbar-menuseparator2");
       let menuItem = null;
       let pageCount = ThumbnailZoomPlus.FilterService.pageList.length;
       let pageInfo = null;
@@ -371,7 +373,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           // I couldn't get Firefox to consistently update the state of
           // existing checkboxes correctly, so instead we always
           // delete and recreate checkboxes when re-showing the menu.
-          menuPopup.removeChild(menuPopup.firstChild);
+          menuPopup.removeChild(menuItem);
         } 
         // Item doesn't exist so create it.
         menuItem = document.createElement("menuitem");
@@ -391,26 +393,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                                     true );
         }
         this._updatePagesMenuItemElement(pageInfo.key, menuItem);
-        menuPopup.insertBefore(menuItem, menuSeparator);
-      }
-    }
-  },
-
-
-  /**
-   * Removes the menu items.
-   */
-  removeMenuItems : function() {
-    this._logger.debug("removeMenuItems");
-
-    let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
-
-    if (menuPopup) {
-      let menuSeparator =
-        document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
-
-      while (menuPopup.firstChild != menuSeparator) {
-        menuPopup.removeChild(menuPopup.firstChild);
+        if (this._isCatchallPage(i)) {
+          menuPopup.insertBefore(menuItem, menuSeparator2);
+        } else {
+          menuPopup.insertBefore(menuItem, menuSeparator);
+        }
       }
     }
   },

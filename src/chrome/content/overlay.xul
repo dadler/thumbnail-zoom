@@ -54,6 +54,7 @@
         onpopupshowing="ThumbnailZoomPlusChrome.Overlay.addMenuItems();">
       
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
+        <menuseparator id="thumbnailzoomplus-toolbar-menuseparator2" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
           oncommand="ThumbnailZoomPlusChrome.Overlay.openPreferences();" />
         <menuitem label="&thumbnailzoomplus.toolbar.help.label;"

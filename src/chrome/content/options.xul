@@ -383,6 +383,8 @@ pop-up appears (eg on certain Linux machines)."
           <checkbox label="Wikipedia"
             preference="thumbnailzoomplus-options-wikipedia-pref" />
 
+          <spacer height="8px"/>
+          
           <checkbox label="&thumbnailzoomplus.pages.names.others;"
             preference="thumbnailzoomplus-options-others-pref" />
 
