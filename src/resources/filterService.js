@@ -42,7 +42,13 @@ Cu.import("resource://thumbnailzoomplus/common.js");
  * The Filter Service.
  */
 ThumbnailZoomPlus.FilterService = {
-  /* Pages info list. */
+  /**
+   * Pages info list. 
+   *
+   * The order in this list determines the priority order items are applied 
+   * (first matching rule wins) and the order they appear in the toolbar
+   * menu.
+   */
   pageList : [
     ThumbnailZoomPlus.Pages.Amazon, // 0
     ThumbnailZoomPlus.Pages.DailyMile,
@@ -74,14 +80,16 @@ ThumbnailZoomPlus.FilterService = {
     
     // These must be last so they are lower priority.
     ThumbnailZoomPlus.Pages.Others,
-    ThumbnailZoomPlus.Pages.ScanLinkedPage,
 
-    // TODO: We prioritize Thumbnail after ScanLinkedPage so that showing an
-    // enlarged version of the low-rez thumb is lower priority than showing
-    // an image from the linked page.  But it'd be better (faster) to
-    // handle recognized thumbnail rules before ScanLinkedPage.  That
-    // would require breaking up the Thumbnail rule into two rules.
-    ThumbnailZoomPlus.Pages.Thumbnail
+    // We order these as Thumbnail, ScanLinkedPage, ThumbnailItself.  This 
+    // way showing an enlarged version of the low-rez thumb (i.e. ThumbnailItself)
+    // is lower priority than showing an image from the linked page, and showing
+    // a high-rez image derived from the thumb is higher priority than r
+    // the slower ScanLinkedPage rule (eg for dailymotion.com where both rules
+    // are available). 
+    ThumbnailZoomPlus.Pages.Thumbnail,
+    ThumbnailZoomPlus.Pages.ScanLinkedPage,
+    ThumbnailZoomPlus.Pages.ThumbnailItself
   ],
 
   /* Logger for this object. */
@@ -256,7 +264,6 @@ ThumbnailZoomPlus.FilterService = {
    */
   getPageConstantByDoc : function(aDocument, startFromPage) {
     let pageConstant = -1;
-    let name = "?";
     
     let host = this.getHostOfDoc(aDocument);
     if (host == null) {
@@ -267,7 +274,6 @@ ThumbnailZoomPlus.FilterService = {
     for (let i = startFromPage; i < pageCount; i++) {
       if (this.testPageConstantByHost(host, i)) {
         pageConstant = i;
-        name = this.pageList[i].key;
         break;
       }
     }

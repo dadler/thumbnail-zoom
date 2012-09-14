@@ -367,6 +367,10 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       for (let i = 0; i < pageCount; i++) {
         pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
+        let name = pageInfo.name;
+        if (null == name) {
+          continue;
+        }
         let id = "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key;
         menuItem = document.getElementById(id);
         if (menuItem) {
@@ -379,7 +383,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         menuItem = document.createElement("menuitem");
         menuItem.setAttribute("id", id);
         
-        let name = pageInfo.name;
         if (name == "") {
           name = this._getEntity("page_" + pageInfo.key);
           ThumbnailZoomPlus.FilterService.pageList[i].name = name;
@@ -1323,9 +1326,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let requireImageBiggerThanThumb = false;
     let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
     if (! allow &&
-        aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage &&
+        (aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
+         aPage == ThumbnailZoomPlus.Pages.ThumbnailItself.aPage) &&
         ThumbnailZoomPlus.FilterService.isPageEnabled(ThumbnailZoomPlus.Pages.Others.aPage)) {
-      // This is the "thumbnails" page, the "thumbnails" page is disabled, and
+      // This is one of the "thumbnails" pages, this "thumbnails" page is disabled, and
       // the "others" page is enabled.  Allow processing this under the "thumbnails"
       // page, but only if the actual raw image has higher resolution than the
       // thumbnal.  That allows the user to have Others on, Thumbnail off, and
@@ -1336,8 +1340,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     this._logger.debug("... _tryImageSource: Trying " +
-                       (aDocument == pageMatchNode ? "page " : "image") +
-                       " against '" + pageName +
+                       (aDocument == pageMatchNode ? "page " + aPage + " <" : "<image") +
+                       "> against '" + pageName +
                        "'");
     if (! ThumbnailZoomPlus.FilterService.testPageConstantByHost(pageMatchHost, aPage)) {
       return "rejectedPageMatchNode";
@@ -1368,7 +1372,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (imageSourceInfo.node != null) {
       imageSourceNode = imageSourceInfo.node;
       if (imageSourceNode != node) {
-        this._debugToConsole("ThumbnailZoomPlus: page " + pageName + ": imageSourceNode: <" +
+        this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + ">: imageSourceNode: <" +
                            imageSourceNode.localName.toLowerCase() + "> url: \n" +
                            String(imageSourceNode) + " \n" + imageSourceNode.getAttribute("src"));
       }
@@ -1376,14 +1380,14 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-      this._debugToConsole("ThumbnailZoomPlus: page " + pageName + 
-                           " imageRegExp or imageDisallowRegExp rejected imageSource \n" +
+      this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + 
+                           "> imageRegExp or imageDisallowRegExp rejected imageSource \n" +
                            imageSource);
 
       return "rejectedNode";
     }
 
-    this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " matches imageSource \n" +
+    this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + "> matches imageSource \n" +
                        imageSource);
 
     // Found a matching page with an image source!
@@ -1500,6 +1504,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _isCatchallPage : function(aPage) {
     return (aPage == ThumbnailZoomPlus.Pages.Others.aPage ||
             aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
+            aPage == ThumbnailZoomPlus.Pages.ThumbnailItself.aPage ||
             aPage == ThumbnailZoomPlus.Pages.ScanLinkedPage.aPage);
   },
   
@@ -1594,7 +1599,8 @@ ThumbnailZoomPlusChrome.Overlay = {
 
       var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
       if (disallowOthers && this._isCatchallPage(aPage)) {
-        this._logger.debug("_findPageAndShowImageGen: Skipping catch-all page " + pageName);
+        this._logger.debug("_findPageAndShowImageGen: Skipping catch-all page " + 
+                           aPage + " " + pageName);
         continue;
       }
       

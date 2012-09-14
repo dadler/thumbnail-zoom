@@ -73,10 +73,15 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
   Fields:
 
     * key: a unique lower-case string which identifies the rule in preferences
-      and elsewhere.  eg "facebook"
+      and elsewhere.  eg "facebook".  You can use the same key in multiple
+      entries if they are all controlled by the same enable state (and in
+      that case you'll probably want to set name to null for all but one).
 
     * name: user-visible rule name, often starting with captial letter.  Appears
-      .g. in the tool menu's checkboxes.  eg "Facebook".
+      .g. in the tool menu's checkboxes.  eg "Facebook".  Set to "" for the 
+      name to come from entity &thumbnailzoomplus-toolbar-menuitem-<key>;
+      (for localized names).  Set to null to hide this item from the toolbar
+      menu if 'enable' flags.
 
     * host: regular expression which the hostname of the page containing the
       thumbnail or link must match for the rule to apply.  THIS APPLIES
@@ -1731,9 +1736,9 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
 
 };
 
-
+  
 /**
- * Thumbnail: returns the thumbnail itself as the image source.
+ * Thumbnail: returns an image derived from the thumbnail's URL as the image source.
  */
 ThumbnailZoomPlus.Pages.Thumbnail = {
   key: "thumbnail",
@@ -1828,6 +1833,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   
   // For "Thumbnail"
   getZoomImage : function(aImageSrc, node, flags) {
+    let originalImageSrc = aImageSrc;
+    
     let verbose = false;
     var before;
     var match;
@@ -2343,6 +2350,105 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(\\.flipkey\.com/img/photos/.*)/(?:micro|regular|large)_(.*" + 
                                   EXTS + ")", "i"),
                                   "$1/640x480_$2");
+
+    // Using the thumb itself as source; don't annoy the user with
+    // "too small" warnings, which would be quite common.
+    // flags.noTooSmallWarning = true;
+
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p99: so far have " + aImageSrc);
+
+    if (originalImageSrc == aImageSrc) {
+      // Don't return the unmodified image URL as the result since that's
+      // reserved for the ThumbnailItself rule.  This allows the Thumbnail
+      // rule to run before ScanLinkedPage, and not have same-size thumbs
+      // prevent ScanLinkedPage from running, while still allowing
+      // (potentially same-size) thumbs to be handled if ScanLinkedPage
+      // doesn't find anything.
+      return null;
+    }
+    return aImageSrc;
+  }
+};
+
+
+/**
+ * ThumbnailItself: returns the thumbnail itself as the image source.
+ */
+ThumbnailZoomPlus.Pages.ThumbnailItself = {
+  key: ThumbnailZoomPlus.Pages.Thumbnail.key,
+  name: null, // don't show in menu
+  host: /.*/,
+
+  // Copy several fields from the Thumbnail rule.  
+  imageRegExp: ThumbnailZoomPlus.Pages.Thumbnail.imageRegExp,
+  imageDisallowRegExp : ThumbnailZoomPlus.Pages.Thumbnail.imageDisallowRegexp,
+  getImageNode : ThumbnailZoomPlus.Pages.Thumbnail.getImageNode,  
+
+  // For "Thumbnail Itself"
+  getZoomImage : function(aImageSrc, node, flags) {
+    let verbose = false;
+    
+    let nodeName = node.localName.toLowerCase();
+    let nodeClass = node.getAttribute("class");
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage ThumbnailItself for " + nodeName 
+                                          + " class='" + nodeClass + "'" +
+                                          " baseURI=" + node.baseURI);
+
+    if (! node.hasAttribute("src") && node.hasAttribute("href") &&
+        node.style.backgroundImage.indexOf("url") == -1) {
+      // We don't want to use node if it's just an href since we need
+      // it to be an actual image.  (The Others rule already handles hrefs.)
+      ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
+      return null;
+    }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p03: so far have " + aImageSrc);
+
+    // For certain sites, if node has a background style, use image from that.
+    // And actually, aImageSrc may be already coming from the
+    // background but needs to be excluded.
+    // But in general we don't since it leads to too many popups from static
+    // background styling (non-image) graphics.
+    let backImage = node.style.backgroundImage;
+    let urlRegExp = /url\("(.*)"\)$/i;
+    if (backImage && "" != backImage && urlRegExp.test(backImage)) {
+      if (node.children.length > 0 && ! /thumb|mem-photo-small/.test(nodeClass)) {
+        // Ignore e.g. in Google Offers, where a big map image is the background
+        // around the guts of the page.
+        // But we explicitly allow using background image if nodeClass
+        // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com
+        ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage: ignoring background image since has " +
+            node.children.length + " children > 0");
+        return null;
+      }
+      aImageSrc = backImage.replace(urlRegExp, "$1");
+    }
+        
+    aImageSrc = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, aImageSrc);
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p06: so far have " + aImageSrc);
+
+    // Disable for certain kinds of Facebook thumbs.
+    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
+                                          node + "; class=" +
+                                          nodeClass);
+    if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
+        ) {
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook spotlight");
+      return null;
+    }
+    if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
+      // Don't show popup for small Facebook thumb of the person who's
+      // entering a comment since the comment field loses focus and the 
+      // thumbnails disappears, which is confusing.
+        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
+      return null;
+    }
+    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
+            "thumbnail getZoomImage p10: so far have " + aImageSrc);
                                   
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
@@ -2353,4 +2459,5 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
 
     return aImageSrc;
   }
+
 };
