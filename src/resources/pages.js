@@ -1849,30 +1849,26 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     return node;
   },
   
-  // For "Thumbnail"
-  getZoomImage : function(aImageSrc, node, flags) {
-    let originalImageSrc = aImageSrc;
-    
+  /**
+   * getInitialImageSrc() returns aImageSrc an absolute URL of
+   * aImageSrc itself, or if we can get a better starting URL from
+   * the node's image, background-image, etc., it uses that.
+   * This is used by the Thumbnail and ThumbnailItself rules.
+   */
+  getInitialImageSrc : function(aImageSrc, node) {
     let verbose = false;
-    var before;
-    var match;
-    
-    let nodeName = node.localName.toLowerCase();
     let nodeClass = node.getAttribute("class");
-    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
-                                          + " class='" + nodeClass + "'" +
-                                          " baseURI=" + node.baseURI);
 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
         node.style.backgroundImage.indexOf("url") == -1) {
       // We don't want to use node if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
       ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
+            "thumbnail getInitialImageSrc: ignoring since it's a link, not a thumb");
       return null;
     }
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p03: so far have " + aImageSrc);
+            "thumbnail getInitialImageSrc: so far have " + aImageSrc);
 
     // For certain sites, if node has a background style, use image from that.
     // And actually, aImageSrc may be already coming from the
@@ -1888,12 +1884,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         // But we explicitly allow using background image if nodeClass
         // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com
         ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage: ignoring background image since has " +
+            "thumbnail getInitialImageSrc: ignoring background image since has " +
             node.children.length + " children > 0");
         return null;
       }
       aImageSrc = backImage.replace(urlRegExp, "$1");
     }
+        
     
     // For diasp.org & similar, get from <img data-full-photo="http://...">
     let fullPhoto = node.getAttribute("data-full-photo");
@@ -1903,26 +1900,47 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, aImageSrc);
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p06: so far have " + aImageSrc);
+            "thumbnail getInitialImageSrc p06: so far have " + aImageSrc);
 
     // Disable for certain kinds of Facebook thumbs.
-    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
+    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getInitialImageSrc: node=" +
                                           node + "; class=" +
                                           nodeClass);
     if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
         ) {
-        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook spotlight");
+        ThumbnailZoomPlus.Pages._logger.debug("getInitialImageSrc: ignoring since Facebook spotlight");
       return null;
     }
     if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
-        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
+        ThumbnailZoomPlus.Pages._logger.debug("getInitialImageSrc: ignoring since Facebook actorPic");
       return null;
     }
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p10: so far have " + aImageSrc);
+            "thumbnail getInitialImageSrc p10: so far have " + aImageSrc);
+
+    return aImageSrc;
+  },
+  
+  // For "Thumbnail"
+  getZoomImage : function(aImageSrc, node, flags) {
+    let verbose = false;
+    let originalImageSrc = aImageSrc;
+    var before;
+    var match;
+    
+    let nodeName = node.localName.toLowerCase();
+    let nodeClass = node.getAttribute("class");
+    ThumbnailZoomPlus.Pages._logger.debug("getZoomImage Thumbnail for " + nodeName 
+                                          + " class='" + nodeClass + "'" +
+                                          " baseURI=" + node.baseURI);
+
+    aImageSrc = ThumbnailZoomPlus.Pages.Thumbnail.getInitialImageSrc(aImageSrc, node);
+    if (null == aImageSrc) {
+      return null;
+    }
 
     // For tiny tumblr profile thumbs change 
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
@@ -2413,60 +2431,8 @@ ThumbnailZoomPlus.Pages.ThumbnailItself = {
                                           + " class='" + nodeClass + "'" +
                                           " baseURI=" + node.baseURI);
 
-    if (! node.hasAttribute("src") && node.hasAttribute("href") &&
-        node.style.backgroundImage.indexOf("url") == -1) {
-      // We don't want to use node if it's just an href since we need
-      // it to be an actual image.  (The Others rule already handles hrefs.)
-      ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage: ignoring since it's a link, not a thumb");
-      return null;
-    }
-    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p03: so far have " + aImageSrc);
+    aImageSrc = ThumbnailZoomPlus.Pages.Thumbnail.getInitialImageSrc(aImageSrc, node);
 
-    // For certain sites, if node has a background style, use image from that.
-    // And actually, aImageSrc may be already coming from the
-    // background but needs to be excluded.
-    // But in general we don't since it leads to too many popups from static
-    // background styling (non-image) graphics.
-    let backImage = node.style.backgroundImage;
-    let urlRegExp = /url\("(.*)"\)$/i;
-    if (backImage && "" != backImage && urlRegExp.test(backImage)) {
-      if (node.children.length > 0 && ! /thumb|mem-photo-small/.test(nodeClass)) {
-        // Ignore e.g. in Google Offers, where a big map image is the background
-        // around the guts of the page.
-        // But we explicitly allow using background image if nodeClass
-        // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com
-        ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage: ignoring background image since has " +
-            node.children.length + " children > 0");
-        return null;
-      }
-      aImageSrc = backImage.replace(urlRegExp, "$1");
-    }
-        
-    aImageSrc = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, aImageSrc);
-    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p06: so far have " + aImageSrc);
-
-    // Disable for certain kinds of Facebook thumbs.
-    ThumbnailZoomPlus.Pages._logger.debug("thumbnail getZoomImage: node=" +
-                                          node + "; class=" +
-                                          nodeClass);
-    if ("spotlight" == nodeClass && /\.(fbcdn|akamaihd)\.net/.test(aImageSrc) // facebook 'lightbox'
-        ) {
-        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook spotlight");
-      return null;
-    }
-    if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
-      // Don't show popup for small Facebook thumb of the person who's
-      // entering a comment since the comment field loses focus and the 
-      // thumbnails disappears, which is confusing.
-        ThumbnailZoomPlus.Pages._logger.debug("getZoomImage: ignoring since Facebook actorPic");
-      return null;
-    }
-    if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
-            "thumbnail getZoomImage p10: so far have " + aImageSrc);
                                   
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
