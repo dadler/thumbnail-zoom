@@ -1509,15 +1509,18 @@ let getImgFromSelectors = function(body, selectors) {
 
 /**
  * getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
- * of the specified page number (if it matches aImageSrc).
+ * of the specified page number (if it matches aImageSrc).  Node is some
+ * node related to the image, but may not be a very good one
+ * (some non-null node is required to satisfy getZoomImage).
+ *
  * Returns the possibly improved URL.  Example:
  *   result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
  */
-let getZoomImageViaPage = function(aPage, aImageSrc) {
+let getZoomImageViaPage = function(aPage, node, aImageSrc) {
   if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
     let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
     let flags = {};
-    let betterResult = pageInfo.getZoomImage(aImageSrc, null, flags);
+    let betterResult = pageInfo.getZoomImage(aImageSrc, node, flags);
     if (null != betterResult) {
       aImageSrc = betterResult;
     }
@@ -1531,13 +1534,13 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
 {
   let logger = ThumbnailZoomPlus.Pages._logger;
   let result = getImgFromHtmlText(aHTMLString);
-  if (result) {
-    // Parse the document to get its base for applyBaseURI.  Could be optimized.
-    logger.debug("getImageFromLinkedPage: from getImgFromHtmlText got " + result);
-    var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
-  } else {
-    var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
+  logger.debug("getImageFromLinkedPage: from getImgFromHtmlText got " + result);
 
+  // Parse the document.
+  // If we already have result, we parse only to get its base for applyBaseURI,
+  // which is overkill and could be optimized.
+  var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
+  if (! result) {
     // Selectors is a list of CSS selector strings which identify the img or a
     // node of the image.  See http://www.w3.org/TR/CSS2/selector.html
     let selectors = [
@@ -1580,7 +1583,10 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
   // or _3 for somewhat lower rez?
 
   // flickr
-  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
+  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
+  
+  // Thumbnail (to potentially get larger thumb from the URL we have so far)
+  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
 
   return result;
 };
@@ -1704,7 +1710,7 @@ let getImageFromLinkedPage = function(doc, pageUrl, invocationNumber, pageComple
 ThumbnailZoomPlus.Pages.OthersIndirect = {
   key: "othersindirect",
   name: "", // Set in ENTITY_page_othersindirect.
-  host: /^(?!.*(vimeo\.com|vimeocdn\.com).*).*/,
+  host: /.*/,
   
   // invocationNumber increments at the start of each invocation of
   // getZoomImage.  We use this to detect and abort a request if a
