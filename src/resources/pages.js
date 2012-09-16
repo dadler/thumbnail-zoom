@@ -594,14 +594,22 @@ ThumbnailZoomPlus.Pages.Flickr = {
     // match an image name with a s, m, or t size code, or no size code, e.g.
     // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04_s.jpg or
     // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04.jpg
-    let rex = new RegExp(/(?:_[a-z])?(\.[a-z]+)$/);
+    let rexSmall = new RegExp(/(?:_[ac-np-z])?(\.[a-z]+)$/);
+    let rexLarge = new RegExp(/(?:_[bo])(\.[a-z]+)$/);
+    
     // Substitute to the letter code for the desired size (_z=Medium_640).
     // It's tempting to use a code for a larger size, but some images aren't
     // available in larger size, causing them to get no popup at all if we change
     // it.
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "_z$1") : null);
-
-    return image;
+    // We'll change most single-letter size codes into "medium" (z), but
+    // don't change the larger size codes b, o (rexLarge)
+    if (rexLarge.test(aImageSrc)) {
+      // it's already larger than the "medium" size we'd set it to.
+      return aImageSrc;
+    } else if (rexSmall.test(aImageSrc)) {
+      return aImageSrc.replace(rexSmall, "_z$1");
+    }
+    return null;
   }
 };
 
@@ -640,12 +648,10 @@ ThumbnailZoomPlus.Pages.Wikipedia = {
   getZoomImage : function(aImageSrc, node, flags) {
     aImageSrc = aImageSrc.replace(/\/thumb\/([^\/]+\/[^\/]+)\/(.*)\/[0-9]+px-\2.*/i,
                                   "/$1/$2");
-    let rex3 = new RegExp(/\.svg$/i);
     return aImageSrc;
 
     // Mediawiki software is used by many sites including wikipedia.  The latter has its
     // own page definition in this file, but perhaps they should be merged?
-
   }
 };
 
@@ -1349,9 +1355,9 @@ ThumbnailZoomPlus.Pages.Others = {
 };
 
 
-/**
+/*******
  * Support for OthersIndirect
- */
+ *******/
 
 // parseHtmlDoc parses the specified html string and returns
 // a result object with result.doc and result.body set.
@@ -1547,10 +1553,22 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
   /*
    * Special rules to get bigger images from the result so far
    */
-   // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
-   // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
+
+  // ebay:
+  // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
+  // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
   result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
   // or _3 for somewhat lower rez?
+
+  if (ThumbnailZoomPlus.FilterService.filterImage(result, ThumbnailZoomPlus.Pages.Flickr.aPage)) {
+    // flickr
+    let flags = {};
+    let betterResult = ThumbnailZoomPlus.Pages.Flickr.getZoomImage(result, null, flags);
+    if (null != betterResult) {
+      result = betterResult;
+    }
+  }
+
   return result;
 };
 
@@ -1742,7 +1760,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
  */
 ThumbnailZoomPlus.Pages.Thumbnail = {
   key: "thumbnail",
-  name: "", // Set in ENTITY_page_thumbnail.
+  name: null, // don't show in menu
   host: /.*/,
   
   imageRegExp: new RegExp(".*", "i"),
@@ -2377,7 +2395,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
  */
 ThumbnailZoomPlus.Pages.ThumbnailItself = {
   key: ThumbnailZoomPlus.Pages.Thumbnail.key,
-  name: null, // don't show in menu
+  name: "", // Set in ENTITY_page_thumbnail.
   host: /.*/,
 
   // Copy several fields from the Thumbnail rule.  
