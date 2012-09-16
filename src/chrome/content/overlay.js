@@ -1037,7 +1037,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           this._logger.debug("_getEffectiveTitleForNode: skipping tagWrapper (eg facebook)");
         } else {
           if (/rg_/.test(aNode.className)) {
-            // Specia clean-up for Google Images.  EG change
+            // Special clean-up for Google Images.  EG change
             // from: pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
             //   to: pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
             // The - and x are non-ASCII characters.
@@ -1505,7 +1505,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     return (aPage == ThumbnailZoomPlus.Pages.Others.aPage ||
             aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
             aPage == ThumbnailZoomPlus.Pages.ThumbnailItself.aPage ||
-            aPage == ThumbnailZoomPlus.Pages.ScanLinkedPage.aPage);
+            aPage == ThumbnailZoomPlus.Pages.OthersIndirect.aPage);
   },
   
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {

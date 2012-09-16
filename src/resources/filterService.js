@@ -81,14 +81,14 @@ ThumbnailZoomPlus.FilterService = {
     // These must be last so they are lower priority.
     ThumbnailZoomPlus.Pages.Others,
 
-    // We order these as Thumbnail, ScanLinkedPage, ThumbnailItself.  This 
+    // We order these as Thumbnail, OthersIndirect, ThumbnailItself.  This 
     // way showing an enlarged version of the low-rez thumb (i.e. ThumbnailItself)
     // is lower priority than showing an image from the linked page, and showing
     // a high-rez image derived from the thumb is higher priority than r
-    // the slower ScanLinkedPage rule (eg for dailymotion.com where both rules
+    // the slower OthersIndirect rule (eg for dailymotion.com where both rules
     // are available). 
     ThumbnailZoomPlus.Pages.Thumbnail,
-    ThumbnailZoomPlus.Pages.ScanLinkedPage,
+    ThumbnailZoomPlus.Pages.OthersIndirect,
     ThumbnailZoomPlus.Pages.ThumbnailItself
   ],
 

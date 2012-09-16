@@ -1350,7 +1350,7 @@ ThumbnailZoomPlus.Pages.Others = {
 
 
 /**
- * Support for ScanLinkedPage
+ * Support for OthersIndirect
  */
 
 // parseHtmlDoc parses the specified html string and returns
@@ -1598,7 +1598,7 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, invocationNumber,
   logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for headers");
   yield;
   
-  if (invocationNumber != ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber) {
+  if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
     // This request is obsolete.
     logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
     // we don't abort since it causes 'already executing generator' error in generator.next() call above:
@@ -1624,9 +1624,9 @@ let getImageFromLinkedPageGen = function(doc, pageUrl, invocationNumber,
   while (req.readyState < req.DONE) {
     logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for body; readyState=" + req.readyState);
     logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage:   invocationNumber=" + invocationNumber + 
-                 "; this.invocationNumber=" + ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber);
+                 "; this.invocationNumber=" + ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber);
     yield;
-    if (invocationNumber != ThumbnailZoomPlus.Pages.ScanLinkedPage.invocationNumber) {
+    if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
       // This request is obsolete.
       logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
       // we don't abort since it causes 'already executing generator' error in generator.next() call above:
@@ -1667,12 +1667,12 @@ let getImageFromLinkedPage = function(doc, pageUrl, invocationNumber, pageComple
 
 
 /**
- * ScanLinkedPage: Determine if the target node is linked (like the Others)
+ * OthersIndirect: Determine if the target node is linked (like the Others)
  * rule) and if it is, load and scan the linked page for a full-size image.
  */
-ThumbnailZoomPlus.Pages.ScanLinkedPage = {
-  key: "scanlinkedpage",
-  name: "", // Set in ENTITY_page_scanlinkedpage.
+ThumbnailZoomPlus.Pages.OthersIndirect = {
+  key: "othersindirect",
+  name: "", // Set in ENTITY_page_othersindirect.
   host: /^(?!.*(vimeo\.com|vimeocdn\.com).*).*/,
   
   // invocationNumber increments at the start of each invocation of
@@ -1719,13 +1719,13 @@ ThumbnailZoomPlus.Pages.ScanLinkedPage = {
                           // + "|.*"
                           , "i"),
   
-  // For "ScanLinkedPage"
+  // For "OthersIndirect"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     node = ThumbnailZoomPlus.Pages.Others.getImageNode(node, nodeName, nodeClass, imageSource);
     return node;
   },
   
-  // For "ScanLinkedPage"
+  // For "OthersIndirect"
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
     this.invocationNumber++;
     aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc, 
@@ -2361,9 +2361,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (originalImageSrc == aImageSrc) {
       // Don't return the unmodified image URL as the result since that's
       // reserved for the ThumbnailItself rule.  This allows the Thumbnail
-      // rule to run before ScanLinkedPage, and not have same-size thumbs
-      // prevent ScanLinkedPage from running, while still allowing
-      // (potentially same-size) thumbs to be handled if ScanLinkedPage
+      // rule to run before OthersIndirect, and not have same-size thumbs
+      // prevent OthersIndirect from running, while still allowing
+      // (potentially same-size) thumbs to be handled if OthersIndirect
       // doesn't find anything.
       return null;
     }
