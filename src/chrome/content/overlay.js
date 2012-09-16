@@ -1596,8 +1596,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
-
-      var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
+      let page = ThumbnailZoomPlus.FilterService.pageList[aPage];
+      var pageName = page.key;
       if (disallowOthers && this._isCatchallPage(aPage)) {
         this._logger.debug("_findPageAndShowImageGen: Skipping catch-all page " + 
                            aPage + " " + pageName);
@@ -1615,7 +1615,9 @@ ThumbnailZoomPlusChrome.Overlay = {
         }
         this._logger.debug("_findPageAndShowImageGen: got status " + status);
 
-        if (status == "disabled" && ! this._isCatchallPage(aPage)) {
+        if (status == "disabled" && 
+            ! this._isCatchallPage(aPage) &&
+            page.host.source != ".*") {
           /*
            * If the host matches the page's host URL but the page is disabled,
            * then don't allow a popup due to the match-all pages
@@ -1623,10 +1625,13 @@ ThumbnailZoomPlusChrome.Overlay = {
            * we don't want to show popups from Others and Thumbnails.  But
            * if any other page happens to match host, we'll still allow that
            * other page to launch a popup.
+           *
+           * We exlude this logic when host is match-all since that would disable
+           * on all sites, which we don't want.
            */
           disallowOthers = true;
           this._logger.debug("_findPageAndShowImageGen: Disabling Others & Thumbnails since " +
-                             ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+                             page.key +
                              " is disabled");
         }
       }
