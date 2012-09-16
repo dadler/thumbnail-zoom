@@ -1507,6 +1507,25 @@ let getImgFromSelectors = function(body, selectors) {
   return null;
 };
 
+/**
+ * getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
+ * of the specified page number (if it matches aImageSrc).
+ * Returns the possibly improved URL.  Example:
+ *   result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
+ */
+let getZoomImageViaPage = function(aPage, aImageSrc) {
+  if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
+    let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
+    let flags = {};
+    let betterResult = pageInfo.getZoomImage(aImageSrc, null, flags);
+    if (null != betterResult) {
+      aImageSrc = betterResult;
+    }
+  }
+  return aImageSrc;
+};
+
+
 
 let getImageFromHtml = function(doc, pageUrl,aHTMLString)
 {
@@ -1560,14 +1579,8 @@ let getImageFromHtml = function(doc, pageUrl,aHTMLString)
   result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
   // or _3 for somewhat lower rez?
 
-  if (ThumbnailZoomPlus.FilterService.filterImage(result, ThumbnailZoomPlus.Pages.Flickr.aPage)) {
-    // flickr
-    let flags = {};
-    let betterResult = ThumbnailZoomPlus.Pages.Flickr.getZoomImage(result, null, flags);
-    if (null != betterResult) {
-      result = betterResult;
-    }
-  }
+  // flickr
+  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
 
   return result;
 };
@@ -1854,6 +1867,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
    * aImageSrc itself, or if we can get a better starting URL from
    * the node's image, background-image, etc., it uses that.
    * This is used by the Thumbnail and ThumbnailItself rules.
+   *
+   * The function of this is somewhat similar to getImageNode(), but
+   * it directly returns the URL rather than a node since it gets
+   * the URL in some site-specific ways.
    */
   getInitialImageSrc : function(aImageSrc, node) {
     let verbose = false;
@@ -1890,14 +1907,23 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       }
       aImageSrc = backImage.replace(urlRegExp, "$1");
     }
-        
-    
-    // For diasp.org & similar, get from <img data-full-photo="http://...">
-    let fullPhoto = node.getAttribute("data-full-photo");
-    if (fullPhoto) {
-      aImageSrc = fullPhoto;
+
+    let better_attrs = [
+       // For diasp.org & similar, get from <img data-full-photo="http://...">:
+       "data-full-photo",
+       // For dailymotion.com, get from <img data-spr="http://...">:
+       "data-spr"];       
+    for (var i in better_attrs) {
+      let better = node.getAttribute(better_attrs[i]);
+      if (better) {
+        aImageSrc = better;
+        break;
+      }
     }
-    
+        
+    /*
+     * Make it an absolute URL.
+     */
     aImageSrc = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, aImageSrc);
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getInitialImageSrc p06: so far have " + aImageSrc);
