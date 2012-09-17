@@ -1782,12 +1782,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   name: null, // don't show in menu
   host: /.*/,
   
-  imageRegExp: new RegExp(".*", "i"),
+  imageRegExp: /.*/,
   
+  // READ THIS BEFORE EDITING:
   // We basically match any image, but exclude some which are annoying to
   // show.  Expression Tips:
   // Patterns in () must match starting from first slash (or earlier), 
-  // so typically start with // .  Remember to use double backslash to quote.
+  // so typically start with // .  Remember to use double backslash to quote.  
   imageDisallowRegExp : new RegExp("^[^/]*("
                           +  "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=)" // google maps tiles
@@ -1805,6 +1806,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|.*-(word|excel|powerpoint|onenote).*\\.msecnd\\.net/" // microsoft office on skydrive
                           + "|.*\\.wlxrs\\.com/" // microsoft office on skydrive
                           + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
+                          + "|//media\\.cdn-redfin\\.com/.*/osprite\\." // redfin detail pics where we don't work
+                          + "|//t[0-9]+\\.parcelstream\\.com/" // maps on redfin, etc.
                           + ").*", "i"),
   
   // For "Thumbnail"
@@ -2419,6 +2422,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                   EXTS + ")", "i"),
                                   "$1/640x480_$2");
 
+    // redfin.com: property thumb from list of properties:
+    // http://media.cdn-redfin.com/photo/40/tmbphoto/533/genTmb.12-614533_0.jpg becomes
+    // http://media.cdn-redfin.com/photo/40/bigphoto/533/12-614533_0.jpg
+    aImageSrc = aImageSrc.replace(/(cdn-redfin\.com\/photo\/.*)\/tmbphoto\/(.*)\/genTmb./,
+                                  "$1/bigphoto/$2/");
+
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     // flags.noTooSmallWarning = true;
@@ -2450,7 +2459,8 @@ ThumbnailZoomPlus.Pages.ThumbnailItself = {
 
   // Copy several fields from the Thumbnail rule.  
   imageRegExp: ThumbnailZoomPlus.Pages.Thumbnail.imageRegExp,
-  imageDisallowRegExp : ThumbnailZoomPlus.Pages.Thumbnail.imageDisallowRegexp,
+  imageDisallowRegExp : ThumbnailZoomPlus.Pages.Thumbnail.imageDisallowRegExp,
+
   getImageNode : ThumbnailZoomPlus.Pages.Thumbnail.getImageNode,  
 
   // For "Thumbnail Itself"
