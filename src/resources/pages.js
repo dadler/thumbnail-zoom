@@ -1808,6 +1808,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
                           + "|//media\\.cdn-redfin\\.com/.*/osprite\\." // redfin detail pics where we don't work
                           + "|//t[0-9]+\\.parcelstream\\.com/" // maps on redfin, etc.
+                          + "|//img[0-9]+\\.wsimg\\.com/dcc/" // GoDaddy: My Account (Domain Manager) https://mya.godaddy.com/default.aspx
+                          + "|//img[0-9]+\\.wsimg\\.com/DNSManager/" // goDaddy: DNS Manager https://dns.godaddy.com/default.aspx 
                           + ").*", "i"),
   
   // For "Thumbnail"
@@ -2428,6 +2430,21 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(cdn-redfin\.com\/photo\/.*)\/tmbphoto\/(.*)\/genTmb./,
                                   "$1/bigphoto/$2/");
 
+    // kickstarter.com
+    // http://s3.amazonaws.com/ksr/projects/262400/photo-little.jpg?1342591916 becomes
+    // http://s3.amazonaws.com/ksr/projects/262400/photo-full.jpg?1342591916
+    aImageSrc = aImageSrc.replace(/(\.amazonaws\.com\/ksr\/.*photo)-little\./,
+                                  "$1-full.");
+    // http://s3.amazonaws.com/ksr/photos/122/oreilly-sq.jpg.large_thumb.jpg becomes
+    // http://s3.amazonaws.com/ksr/photos/122/oreilly-sq.jpg.full.jpg
+    aImageSrc = aImageSrc.replace(/(\.amazonaws\.com\/ksr\/.*)\.large_thumb\./,
+                                  "$1.full.");
+    
+    // http://s3.amazonaws.com/ksr/avatars/3635050/IMG_2118.small.jpg?1347378222 becomes
+    // http://s3.amazonaws.com/ksr/avatars/3635050/IMG_2118.large.jpg?1347378222
+    aImageSrc = aImageSrc.replace(/(\.amazonaws\.com\/ksr\/.*)\.small\./,
+                                  "$1.large.");
+    
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     // flags.noTooSmallWarning = true;
