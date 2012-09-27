@@ -1242,6 +1242,23 @@ ThumbnailZoomPlus.Pages.Others = {
       }
     }
 
+    // For ixquick.com image search:
+    // https://s3-us4.ixquick-proxy.com/do/show_picture.pl?l=english&cat=pics&c=pf&q=cat&h=1080&w=1920&th=90&tw=160&
+    //     fn=1562-cute-little-cat.jpg&fs=452.3%20k&el=boss_pics_2&
+    //     tu=http:%2F%2Fts4.mm.bing.net%2Fimages%2Fthumbnail.aspx%3Fq%3D4585398013789143%26id%3Dc80ac415cdae0b434fe400624ec8ae33&
+    //     rl=NONE&
+    //      u=http:%2F%2Fwww.freegreatpicture.com%2Fkitty%2Fcute-little-cat-1562&
+    //  udata=8dac58999bb7352e104708d239982b4b&
+    //    rid=LDLNOSRLOKLK&
+    //    oiu=http:%2F%2Fwww.freegreatpicture.com%2Ffiles%2F157%2F1562-cute-little-cat.jpg
+    // becomes
+    // http://www.freegreatpicture.com/files/157/1562-cute-little-cat.jpg
+    let ixquickEx = new RegExp(/.*ixquick(?:-proxy)?\.com\/do\/show_picture\.pl.*&oiu=([^&]+).*$/);
+    if (ixquickEx.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(ixquickEx, "$1");
+      aImageSrc = decodeURIComponent(aImageSrc);
+    }
+
     // https://www.facebook.com/l.php?u=http%3A%2F%2Fi.imgur.com%2FmLR3d.jpg
     let rexFBExternal = /.*\.facebook\.com\/l\.php\?(?:.*&)?u=([^&]+).*/;
     if (rexFBExternal.test(aImageSrc)) {
