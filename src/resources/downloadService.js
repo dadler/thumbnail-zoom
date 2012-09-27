@@ -62,6 +62,21 @@ ThumbnailZoomPlus.DownloadService = {
   downloadImageAsOriginal : function(imageURL, aFilePath) {
     this._logger.debug("downloadImageAsOriginal");
 
+    /*
+       Note that uploading to the Mozilla add-ons site after approx. 9/24/2012
+       causes this warning from the site:
+       
+         `nsILocalFile` should be replaced with `nsIFile`.
+         Warning: Starting with Gecko 14, `nsILocalFile` inherits all functions 
+         and attributes from `nsIFile`, meaning that you no longer need to use 
+         `nsILocalFile`. If your add-on doesn't support versions older than 14,
+         you should use `nsIFile` instead of `nsILocalFile`.
+         Warning: See bug https://bugzilla.mozilla.org/show_bug.cgi?id=682360 
+         for more information.
+         
+       As far as I can tell it's OK to leave the code as-is and ignore the
+       warning since we support back to version 3.x of Firefox.
+     */
     let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
     file.initWithPath(aFilePath);
     this._saveImage(imageURL, file);
