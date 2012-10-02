@@ -681,7 +681,7 @@ ThumbnailZoomPlus.Pages.DeviantART = {
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     let image = aNode;
-    if ("span" == aNodeName  && /tt-bb[hw]/.test(aNodeClass) && aNode.previousSibling) {
+    if ("span" == aNodeName  && /tt-/.test(aNodeClass) && aNode.previousSibling) {
       image = aNode.previousSibling;
     }
     return image;
@@ -1257,8 +1257,8 @@ ThumbnailZoomPlus.Pages.Others = {
     if (ixquickEx.test(aImageSrc)) {
       aImageSrc = aImageSrc.replace(ixquickEx, "$1");
       aImageSrc = decodeURIComponent(aImageSrc);
-    }
-
+    }    
+    
     // https://www.facebook.com/l.php?u=http%3A%2F%2Fi.imgur.com%2FmLR3d.jpg
     let rexFBExternal = /.*\.facebook\.com\/l\.php\?(?:.*&)?u=([^&]+).*/;
     if (rexFBExternal.test(aImageSrc)) {
@@ -2206,6 +2206,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              EXTS + ")", "i"),
                                              "/uploads/images/$1");
     
+    // meetme.com
+    // http://content1.myyearbook.com/thumb_userimages/square/2012/09/24/00/thm_phpVqAGIe_0_68_400_468.jpg or
+    // http://content1.myyearbook.com/thumb_userimages/2012/09/24/00/thm_phpVqAGIe.jpg becomes
+    // http://content1.myyearbook.com/thumb_userimages/large/2012/09/24/00/thm_phpVqAGIe.jpg
+
+    aImageSrc = aImageSrc.replace(/(myyearbook\.com\/thumb_userimages)\/(?:small\/|square\/|square-mini\/)?([0-9]{4,4}\/.*thm_[^_]+)(?:_[0-9]+_[0-9]+_[0-9]+_[0-9]+)?/,
+                                  "$1/large/$2");
+
     // meetup.com
     // http://photos3.meetupstatic.com/photos/event/4/a/1/c/global_131178972.jpeg becomes
     // http://photos3.meetupstatic.com/photos/event/4/a/1/c/highres_131178972.jpeg
