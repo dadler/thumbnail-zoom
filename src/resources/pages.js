@@ -213,17 +213,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return aImageSrc;
     }
     
-    aImageSrc = aImageSrc.replace(/_[qstan]\./, "_n.");
-    aImageSrc = aImageSrc.replace(/([0-9]\/)[qsta]([0-9])/, "$1n$2");
-
-    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/c0.0.133.133/p133x133/560586_10150817981981045_883718611_n.jpg becomes
-    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/560586_10150817981981045_883718611_n.jpg
-    // (handle the c0.0.133.133 part)
-    aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
-
-    let rex3 = new RegExp(/\/[sp][0-9]+x[0-9]+\//);
-    aImageSrc = aImageSrc.replace(rex3, "/");
-
     if (/_q\./.test(aImageSrc)) {
       // Make sure we avoid positioning our popup will Facebook's wil be.
       flags.popupAvoiderTBEdge = "midpage"; 
@@ -234,6 +223,17 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // profile name above the image.
       flags.allowAbove = false;
     }
+
+    aImageSrc = aImageSrc.replace(/_[qstan]\./, "_n.");
+    aImageSrc = aImageSrc.replace(/([0-9]\/)[qsta]([0-9])/, "$1n$2");
+
+    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/c0.0.133.133/p133x133/560586_10150817981981045_883718611_n.jpg becomes
+    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/560586_10150817981981045_883718611_n.jpg
+    // (handle the c0.0.133.133 part)
+    aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
+
+    let rex3 = new RegExp(/\/[sp][0-9]+x[0-9]+\//);
+    aImageSrc = aImageSrc.replace(rex3, "/");
 
     return aImageSrc;
   }
