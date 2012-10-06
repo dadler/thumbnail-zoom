@@ -904,7 +904,9 @@ ThumbnailZoomPlus.Pages.Google = {
         aImageSrc = "http://" + aImageSrc;
       }
     } else {
-      aImageSrc = null;
+      if (! EXTS_RE.test(aImageSrc)) {
+        aImageSrc = null;
+      }
     }
     return aImageSrc;
   }

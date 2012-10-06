@@ -2286,6 +2286,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
       // open image in new tab
+      //
+      // Note: The add-on validator warns "`\.documentURIObject` only available in chrome contexts";
+      // that warning can be ignored since we *are* in chrome context.
       this._logger.debug("_doHandleKeyDown: open in new tab " +this._currentImage +
                          " referrer " + document.documentURIObject);
       let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
