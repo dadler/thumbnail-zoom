@@ -124,7 +124,7 @@ ThumbnailZoomPlus.ClipboardService = {
           break;
         } catch (e) {
           // We can get an exception if the mime type is wrong.
-          this._logger.debug("copyImageToClipboard: caught exception: " + e);
+          ThumbnailZoomPlus._logExceptionToConsole("copyImageToClipboard", e);
         }
         
         // We need to re-read the image to try a different mimetype.  Close the

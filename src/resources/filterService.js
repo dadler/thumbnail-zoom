@@ -194,7 +194,7 @@ ThumbnailZoomPlus.FilterService = {
         //                   protocol + "//" + host);
       } catch (e) {
         // I've seen this exception when pressing 't' in Firefox 3.6.
-        this._logger.debug("getHostOfDoc: unable to get host or protocol (a): " + e);
+        ThumbnailZoomPlus._logExceptionToConsole("getHostOfDoc: unable to get host or protocol (a)", e);
       }      
     }
     if (host == null || !protocol) {
@@ -221,7 +221,7 @@ ThumbnailZoomPlus.FilterService = {
           // (eg size 'icon') or from flickr.com thumbs on main page when 
           // not logged in, e.g.
           // data:image/jpeg;base64,/9j...
-          this._logger.debug("getHostOfDoc: unable to get host or protocol (b): " + e);
+          ThumbnailZoomPlus._logExceptionToConsole("getHostOfDoc: unable to get host or protocol (b)", e);
         }
         uri = null;
       }

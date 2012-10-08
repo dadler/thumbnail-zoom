@@ -352,7 +352,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("addMenuItems");
 
     if (ThumbnailZoomPlus.logPath) {
-      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
     }
 
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
@@ -622,7 +622,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_handlePageLoaded");
 
     if (ThumbnailZoomPlus.logPath) {
-      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
     }
     
     let doc = aEvent.originalTarget;
@@ -1952,7 +1952,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
     } catch (e) {
       // Ignore the "Component is not available" exception we get in Firefix 3.6.
-      this._logger.debug("_isLinkSameAsImage: EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_isLinkSameAsImage", e);
     }
     
     if (handler) {
@@ -2064,8 +2064,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     } catch (e) {
       // This message has been seen in ff15.
-      this._logger.debug("_closePanel @1: caught EXCEPTION: " + e);
-      this._logToConsole("ThumbnailZoomPlus: _closePanel @1: caught EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_closePanel 1", e);
       this._currentWindow = null;
     }
     try {
@@ -2079,8 +2078,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelXulImage.src = null;
       this._currentThumb = null;
     } catch (e) {
-      this._logger.debug("_closePanel @2: caught EXCEPTION: " + e);
-      this._logToConsole("ThumbnailZoomPlus: _closePanel @2: caught EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_closePanel 2", e);
     }
   },
 
@@ -3990,17 +3988,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _debugToConsole : function(msg) {
     this._logger.debug("### CONSOLE: " + msg);
     if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
-      this._logToConsole(msg);
+      ThumbnailZoomPlus._logToConsole(msg);
     }
-  },
-  
-  _logToConsole : function(msg) {
-    let date = new Date();
-    let timeStamp = date.toLocaleTimeString() + 
-                        String((date.getMilliseconds() % 1000) / 1000.).replace(/^0\./, ".");
-    this._consoleService.logStringMessage(timeStamp + ": " + msg);
   }
-
+  
 };
 
 window.addEventListener(

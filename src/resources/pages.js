@@ -42,6 +42,7 @@ const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
 const EXTS_RE = new RegExp(EXTS, 'i');
 
 Cu.import("resource://thumbnailzoomplus/common.js");
+Cu.import("resource://thumbnailzoomplus/pagesIndirect.js");
 
 /**
  * Pages namespace
@@ -1374,354 +1375,6 @@ ThumbnailZoomPlus.Pages.Others = {
 };
 
 
-/*******
- * Support for OthersIndirect
- *******/
-
-// parseHtmlDoc parses the specified html string and returns
-// a result object with result.doc and result.body set.
-let parseHtmlDoc = function(doc, pageUrl, aHTMLString) {
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.debug("parseHtmlDoc: Building doc");
-  
-  var tempdoc = doc.implementation.createDocument("http://www.w3.org/1999/xhtml", "html", null);
-
-  var head = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "head");
-  tempdoc.documentElement.appendChild(head);
-  var base = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "base");
-  base.href = pageUrl;
-  head.appendChild(base);
-  
-  var body = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "body");
-  tempdoc.documentElement.appendChild(body);
-
-  logger.debug("parseHtmlDoc: parsing html fragment");
-  let tree = 
-    Components.classes["@mozilla.org/feed-unescapehtml;1"]
-    .getService(Components.interfaces.nsIScriptableUnescapeHTML)
-    .parseFragment(aHTMLString, false, null, body);
-
-  logger.debug("parseHtmlDoc: inserting tree into doc");
-  body.appendChild(tree);
-  
-  return {'doc': tempdoc, 'body': body};
-};
-
-
-let getImgFromHtmlText = function(aHTMLString) {
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.trace("getImgFromHtmlText");
-
-  var re;
-
-  // liveleak.com and other flash player sites:
-  // Search for the jwplayer(...).setup(...) javascript call.  Note that
-  // the '.' pattern doesn't match newlines so we use [\\\S] instead.
-  re  = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  let match = re.exec(aHTMLString);
-  if (match) {
-    return match[1];
-  }
-  
-  re = /flv_player.*?<img src=\"([^\"]+)"/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  let match = re.exec(aHTMLString);
-  if (match) {
-    return match[1];
-  }
-  
-  re = /flash-player-embed.*?url_bigthumb=([^&]*)/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  let match = re.exec(aHTMLString);
-  if (match) {
-    return match[1];
-  }
-  
-  re = /<img src=\"([^\"]*image.enue.com\/loc[^"]*)/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  let match = re.exec(aHTMLString);
-  if (match) {
-    return match[1];
-  }
-  
-  // vimeo.com:  
-  // <meta itemprop="image" content="http://b.vimeocdn.com/ts/313/368/313368979_640.jpg">
-  // Also works on weather.com
-  // (I tried matching this in getImgFromSelectors but its contentattribute
-  // always came back null).
-  re = /<meta +itemprop="image" +content=\"([^\"]+)"/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  match = re.exec(aHTMLString);
-  if (match) {
-    return match[1];
-  }
-  
-  // flickr.com sets, dailymotion.com, yfrog, etc.
-  re = /<meta +property="og:image" +content=\"([^\"]+)"/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  match = re.exec(aHTMLString);
-  if (match) {
-    if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
-        ! /ebaystatic\.com\/./.test(match[1])) {
-      // Return this unless it's a yfrog video or ebay thumb,
-      // for which we can get a larger image via getImgFromSelectors().
-      return match[1];
-    }
-  }
-
-  // blip.tv, imgur.com/a/... (imgur may need .jpg added):
-  //	<meta name="twitter:image"
-  //     value="http://3.i.blip.tv/g?src=Rat2008-Micros02464-972.jpg&w=120&h=120&fmt=png&bc=FFFFFF&ac=0"/>
-  re = /<meta +name="twitter:image"\s+value=\"([^\"]+)"/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  match = re.exec(aHTMLString);
-  if (match) {
-    // Increase resolution of blip.tv thumb.
-    let result = match[1];
-    result = result.replace(/w=[0-9]+&/, "w=640&").replace(/h=[0-9]+&/, "h=480&");
-
-    if (/imgur\.com/.test(result) && ! EXTS_RE.test(result)) {
-      result = result + ".jpg";
-    }
-    return result;
-  }
-
-  // <link rel="image_src" href="http://...5192.jpg"
-  // but don't match for flickr.com since other rule gives higher res.
-  re = /<link +rel=\"image_src\" +href="([^"]+)"/;
-  logger.debug("getImgFromHtmlText: trying " + re);
-  match = re.exec(aHTMLString);
-  if (match && ! /flickr\.com/.test(match[1])) {
-    return match[1];
-  }
-
-  logger.debug("getImgFromHtmlText: didn't match");
-  return null;  
-};
-
-
-let getImgFromSelectors = function(body, selectors) {
-  let logger = ThumbnailZoomPlus.Pages._logger;
-
-  for (var i in selectors) {
-    var selector = selectors[i];
-    logger.debug("  Seeking with selector '" + selector + "'");
-    let node = null;
-    try {
-      node = body.querySelector(selector);
-    } catch (e) {
-      logger.debug("getImgFromSelectors: EXCEPTION trying selector '" +
-                         selector + "': " + e);
-    }
-    if (node != null) {
-      /*
-         Get URL from <img src=>, <a href=>
-       */
-      let src = node.getAttribute("src") || node.getAttribute("href");
-      logger.debug("  Found node " + node.localName + " url " + src);
-      return src;
-    }
-  }
-  return null;
-};
-
-/**
- * getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
- * of the specified page number (if it matches aImageSrc).  Node is some
- * node related to the image, but may not be a very good one
- * (some non-null node is required to satisfy getZoomImage).
- *
- * Returns the possibly improved URL.  Example:
- *   result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
- */
-let getZoomImageViaPage = function(aPage, node, aImageSrc) {
-  if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
-    let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
-    let flags = {};
-    let betterResult = pageInfo.getZoomImage(aImageSrc, node, flags);
-    if (null != betterResult) {
-      aImageSrc = betterResult;
-    }
-  }
-  return aImageSrc;
-};
-
-
-
-let getImageFromHtml = function(doc, pageUrl,aHTMLString)
-{
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  let result = getImgFromHtmlText(aHTMLString);
-  logger.debug("getImageFromLinkedPage: from getImgFromHtmlText got " + result);
-
-  // Parse the document.
-  // If we already have result, we parse only to get its base for applyBaseURI,
-  // which is overkill and could be optimized.
-  var docInfo = parseHtmlDoc(doc, pageUrl, aHTMLString);
-  if (! result) {
-    // Selectors is a list of CSS selector strings which identify the img or a
-    // node of the image.  See http://www.w3.org/TR/CSS2/selector.html
-    let selectors = [
-      'div#media-media a + a img',
-      'div#media-media img',
-      'img#thepic',
-      'div#imageContainer a + a',
-      'div#vi-container center img', // ebay.com item (old layout?)
-      'img#icImg', // ebay.com item
-      'img#MyWorldImageIcon', // ebay.com myworld (profile) pic
-      'span.dd-image img', // ebay.com daily deal
-      'div#img center img#image', // image.aven.net
-      'div.wrap div#left table a img', // image.aven.net gallery
-      'div#show-photo img#mainphoto', // 500px.com photo page
-      'div#the-image a img', // yfrog.com pic
-      'div.the-image img#main_image', // yfrog.com video
-      'img#gmi-ResViewSizer_fullimg', // deviantart photo
-      'img#primary_photo_img', // flickr.com set
-      'div#allsizes-photo img', // flickr.com in All Sizes
-      'div#main-photo-container img[alt="photo"]' // flickr.com home page 'explore thumbs' or a page.
-    ];
-    
-    result = getImgFromSelectors(docInfo.body, selectors);
-  }
-
-  if (! result) {
-    return null;
-  }
-  
-  result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
-  
-  /*
-   * Special rules to get bigger images from the result so far
-   */
-
-  // ebay:
-  // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
-  // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
-  result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
-  // or _3 for somewhat lower rez?
-
-  // flickr
-  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
-  
-  // Thumbnail (to potentially get larger thumb from the URL we have so far)
-  result = getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
-
-  return result;
-};
-
-/**
- * getImageFromLinkedPageGen is a generator which reads the html doc
- * at specified pageUrl and calls pageCompletionFunc when it has determined
- * the appropriate image URL.  It operates asynchronously (and thus can call
- * pageCompletionFunc after it returns).  Each yield of the generator 
- * corresponds to an update of the html page's loading.  The generator is
- * created and invoked from getImageFromLinkedPage().
- */
-let getImageFromLinkedPageGen = function(doc, pageUrl, invocationNumber,
-                                         pageCompletionFunc)
-{
-  let logger = ThumbnailZoomPlus.Pages._logger;
-  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage for " + pageUrl +
-               " invocationNumber " + invocationNumber);
-
-  // The first call to generator.send() passes in the generator itself.
-  let generator = yield;
-  
-  let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-  // Call the generator's next() function whenever readystate is updated.
-  req.onreadystatechange = function() {
-    if (req.readyState >= req.HEADERS_RECEIVED) {
-      try {
-        if (generator) {
-          generator.next();
-        }
-      } catch (e if e instanceof StopIteration) {
-        // normal completion of generator.
-      }
-    }
-  };
-
-  // req.responseType = "document";
-  // req.timeout = 5000; // 5-second timeout (not supported for synchronous call)
-  let asynchronous = true;
-  req.open('GET', pageUrl, asynchronous);
-  req.setRequestHeader('Accept', 'text/html');
-  req.send();
-
-  // Wait for headers to be available.
-  logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for headers");
-  yield;
-  
-  if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
-    // This request is obsolete.
-    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
-    // we don't abort since it causes 'already executing generator' error in generator.next() call above:
-    // disabled: req.abort();
-    generator = null;
-    return;
-  }
-  
-  if (req.status != 200) {
-    // error from site
-    logger.debug("readHtmlText: site returned error " + req.statusText);
-    pageCompletionFunc(null);
-  }
-
-  // Check the doc type so we don't e.g. try to parse an image as if it were html.
-  let docType = req.getResponseHeader('Content-Type');
-  if (! /text\/html/.test(docType)) {
-    logger.debug("readHtmlText: unsupported doc type returned: " + docType);
-    pageCompletionFunc(null);
-  }
-
-  // Wait for content to be done loading.
-  while (req.readyState < req.DONE) {
-    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: waiting for body; readyState=" + req.readyState);
-    logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage:   invocationNumber=" + invocationNumber + 
-                 "; this.invocationNumber=" + ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber);
-    yield;
-    if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
-      // This request is obsolete.
-      logger.debug("ThumbnailZoomPlus.Pages.getImageFromLinkedPage: aborting obsolete request.");
-      // we don't abort since it causes 'already executing generator' error in generator.next() call above:
-      // disabled: req.abort();
-      generator = null;
-      return;
-    }
-  }
-  
-  var aHTMLString = req.responseText;
-  if (! aHTMLString) {
-    logger.debug("readHtmlText: site returned empty/null text " + aHTMLString);
-    pageCompletionFunc(null);
-  }
-  // parseFragment won't run javascript so we need to not ignore the contents
-  // of <noscript> tags.  Remove them.
-  aHTMLString = aHTMLString.replace(/\<\/?noscript *\>/ig, "");
-  logger.debug("  Got doc type " + docType + ":" + aHTMLString);
-  
-  let url = getImageFromHtml(doc, pageUrl, aHTMLString);
-  
-  pageCompletionFunc(url);
-};
-
-
-// getImageFromLinkedPage returns the URL of an image determined by analyzing
-// the html at the specified URL.
-let getImageFromLinkedPage = function(doc, pageUrl, invocationNumber, pageCompletionFunc)
-{
-  let generator = getImageFromLinkedPageGen(doc, pageUrl, invocationNumber, pageCompletionFunc);
-  
-  // start the generator.
-  generator.next();
-  generator.send(generator);
-  
-  return "deferred";
-}
-
-
 /**
  * OthersIndirect: Determine if the target node is linked (like the Others)
  * rule) and if it is, load and scan the linked page for a full-size image.
@@ -1784,10 +1437,188 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // For "OthersIndirect"
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
     this.invocationNumber++;
-    aImageSrc = getImageFromLinkedPage(node.ownerDocument, aImageSrc, 
-                                       this.invocationNumber, pageCompletionFunc);
+    aImageSrc = ThumbnailZoomPlus.PagesIndirect.
+                getImageFromLinkedPage(node.ownerDocument, aImageSrc, 
+                                       this.invocationNumber, pageCompletionFunc,
+                                       this._getImageFromHtml.bind(this));
     
     return aImageSrc; 
+  },
+
+  _getImgFromHtmlText : function(aHTMLString) {
+    let logger = ThumbnailZoomPlus.Pages._logger;
+    logger.trace("_getImgFromHtmlText");
+
+    var re;
+
+    // liveleak.com and other flash player sites:
+    // Search for the jwplayer(...).setup(...) javascript call.  Note that
+    // the '.' pattern doesn't match newlines so we use [\\\S] instead.
+    re  = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+    
+    re = /flv_player.*?<img src=\"([^\"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+    
+    re = /flash-player-embed.*?url_bigthumb=([^&]*)/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+    
+    re = /<img src=\"([^\"]*image.enue.com\/loc[^"]*)/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+    
+    // vimeo.com:  
+    // <meta itemprop="image" content="http://b.vimeocdn.com/ts/313/368/313368979_640.jpg">
+    // Also works on weather.com
+    // (I tried matching this in getImgFromSelectors but its contentattribute
+    // always came back null).
+    re = /<meta +itemprop="image" +content=\"([^\"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+    
+    // flickr.com sets, dailymotion.com, yfrog, etc.
+    re = /<meta +property="og:image" +content=\"([^\"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
+          ! /ebaystatic\.com\/./.test(match[1])) {
+        // Return this unless it's a yfrog video or ebay thumb,
+        // for which we can get a larger image via getImgFromSelectors().
+        return match[1];
+      }
+    }
+
+    // blip.tv, imgur.com/a/... (imgur may need .jpg added):
+    //	<meta name="twitter:image"
+    //     value="http://3.i.blip.tv/g?src=Rat2008-Micros02464-972.jpg&w=120&h=120&fmt=png&bc=FFFFFF&ac=0"/>
+    re = /<meta +name="twitter:image"\s+value=\"([^\"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      // Increase resolution of blip.tv thumb.
+      let result = match[1];
+      result = result.replace(/w=[0-9]+&/, "w=640&").replace(/h=[0-9]+&/, "h=480&");
+
+      if (/imgur\.com/.test(result) && ! EXTS_RE.test(result)) {
+        result = result + ".jpg";
+      }
+      return result;
+    }
+
+    // <link rel="image_src" href="http://...5192.jpg"
+    // but don't match for flickr.com since other rule gives higher res.
+    re = /<link +rel=\"image_src\" +href="([^"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match && ! /flickr\.com/.test(match[1])) {
+      return match[1];
+    }
+
+    logger.debug("_getImgFromHtmlText: didn't match");
+    return null;  
+  },
+
+
+  /**
+   * _getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
+   * of the specified page number (if it matches aImageSrc).  Node is some
+   * node related to the image, but may not be a very good one
+   * (some non-null node is required to satisfy getZoomImage).
+   *
+   * Returns the possibly improved URL.  Example:
+   *   result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
+   */
+  _getZoomImageViaPage : function(aPage, node, aImageSrc) {
+    if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
+      let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
+      let flags = {};
+      let betterResult = pageInfo.getZoomImage(aImageSrc, node, flags);
+      if (null != betterResult) {
+        aImageSrc = betterResult;
+      }
+    }
+    return aImageSrc;
+  },
+
+
+  _getImageFromHtml : function(doc, pageUrl,aHTMLString)
+  {
+    let logger = ThumbnailZoomPlus.Pages._logger;
+    let result = this._getImgFromHtmlText(aHTMLString);
+    logger.debug("getImageFromLinkedPage: from _getImgFromHtmlText got " + result);
+
+    // Parse the document.
+    // If we already have result, we parse only to get its base for applyBaseURI,
+    // which is overkill and could be optimized.
+    var docInfo = ThumbnailZoomPlus.PagesIndirect.parseHtmlDoc(doc, pageUrl, aHTMLString);
+    if (! result) {
+      // Selectors is a list of CSS selector strings which identify the img or a
+      // node of the image.  See http://www.w3.org/TR/CSS2/selector.html
+      let selectors = [
+        'div#media-media a + a img',
+        'div#media-media img',
+        'img#thepic',
+        'div#imageContainer a + a',
+        'div#vi-container center img', // ebay.com item (old layout?)
+        'img#icImg', // ebay.com item
+        'img#MyWorldImageIcon', // ebay.com myworld (profile) pic
+        'span.dd-image img', // ebay.com daily deal
+        'div#img center img#image', // image.aven.net
+        'div.wrap div#left table a img', // image.aven.net gallery
+        'div#show-photo img#mainphoto', // 500px.com photo page
+        'div#the-image a img', // yfrog.com pic
+        'div.the-image img#main_image', // yfrog.com video
+        'img#gmi-ResViewSizer_fullimg', // deviantart photo
+        'img#primary_photo_img', // flickr.com set
+        'div#allsizes-photo img', // flickr.com in All Sizes
+        'div#main-photo-container img[alt="photo"]' // flickr.com home page 'explore thumbs' or a page.
+      ];
+      
+      result = ThumbnailZoomPlus.PagesIndirect.getImgFromSelectors(docInfo.body, selectors);
+    }
+
+    if (! result) {
+      return null;
+    }
+    
+    result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
+    
+    /*
+     * Special rules to get bigger images from the result so far
+     */
+
+    // ebay:
+    // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
+    // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
+    result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
+    // or _3 for somewhat lower rez?
+
+    // flickr
+    result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
+    
+    // Thumbnail (to potentially get larger thumb from the URL we have so far)
+    result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
+
+    return result;
   }
 
 };
@@ -1901,6 +1732,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
    * The function of this is somewhat similar to getImageNode(), but
    * it directly returns the URL rather than a node since it gets
    * the URL in some site-specific ways.
+   *
+   * This is used by rules Thumbnail and ThumbnailItself.
    */
   getInitialImageSrc : function(aImageSrc, node) {
     let verbose = false;
