@@ -1572,7 +1572,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     var docInfo = ThumbnailZoomPlus.PagesIndirect.parseHtmlDoc(doc, pageUrl, aHTMLString);
     if (! result) {
       // Selectors is a list of CSS selector strings which identify the img or a
-      // node of the image.  See http://www.w3.org/TR/CSS2/selector.html
+      // node of the image.  See http://www.w3.org/TR/CSS2/selector.html .
+      // EG tag#id or tag.class
       let selectors = [
         'div#media-media a + a img',
         'div#media-media img',

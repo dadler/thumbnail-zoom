@@ -82,6 +82,8 @@ ThumbnailZoomPlus.PagesIndirect = {
 
     this._logger.debug("parseHtmlDoc: inserting tree into doc");
     body.appendChild(tree);
+
+    // this._logger.debug("\n\n\n\nDOC tree:\n" + body.outerHTML + "\n\n\n\n");
     
     return {'doc': tempdoc, 'body': body};
   },
@@ -202,7 +204,7 @@ ThumbnailZoomPlus.PagesIndirect = {
     }
     // parseFragment won't run javascript so we need to not ignore the contents
     // of <noscript> tags.  Remove them.
-    aHTMLString = aHTMLString.replace(/\<\/?noscript *\>/ig, "");
+    aHTMLString = aHTMLString.replace(/\<\/?noscript.*\>/ig, "");
     this._logger.debug("  Got doc type " + docType + ":" + aHTMLString);
     
     let url = getImageFromHtmlFunc(doc, pageUrl, aHTMLString);
