@@ -164,7 +164,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))/,
+  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
@@ -236,6 +236,11 @@ ThumbnailZoomPlus.Pages.Facebook = {
     let rex3 = new RegExp(/\/[sp][0-9]+x[0-9]+\//);
     aImageSrc = aImageSrc.replace(rex3, "/");
 
+    // http://graph.facebook.com/1368249070/picture?type=square becomes
+    // http://graph.facebook.com/1368249070/picture?type=large
+    // e.g. from pandora.com.
+    aImageSrc = aImageSrc.replace(/(graph\.facebook\.com\/.*\/picture\?type=)square/, "$1large");
+    
     return aImageSrc;
   }
 };
@@ -1381,6 +1386,26 @@ ThumbnailZoomPlus.Pages.Others = {
   }
 };
 
+/**
+ * _getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
+ * of the specified page number (if it matches aImageSrc).  Node is some
+ * node related to the image, but may not be a very good one
+ * (some non-null node is required to satisfy getZoomImage).
+ *
+ * Returns the possibly improved URL.  Example:
+ *   result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
+ */
+let _getZoomImageViaPage = function(aPage, node, aImageSrc) {
+  if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
+    let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
+    let flags = {};
+    let betterResult = pageInfo.getZoomImage(aImageSrc, node, flags);
+    if (null != betterResult) {
+      aImageSrc = betterResult;
+    }
+  }
+  return aImageSrc;
+};
 
 /**
  * OthersIndirect: Determine if the target node is linked (like the Others)
@@ -1544,29 +1569,6 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return null;  
   },
 
-
-  /**
-   * _getZoomImageViaPage() tries to improve upon aImageSrc using the getZoomImage
-   * of the specified page number (if it matches aImageSrc).  Node is some
-   * node related to the image, but may not be a very good one
-   * (some non-null node is required to satisfy getZoomImage).
-   *
-   * Returns the possibly improved URL.  Example:
-   *   result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, result);
-   */
-  _getZoomImageViaPage : function(aPage, node, aImageSrc) {
-    if (ThumbnailZoomPlus.FilterService.filterImage(aImageSrc, aPage)) {
-      let pageInfo = ThumbnailZoomPlus.FilterService.pageList[aPage];
-      let flags = {};
-      let betterResult = pageInfo.getZoomImage(aImageSrc, node, flags);
-      if (null != betterResult) {
-        aImageSrc = betterResult;
-      }
-    }
-    return aImageSrc;
-  },
-
-
   _getImageFromHtml : function(doc, pageUrl,aHTMLString)
   {
     let logger = ThumbnailZoomPlus.Pages._logger;
@@ -1621,10 +1623,10 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // or _3 for somewhat lower rez?
 
     // flickr
-    result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
+    result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
     
     // Thumbnail (to potentially get larger thumb from the URL we have so far)
-    result = this._getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
+    result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
 
     return result;
   }
@@ -1672,9 +1674,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    // Some sites need to find the image's node from an ancestor node.
+    let parentClass = node.parentNode.className;
     if (/gii_folder_link/.test(nodeClass) ||
         (/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
-        (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass))) {
+        (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass)) ||
+        /cd_activator/.test(parentClass) // pandor.com small thumb in upper-right corner
+        ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
       // img nodes are in <img> child of the (great(grand))parent node of the
@@ -1684,12 +1690,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // TODO: a generalization of this logic might be useful in general, e.g.
       // for yahoo.co.jp
       let generationsUp = 1; // overlay
-      if (/gii_folder_link|inner/.test(nodeClass)) {
+      if (/gii_folder_link|inner/.test(nodeClass) ||
+          /cd_activator/.test(parentClass) // pandora.com
+          ) {
         generationsUp = 2;
       } else if (/date|notes/.test(nodeClass)) {
         generationsUp = 3;
       }
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected possible minus.com, tumblr.com, or dailymotion.com; going up "
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected site which needs ancestor node; going up "
           + generationsUp + " levels and then finding img.");
       let ancestor = node;
       while (generationsUp > 0 && ancestor) {
@@ -1700,11 +1708,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         // Find child "img" nodes
         let imgNodes = ancestor.getElementsByTagName("img");
         if (imgNodes.length > 0) {
-          // Confirm that it's tumblr or minus.com.
+          // Confirm that it's one of the expected sites.
           var ancestorClass = ancestor.className;
           if (/gii_folder_link/.test(nodeClass) ||
               /preview_link/.test(ancestorClass) ||  // dailymotion
-              /photo/.test(ancestorClass) ) {
+              /photo/.test(ancestorClass) ||
+              /cd_icon/.test(ancestorClass) // pandora.com
+              ) {
             // take the last child.
             node = imgNodes[imgNodes.length-1];
           } else {
@@ -1719,6 +1729,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // meetup.com sometimes has image in background-image of <a> in
       // <a><img src=".../blank.gif"></a>.
       node = node.parentNode;
+    }
+  
+    if (/albumart-treatment-/.test(imageSource)) {
+      // pandora.com big thumb in player.  Image is on peer <img class="art">.
+      node = node.parentNode.querySelector("img.art");
     }
     
     if (/olTileImage|olButton/.test(nodeClass) ||
@@ -2323,6 +2338,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.amazonaws\.com\/ksr\/.*)\.small\./,
                                   "$1.large.");
     
+    // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
+    // e.g. on pandora.com.
+    aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
+
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
     // flags.noTooSmallWarning = true;
