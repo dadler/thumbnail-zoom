@@ -2095,6 +2095,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              EXTS + ")", "i"),
                                              "$1/$2$3");
     
+    // asos.com:
+    // https://marketplace-images.asos.com/fa/6f7a9757-a839-4d07-93f2-7173ff34b677_small.jpg becomes
+    // https://marketplace-images.asos.com/fa/6f7a9757-a839-4d07-93f2-7173ff34b677_huge.jpg
+    aImageSrc = aImageSrc.replace(/(images\.asos\.com\/.*)_(?:small|medium)\.jpg/, "$1_huge.jpg");
+    aImageSrc = aImageSrc.replace(/(images\.asos\.com\/.*)\/image1l\.jpg/, "$1/image1xxl.jpg");
+    
+    //
+    aImageSrc = aImageSrc.replace(new RegExp("(bay\\.org/asm/.*)-[0-9]+x[0-9]+(" + EXTS + ")"),
+                                  "$1$2");
+
     // imageporter.com
     aImageSrc = aImageSrc.replace(/(imageporter\.com\/.*)_t\.jpg/, "$1.jpg");
 
