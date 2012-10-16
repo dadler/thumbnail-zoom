@@ -1118,6 +1118,13 @@ ThumbnailZoomPlus.Pages.Others = {
   
   // For "Others"
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
+  
+    if (/itemLabel/.test(nodeClass)) {
+      // Prohibit popup from the "Download" menu item in a Facebook album
+      // in grid view.
+      return null;
+    }
+    
     let imgNode = null;
     let imgNodeURL = null;
     if (aNode.localName.toLowerCase() == "img") {
