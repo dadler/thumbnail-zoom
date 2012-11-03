@@ -2187,6 +2187,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(data\.whicdn\.com\/images\/.*)_thumb\.jpg/,
                                   "$1_large.jpg");
     
+    // favim.com:
+    // http://s3.favim.com/mini/42/kiss-love-percabeth-percy-jackson-358770.jpg becomes
+    // http://s3.favim.com/orig/42/kiss-love-percabeth-percy-jackson-Favim.com-358770.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.favim\\.com)/(?:mini|micro)/(.*[/-])([0-9]+" + EXTS + ")"),
+                                  "$1/orig/$2Favim.com-$3");
+                                  
     // Huffingtonpost.com
     // http://i.huffpost.com/gen/574638/thumbs/s-MILA-KUNIS-WITHOUT-MAKEUP-154x114.jpg becomes
     // http://i.huffpost.com/gen/574638/thumbs/o-MILA-KUNIS-WITHOUT-MAKEUP-570.jpg
