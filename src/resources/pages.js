@@ -1679,7 +1679,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (/gii_folder_link/.test(nodeClass) ||
         (/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass)) ||
-        /cd_activator/.test(parentClass) // pandor.com small thumb in upper-right corner
+        /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
+        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) // for allmusic.com
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1713,9 +1714,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
           if (/gii_folder_link/.test(nodeClass) ||
               /preview_link/.test(ancestorClass) ||  // dailymotion
               /photo/.test(ancestorClass) ||
-              /cd_icon/.test(ancestorClass) // pandora.com
+              /cd_icon/.test(ancestorClass) || // pandora.com
+              /image-container/.test(ancestorClass) // allmusic.com
               ) {
-            // take the last child.
+            // take the last img child.
             node = imgNodes[imgNodes.length-1];
           } else {
             ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed.");
@@ -2048,6 +2050,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://static.rhap.com/img/500x500/7/9/1/8/1328197_500x500.jpg
     aImageSrc = aImageSrc.replace(/(\.rhap\.com\/img)\/170x170\/(.*)_170x170\.jpg/,
                                   "$1/500x500/$2_500x500.jpg");
+                          
+    // allmusic.com by rovi
+    // http://cps-static.rovicorp.com/3/JPG_250/MI0000/849/MI0000849999.jpg?partner=allrovi.com becomes
+    // http://cps-static.rovicorp.com/3/JPG_500/MI0000/849/MI0000849999.jpg?partner=allrovi.com
+    aImageSrc = aImageSrc.replace(/(\.rovicorp\.com\/[0-9]+\/)JPG_[0-9]+\//,
+                                  "$1JPG_500/");
                                   
     // Sites using Piwigo image gallery, eg
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/thumbnail/TN-DSCN0585.jpg becomes
