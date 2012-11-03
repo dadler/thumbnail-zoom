@@ -1546,6 +1546,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * For info about generators see
    * https://developer.mozilla.org/en/IndexedDB/Using_IndexedDB/Using_JavaScript_Generators_in_Firefox
    * https://developer.mozilla.org/en/Core_JavaScript_1.5_Guide/Iterators_and_Generators#Generators.3a_a_better_way_to_build_Iterators
+   * http://matt.bridges.name/archive/54
    */
   _findPageAndShowImageGen : function(aDocument, aEvent, minFullPageNum, node) {
     this._logger.trace("_findPageAndShowImageGen"); 
@@ -1952,7 +1953,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
     } catch (e) {
       // Ignore the "Component is not available" exception we get in Firefix 3.6.
-      ThumbnailZoomPlus._logExceptionToConsole("_isLinkSameAsImage", e);
+      ThumbnailZoomPlus._logExceptionToConsole("_isLinkSameAsImage: note:", e);
     }
     
     if (handler) {
@@ -3817,7 +3818,11 @@ ThumbnailZoomPlusChrome.Overlay = {
         };
         image.src = imageURL;
       } else {
-        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(imageURL, filePath);
+        var win = null;
+        if (this._currentThumb) {
+          win = this._currentThumb.ownerDocument.defaultView;
+        }
+        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(win, imageURL, filePath);
       }
     }
   },
