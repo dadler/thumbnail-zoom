@@ -2043,6 +2043,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*-web)[_-][0-9]+(" + EXTS + ")"),
                                   "$1$2");
     
+    // rhapsody.com
+    // http://static.rhap.com/img/170x170/7/9/1/8/1328197_170x170.jpg becomes
+    // http://static.rhap.com/img/500x500/7/9/1/8/1328197_500x500.jpg
+    aImageSrc = aImageSrc.replace(/(\.rhap\.com\/img)\/170x170\/(.*)_170x170\.jpg/,
+                                  "$1/500x500/$2_500x500.jpg");
+                                  
     // Sites using Piwigo image gallery, eg
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/thumbnail/TN-DSCN0585.jpg becomes
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/DSCN0585.jpg
