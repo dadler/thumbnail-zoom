@@ -2023,6 +2023,26 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     aImageSrc = aImageSrc.replace(/(\/cms\/ul\/)t-([0-9]{4,20})/, "$1$2");
     
+    // etsy.com:
+    // http://img0.etsystatic.com/001/0/5166156/il_75x75.352657160_pkc7.jpg becomes
+    // http://img0.etsystatic.com/001/0/5166156/il_fullxfull.352657160_pkc7.jpg
+    aImageSrc = aImageSrc.replace(/(\.etsy(?:static)?\.com\/.*\/il)_[a-z0-9]+x[a-z0-9]+\./i,
+                                  "$1_fullxfull.");
+    // http://www.etsy.com/blog/en/files/2012/10/etsyweddings_realweddings_McKenzieelizabeth_sml.jpg becomes
+    // https://www.etsy.com/blog/en/files/2012/10/etsyweddings_realweddings_McKenzieelizabeth_LRG.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*[_-])sml(" + EXTS + ")"),
+                                  "$1LRG$2");
+    
+    // https://www.etsy.com/blog/en/files/2012/10/glass_house_header2_small.jpg becomes
+    // https://www.etsy.com/blog/en/files/2012/10/glass_house_header2.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*)[_-]small(" + EXTS + ")"),
+                                  "$1$2");
+    
+    // https://www.etsy.com/blog/en/files/2012/11/fox-web-2751.jpg becomes
+    // https://www.etsy.com/blog/en/files/2012/11/fox-web.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*-web)[_-][0-9]+(" + EXTS + ")"),
+                                  "$1$2");
+    
     // Sites using Piwigo image gallery, eg
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/thumbnail/TN-DSCN0585.jpg becomes
     // http://www.worldwidefieldguide.com/galleries/Plantae/Ranunculales/Ranunculaceae/Pulsatilla/vulgaris/DSCN0585.jpg
