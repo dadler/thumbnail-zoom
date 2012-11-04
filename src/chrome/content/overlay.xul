@@ -37,9 +37,9 @@
 <overlay id="thumbnailzoomplus-browser-overlay"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript"
+  <script type="application/javascript"
     src="chrome://thumbnailzoomplus/content/common.js" />
-  <script type="application/x-javascript"
+  <script type="application/javascript"
     src="chrome://thumbnailzoomplus/content/overlay.js" />
 
   <!-- Toolbar button -->
@@ -54,6 +54,7 @@
         onpopupshowing="ThumbnailZoomPlusChrome.Overlay.addMenuItems();">
       
         <menuseparator id="thumbnailzoomplus-toolbar-menuseparator" />
+        <menuseparator id="thumbnailzoomplus-toolbar-menuseparator2" />
         <menuitem label="&thumbnailzoomplus.toolbar.settings.label;"
           oncommand="ThumbnailZoomPlusChrome.Overlay.openPreferences();" />
         <menuitem label="&thumbnailzoomplus.toolbar.help.label;"
@@ -70,6 +71,7 @@
          -->
         <XXXENTITYREF id="thumbnailzoomplus-entity-names"
            ENTITY_page_others="&thumbnailzoomplus.pages.names.others;" 
+           ENTITY_page_othersindirect="&thumbnailzoomplus.pages.names.othersindirect;"
            ENTITY_page_thumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
            ENTITY_page_google="&thumbnailzoomplus.pages.names.google;" 
            />

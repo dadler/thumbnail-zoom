@@ -42,7 +42,13 @@ Cu.import("resource://thumbnailzoomplus/common.js");
  * The Filter Service.
  */
 ThumbnailZoomPlus.FilterService = {
-  /* Pages info list. */
+  /**
+   * Pages info list. 
+   *
+   * The order in this list determines the priority order items are applied 
+   * (first matching rule wins) and the order they appear in the toolbar
+   * menu.
+   */
   pageList : [
     ThumbnailZoomPlus.Pages.Amazon, // 0
     ThumbnailZoomPlus.Pages.DailyMile,
@@ -72,9 +78,18 @@ ThumbnailZoomPlus.FilterService = {
     ThumbnailZoomPlus.Pages.YouTube, // 25
     ThumbnailZoomPlus.Pages.Wikipedia,
     
-    // The next two must be last so they are lower priority.
+    // These must be last so they are lower priority.
     ThumbnailZoomPlus.Pages.Others,
-    ThumbnailZoomPlus.Pages.Thumbnail
+
+    // We order these as Thumbnail, OthersIndirect, ThumbnailItself.  This 
+    // way showing an enlarged version of the low-rez thumb (i.e. ThumbnailItself)
+    // is lower priority than showing an image from the linked page, and showing
+    // a high-rez image derived from the thumb is higher priority than r
+    // the slower OthersIndirect rule (eg for dailymotion.com where both rules
+    // are available). 
+    ThumbnailZoomPlus.Pages.Thumbnail,
+    ThumbnailZoomPlus.Pages.OthersIndirect,
+    ThumbnailZoomPlus.Pages.ThumbnailItself
   ],
 
   /* Logger for this object. */
@@ -141,34 +156,29 @@ ThumbnailZoomPlus.FilterService = {
     this.imageSourceNode = null;
   },
   
-  _allowProtocol : function(protocol, host) {
-    // If enableFileProtocol, then the add-on is enabled for file:// URLs
-    // (typically used with the Others page type).  This is useful during
-    // debugging, but we don't normally enable it in the released version
-    // since we aren't sure if there might be subtle security risks.
-    let enableFileProtocol = false;
-
-    if (("http:" == protocol ||
-        "https:" == protocol ||
-        (enableFileProtocol && "file:" == protocol))) {
+  _allowProtocol : function(protocol, host, strict) {
+    if ("http:" == protocol || "https:" == protocol) {
+      return true;
+    }
+    if (!strict && ("chrome:" == protocol || "data:" == protocol)) {
+      // allow the hosting page to be in chrome://, e.g. for
+      // extensions like PrevNextArrows and showmemore.
       return true;
     }
     
-    if ("chrome:" == protocol && "prevnextarrows" == host) {
-      // allow a gallery created by the PrevNextArrows add-on.
-      return true;
-    }
     return false;
 },
   
   /**
    * Gets the host of the specified document (if it has one and the
    * protocol is supported by TZP); otherwise returns null.
+   * If strict, then imposes stricter rules on the allowed protocol; use
+   * this with images (as opposed to hosting pages).
    *
    * Caution: this routine is somewhat slow; avoid calling it more than
    * necessary.
    */
-  getHostOfDoc : function(aDocument) {    
+  getHostOfDoc : function(aDocument, strict) {    
     // Get location from document or image.
     // TODO: to really do this right we'd need to split part of
     // getImageSource up so we can properly find the image/link URL
@@ -184,10 +194,10 @@ ThumbnailZoomPlus.FilterService = {
         //                   protocol + "//" + host);
       } catch (e) {
         // I've seen this exception when pressing 't' in Firefox 3.6.
-        this._logger.debug("getHostOfDoc: unable to get host or protocol (a): " + e);
+        ThumbnailZoomPlus._logExceptionToConsole("getHostOfDoc: unable to get host or protocol (a)", e);
       }      
     }
-    if (! host || !protocol) {
+    if (host == null || !protocol) {
       // Try to get from an image node's src attr.  TODO: should it also
       // try href?
       let imageSource = aDocument.src;
@@ -200,7 +210,7 @@ ThumbnailZoomPlus.FilterService = {
         try {
           host = uri.host;
           protocol = uri.scheme + ":";
-          if (! host || !protocol) {
+          if (host == null || !protocol) {
             this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
                                imageSrc + "; got " + protocol + "//" + host);
             return null;
@@ -211,21 +221,21 @@ ThumbnailZoomPlus.FilterService = {
           // (eg size 'icon') or from flickr.com thumbs on main page when 
           // not logged in, e.g.
           // data:image/jpeg;base64,/9j...
-          this._logger.debug("getHostOfDoc: unable to get host or protocol (b): " + e);
+          ThumbnailZoomPlus._logExceptionToConsole("getHostOfDoc: unable to get host or protocol (b)", e);
         }
         uri = null;
       }
     }
-    if (! host || !protocol) {
+    if (host == null || !protocol) {
       this._logger.debug("    getHostOfDoc: Reject; couldn't get host from " + 
                          aDocument + "; got " + protocol + "//" + host);
       return null;
     }
 
-    if (this._allowProtocol(protocol, host)) {
+    if (this._allowProtocol(protocol, host, strict)) {
       return host;
     }
-    this._logger.debug("    getHostOfDoc: Reject by protocol for " + 
+    this._logger.debug("    getHostOfDoc: Reject by protocol (strict=" + strict + ") for " + 
                        protocol + "//" + host);
     return null;
   },
@@ -254,7 +264,6 @@ ThumbnailZoomPlus.FilterService = {
    */
   getPageConstantByDoc : function(aDocument, startFromPage) {
     let pageConstant = -1;
-    let name = "?";
     
     let host = this.getHostOfDoc(aDocument);
     if (host == null) {
@@ -265,7 +274,6 @@ ThumbnailZoomPlus.FilterService = {
     for (let i = startFromPage; i < pageCount; i++) {
       if (this.testPageConstantByHost(host, i)) {
         pageConstant = i;
-        name = this.pageList[i].key;
         break;
       }
     }
@@ -509,34 +517,75 @@ ThumbnailZoomPlus.FilterService = {
   filterImage : function(aImageSrc, aPage) {
     this._logger.debug("filterImage");
 
-    let validImage = false;
-    let exp = this.pageList[aPage].imageRegExp;
-    let regExp = new RegExp(exp);
-
-    if (regExp.test(aImageSrc)) {
-      validImage = true;
-      this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc + " using " + exp);
-    } else {
-      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + aImageSrc + " using " + exp);
+    let page = this.pageList[aPage];
+    let allowExp = new RegExp(page.imageRegExp);
+    if (! allowExp.test(aImageSrc)) {
+      this._logger.debug("ThumbnailPreview: filterImage REJECTED " + 
+                        aImageSrc);
+      this._logger.debug("ThumbnailPreview: " + 
+                         "   REJECTED by imageRegExp: " + allowExp);
+      return false;
     }
+    this._logger.debug("filterImage: matched imageRegExp");
 
-    return validImage;
+    if (page.imageDisallowRegExp) {
+      var disallowExp = new RegExp(page.imageDisallowRegExp);
+      if (disallowExp.test(aImageSrc)) {
+        this._logger.debug("ThumbnailPreview: filterImage REJECTED " + 
+                          aImageSrc);
+        this._logger.debug("ThumbnailPreview: " + 
+                           "   allowed by imageRegExp: " + allowExp);
+        this._logger.debug("ThumbnailPreview: " +
+                           "   REJECTED by imageDisallowRegExp: " + disallowExp);
+        return false;
+      }
+    } else {
+      var disallowExp = "(none)";
+    }
+    this._logger.debug("ThumbnailPreview: filterImage allowed " + aImageSrc);
+    this._logger.debug("ThumbnailPreview: " + 
+                       "   allowed by imageRegExp: " + allowExp);
+    this._logger.debug("ThumbnailPreview: " +
+                       "   allowed by imageDisallowRegExp: " + disallowExp);
+
+    return true;
   },
 
   /**
    * Gets the zoomed image source, using the page's getZoomImage().
+   * Sends the image source to the specified completionFunc
    * @param aImageSrc the image source url.
    * @param flags: an object which this function may modify.  Members:
    *   see PopupFlags() constructor above.
    * @param aPage the filtered page.
-   * @return the zoomed image source, null if none could be found, or "" if
-   *  one was found, but for a site which the user disabled.
+   * @param completionFunc: will be called with the image source and a
+   *   flag which is true iff getting the zoom image is deferred.  Note that
+   *   this call will come from getZoomImage if not deferred, or from
+   *   somewhere else later if deferred.  Completion func returns a status
+   *   string.
+   *
+   * @return a status string (such as "deferred").
    */
-  getZoomImage : function(aImageSrc, node, flags, aPage) {
+  getZoomImage : function(aImageSrc, node, flags, aPage, completionFunc) {
     this._logger.debug("getZoomImage");
 
     let pageInfo = this.pageList[aPage];
-    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags);
+    
+    let that = this;
+    let pageCompletionFunc =  function(zoomImageResult) {
+      that._logger.debug("ThumbnailPreview: getZoomImage deferred returned flags allow:" +
+                     (+flags.allowLeft) + "<>" + (+flags.allowRight) +
+                     " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
+                     " " + zoomImage);
+      completionFunc(zoomImageResult, true);
+    };      
+    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags,
+                                          pageCompletionFunc);
+      
+    if (zoomImage == "deferred") {
+      return zoomImage;
+    }
+    
     this._logger.debug("ThumbnailPreview: getZoomImage returned flags allow:" +
                        (+flags.allowLeft) + "<>" + (+flags.allowRight) +
                        " " + (+flags.allowAbove) + "^/v" + (+flags.allowBelow) +
@@ -545,10 +594,10 @@ ThumbnailZoomPlus.FilterService = {
     if (! /^https?:\/\/./i.test(zoomImage)) {
       // As a security precaution, we only allow http and https.
       this._logger.debug("ThumbnailPreview: rejecting URL not beginning with http or https");
-      return null;
+      zoomImage = null;
     }
     
-    return zoomImage;
+    return completionFunc(zoomImage, false);
   }
 };
 

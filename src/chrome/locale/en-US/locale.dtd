@@ -42,20 +42,29 @@
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Enable">
 <!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Debug">
 <!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copy log">
-<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying image (sec):">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Key to">
-<!ENTITY thumbnailzoomplus.options.key.display.label             "display">
-<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "not display">
-<!ENTITY thumbnailzoomplus.options.key2.selection.label          "the image:">
+<!ENTITY thumbnailzoomplus.options.key.display.label                 "display">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "not display">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Screen">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Show &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Show caption">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Save As name:">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Caption">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Web Location">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Caption &amp; Web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; Caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Add to history">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "None">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
@@ -65,6 +74,7 @@
      To localize a name, add it to XXXENTITYREF in overlay.js
      and here (in each locale). -->
 <!ENTITY thumbnailzoomplus.pages.names.others                    "Others">
+<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Others (Indirect)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Thumbnail">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Google Images">
 

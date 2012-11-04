@@ -52,6 +52,8 @@ pref("extensions.thumbnailzoomplus.panel.showpercent",  true);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);
+pref("extensions.thumbnailzoomplus.panel.popupsize",    "webpage");
+pref("extensions.thumbnailzoomplus.panel.savefilename", "caption");
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);
@@ -83,3 +85,4 @@ pref("extensions.thumbnailzoomplus.pinterest.enable",   true);
 pref("extensions.thumbnailzoomplus.engadget.enable",    true);
 pref("extensions.thumbnailzoomplus.others.enable",      true);
 pref("extensions.thumbnailzoomplus.thumbnail.enable",   false); // disabled by default since could be annoying.
+pref("extensions.thumbnailzoomplus.othersindirect.enable", true);                

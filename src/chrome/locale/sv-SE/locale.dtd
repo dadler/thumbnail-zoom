@@ -46,16 +46,25 @@
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent för att">
-<!ENTITY thumbnailzoomplus.options.key.display.label             "visa">
-<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "dölja">
-<!ENTITY thumbnailzoomplus.options.key2.selection.label          "bilden:">
+<!ENTITY thumbnailzoomplus.options.key.display.label                 "visa">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "dölja">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Screen">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Visa &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Visa bildtext">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Save As name:">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Caption">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Web Location">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Caption &amp; Web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; Caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till historien">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ingen">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
@@ -65,6 +74,7 @@
      To localize a name, add it to XXXENTITYREF in overlay.js
      and here (in each locale). -->
 <!ENTITY thumbnailzoomplus.pages.names.others                    "Övriga">
+<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Övriga (Indirect)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Miniatyr">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Google Bilder">
 

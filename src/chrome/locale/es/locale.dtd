@@ -42,20 +42,29 @@
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Habilitar">
 <!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Debug">
 <!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copie registro">
-<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar la imagen (seg):">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Retraso antes de visualizar (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostrar imagen parcial después (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom por defecto (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tecla para">
-<!ENTITY thumbnailzoomplus.options.key.display.label             "visualizar">
-<!ENTITY thumbnailzoomplus.options.key.notdisplay.label          "no visualizar">
-<!ENTITY thumbnailzoomplus.options.key2.selection.label          "la imagen:">
+<!ENTITY thumbnailzoomplus.options.key.display.label                 "visualizar">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "no visualizar">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label          ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar la imagen:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Screen">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Mostrar &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Mostrar título">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Save As name:">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Caption">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Web Location">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Caption &amp; Web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; Caption">
 <!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Añadir a la historia">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
@@ -65,6 +74,7 @@
      To localize a name, add it to XXXENTITYREF in overlay.js
      and here (in each locale). -->
 <!ENTITY thumbnailzoomplus.pages.names.others                    "Otros">
+<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Otros (Indirect)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Thumbnail">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Imágenes de Google">
 

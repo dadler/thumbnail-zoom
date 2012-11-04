@@ -34,6 +34,7 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
 Cu.import("resource://thumbnailzoomplus/downloadService.js");
+Cu.import("resource://thumbnailzoomplus/clipboardService.js");
 Cu.import("resource://thumbnailzoomplus/uninstallService.js");
 
 /**
@@ -49,17 +50,24 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_DELAY : ThumbnailZoomPlus.PrefBranch + "panel.delay",
   PREF_PANEL_BORDER : ThumbnailZoomPlus.PrefBranch + "panel.border",
   PREF_PANEL_LARGE_IMAGE : ThumbnailZoomPlus.PrefBranch + "panel.largeimage",
+  PREF_PANEL_POPUP_SIZE : ThumbnailZoomPlus.PrefBranch + "panel.popupsize",
   PREF_PANEL_POPUP_ON_SCROLL : ThumbnailZoomPlus.PrefBranch + "panel.popuponscroll",
   PREF_PANEL_FOCUS_POPUP : ThumbnailZoomPlus.PrefBranch + "panel.focuspopup",
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
+  PREF_PANEL_SAVE_FILENAME : ThumbnailZoomPlus.PrefBranch + "panel.savefilename",
   PREF_PANEL_ENABLE : ThumbnailZoomPlus.PrefBranch + "panel.enable",
   PREF_PANEL_DEBUG : ThumbnailZoomPlus.PrefBranch + "panel.debug",
   
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
+
+  // Values for PREF_PANEL_POPUP_SIZE:
+  PREF_VALUE_POPUP_SIZE_WEB_PAGE : "webpage",
+  PREF_VALUE_POPUP_SIZE_WINDOW : "window",
+  PREF_VALUE_POPUP_SIZE_SCREEN : "screen",
 
   /* Logger for this object (for debug log file). */
   _logger : null,
@@ -161,7 +169,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   // loss of focus from showing the popup.
   _movedSincePoppedUp : false,
   
-  // _borderWidth is the spacing in pixels between the edge of the thumb and the popup.
+  // _borderWidth is the spacing in pixels between the edge of the thumb 
+  // and the popup when the border is displayed.  This must equal the
+  // #thumbnailzoomplus-panel "padding" value in overlay.css.
+  // Debugging tip: set large (30) when debugging popup positioning.
   _borderWidth : 5, // border itself adds 5 pixels on each edge.
   
   // _widthAddon is additional image width due to border if enabled:
@@ -175,8 +186,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   _panelHeightAddon : 0,
   
   // pad is the blank space (in pixels) between the thumbnail and a popup
-  // to be shown adjacenetly to it, and between the popup and the window
+  // to be shown adjacently to it, and between the popup and the window
   // edge.  This is unrelated to the border preference.
+  // Debugging tip: set large (30) when debugging popup positioning.
   _pad : 5,
   
   // _captionHeight is the additional height of the popup when the caption 
@@ -340,32 +352,37 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("addMenuItems");
 
     if (ThumbnailZoomPlus.logPath) {
-      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
     }
 
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
     if (menuPopup) {
       let menuSeparator =
         document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
+      let menuSeparator2 =
+        document.getElementById("thumbnailzoomplus-toolbar-menuseparator2");
       let menuItem = null;
       let pageCount = ThumbnailZoomPlus.FilterService.pageList.length;
       let pageInfo = null;
 
       for (let i = 0; i < pageCount; i++) {
         pageInfo = ThumbnailZoomPlus.FilterService.pageList[i];
+        let name = pageInfo.name;
+        if (null == name) {
+          continue;
+        }
         let id = "thumbnailzoomplus-toolbar-menuitem-" + pageInfo.key;
         menuItem = document.getElementById(id);
         if (menuItem) {
           // I couldn't get Firefox to consistently update the state of
           // existing checkboxes correctly, so instead we always
           // delete and recreate checkboxes when re-showing the menu.
-          menuPopup.removeChild(menuPopup.firstChild);
+          menuPopup.removeChild(menuItem);
         } 
         // Item doesn't exist so create it.
         menuItem = document.createElement("menuitem");
         menuItem.setAttribute("id", id);
         
-        let name = pageInfo.name;
         if (name == "") {
           name = this._getEntity("page_" + pageInfo.key);
           ThumbnailZoomPlus.FilterService.pageList[i].name = name;
@@ -379,26 +396,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                                     true );
         }
         this._updatePagesMenuItemElement(pageInfo.key, menuItem);
-        menuPopup.insertBefore(menuItem, menuSeparator);
-      }
-    }
-  },
-
-
-  /**
-   * Removes the menu items.
-   */
-  removeMenuItems : function() {
-    this._logger.debug("removeMenuItems");
-
-    let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
-
-    if (menuPopup) {
-      let menuSeparator =
-        document.getElementById("thumbnailzoomplus-toolbar-menuseparator");
-
-      while (menuPopup.firstChild != menuSeparator) {
-        menuPopup.removeChild(menuPopup.firstChild);
+        if (this._isCatchallPage(i)) {
+          menuPopup.insertBefore(menuItem, menuSeparator2);
+        } else {
+          menuPopup.insertBefore(menuItem, menuSeparator);
+        }
       }
     }
   },
@@ -620,7 +622,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_handlePageLoaded");
 
     if (ThumbnailZoomPlus.logPath) {
-      this._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
+      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
     }
     
     let doc = aEvent.originalTarget;
@@ -898,17 +900,26 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_getEffectiveTitle: recognized Facebook profile photo");
         levelsUp = 2;
         querySelectors = [".passiveName", ".actorName"];
+        
       } else if (/title/.test(cls) && "a" == aNode.localName &&
                  /title/.test(aNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit link");
         // go up a level so we include not just the title but also the domain.
         levelsUp = 2;
         querySelectors = [".title"];
+      
       } else if (/thumbs.redditmedia.com/.test(aNode.src) &&
                  /thing/.test(aNode.parentNode.parentNode.className)) {
         this._logger.debug("_getEffectiveTitle: recognized reddit thumb");
         levelsUp = 2;
         querySelectors = [".title"];
+      
+      } else if (/RESImage/.test(cls)) {
+        // Reddit with the Reddit Enhancement Suite add-on in "View Images" tab.
+        this._logger.debug("_getEffectiveTitle: recognized reddit thumb RESImage");
+        levelsUp = 3;
+        querySelectors = [".title"];
+      
       } else if (aNode.getAttribute("alt") == "Thumbnail" &&
                  /\.ytimg\.com\/.*\/[a-z]+default\.jpg/.test(aNode.getAttribute("src"))) {
         this._logger.debug("_getEffectiveTitle: recognized youtube");
@@ -1026,7 +1037,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           this._logger.debug("_getEffectiveTitleForNode: skipping tagWrapper (eg facebook)");
         } else {
           if (/rg_/.test(aNode.className)) {
-            // Specia clean-up for Google Images.  EG change
+            // Special clean-up for Google Images.  EG change
             // from: pizza-page.jpg aiellospizza.com 803 x 704 - Aiello's Pizza - The Taste You Know and Enjoy! Similar - More sizes
             //   to: pizza-page.jpg aiellospizza.com - Aiello's Pizza - The Taste You Know and Enjoy!
             // The - and x are non-ASCII characters.
@@ -1302,18 +1313,23 @@ ThumbnailZoomPlusChrome.Overlay = {
     @return 
             "rejectedPageMatchNode": the page's host URL doesn't match
             "disabled": page's host matches, but is disabled
-            "rejectedNode": the thumb/image URL doesn't match imageRegExp
+            "rejectedNode": the thumb/image URL doesn't match imageRegExp 
+                            or matches imageDisallowRegExp
             "launced": everything matched and we launched the popup.
+            "deferred": the request is deferred (awaiting some event).
+                        when it's ready, the function will notify the caller by
+                        calling completionGenerator.send(status)
    */
   _tryImageSource : function(aDocument, pageMatchNode, pageMatchHost,
-                             aEvent, aPage, node) {
+                             aEvent, aPage, node, completionGenerator) {
     var pageName = ThumbnailZoomPlus.FilterService.pageList[aPage].key;
     let requireImageBiggerThanThumb = false;
     let allow = ThumbnailZoomPlus.FilterService.isPageEnabled(aPage);
     if (! allow &&
-        aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage &&
+        (aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
+         aPage == ThumbnailZoomPlus.Pages.ThumbnailItself.aPage) &&
         ThumbnailZoomPlus.FilterService.isPageEnabled(ThumbnailZoomPlus.Pages.Others.aPage)) {
-      // This is the "thumbnails" page, the "thumbnails" page is disabled, and
+      // This is one of the "thumbnails" pages, this "thumbnails" page is disabled, and
       // the "others" page is enabled.  Allow processing this under the "thumbnails"
       // page, but only if the actual raw image has higher resolution than the
       // thumbnal.  That allows the user to have Others on, Thumbnail off, and
@@ -1324,8 +1340,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     this._logger.debug("... _tryImageSource: Trying " +
-                       (aDocument == pageMatchNode ? "page " : "image") +
-                       " against '" + pageName +
+                       (aDocument == pageMatchNode ? "page " + aPage + " <" : "<image") +
+                       "> against '" + pageName +
                        "'");
     if (! ThumbnailZoomPlus.FilterService.testPageConstantByHost(pageMatchHost, aPage)) {
       return "rejectedPageMatchNode";
@@ -1356,7 +1372,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (imageSourceInfo.node != null) {
       imageSourceNode = imageSourceInfo.node;
       if (imageSourceNode != node) {
-        this._debugToConsole("ThumbnailZoomPlus: page " + pageName + ": imageSourceNode: <" +
+        this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + ">: imageSourceNode: <" +
                            imageSourceNode.localName.toLowerCase() + "> url: \n" +
                            String(imageSourceNode) + " \n" + imageSourceNode.getAttribute("src"));
       }
@@ -1364,28 +1380,101 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-      this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " imageRegExp rejected imageSource \n" +
+      this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + 
+                           "> imageRegExp or imageDisallowRegExp rejected imageSource \n" +
                            imageSource);
 
       return "rejectedNode";
     }
 
-    this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " matches imageSource \n" +
+    this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + "> matches imageSource \n" +
                        imageSource);
 
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
-    let zoomImageSrc = ThumbnailZoomPlus.FilterService
-                            .getZoomImage(imageSource, imageSourceNode, flags, aPage);
+    flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
+
+    let that = this;
+    /*
+     * completionFunc is a function which ThumbnailZoomPlus.FilterService
+     * .getZoomImage() calls.  It passes in the zoomImageSrc and a flag
+     * indicating whether it is being called as a deferred callback.
+     * It returns a status just like _tryImageSource() returns
+     * (except never "deferred").
+     *
+     * If getZoomImage() can determine the result synchronously, it calls 
+     * completionFunc() and that function's result as its own result.
+     *
+     * Otherwise (when asynchronous) it returns "deferred" immediately
+     * (without calling completionFunc) and later asynchronously calls
+     * completionFunc.
+     *
+     * Note that in both cases, completionFunc() is only invoked once per
+     * call to getZoomImage().
+     */
+    let completionFunc = function(zoomImageSrc, calledFromDeferred) {
+      return that._getZoomImageCompletion(aDocument, aEvent, aPage, node,
+                                   imageSourceNode, 
+                                   flags, pageName, completionGenerator,
+                                   zoomImageSrc, calledFromDeferred);
+    };
+
+    return ThumbnailZoomPlus.FilterService
+                      .getZoomImage(imageSource, imageSourceNode, flags, aPage,
+                                    completionFunc);
+  },
+
+  /**
+   * _getZoomImageCompletion is called indirectly when an image source is 
+   * determined or determined to be "deferred"; see comments at the end of 
+   * _tryImageSource (above) for more details.
+   *
+   * If calledFromDeferred, it sends status to the completionGenerator.
+   */
+  _getZoomImageCompletion : function(aDocument, aEvent, aPage, node,
+                                     imageSourceNode, 
+                                     flags, pageName, completionGenerator,
+                                     zoomImageSrc, calledFromDeferred) {
+
+    var status = this._getZoomImageCompletionImmediate
+                                  (aDocument, aEvent, aPage, node,
+                                   imageSourceNode, 
+                                   flags, pageName,
+                                   zoomImageSrc);
+    if (calledFromDeferred) {
+      // Send status to the completionGenerator.
+      this._logger.debug("... _getZoomImageCompletion: completionGenerator.send('" + status + "')");
+      try {
+        completionGenerator.send(status);
+      } catch (e if e instanceof StopIteration) {
+        // normal completion of generator.
+      }
+    }
+    return status;
+  },
+
+  /**
+   * _getZoomImageCompletionImmediate determines where a image source was
+   * detected, and launches the popup and returns "launched" or
+   * returns a reason it isn't valid.
+   */
+  _getZoomImageCompletionImmediate : function(aDocument, aEvent, aPage, node,
+                                              imageSourceNode, 
+                                              flags, pageName,
+                                              zoomImageSrc) {
     if (zoomImageSrc == "") {
-      this._logger.debug("_tryImageSource: getZoomImage returned '' (matched but disabled by user).");
+      this._logger.debug("_getZoomImageCompletion: getZoomImage returned '' (matched but disabled by user).");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with ''");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
-      this._logger.debug("_tryImageSource: getZoomImage returned null.");
+      this._logger.debug("_getZoomImageCompletion: getZoomImage returned null.");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with null");
       return "rejectedNode";
+    }
+    if (! this._currentWindow) {
+      this._debugToConsole("_getZoomImageCompletion: ignoring since ! _currentWindow (user moved off thumb?)");
+      return;
     }
 
     // Test whether the link URL of the hovered-over node is the same as the full-size
@@ -1394,26 +1483,80 @@ ThumbnailZoomPlusChrome.Overlay = {
     flags.linkSameAsImage = this._isLinkSameAsImage(imageSourceNode, zoomImageSrc);
     flags.imageSourceNode = imageSourceNode;
     
-    this._currentWindow = aDocument.defaultView.top;
+    if (! aDocument.defaultView) {
+      // The document doesn't have a window; don't pop-up.  I've seen this
+      // happen when an asynchronous pop-up tried to pop-up after the
+      // tab was closed.
+      this._logger.debug("_getZoomImageCompletion: no defaultView");
+      return "";
+    }
     this._originalURI = this._currentWindow.document.documentURI;
-    this._logger.debug("_tryImageSource: *** Setting _originalURI=" + 
+    this._logger.debug("_getZoomImageCompletion: *** Setting _originalURI=" + 
                        this._originalURI);
 
     this._debugToConsole("ThumbnailZoomPlus: >>> page " + pageName + " launching \n" +
                        zoomImageSrc);
     
-    flags.requireImageBiggerThanThumb = requireImageBiggerThanThumb;
     this._showZoomImage(zoomImageSrc, flags, node, aEvent);
     return "launched";
   },
 
-  _isOthersThumbnailsPage : function(aPage) {
+  _isCatchallPage : function(aPage) {
     return (aPage == ThumbnailZoomPlus.Pages.Others.aPage ||
-            aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage);
+            aPage == ThumbnailZoomPlus.Pages.Thumbnail.aPage ||
+            aPage == ThumbnailZoomPlus.Pages.ThumbnailItself.aPage ||
+            aPage == ThumbnailZoomPlus.Pages.OthersIndirect.aPage);
   },
   
-  _findPageAndShowImage : function(aDocument, aEvent, minFullPageNum, node) {
-    this._logger.trace("_findPageAndShowImage"); 
+  _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
+    // record the current window now in case we want to show a status icon for it.
+    this._currentWindow = aDocument.defaultView.top;
+    this._logger.debug("_findPageAndShowImage: setting this._currentWindow = " + this._currentWindow);
+    
+    let completionGenerator = this._findPageAndShowImageGen(aDocument, aEvent, aPage, node);
+    completionGenerator.next(); 
+    try {
+      // Start the generator by giving it a handle to itself.
+      completionGenerator.send(completionGenerator);
+    } catch (e if e instanceof StopIteration) {
+      // normal completion of generator.
+    }
+  },
+
+  /**
+   * _findPageAndShowImageGen is a generator function which tries page rules
+   * until it finds one which matches, and launches the pop-up (if possible).
+   * It's a generator so that it can support rules which run asynchronously
+   * without blocking the main thread.
+   *
+   * The initial call doesn't do anything except return a generator object.
+   * Then call next() and send(generator) to initialize it; the generator
+   * is the return from the _findPageAndShowImageGen function call (the generator itself).
+   *
+   * That first send() call also causes the function to do all its work,
+   * though potentially asynchronously (i.e. after it returns).  A given
+   * send() call resumes the function from the point of one of its yield
+   * statements.  The function continues to run and try pages until it
+   * hits an asynchronous (deferred) page, at which point it does a yield
+   * to return to the caller.  When the async function is ready (typically
+   * triggered by some other event handler), it'll call the generator's
+   * send() method again and the function will resume again from the point
+   * of a yield.
+   *
+   * For info about generators see
+   * https://developer.mozilla.org/en/IndexedDB/Using_IndexedDB/Using_JavaScript_Generators_in_Firefox
+   * https://developer.mozilla.org/en/Core_JavaScript_1.5_Guide/Iterators_and_Generators#Generators.3a_a_better_way_to_build_Iterators
+   * http://matt.bridges.name/archive/54
+   */
+  _findPageAndShowImageGen : function(aDocument, aEvent, minFullPageNum, node) {
+    this._logger.trace("_findPageAndShowImageGen"); 
+    
+    // Get the completion generator (i.e. ourselves), which the caller 
+    // passes into the _findPageAndShowImageGen generator in the first
+    // send() call after the first next() call.  We'll call this' yield
+    // when we need to run asynchronously; such a yield will be followed
+    // sometime later by an asynchronous send() call.
+    let completionGenerator = yield;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
@@ -1434,10 +1577,10 @@ ThumbnailZoomPlusChrome.Overlay = {
      * That's important since this routine is called whenever the users moves
      * the mouse pointer into a different element -- even a different paragraph.
      */
-    let docHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(aDocument);
+    let docHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(aDocument, false);
     let nodeHost = docHost;
     if (aDocument != node) {
-      nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node);
+      nodeHost = ThumbnailZoomPlus.FilterService.getHostOfDoc(node, true);
     }
 
     {
@@ -1454,19 +1597,28 @@ ThumbnailZoomPlusChrome.Overlay = {
     for (var aPage = 0 ; 
          aPage < ThumbnailZoomPlus.FilterService.pageList.length; 
          aPage++) {
-
-      if (disallowOthers && this._isOthersThumbnailsPage(aPage)) {
-        this._logger.debug("_findPageAndShowImage: Skipping Others or Thumbnails");
+      let page = ThumbnailZoomPlus.FilterService.pageList[aPage];
+      var pageName = page.key;
+      if (disallowOthers && this._isCatchallPage(aPage)) {
+        this._logger.debug("_findPageAndShowImageGen: Skipping catch-all page " + 
+                           aPage + " " + pageName);
         continue;
       }
       
       let status="notTried";
-      if (aPage >= minFullPageNum && docHost != null) {        
-        status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node);
-        if (status == "launched") {
-          return;
+      if (aPage >= minFullPageNum && docHost != null) {
+        status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node, completionGenerator);
+        if (status == "deferred") {
+          this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
+          this._showStatusIcon(node, "working-2dots.png", 16);      
+          status = yield;
+          this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
-        if (status == "disabled" && ! this._isOthersThumbnailsPage(aPage)) {
+        this._logger.debug("_findPageAndShowImageGen: got status " + status);
+
+        if (status == "disabled" && 
+            ! this._isCatchallPage(aPage) &&
+            page.host.source != ".*") {
           /*
            * If the host matches the page's host URL but the page is disabled,
            * then don't allow a popup due to the match-all pages
@@ -1474,10 +1626,13 @@ ThumbnailZoomPlusChrome.Overlay = {
            * we don't want to show popups from Others and Thumbnails.  But
            * if any other page happens to match host, we'll still allow that
            * other page to launch a popup.
+           *
+           * We exlude this logic when host is match-all since that would disable
+           * on all sites, which we don't want.
            */
           disallowOthers = true;
-          this._logger.debug("_findPageAndShowImage: Disabling Others & Thumbnails since " +
-                             ThumbnailZoomPlus.FilterService.pageList[aPage].key +
+          this._logger.debug("_findPageAndShowImageGen: Disabling Others & Thumbnails since " +
+                             page.key +
                              " is disabled");
         }
       }
@@ -1486,14 +1641,26 @@ ThumbnailZoomPlusChrome.Overlay = {
           nodeHost != null && nodeHost != docHost) {
         // The try above failed due to rejecting aDocument as the pageMatchNode.
         // Try again using the thumb itself as pageMatchNode
-        status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node);
-        if (status == "launched") {
-          return;
+        status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node, completionGenerator);
+        if (status == "deferred") {
+          this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
+          status = yield;
+          this._showStatusIcon(node, "working-2dots.png", 16);      
+          this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
+        this._logger.debug("_findPageAndShowImageGen: got status " + status);
+      }
+
+      if (status == "launched") {
+        completionGenerator = null;
+        return;
       }
     }
     this._debugToConsole("ThumbnailZoomPlus: >>> all pages rejected");
-
+    completionGenerator = null;
+    
+    // Close the "working" indicator (eg shown if there was a deferred page). 
+    this._closePanel(false);
   },
   
   /**
@@ -1786,7 +1953,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       handler = imageSourceNode.onmousedown || imageSourceNode.onclick;
     } catch (e) {
       // Ignore the "Component is not available" exception we get in Firefix 3.6.
-      this._logger.debug("_isLinkSameAsImage: EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_isLinkSameAsImage: note:", e);
     }
     
     if (handler) {
@@ -1819,15 +1986,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanel : function(aImageNode, aImageSrc, flags, aEvent) {
     this._logger.trace("_showPanel");
 
-
-    // Close the panel to ensure that we can popup the new panel at a specified
-    // location.  Note that we temporarily save _currentWindow since _closePanel
-    // clears it.
-    let currentWindow = this._currentWindow;
-    this._debugToConsole("_showPanel: _closePanel(true) since closing any prev popup before loading new one");
-    this._closePanel(true);
-    this._currentWindow = currentWindow;
-    
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
     
@@ -1883,6 +2041,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._removeListenersWhenPopupHidden();
 
       this._hideCaption();
+      this._panelInfo.hidden = true;
       this._panelCaption.ThumbnailZoomPlusOriginalTitleNode = null;
       this._panelImageDiv.style.backgroundImage = ""; // hide status icon
       this._restoreCursor();
@@ -1906,8 +2065,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     } catch (e) {
       // This message has been seen in ff15.
-      this._logger.debug("_closePanel @1: caught EXCEPTION: " + e);
-      this._logToConsole("ThumbnailZoomPlus: _closePanel @1: caught EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_closePanel 1", e);
+      this._currentWindow = null;
     }
     try {
       this._originalURI = "";
@@ -1920,8 +2079,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelXulImage.src = null;
       this._currentThumb = null;
     } catch (e) {
-      this._logger.debug("_closePanel @2: caught EXCEPTION: " + e);
-      this._logToConsole("ThumbnailZoomPlus: _closePanel @2: caught EXCEPTION: " + e);
+      ThumbnailZoomPlus._logExceptionToConsole("_closePanel 2", e);
     }
   },
 
@@ -2097,7 +2255,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (aEvent.metaKey || aEvent.ctrlKey) {
-      // we don't interpret Command+ or Ctrl+ keys as hotkeys.
+      // we don't interpret most Command+ or Ctrl+ keys as hotkeys.
       return false;
     }
 
@@ -2107,9 +2265,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       this.openPreferences();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_C) {
+      this._logger.debug("_doHandleKeyDown: copy image to clipboard");
+      this._copyToClipboard(true, false);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_L) {
+      this._logger.debug("_doHandleKeyDown: copy image location to clipboard");
+      this._copyToClipboard(false, true);
+
+    } else if (aEvent.keyCode == aEvent.DOM_VK_I) {
       // toggle caption
       let allowCaption = ThumbnailZoomPlus.togglePref(this.PREF_PANEL_CAPTION);
-      this._logger.debug("_doHandleKeyDown: toggle caption to " + allowCaption +
+      this._logger.debug("_doHandleKeyDown: toggle caption-info to " + allowCaption +
                          " since pressed c key");      
       // redisplay to update displayed caption.
       if (this._currentThumb) {
@@ -2119,6 +2285,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
       // open image in new tab
+      //
+      // Note: The add-on validator warns "`\.documentURIObject` only available in chrome contexts";
+      // that warning can be ignored since we *are* in chrome context.
       this._logger.debug("_doHandleKeyDown: open in new tab " +this._currentImage +
                          " referrer " + document.documentURIObject);
       let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
@@ -2131,6 +2300,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       window.open(this._currentImage, 
                   "ThumbnailZoomPlusImageWindow",
                   "chrome=no,titlebar=yes,resizable=yes,scrollbars=yes,centerscreen=yes");
+      
+    } else if (aEvent.keyCode == aEvent.DOM_VK_G) {
+      // open 'Google Images' search in new tab
+      this._logger.debug("_doHandleKeyDown: google search for image " +this._currentImage);
+      let options = {referrerURI: null, relatedToCurrent: true};
+      // Example full URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg&encoded_image=&image_content=&filename=&num=10&hl=en&safe=off&bih=711&biw=1366
+      // Example minimal URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg
+      let url = "https://www.google.com/searchbyimage?image_url=" + encodeURIComponent(this._currentImage);
+      let tab = openUILinkIn(url, "tab", options);
+      gBrowser.selectedTab = tab;
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_S) {
       this._logger.debug("_doHandleKeyDown: save image");
@@ -2407,7 +2586,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // loaded to know its dimensions; but it may appear for a while if the
     // image loads slowly.
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-    this._showStatusIcon(aImageNode, "working.png", 16);      
+    this._showStatusIcon(aImageNode, "working-3dots.png", 16);      
     
     let imageWidth  = image.naturalWidth;
     let imageHeight = image.naturalHeight;
@@ -2668,8 +2847,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                        available.windowWidth + "," + available.windowHeight);
     this._logger.debug("_sizePositionAndDisplayPopup: " + 
                        "; _currentMaxScaleBy=" + this._currentMaxScaleBy +
-                       "; win width=" + content.window.innerWidth*pageZoom +
-                       "; win height=" + content.window.innerHeight*pageZoom +
+                       "; win width=" + available.windowWidth +
+                       "; win height=" + available.windowHeight +
                        "; full-size image=["+imageWidth + "," + imageHeight + 
                        "]; max imageSize which fits=["+imageSize.width + "," + imageSize.height +"]"); 
     
@@ -2948,7 +3127,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       }  else {
         flags.allowLeft = false;
       }
-      this._logger.debug("_getAvailableSizeOutsideThumb: width availableForSitePopup=" +
+      this._logger.debug("_applyPopupAvoider: width availableForSitePopup=" +
                          availableForSitePopup + "; popupAvoiderWidth=" + 
                          flags.popupAvoiderWidth + "; scaled by zoom " + zoom + " = "
                          + (flags.popupAvoiderWidth * zoom) +
@@ -2965,7 +3144,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         } else {
           flags.allowBelow = false;
         }
-        this._logger.debug("_getAvailableSizeOutsideThumb: popupAvoiderTBEdge: midpage" +
+        this._logger.debug("_applyPopupAvoider: popupAvoiderTBEdge: midpage" +
                            "; allowAbove=" + flags.allowAbove +
                            "; allowBelow=" + flags.allowBelow);
       } else {
@@ -2977,7 +3156,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           // site's preferred direction is below thumb.
           availableForSitePopup = available.top;
         } else {
-          this._logger.debug("_getAvailableSizeOutsideThumb: ERROR: popupAvoiderTBEdge: " +
+          this._logger.debug("_applyPopupAvoider: ERROR: popupAvoiderTBEdge: " +
                              flags.popupAvoiderTBEdge);
         }
         let siteUsesPreferred = (availableForSitePopup > flags.popupAvoiderHeight);
@@ -2989,7 +3168,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         } else {
           flags.allowBelow = false;
         }
-        this._logger.debug("_getAvailableSizeOutsideThumb: height availableForSitePopup=" +
+        this._logger.debug("_applyPopupAvoider: height availableForSitePopup=" +
                            availableForSitePopup + "; popupAvoiderHeight=" + 
                            flags.popupAvoiderHeight + "; allowAbove=" + flags.allowAbove +
                            "; allowBelow=" + flags.allowBelow);
@@ -3005,18 +3184,46 @@ ThumbnailZoomPlusChrome.Overlay = {
    * above/below the thumbnail without overlapping it.
    *
    * @param aImageNode the image node.
-   * @return An object with .left, .right, .top, .bottom, .windowWidth, and
-   *    .windowHeight.  .width and .height are the min of .left, .right and
+   * @return An object with .left, .right, .top, .bottom, .windowWidth, 
+   *    .windowHeight, .windowX, .windowY;
+   *    .width and .height are the min of .left, .right and
    *    .top, .bottom, respectively.  All sizes are reduced by padding
    *    so that they reflect possible image size, not entire popup size.
-   * fields.
    */
   _getAvailableSizeOutsideThumb : function(aImageNode, flags) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
 
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
+    let maxSizePref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_SIZE, 
+                                                this.PREF_VALUE_POPUP_SIZE_WEB_PAGE);
+
+    if (maxSizePref == this.PREF_VALUE_POPUP_SIZE_SCREEN) {
+      // fit within screen (excluding areas marked as disallowed, such as
+      // the menubar on mac or task bar on Windows)
+      var pageX = window.screen.availLeft;
+      var pageY = window.screen.availTop;
+      var pageWidth = window.screen.availWidth;
+      var pageHeight = window.screen.availHeight;
+      
+    } else if (maxSizePref == this.PREF_VALUE_POPUP_SIZE_WINDOW) {
+      // Fit within the entire firefox window (eg covering toolbars)
+      var pageX = window.screenX;
+      var pageY = window.screenY;
+      var pageWidth  = window.outerWidth;
+      var pageHeight = window.outerHeight;
+    
+    } else {
+      // assume this.PREF_VALUE_POPUP_SIZE_WEB_PAGE
+      // fit within the web page's screen area.
+      var pageX = content.window.mozInnerScreenX * pageZoom;
+      var pageY = content.window.mozInnerScreenY * pageZoom;
+      var pageWidth = content.window.innerWidth * pageZoom;
+      var pageHeight = content.window.innerHeight * pageZoom;
+    }
+    
+    this._logger.debug("_getAvailableSizeOutsideThumb: window at (" +
+                       pageX + "," + pageY +
+                       ") " + pageWidth + " x " + pageHeight);
     
     /*
      * pageLeft is the space available to the left of the thumb. 
@@ -3024,10 +3231,11 @@ ThumbnailZoomPlusChrome.Overlay = {
      */
     let available = {left:0, right:0, top:0, bottom: 0,
                      windowWidth: pageWidth,
-                     windowHeight: pageHeight};
+                     windowHeight: pageHeight,
+                     windowX: pageX, windowY: pageY};
 
-    available.left = this._thumbBBox.xMin - content.window.mozInnerScreenX * pageZoom;
-    available.top = this._thumbBBox.yMin - content.window.mozInnerScreenY * pageZoom;
+    available.left = this._thumbBBox.xMin - pageX;
+    available.top = this._thumbBBox.yMin - pageY;
     
     /*
      * pageRight is the space available to the right of the thumbnail,
@@ -3062,6 +3270,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                        "; captionHeight=" + this._captionHeight +
                        "; reducing available by " + 
                        xadjustment + "," + yadjustment);
+                       
+    // adjust the widths and heights which apply if the image were placed
+    // to the left, right, top, or bottom of the thumb, or in the entire window.
+    // In all cases we adjust by [xy]adjutment, which accounts for extra
+    // space on both sides of the popup.
     available.left -= xadjustment;
     available.right -= xadjustment;
     available.top -= yadjustment;
@@ -3234,33 +3447,44 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _calcPopupPosition : function(imageSize, wantCaption, available) {
     let pos = {};
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    let pageWidth = content.window.innerWidth * pageZoom;
-    let pageHeight = content.window.innerHeight * pageZoom;
-    let windowStartX = content.window.mozInnerScreenX * pageZoom;
-    let windowStartY = content.window.mozInnerScreenY * pageZoom;
-    this._logger.debug("_calcPopupPosition: pageZoom=" +
-                       pageZoom + "; innerHeight=" + 
-                       content.window.innerHeight + 
-                       "; pageHeight=" + pageHeight);
-    let popupWidth = imageSize.width + this._widthAddon;
-    let popupHeight = imageSize.height + this._widthAddon;
-    if (wantCaption)
-      popupHeight += this._captionHeight;
-
+    
+    // Note that pageWidth and pageHeight were already reduced by 
+    // _pad and _widthAddon and _captionHeight as appropriate, so that they
+    // reflect the space available for the image itself, not counting its padding or border.
+    let pageWidth = available.windowWidth;
+    let pageHeight = available.windowHeight;
+    
+    let windowStartX = available.windowX;
+    let windowStartY = available.windowY;
+    
+    // popupWidth and height are the size of the image which we'll display.
+    // Note that these were already reduced due to this._widthAddon if necessary 
+    // to allow the image plus its border to fit in the available space.  
+    // PopupHeight doesn't include the additional height due to captionHeight.
+    let popupWidth = imageSize.width;
+    let popupHeight = imageSize.height;
+    let captionHeight = wantCaption ? this._captionHeight : 0;
+      
+    // padding is pixels of padding between the thumb or window edge and
+    // the popup, on one side of width or height of the image.
+    // Note that it doesn't include the border's size this._widthAddon since
+    // we've already adjusted popupWidth and popupHeight for it.
+    let padding = this._pad;
+    
     if (imageSize.height <= available.height) {
+      // Position above or below thumb.
       // We prefer above/below thumb to avoid tooltip.
       // Unless we're prohibited from positioning to the right,
       // position the popup horizontally flush with the right of the window or
       // left-aligned with the left of the thumbnail, whichever is left-most.
       if (available.right > 0) {
-        let popupXPageCoords = pageWidth - (popupWidth + this._pad);
+        let popupXPageCoords = pageWidth - popupWidth + padding;
         var popupXScreenCoords = popupXPageCoords + windowStartX;
-        if (popupXScreenCoords > this._thumbBBox.xMin) {
-          popupXScreenCoords = this._thumbBBox.xMin;
-        }
+        popupXScreenCoords = Math.min(popupXScreenCoords, 
+                                      this._thumbBBox.xMin);
       } else {
-        var popupXScreenCoords = this._thumbBBox.xMax - (popupWidth + this._pad);
+        // Align right edge of popup with right edge of thumb (if possible).
+        var popupXScreenCoords = this._thumbBBox.xMax - popupWidth;
         popupXScreenCoords = Math.max(popupXScreenCoords, windowStartX);
       }
       pos.x = popupXScreenCoords;
@@ -3268,14 +3492,17 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "windowStartX=" + windowStartX +
                          "; pageWidth=" + pageWidth +
                          "; popupXScreenCoords=" + popupXScreenCoords);
+
       if (imageSize.height <= available.top) {
         this._logger.debug("_calcPopupPosition: display above thumb"); 
-        pos.y = this._thumbBBox.yMin - this._pad - popupHeight;
+        pos.y = this._thumbBBox.yMin - padding - popupHeight - captionHeight
+                - this._widthAddon;
       } else {
         this._logger.debug("_calcPopupPosition: display below thumb"); 
-        pos.y = this._thumbBBox.yMax + this._pad;
+        pos.y = this._thumbBBox.yMax + padding;
       }
     } else if (imageSize.width <= available.width) {
+      // Position to the left or right of the thumb.
       // We prefer left-of thumb to right-of thumb since tooltip
       // typically extends to the right.
       
@@ -3284,11 +3511,9 @@ ThumbnailZoomPlusChrome.Overlay = {
       // We don't simply use a 0 offset and rely on Firefox's logic since
       // on Windows that can position the thumb under an always-on-top
       // Windows task bar.
-      let popupYPageCoords = pageHeight - (popupHeight + this._pad);
+      let popupYPageCoords = pageHeight - popupHeight + padding;
       let popupYScreenCoords = popupYPageCoords + windowStartY;
-      if (popupYScreenCoords > this._thumbBBox.yMin) {
-        popupYScreenCoords = this._thumbBBox.yMin;
-      }
+      popupYScreenCoords = Math.min(popupYScreenCoords, this._thumbBBox.yMin);
       pos.y = popupYScreenCoords;
       this._logger.debug("_calcPopupPosition: " +
                          "windowStartY=" + windowStartY +
@@ -3297,10 +3522,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "; popupYScreenCoords=" + popupYScreenCoords);
       if (imageSize.width <= available.left) {
         this._logger.debug("_calcPopupPosition: display to left of thumb"); 
-        pos.x = this._thumbBBox.xMin - this._pad - popupWidth;
+        pos.x = this._thumbBBox.xMin - padding - popupWidth  - captionHeight 
+                - this._widthAddon;
       } else {
         this._logger.debug("_calcPopupPosition: display to right of thumb"); 
-        pos.x = this._thumbBBox.xMax + this._pad;
+        pos.x = this._thumbBBox.xMax + padding;
       }
     } else {
       // cover thumb (at least partially).  Center in window for any dimensions
@@ -3308,14 +3534,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       // cover it, allow thumb to be partially visible.
 
       // First calc centered position:
-      pos.x = windowStartX + (available.windowWidth - imageSize.width) / 2;
-      pos.y = windowStartY + (available.windowHeight - imageSize.height) / 2;
+      pos.x = windowStartX + (available.windowWidth - popupWidth) / 2 + padding;
+      pos.y = windowStartY + (available.windowHeight - popupHeight) / 2 + padding;
 
       this._logger.debug("_calcPopupPosition: " +
-                         "overlap thumb.  Centered x,y = " +
+                         "overlap thumb.  start x,y which centers image over thumb = " +
                          pos.x + "," + pos.y);
 
-      let openSize = available.windowWidth - imageSize.width;
+      // openSize is the amount of available width which isn't covered by the
+      // popup.
+      let openSize = available.windowWidth - popupWidth;
       this._logger.debug("_calcPopupPosition: " +
                          "available.width = " + available.width +
                          " vs openSize width = " + openSize);
@@ -3324,23 +3552,26 @@ ThumbnailZoomPlusChrome.Overlay = {
         // Part of the thumb could be visible horizontally.  Make it so.
         // Typically happens with horizontally-long links, e.g. on reddit.com
         if (available.left < available.right) {
-          // There is left free space to the left of the thumb; thus the
+          // There is less free space to the left of the thumb; thus the
           // thumb is closer to the left edge of the window, and
           // we should position against right edge of window
-          pos.x = windowStartX + (available.windowWidth - imageSize.width);
+          pos.x = windowStartX + (available.windowWidth - popupWidth)
+                  + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against right edge of window.  x = " +
                               pos.x);
         } else {
           // position against left edge of window.
-          pos.x = windowStartX + this._pad;
+          pos.x = windowStartX + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against left edge of window.  x = " +
                               pos.x);
         }
       }
       
-      openSize = available.windowHeight - imageSize.height;
+      // openSize is the amount of available height which isn't covered by the
+      // popup.
+      openSize = available.windowHeight - popupHeight;
       this._logger.debug("_calcPopupPosition: " +
                          "available.height = " + available.height +
                          " vs openSize height = " + openSize);
@@ -3352,19 +3583,23 @@ ThumbnailZoomPlusChrome.Overlay = {
           // There is left free space to the top of the thumb; thus the
           // thumb is closer to the top edge of the window, and
           // we should position against bottom edge of window
-          pos.y = windowStartY + (available.windowHeight - imageSize.height);
+          pos.y = windowStartY + (available.windowHeight - popupHeight)
+                  + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against bottom edge of window.  y = " +
                               pos.y);
         } else {
           // position against top edge of window.
-          pos.y = windowStartY + this._pad;
+          pos.y = windowStartY + padding;
           this._logger.debug("_calcPopupPosition: " +
                              "position against top edge of window.  y = " +
                               pos.y);
         }
       }
     }
+    this._logger.debug("_calcPopupPosition: positioning at (" + pos.x + 
+                      ", " + pos.y + ")");
+
     return pos;
   },
   
@@ -3459,7 +3694,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return s;
     }
     if (minChars < 0) minChars = 0;
-    let separators = /\W/;
+    let separators = /[\W_]/;
     for (let i=maxChars; i >= minChars; --i) {
       let c = s.substring(i, i+1);
       if (separators.test(c)) {
@@ -3474,47 +3709,60 @@ ThumbnailZoomPlusChrome.Overlay = {
     return s.substring(0, maxChars);
   },
   
-  _getDefaultFilename : function(extension) {
+  _getDefaultFilename : function(basename, extension) {
+    var caption = this._caption || "";
+    var shortCaption = this._friendlyTruncate(caption, 22, 22 - 6);
+    var pref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SAVE_FILENAME, "caption");
 
-    let useCaption = false;
-    if (this._caption) {
-      var fname = this._caption;
-      useCaption = true;
+    var separator = "";
+    if (shortCaption && basename) {
+      separator = "_";
+    }
+    if ("web" == pref) {
+      var name = basename;
+    
+    } else if ("caption+web" == pref) {
+      var name = shortCaption + separator + basename;
+    
+    } else if ("web+caption" == pref) {
+      var name = basename + separator + shortCaption;
+    
     } else {
-      var fname =
-          url.substring(this._currentImage.lastIndexOf('/') + 1);
+      // "caption"
+      var name = caption;
+    }
+    if (name == "") {
+      name = "image";
     }
     
     // Change ms windows reserved chars to -
-    fname = fname.replace(/[\000-\031\/~\\:<>"|?*]+/g, '-');
+    name = name.replace(/[\000-\031\/~\\:<>"|?*]+/g, '-');
     // fix syntax highlighting: "
     
     // For the mac prohibit '.' at the start.
     // And starting with certain chars just looks bad.
-    fname = fname.replace(/^[\._ -]+/, '');
+    name = name.replace(/^[\._ -]+/, '');
     
     // Limit length.
     let maxChars = 32;
-    if (fname.length > maxChars) {
-      // Truncate after the last word break before position maxChars.
-      fname = this._friendlyTruncate(fname, maxChars, maxChars - 12);
-    }
-    if (useCaption && extension && 
-        !this._endsWith(fname, '.' + extension)) {
+    // Truncate after the last word break before position maxChars.
+    name = this._friendlyTruncate(name, maxChars, maxChars - 12);
+    if (extension && 
+        !this._endsWith(name, '.' + extension)) {
       // Add file extension.
-      if (! /\.$/.test(fname)) {
-        fname += '.';
+      if (! /\.$/.test(name)) {
+        name += '.';
       }
-      fname += extension;
+      name += extension;
     }
     
     // For Windows doesn't allow ending with a space or period.
-    fname = fname.replace(/[\. ]+$/, '');
+    name = name.replace(/[\. ]+$/, '');
     
     // Some Windows names are reserved, too:
-    fname = fname.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
+    name = name.replace(/^com[1-9]|lpt[1-9]|con|nul|prn$/, '');
 
-    return fname;
+    return name;
   },
   
   /**
@@ -3533,10 +3781,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     // find extension
     // Get extension (without dot) for picker's defaultExtension.
-    let extRe = /\.([a-zA-Z0-9]{3,4})[^.]*$/;
-    let match = extRe.exec(imageURL);
-    let extension = (match && match[1] || "");
-    let pickerDefaultName = this._getDefaultFilename(extension);
+    let fnameRE = /([^/\\\?\%]*?)\.([a-zA-Z0-9]{3,4})[^.]*$/;
+    let match = fnameRE.exec(imageURL);
+    let extension = (match && match[2] || "");
+    let basename = (match && match[1] || imageURL || "");
+    let pickerDefaultName = this._getDefaultFilename(basename, extension);
     this._logger.debug("downloadImage: default ext='" + extension +
                        "' from '" + pickerDefaultName + "'");
 
@@ -3569,11 +3818,26 @@ ThumbnailZoomPlusChrome.Overlay = {
         };
         image.src = imageURL;
       } else {
-        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(imageURL, filePath);
+        var win = null;
+        if (this._currentThumb) {
+          win = this._currentThumb.ownerDocument.defaultView;
+        }
+        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(win, imageURL, filePath);
       }
     }
   },
 
+  _copyToClipboard : function(copyImage, copyImageURL) {
+    this._logger.trace("copyToClipboard");
+
+    if (null == this._currentImage) {
+      this._logger.debug("copyToClipboard: no _currentImage");
+      return;
+    }
+    ThumbnailZoomPlus.ClipboardService
+        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
+  },
+  
 
   /**
    * Toggles the preference value.
@@ -3729,17 +3993,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _debugToConsole : function(msg) {
     this._logger.debug("### CONSOLE: " + msg);
     if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
-      this._logToConsole(msg);
+      ThumbnailZoomPlus._logToConsole(msg);
     }
-  },
-  
-  _logToConsole : function(msg) {
-    let date = new Date();
-    let timeStamp = date.toLocaleTimeString() + 
-                        String((date.getMilliseconds() % 1000) / 1000.).replace(/^0\./, ".");
-    this._consoleService.logStringMessage(timeStamp + ": " + msg);
   }
-
+  
 };
 
 window.addEventListener(

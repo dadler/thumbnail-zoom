@@ -305,6 +305,26 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
 
       let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";      
       return ThumbnailZoomPlus.getPref(pagePrefKey, false);
+    },
+
+    _logToConsole : function(msg) {
+      let date = new Date();
+      let timeStamp = date.toLocaleTimeString() + 
+                          String((date.getMilliseconds() % 1000) / 1000.).replace(/^0\./, ".");
+      this._consoleService.logStringMessage(timeStamp + ": " + msg);
+    },
+
+    /**
+     * _logExceptionToConsole logs an exception.  Example:
+     *   try {
+     *     ...
+     *   } catch (e) {
+     *     ThumbnailZoomPlus._logExceptionToConsole("_getImageFromLinkedPageGen", e);
+     *   }
+     */
+    _logExceptionToConsole : function(preamble, exception) {
+      this._logToConsole(preamble + ": ***** EXCEPTION *****: " + exception + 
+                         " at " + exception.fileName + ":" + exception.lineNumber);
     }
 
   };

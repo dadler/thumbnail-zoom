@@ -38,6 +38,12 @@ const Cu = Components.utils;
 
 Cu.import("resource://thumbnailzoomplus/common.js");
 
+try {
+  Cu.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
+} catch (e) {
+  // old Firefox versions (e.g. 3.6) didn't have PrivateBrowsingUtils.
+}
+
 /**
  * The Download Service.
  */
@@ -59,12 +65,27 @@ ThumbnailZoomPlus.DownloadService = {
    * @param aFilePath the destination file path.
    * @param aWin the window.
    */
-  downloadImageAsOriginal : function(imageURL, aFilePath) {
-    this._logger.debug("downloadImageAsOriginal");
+  downloadImageAsOriginal : function(win, imageURL, aFilePath) {
+    this._logger.debug("downloadImageAsOriginal(" + win + ", " + imageURL + "," + aFilePath + ")");
 
+    /*
+       Note that uploading to the Mozilla add-ons site after approx. 9/24/2012
+       causes this warning from the site:
+       
+         `nsILocalFile` should be replaced with `nsIFile`.
+         Warning: Starting with Gecko 14, `nsILocalFile` inherits all functions 
+         and attributes from `nsIFile`, meaning that you no longer need to use 
+         `nsILocalFile`. If your add-on doesn't support versions older than 14,
+         you should use `nsIFile` instead of `nsILocalFile`.
+         Warning: See bug https://bugzilla.mozilla.org/show_bug.cgi?id=682360 
+         for more information.
+         
+       As far as I can tell it's OK to leave the code as-is and ignore the
+       warning since we support back to version 3.x of Firefox.
+     */
     let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
     file.initWithPath(aFilePath);
-    this._saveImage(imageURL, file);
+    this._saveImage(win, imageURL, file);
   },
 
   /**
@@ -89,7 +110,8 @@ ThumbnailZoomPlus.DownloadService = {
     canvas.width = aImage.width;
     canvas.height = aImage.height;
     canvasCtx.drawImage(aImage, 0, 0);
-    data = canvas.toDataURL("image/png", "");
+    var jpegQuality = 0.95;
+    data = canvas.toDataURL("image/png", jpegQuality);
 
     this._convertToPngAndSaveImage(data, file);
   },
@@ -127,7 +149,7 @@ ThumbnailZoomPlus.DownloadService = {
    * @param aData the canvas data.
    * @param aFile the destination file.
    */
-  _saveImage : function(imageURL, aFile) {
+  _saveImage : function(win, imageURL, aFile) {
     this._logger.trace("_saveImage");
 
     let ioService =
@@ -138,6 +160,23 @@ ThumbnailZoomPlus.DownloadService = {
     let source = ioService.newURI(imageURL, "UTF8", null);
     let target = ioService.newFileURI(aFile);
 
+/*
+    let privacyContext = win.QueryInterface(Ci.nsIInterfaceRequestor)
+                            .getInterface(Ci.nsIWebNavigation)
+                            .QueryInterface(Ci.nsILoadContext);
+*/
+    if (win && "undefined" != typeof(PrivateBrowsingUtils) &&
+        PrivateBrowsingUtils.privacyContextFromWindow) {
+      var privacyContext = PrivateBrowsingUtils.privacyContextFromWindow(win);
+      var isPrivate = privacyContext.usePrivateBrowsing;
+    } else {
+      // older than Firefox 19 or couldn't get window.
+      var privacyContext = null;
+      var isPrivate = false;
+    }
+      
+    this._logger.debug("_saveImage: privacyContext=" + privacyContext + "; isPrivate=" + isPrivate);
+
     // set persist flags
     persist.persistFlags =
       (Ci.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
@@ -147,11 +186,11 @@ ThumbnailZoomPlus.DownloadService = {
     // This causes the downloaded image to appear in the Firefox
     // "Downloads" dialog.
     let transfer = Cc["@mozilla.org/transfer;1"].createInstance(Ci.nsITransfer);
-    transfer.init(source, target, "", null, null, null, persist);
+    transfer.init(source, target, "", null, null, null, persist, isPrivate);
     persist.progressListener = transfer;
     
     // save the canvas data to the file
-    persist.saveURI(source, null, null, null, null, aFile);
+    persist.saveURI(source, null, null, null, null, aFile, privacyContext);
   }
   
 };
