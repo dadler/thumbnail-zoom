@@ -959,9 +959,14 @@ ThumbnailZoomPlus.Pages.IMDb = {
   host: /^(.*\.)?imdb\.[a-z]+$/,
   imageRegExp: /ia\.media\-imdb\.com\/images\//,
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/\._.+_(\.[a-z]+)/i);
-    let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1") : null);
-    return image;
+    // http://ia.media-imdb.com/images/M/MV5BMTk4MTMwMDgzN15BMl5BanBnXkFtZTcwOTI1MTc0OA@@._V1._SX32_CR0,0,32,44_.jpg becomes
+    // http://ia.media-imdb.com/images/M/MV5BMTk4MTMwMDgzN15BMl5BanBnXkFtZTcwOTI1MTc0OA@@._V1._SY800.jpg
+    // Note that removing ._V1._SX500.jpg would give even bigger images, but
+    // they are sometimes much bigger than wanted, and load slowly.  So we stick with
+    // 500-across images.
+    aImageSrc = aImageSrc.replace(/\._.+_(\.[a-z]+)/i,
+                                  "._V1._SY800$1");
+    return aImageSrc;
   }
 };
 
