@@ -160,11 +160,6 @@ ThumbnailZoomPlus.DownloadService = {
     let source = ioService.newURI(imageURL, "UTF8", null);
     let target = ioService.newFileURI(aFile);
 
-/*
-    let privacyContext = win.QueryInterface(Ci.nsIInterfaceRequestor)
-                            .getInterface(Ci.nsIWebNavigation)
-                            .QueryInterface(Ci.nsILoadContext);
-*/
     if (win && "undefined" != typeof(PrivateBrowsingUtils) &&
         PrivateBrowsingUtils.privacyContextFromWindow) {
       var privacyContext = PrivateBrowsingUtils.privacyContextFromWindow(win);
@@ -189,7 +184,7 @@ ThumbnailZoomPlus.DownloadService = {
     transfer.init(source, target, "", null, null, null, persist, isPrivate);
     persist.progressListener = transfer;
     
-    // save the canvas data to the file
+    // save image to the file
     persist.saveURI(source, null, null, null, null, aFile, privacyContext);
   }
   

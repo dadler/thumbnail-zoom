@@ -1251,11 +1251,11 @@ ThumbnailZoomPlus.Pages.Others = {
       aImageSrc = decodeURIComponent(aImageSrc);
     }
 
-    // For google images links, google video search, images.yandex.ru, 
+    // For google images links, google video search, images.yandex.ru, startpage.com,
     // and some others, get URL from imgurl=... part.
-    let imgurlEx = new RegExp(/.*[\?&](img_?)?url=([^&]+).*$/);
+    let imgurlEx = new RegExp(/.*[\?&](?:img_?url|url|oiu)=([^&]+).*$/);
     if (imgurlEx.test(aImageSrc)) {
-      aImageSrc = aImageSrc.replace(imgurlEx, "$2");
+      aImageSrc = aImageSrc.replace(imgurlEx, "$1");
       aImageSrc = decodeURIComponent(aImageSrc);
       if (! /^https?:\/\/./.test(aImageSrc)) {
         aImageSrc = "http://" + aImageSrc;
@@ -1806,7 +1806,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
        // For diasp.org & similar, get from <img data-full-photo="http://...">:
        "data-full-photo",
        // For dailymotion.com, get from <img data-spr="http://...">:
-       "data-spr"];       
+       "data-spr",
+       // for tapiture.com:
+       "data-img-full"];       
     for (var i in better_attrs) {
       let better = node.getAttribute(better_attrs[i]);
       if (better) {
