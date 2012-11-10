@@ -1673,7 +1673,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|editImageHandler\\.ashx" // microsoft powerpoint slide thumbs
                           + "|//media\\.cdn-redfin\\.com/.*/osprite\\." // redfin detail pics where we don't work
                           + "|//t[0-9]+\\.parcelstream\\.com/" // maps on redfin, etc.
-                          + "|//mts[0-9]+\\.googleapis\.com/vt/" // 45-degree google maps on redfin
+                          + "|//.*\\.googleapis\.com/vt/" // 45-degree google maps on redfin
                           + "|//img[0-9]+\\.wsimg\\.com/dcc/" // GoDaddy: My Account (Domain Manager) https://mya.godaddy.com/default.aspx
                           + "|//img[0-9]+\\.wsimg\\.com/DNSManager/" // goDaddy: DNS Manager https://dns.godaddy.com/default.aspx 
                           + ").*", "i"),
@@ -2114,6 +2114,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(myyearbook\.com\/thumb_userimages)\/(?:small\/|square\/|square-mini\/)?([0-9]{4,4}\/.*thm_[^_]+)(?:_[0-9]+_[0-9]+_[0-9]+_[0-9]+)?/,
                                   "$1/large/$2");
 
+    //
+    aImageSrc = aImageSrc.replace(/(\/files\/.*\/img\/.*\/)thumb_/, "$1");
+    
     // meetup.com
     // http://photos3.meetupstatic.com/photos/event/4/a/1/c/global_131178972.jpeg becomes
     // http://photos3.meetupstatic.com/photos/event/4/a/1/c/highres_131178972.jpeg
