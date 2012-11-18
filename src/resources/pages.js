@@ -1660,6 +1660,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|(//maps\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/)" // google maps button images, google drive file type icons
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
+                          + "|(//.*maptile.lbs.ovi.com/)" // yahoo maps tiles
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
                           + "|(//st\\.deviantart\\.net/)" // deviantart logo
                           + "|((.*\\.)(ssl-)?images\-amazon\\.com/images/.*/(buttons|gui|ontv)/)" // amazon buttons; see also Amazon rule.
@@ -1945,8 +1946,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // For taobao.com, change
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg_310x310.jpg to
     // http://img01.taobaocdn.com/bao/uploaded/i2/T130KYXatnXXXL.Tk3_051312.jpg
-    // sim for http://img02.taobaocdn.com/bao/uploaded/i2/T1zrSVXitjXXaE.Ufb_095429.jpg_b.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(/bao/.*\\.jpg)_(?:[0-9]+x[0-9]+|[a-z]+)\\.jpg$"), "$1");
+    // sim for:
+    // http://img02.taobaocdn.com/bao/uploaded/i2/T1zrSVXitjXXaE.Ufb_095429.jpg_b.jpg
+    // sim for:
+    // http://img01.taobaocdn.com/imgextra/i1/T1NJP_XclfXXccGpQZ_031229.jpg_40x40.jp
+    aImageSrc = aImageSrc.replace(new RegExp("(/(?:bao|imgextra)/.*\\.jpg)_(?:[0-9]+x[0-9]+|[a-z]+)\\.jpg$"), "$1");
     
     // For leBonCoin.fr: image URLs don't contain the site domainname, so instead
     // we verify the site using baseURI.
@@ -2192,15 +2196,21 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // pixiv.net
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
     // http://img29.pixiv.net/img/puppy/12345678_m.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_s(" + 
+    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/.*img/.*)_s(" + 
                                              EXTS + ")", "i"),
                                              "$1_m$2");
+                                             
     // http://img01.pixiv.net/img/ajoritas/1234567_100.jpg?ctype=ranking becomes
-    // http://img01.pixiv.net/img/ajoritas/1234567_m.jpg?ctype=ranking 
-    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*)_[0-9]{2,3}(" + 
+    // http://img01.pixiv.net/img/ajoritas/1234567_m.jpg?ctype=ranking ; 
+    // http://i1.pixiv.net/img83/img/luminocity/mobile/31245427_128x128.jpg becomes
+    // http://i1.pixiv.net/img83/img/luminocity/31245427.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(pixiv.net/img/.*?)(\/mobile)?\/_[0-9]{2,3}(?:x[0-9]{2,3})?(" + 
                                              EXTS + ")", "i"),
                                              "$1_m$2");
     
+    // pixiv.com
+    // http://i2.pixiv.net/img91/works/186x186/px7700ms/31423062_m.jpg becomes
+    // http://i1.pixiv.net/img91/img/px7700ms/31423062_m.jpg
     // xuite.net
     // http://c.share.photo.xuite.net/konwewe/1c8dee9/5609298/217205911_c.jpg becomes
     // http://c.share.photo.xuite.net/konwewe/1c8dee9/5609298/217205911_x.jpg
