@@ -1113,6 +1113,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?:\/\/([^/]*\.)?viddy\.com\/(play/)?video\/[^\/?]+"
     + "|^https?://(instagr\\.am|instagram\\.com)/p/.*/media/"
     + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
+    + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
     // end
     , "i"),
   
@@ -1300,6 +1301,9 @@ ThumbnailZoomPlus.Pages.Others = {
     let deviantProfileRex = new RegExp("(https?)://([^/?&.])([^/?&.])([^/?&.]*)\\.deviantart\\.com/?$");
     aImageSrc = aImageSrc.replace(deviantProfileRex, "$1://a.deviantart.net/avatars/$2/$3/$2$3$4.jpg?1");
     
+    // picsarus.com
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/.*picsarus\.com\/[a-zA-Z0-9]+)$/, "$1.jpg");
+
     // For twitter links like https://twitter.com/#!/search/picture/slideshow/photos?url=https%3A%2F%2Fp.twimg.com%2FAe0VPNGCIAIbRXW.jpg
     let twitterEx = new RegExp("^https?://twitter.com/.*\\?url=([^&]+)(&.*)?$");
     aImageSrc = decodeURIComponent(aImageSrc.replace(twitterEx, "$1"));
