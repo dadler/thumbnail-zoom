@@ -2462,6 +2462,15 @@ ThumbnailZoomPlusChrome.Overlay = {
     // This is the image URL we're currently loading (not another previously
     // image we had started loading).
 
+    // Firefox Nightly 21 and Aurora 20 seem to call image's onerror
+    // after calling onloaded, even when the image seems to have been
+    // fully and successfully loaded.  This was causing TZP bug 108:
+    // TZP stops working on Nightly.  We work around that by disabling
+    // the onerror callback when we get an onload.  It's not a 100% fix
+    // since Firefox still seems to call onerror before onload, causing a
+    // brief flicker of the error indicator.
+    image.onerror = null;
+    
     // Make sure we don't get called again as an onLoad, if current call
     // was due to the timer.
     image.onload = null;
