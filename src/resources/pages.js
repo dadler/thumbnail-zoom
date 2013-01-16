@@ -273,6 +273,8 @@ ThumbnailZoomPlus.Pages.Twitpic = {
   host: /^(.*\.)?(twitpic\.com|twitpicproxy.com|twitter\.com|twimg|skylin.es|picfog\.com|twicsy\.com)$/,
   imageRegExp:
     /^(.*[.\/])?(twimg[.0-9-].*|twitpic\.com(?:\/).*\/([a-z0-9A-Z]+)$|yfrog.com|api\.plixi\.com.*url=|photobucket\.com|instagr\.am|instagram\.com|twitpicproxy\.com|photozou.jp\/p\/img\/)/,
+    
+  imageDisallowRegExp : /.*twimg.*\/img\/front_page\//, // Twitter background image on login page.
 
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     // If thumbnail-active-border-inner, the currently-selected thumbnail 
@@ -1681,6 +1683,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|//.*\\.googleapis\.com/vt/" // 45-degree google maps on redfin
                           + "|//img[0-9]+\\.wsimg\\.com/dcc/" // GoDaddy: My Account (Domain Manager) https://mya.godaddy.com/default.aspx
                           + "|//img[0-9]+\\.wsimg\\.com/DNSManager/" // goDaddy: DNS Manager https://dns.godaddy.com/default.aspx 
+                          + "|//.*twimg.*/img/front_page/" // Twitter background image on login page.
+                          + "|//.*/images/tiny_mce" // toolbar of html editor in jive cms and elsewhere
                           + ").*", "i"),
   
   // For "Thumbnail"
@@ -2187,6 +2191,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              "images/pin[a-z]+/[0-9]+/[0-9]+/[0-9]+)/[0-9x]+/" +
                                              "([0-9a-z]+" + EXTS + ")", "i"),
                                   "$1/620/$2");
+                                  
     // imagetwist:
     // http://img8.imagetwist.com/th/01282/999sz25wbi76.jpg becomes
     // http://img8.imagetwist.com/i/01282/999sz25wbi76.jpg
