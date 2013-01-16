@@ -52,11 +52,30 @@ ThumbnailZoomPlus.ClipboardService = {
     this._logger.trace("_init");
   },
   
+  // Create a wrapper to construct a nsITransferable instance and set its source to the given window, when necessary
+  Transferable : function(source) {
+    // Create a constructor for the builtin transferable class
+    const nsTransferable = Components.Constructor("@mozilla.org/widget/transferable;1", "nsITransferable");
+    
+    var res = nsTransferable();
+    if ('init' in res) {
+      // When passed a Window object, find a suitable provacy context for it.
+      if (source instanceof Ci.nsIDOMWindow) {
+        // Note: in Gecko versions >16, you can import the PrivateBrowsingUtils.jsm module
+        // and use PrivateBrowsingUtils.privacyContextFromWindow(sourceWindow) instead
+        source = source.QueryInterface(Ci.nsIInterfaceRequestor)
+               .getInterface(Ci.nsIWebNavigation);
+      }
+      res.init(source);
+    }
+    return res;
+  },
+  
   /**
    * copies the specified image URL and/or the image contents it represents
    * to the clipboard.
    */
-  copyImageToClipboard : function(imageURL, copyImage, copyImageURL) {
+  copyImageToClipboard : function(aWindow, imageURL, copyImage, copyImageURL) {
   /*
      It's hard to find documentation about how to copy an image to the clipcboard
      in Firefox.  Here are some helpful links:
@@ -79,7 +98,7 @@ ThumbnailZoomPlus.ClipboardService = {
     
     // var imagedata = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9YGARc5KB0XV+IAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAF1JREFUGNO9zL0NglAAxPEfdLTs4BZM4DIO4C7OwQg2JoQ9LE1exdlYvBBeZ7jqch9//q1uH4TLzw4d6+ErXMMcXuHWxId3KOETnnXXV6MJpcq2MLaI97CER3N0vr4MkhoXe0rZigAAAABJRU5ErkJggg==';
     var ioSvc     = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    var trans     = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+    var trans     = this.Transferable(aWindow);
     if (copyImage) {
       /**
        * Put the image itself on the clipboard

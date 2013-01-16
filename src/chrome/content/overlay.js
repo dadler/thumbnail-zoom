@@ -428,6 +428,17 @@ ThumbnailZoomPlusChrome.Overlay = {
       function(aEvent) {
         that._handlePopupClick(aEvent);
       }, false);
+      
+    /*
+       Note: The Mozilla add-on warns here that:
+         Mouse events may cause performance issues.
+         Warning: The use of `mousemove`, `mouseover`, and `mouseout` is discouraged. 
+         These events are dispatched with high frequency and can cause severe 
+         performance issues.
+       I think this is not a significant problem for this add-on because
+       it's only active over tzp's pop-up window, not over the
+       general web browser.
+    */
     this._panel.addEventListener(
       "mousemove",
       function(aEvent) {
@@ -3845,7 +3856,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     ThumbnailZoomPlus.ClipboardService
-        .copyImageToClipboard(this._currentImage, copyImage, copyImageURL);
+        .copyImageToClipboard(this._currentWindow, this._currentImage, 
+                              copyImage, copyImageURL);
   },
   
 
