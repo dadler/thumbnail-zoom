@@ -533,6 +533,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       var keyReceiver = this._panel;
       this._panelFocusHost.addEventListener("blur", this._losingPopupFocus, useCapture);
     } else {
+      this._logger.debug("_addListenersWhenPopupShown: this._currentWindow == " + this._currentWindow);
       var keyReceiver = this._currentWindow.document;
     }
     keyReceiver.addEventListener("keydown", this._handleKeyDown, useCapture);
@@ -2050,6 +2051,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Clearing _currentWindow prevents a zombie compartment
       // leak (issue #24).
       // CAUTION: don't do anything after here which needs _currentWindow.
+      this._logger.debug("_closePanel: Setting this._currentWindow = null");
       this._currentWindow = null;
 
       if (this._imageObjectBeingLoaded) {
@@ -2057,7 +2059,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // trying to load it and clear out the registered handlers so we
         // don't end up with a Zombie Compartment leak (e.g. when trying
         // to load an image on a non-responsive site).
-        this._logger.debug("_closePanel: clearing image onload & onerror\n");
+        this._logger.debug("_closePanel: clearing image onload & onerror");
         this._imageObjectBeingLoaded.src = null;
         this._imageObjectBeingLoaded.onload = null;
         this._imageObjectBeingLoaded.onerror = null;
@@ -2066,6 +2068,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     } catch (e) {
       // This message has been seen in ff15.
       ThumbnailZoomPlus._logExceptionToConsole("_closePanel 1", e);
+      this._logger.debug("_closePanel: Setting this._currentWindow = null");
       this._currentWindow = null;
     }
     try {
@@ -2637,6 +2640,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       // A different image than our current one finished loading; ignore it.
       return;
     }
+    if (this._imageObjectBeingLoaded) {
+      // Firefox Nightly 21 and Aurora 20 seem to call image's onerror
+      // after calling onloaded, even when the image seems to have been
+      // fully and successfully loaded.  This was causing TZP bug 108:
+      // TZP stops working on Nightly.  We work around that by disabling
+      // the onerror callback when we get an onload.
+      this._imageObjectBeingLoaded.onerror = null;
+    }
 
     // This is the image URL we're currently loading (not another previously
     // image we had started loading).
@@ -2922,7 +2933,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     // keep loading in the background).
     image.onerror = function(aEvent) {
       that._logger.debug("In image onerror");
-
       if (that._currentImage != aImageSrc) {
         // A different image than our current one finished loading; ignore it.
         return;
