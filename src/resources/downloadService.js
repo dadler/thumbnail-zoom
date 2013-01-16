@@ -89,62 +89,6 @@ ThumbnailZoomPlus.DownloadService = {
   },
 
   /**
-   * Dowloads an image to an uncompressed PNG file.
-   * This is how TZP worked in version 1.7.2 and older.  That takes a lot of 
-   * disk space and ends up with files named .jpg containing png data. 
-   * @param aImage the image.
-   * @param aFilePath the destination file path.
-   * @param aWin the window.
-   */
-  downloadImageAsPNG : function(aImage, aFilePath, aWin) {
-    this._logger.debug("downloadImageAsPNG");
-
-    let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-    file.initWithPath(aFilePath);
-    
-    let canvas =
-      aWin.document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
-    let canvasCtx = canvas.getContext('2d');
-    let data = null;
-
-    canvas.width = aImage.width;
-    canvas.height = aImage.height;
-    canvasCtx.drawImage(aImage, 0, 0);
-    var jpegQuality = 0.95;
-    data = canvas.toDataURL("image/png", jpegQuality);
-
-    this._convertToPngAndSaveImage(data, file);
-  },
-
-  /**
-   * Converts an image to uncompressed PNG and saves it image locally.
-   * @param aData the canvas data.
-   * @param aFile the destination file.
-   */
-  _convertToPngAndSaveImage : function(aData, aFile) {
-    this._logger.trace("_convertAndSaveImage");
-
-    let ioService =
-      Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-    let persist =
-      Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
-        createInstance(Ci.nsIWebBrowserPersist);
-    let transfer = Cc["@mozilla.org/transfer;1"].createInstance(Ci.nsITransfer);
-    let source = ioService.newURI(aData, "UTF8", null);
-    let target = ioService.newFileURI(aFile);
-
-    // set persist flags
-    persist.persistFlags =
-      (Ci.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
-       Ci.nsIWebBrowserPersist.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION);
-    // displays a download dialog
-    transfer.init(source, target, "", null, null, null, persist);
-    persist.progressListener = transfer;
-    // save the canvas data to the file
-    persist.saveURI(source, null, null, null, null, aFile);
-  },
-
-  /**
    * Saves an image locally.
    * @param aData the canvas data.
    * @param aFile the destination file.
@@ -184,6 +128,18 @@ ThumbnailZoomPlus.DownloadService = {
     transfer.init(source, target, "", null, null, null, persist, isPrivate);
     persist.progressListener = transfer;
     
+    /*
+       Note: the mozilla add-on validator warns below:
+         `saveURI` has been changed.
+         Warning: The `saveURI` function have changed to support per-window 
+         private browsing. You should now pass a context as an additional 
+         argument.
+         See bug https://bugzilla.mozilla.org/show_bug.cgi?id=794602 for more 
+         information.
+       As far as I can tell the warning is spurious since we *are* passing
+       in privacyContext.
+     */
+     
     // save image to the file
     persist.saveURI(source, null, null, null, null, aFile, privacyContext);
   }

@@ -251,7 +251,17 @@ ThumbnailZoomPlusChrome.Overlay = {
                   .getService(Components.interfaces.nsIXULAppInfo);
     this._firefoxVersion = 1 * info.version.replace(/^([0-9]+).*/, "$1");
     this._logger.debug("Detected firefox major version " + this._firefoxVersion);
-    
+
+    /*
+       Note: the Mozilla add-on validator warns here:
+         Deprecated interface in use
+         Warning: This add-on uses nsIPrefBranch2, which has been merged into 
+         nsIPrefBranch in Gecko 13. Once you drop support for old versions of 
+         Gecko, you should stop using nsIPrefBranch2.
+         See bug https://bugzilla.mozilla.org/show_bug.cgi?id=718255 for more information.
+       This warning can be safely ignored: we still support Firefox 3.x and
+       so need the older interface.
+     */
     this._preferencesService =
       Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch2);
     this._consoleService = ThumbnailZoomPlus._consoleService;
@@ -3827,24 +3837,11 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "'; url='" + this._filePicker.fileURL.path
                          + "'");
       
-      // If saveInPngFormat, saving is forced to uncompressed PNG format,
-      // like version 1.7.2 and older.  Recommended to use false.
-      let saveInPngFormat = false;
-      
-      if (saveInPngFormat) {
-        let image = new Image();
-        
-        image.onload = function() {
-          ThumbnailZoomPlus.DownloadService.downloadImageAsPNG(image, filePath, window);
-        };
-        image.src = imageURL;
-      } else {
-        var win = null;
-        if (this._currentThumb) {
-          win = this._currentThumb.ownerDocument.defaultView;
-        }
-        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(win, imageURL, filePath);
+      var win = null;
+      if (this._currentThumb) {
+        win = this._currentThumb.ownerDocument.defaultView;
       }
+      ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(win, imageURL, filePath);
     }
   },
 
@@ -3980,7 +3977,16 @@ ThumbnailZoomPlusChrome.Overlay = {
     let ioService = Components.classes["@mozilla.org/network/io-service;1"]  
                           .getService(Components.interfaces.nsIIOService);
     let nsIURI = ioService.newURI(url, null, null);
-    
+
+    /*
+       Note: the mozilla add-on validator warns here:
+         `nsIGlobalHistory` has been removed.
+         Warning: The `nsIGlobalHistory` interface has been removed.
+         You can use `nsIGlobalHistory2` instead.
+         See bug https://bugzilla.mozilla.org/show_bug.cgi?id=615213 for more information.
+       This seems to be an incorrect warning which can be ignored since we're
+       using here nsIGlobalHistory2, not nsIGlobalHistory.
+     */    
     let historyService2 = Components.classes["@mozilla.org/browser/nav-history-service;1"]
                           .getService(Components.interfaces.nsIGlobalHistory2);  
     
