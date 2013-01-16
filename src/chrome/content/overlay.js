@@ -3569,7 +3569,11 @@ ThumbnailZoomPlusChrome.Overlay = {
         };
         image.src = imageURL;
       } else {
-        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(imageURL, filePath);
+        var win = null;
+        if (this._currentThumb) {
+          win = this._currentThumb.ownerDocument.defaultView;
+        }
+        ThumbnailZoomPlus.DownloadService.downloadImageAsOriginal(win, imageURL, filePath);
       }
     }
   },
