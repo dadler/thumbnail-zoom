@@ -2413,7 +2413,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageHeight = image.naturalHeight;
     this._logger.debug("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
                        "; width=" + image.width + "; iw=" + imageWidth);
-    if (imageWidth > 0 && imageHeight > 0) {
+    if (imageWidth > 0 && imageHeight > 0 && image.width > 0) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
