@@ -2226,6 +2226,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(:\/\/[^/]*photo\.xuite\.net\/.*\/[0-9]+)_[a-z]\.jpg/i, 
                                   "$1_x.jpg");
 
+    // safebooru.org and others
+    // http://safebooru.org/thumbnails/983/thumbnail_ff1c7d20d45cec36eab76f78e3fd36d6.jpeg?988584 becomes
+    // http://safebooru.org/images/983/ff1c7d20d45cec36eab76f78e3fd36d6.jpeg?988584
+    aImageSrc = aImageSrc.replace(/\/thumbnails\/+([0-9]+)\/thumbnail_([0-9a-f]+\.)/i,
+                                  "/images/$1/$2");
+    
     // photo.net
     // http://static.photo.net/thumbnails/97/42/9742906-tn-lg.jpg becomes
     // http://gallery.photo.net/photo/9742906-lg.jpg
