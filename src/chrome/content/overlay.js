@@ -2331,7 +2331,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       let options = {referrerURI: null, relatedToCurrent: true};
       // Example full URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg&encoded_image=&image_content=&filename=&num=10&hl=en&safe=off&bih=711&biw=1366
       // Example minimal URL: https://www.google.com/searchbyimage?image_url=http%3A%2F%2Fi.imgur.com%2F7p1wA.jpg
-      let url = "https://www.google.com/searchbyimage?image_url=" + encodeURIComponent(this._currentImage);
+      let url = "https://www.google.com/searchbyimage?site=search&image_url=" + encodeURIComponent(this._currentImage);
       let tab = openUILinkIn(url, "tab", options);
       gBrowser.selectedTab = tab;
       
@@ -2959,6 +2959,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // A different image than our current one finished loading; ignore it.
         return;
       }
+      image.onerror = null; // protect against multiple calls (seen in ff 20).
       that._hideCaption();
       that._debugToConsole("ThumbnailZoomPlus: >>> error loading\n" + aImageSrc);
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");

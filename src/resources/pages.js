@@ -746,17 +746,24 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   host: /^(.*\.)?pinterest\.com$/,
   
   // eg https://s-media-cache-ec4.pinimg.com/upload/165225880049687299_GEFs3cp0_b.jpg
-  //       http://media-cache-ec9.pinterest.com/upload/76983474850615703_fCXJVbYR_f.jpg
-  imageRegExp: /.*\/(s-)?media-[^.\/]*\.(pinterest|pinimg)\.com\/(upload|avatars)\/.*/,
+  //    http://media-cache-ec9.pinterest.com/upload/76983474850615703_fCXJVbYR_f.jpg
+  // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
+  imageRegExp: /.*\/(s-)?media-[^.\/]*\.(pinterest|pinimg)\.com\/([0-9]+x|upload|avatars)\/.*/,
   
   getZoomImage : function(aImageSrc, node, flags) {
     // for images:
-    // eg seen at http://pinterest.com/pin/98164466848180792/
+    // eg seen at 
+    //  http://pinterest.com/pin/98164466848180792/
     // https://pinterest.com/pin/76983474851009277/
     let rex = new RegExp("([0-9_a-zA-Z]+_)[tb](" + 
                          EXTS + ")");
     aImageSrc = aImageSrc.replace(rex, "$1f$2");
 
+    // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg becomes
+    // http://media-cache-lt0.pinterest.com/550x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com)/[0-9]+x(/.*" + EXTS + ")"),
+                                  "$1/550x$2");
+                                  
     // for avatars:
     // http://media-cdn.pinterest.com/avatars/ohjoy-18.jpg becomes
     // http://media-cdn.pinterest.com/avatars/ohjoy-18_o.jpg
@@ -766,6 +773,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     return aImageSrc;
   }
 };
+
 
 /**
  * Tagged
@@ -1093,8 +1101,8 @@ ThumbnailZoomPlus.Pages.Others = {
   // imgur.com links (except imgur.com/a/) w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
   // which getZoomImage will convert to a youtube thumb.
-  // Note that we can't support imgur.com/a/ links (albums) since there is no
-  // image named similarly to the link.
+  // Note that we can't support imgur.com/a/ links (albums) here since there is no
+  // image named similarly to the link, but we do in OthersIndirect.
 
   imageRegExp: new RegExp(
       EXTS + "([?&].*)?$"
@@ -1873,6 +1881,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       return null;
     }
 
+    aImageSrc = aImageSrc.replace(/(i\.imgur\.com\/[0-9a-zA-Z]{7,7})s(\.jpg)$/,
+                                  "$1$2");
+                                  
     // For tiny tumblr profile thumbs change 
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png ; also as
