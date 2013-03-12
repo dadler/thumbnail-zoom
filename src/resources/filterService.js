@@ -241,6 +241,14 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   testPageConstantByHost : function(host, aPage) {
+    let hostDisallowRegExp = this.pageList[aPage].hostDisallow;
+    if (hostDisallowRegExp && hostDisallowRegExp.test(host)) {
+      this._logger.debug("    testPageConstantByHost: REJECT  '" +
+                         this.pageList[aPage].key + "' (" + aPage + ") for " + 
+                         host +
+                         " based on disallow regexp " + this.pageList[aPage].hostDisallow );
+      return false;
+    }
     let hostRegExp = this.pageList[aPage].host;
     if (hostRegExp.test(host)) {
       this._logger.debug("    testPageConstantByHost: FOUND  '" +

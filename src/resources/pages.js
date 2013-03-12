@@ -89,6 +89,11 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
+    * hostDisallow: optional regular expression which the hostname of the page containing
+      the thumbnail or link must NOT match for the rule to apply.  THIS APPLIES
+      TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
+      Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
+
     * preferLinkOverThumb: optional boolean indicates that when the hovered
       node has both an href and a background-image, prefer to use the
       link rather than the background-image.  Defaults false.
@@ -256,6 +261,7 @@ ThumbnailZoomPlus.Pages.Twitter = {
   host: /^(.*\.)?(twitter\.com$|twimg[.0-9-])/,
   imageRegExp: /(twitter\.com\/|twimg[.0-9-])/,
   getZoomImage : function(aImageSrc, node, flags) {
+  
     let rex = new RegExp(/_(bigger|mini|normal|reasonably_small)(?![^.])/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "") : null);
     return image;
@@ -1660,7 +1666,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   key: "thumbnail",
   name: null, // don't show in menu
   host: /.*/,
-  
+  hostDisallow: /.*redditp\.com/,
   imageRegExp: /.*/,
   
   // READ THIS BEFORE EDITING:
@@ -1699,11 +1705,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     // Some sites need to find the image's node from an ancestor node.
     let parentClass = node.parentNode.className;
+    // ThumbnailZoomPlus._logToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
     if (/gii_folder_link/.test(nodeClass) ||
         (/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass)) ||
         /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
-        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) // for allmusic.com
+        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
+        (nodeName == "a" && "go" == nodeClass) // for tumblr search results
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1715,7 +1723,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // for yahoo.co.jp
       let generationsUp = 1; // overlay
       if (/gii_folder_link|inner/.test(nodeClass) ||
-          /cd_activator/.test(parentClass) // pandora.com
+          /cd_activator/.test(parentClass) || // pandora.com
+          (/stage/.test(parentClass) && "go" == nodeClass) // tumblr search results
           ) {
         generationsUp = 2;
       } else if (/date|notes/.test(nodeClass)) {
@@ -1893,6 +1902,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
 
+    if (! /-tour-/.test(aImageSrc)) {
+      aImageSrc = aImageSrc.replace(/(\/galleries\/.*\/x-.*-)ltn\.jpg/,
+                                    "$1sml.jpg");
+    }
+    
     // For Wordpress and (formerly) Bing Images, etc., get URL from
     // imgurl=... part.
     // eg, change:
@@ -2456,9 +2470,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
 ThumbnailZoomPlus.Pages.ThumbnailItself = {
   key: ThumbnailZoomPlus.Pages.Thumbnail.key,
   name: "", // Set in ENTITY_page_thumbnail.
-  host: /.*/,
 
   // Copy several fields from the Thumbnail rule.  
+  host: ThumbnailZoomPlus.Pages.Thumbnail.host,
+  hostDisallow: ThumbnailZoomPlus.Pages.Thumbnail.hostDisallow,
   imageRegExp: ThumbnailZoomPlus.Pages.Thumbnail.imageRegExp,
   imageDisallowRegExp : ThumbnailZoomPlus.Pages.Thumbnail.imageDisallowRegExp,
 
