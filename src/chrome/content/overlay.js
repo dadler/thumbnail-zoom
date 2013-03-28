@@ -2103,6 +2103,16 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelHtmlImage.src = null;
       this._panelXulImage.src = null;
       this._currentThumb = null;
+      
+      // Remove and recreate the html image node size Firefox 19 and newer 
+      // would otherwise return the prior image's width and height and
+      // briefly show the prior image on the next pop-up, even though
+      // we already cleared its src.
+      var newImg = 
+          document.createElementNS("http://www.w3.org/1999/xhtml","img");
+      newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
+      this._panelImageDiv.replaceChild(newImg, this._panelHtmlImage);
+      this._panelHtmlImage = newImg;
     } catch (e) {
       ThumbnailZoomPlus._logExceptionToConsole("_closePanel 2", e);
     }
@@ -2617,7 +2627,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageHeight = image.naturalHeight;
     this._logger.debug("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
                        "; width=" + image.width + "; iw=" + imageWidth);
-    if (imageWidth > 0 && imageHeight > 0 && image.width > 0) {
+    if (imageWidth > 0 && imageHeight > 0) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
