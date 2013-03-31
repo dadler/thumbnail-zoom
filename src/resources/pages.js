@@ -754,9 +754,21 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   // eg https://s-media-cache-ec4.pinimg.com/upload/165225880049687299_GEFs3cp0_b.jpg
   //    http://media-cache-ec9.pinterest.com/upload/76983474850615703_fCXJVbYR_f.jpg
   // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
-  imageRegExp: /.*\/(s-)?media-[^.\/]*\.(pinterest|pinimg)\.com\/([0-9]+x|upload|avatars)\/.*/,
+  imageRegExp: /.*\/(s-)?media-[^.\/]*\.(pinterest|pinimg)\.com\/([0-9]+x[0-9]*|upload|avatars)\/.*/,
   
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    let image = aNode;
+    if ("div" == aNodeName  && "hoverMask" == aNodeClass &&
+        aNode.nextSibling) {
+      image = aNode.parentNode.querySelector("img");
+      ThumbnailZoomPlus._logToConsole("Recognized pinterest hoverMask; nextSibling="
+                      + image);
+    }
+    return image;
+  },
+
   getZoomImage : function(aImageSrc, node, flags) {
+
     // for images:
     // eg seen at 
     //  http://pinterest.com/pin/98164466848180792/
@@ -767,7 +779,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
 
     // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg becomes
     // http://media-cache-lt0.pinterest.com/550x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com)/[0-9]+x(/.*" + EXTS + ")"),
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com)/[0-9]+x[0-9]*(/.*" + EXTS + ")"),
                                   "$1/550x$2");
                                   
     // for avatars:
