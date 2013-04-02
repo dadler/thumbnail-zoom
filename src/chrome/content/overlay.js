@@ -1034,7 +1034,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // imgur.com uses original-title="title"
       alt = aNode.getAttribute("original-title");
       if (alt != undefined && alt != "") {
-        this._logger.debug("_getEffectiveTitleForNode: got title from origina-title: '" +
+        this._logger.debug("_getEffectiveTitleForNode: got title from original-title: '" +
                            alt + "'");
         title = alt;
         break;
@@ -1826,12 +1826,12 @@ ThumbnailZoomPlusChrome.Overlay = {
    * TODO: With a hover delay larger than 0.5 seconds, the tooltip appears
    * before this gets called, so it isn't suppressed.
    */
-  _setupCaption : function(aImageNode) {
+  _setupCaption : function(aImageNode, captionPrefix) {
     let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
     this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
     this._hideCaption();
     
-    this._caption = this._getEffectiveTitle(aImageNode);
+    this._caption = captionPrefix + this._getEffectiveTitle(aImageNode);
     this._logger.debug("_setupCaption: image title='" + 
                        this._caption + "'");
     if (!allowCaption) {
@@ -2012,7 +2012,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
     
-    this._setupCaption(aImageNode);
+    this._setupCaption(aImageNode, flags.captionPrefix);
     if (flags.linkSameAsImage) {
       this._setupCursor(aImageNode);
     }
@@ -2314,7 +2314,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                          " since pressed c key");      
       // redisplay to update displayed caption.
       if (this._currentThumb) {
-        this._setupCaption(this._currentThumb);
+        var captionPrefix = ""; // not available
+        this._setupCaption(this._currentThumb, captionPrefix);
       }
       this._redisplayPopup();
       

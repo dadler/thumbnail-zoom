@@ -120,7 +120,7 @@ ThumbnailZoomPlus.PagesIndirect = {
    * corresponds to an update of the html page's loading.  The generator is
    * created and invoked from getImageFromLinkedPage().
    */
-  _getImageFromLinkedPageGen : function(doc, pageUrl, invocationNumber,
+  _getImageFromLinkedPageGen : function(doc, pageUrl, flags, invocationNumber,
                                            pageCompletionFunc,
                                            getImageFromHtmlFunc)
   {
@@ -207,7 +207,7 @@ ThumbnailZoomPlus.PagesIndirect = {
     aHTMLString = aHTMLString.replace(/\<\/?noscript.*\>/ig, "");
     this._logger.debug("  Got doc type " + docType + ":" + aHTMLString);
     
-    let url = getImageFromHtmlFunc(doc, pageUrl, aHTMLString);
+    let url = getImageFromHtmlFunc(doc, pageUrl, flags, aHTMLString);
     
     pageCompletionFunc(url);
   },
@@ -217,11 +217,11 @@ ThumbnailZoomPlus.PagesIndirect = {
   // the html at the specified URL.  
   // getImageFromHtmlFunc() is supplied by the caller, and is called as:
   //   getImageFromHtmlFunc(doc, pageUrl,aHTMLString).
-  getImageFromLinkedPage : function(doc, pageUrl, invocationNumber, pageCompletionFunc,
+  getImageFromLinkedPage : function(doc, pageUrl, flags, invocationNumber, pageCompletionFunc,
                                     getImageFromHtmlFunc)
   {
     try {
-      let generator = this._getImageFromLinkedPageGen(doc, pageUrl, invocationNumber, 
+      let generator = this._getImageFromLinkedPageGen(doc, pageUrl, flags, invocationNumber, 
                                                 pageCompletionFunc, 
                                                 getImageFromHtmlFunc);
       

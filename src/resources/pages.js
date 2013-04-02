@@ -1507,7 +1507,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
     this.invocationNumber++;
     aImageSrc = ThumbnailZoomPlus.PagesIndirect.
-                getImageFromLinkedPage(node.ownerDocument, aImageSrc, 
+                getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
                                        this.invocationNumber, pageCompletionFunc,
                                        this._getImageFromHtml.bind(this));
     
@@ -1606,11 +1606,15 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return null;  
   },
 
-  _getImageFromHtml : function(doc, pageUrl,aHTMLString)
+  _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
   {
+    if (/imgur\.com\/a\/./.test(pageUrl)) {
+        flags.captionPrefix = "[gallery] ";
+    }
+    
     let logger = ThumbnailZoomPlus.Pages._logger;
     let result = this._getImgFromHtmlText(aHTMLString);
-    logger.debug("getImageFromLinkedPage: from _getImgFromHtmlText got " + result);
+    logger.debug("_getImageFromHtml: from _getImgFromHtmlText got " + result);
 
     // Parse the document.
     // If we already have result, we parse only to get its base for applyBaseURI,

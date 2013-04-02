@@ -149,6 +149,10 @@ ThumbnailZoomPlus.FilterService = {
     this.noErrorIndicator = false;
     this.requireImageBiggerThanThumb = true;
     
+    // captionPrefix is prepended to the caption, e.g. to show "[gallery] "
+    // on imgur.com/a/
+    this.captionPrefix = "";
+    
     // imageSourceNode is the URL of the thumb or link which the user
     // hovered over (not necessarily the URL of the popup we ended up displaying).
     // This is useful so we can record it in the browser's history.
