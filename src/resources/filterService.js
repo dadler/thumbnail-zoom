@@ -358,6 +358,15 @@ ThumbnailZoomPlus.FilterService = {
     return uri.spec;
   },
   
+  getBackgroundImageURL : function(node) {
+    let backImage = node.style.backgroundImage || "";
+    let match = /url\(\"?(.+?)"?\)/.exec(backImage);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  },
+  
   /**
    * getUrlFromNode returns a URL based on imageNode, using
    * the first of these rules which gives a non-blank URL:

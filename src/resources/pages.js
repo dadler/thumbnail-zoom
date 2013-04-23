@@ -169,15 +169,15 @@ ThumbnailZoomPlus.Pages.Facebook = {
      
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))/,
+  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
+    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
       // In June 2012 FB started rolling out new photo layouts on the wall.
-      // The dover detects a <div> and we need to find its child <img>.
+      // The hover detects a <div> and we need to find its child <img>.
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
@@ -202,6 +202,17 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
       return null;
+    }
+    
+    // In April 2013 we started seeing img src="https://fbstatic-a.akamaihd.net/rsrc.php/v2/y4/r/-PAXP-deijE.gif"
+    // with the actual image in the background-image style.  Handle those.
+    if (/fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/.test(aImageSrc)) {
+      ThumbnailZoomPlus._logToConsole("FB: found img under _1xx or _1xy");
+      let backgroundImage = ThumbnailZoomPlus.FilterService.getBackgroundImageURL(node);
+      if (backgroundImage) {
+        aImageSrc = backgroundImage;
+      }
+      ThumbnailZoomPlus._logToConsole("FB: bg image = " + backgroundImage);
     }
     
     // Handle externally-linked images.
@@ -761,8 +772,6 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     if ("div" == aNodeName  && "hoverMask" == aNodeClass &&
         aNode.nextSibling) {
       image = aNode.parentNode.querySelector("img");
-      ThumbnailZoomPlus._logToConsole("Recognized pinterest hoverMask; nextSibling="
-                      + image);
     }
     return image;
   },
@@ -1506,6 +1515,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // For "OthersIndirect"
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
     this.invocationNumber++;
+    
+    // Note: .bind() doesn't seem to be available in Firefox 3.6.
     aImageSrc = ThumbnailZoomPlus.PagesIndirect.
                 getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
                                        this.invocationNumber, pageCompletionFunc,
@@ -1906,7 +1917,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       return null;
     }
 
-    aImageSrc = aImageSrc.replace(/(i\.imgur\.com\/[0-9a-zA-Z]{7,7})s(\.jpg)$/,
+    aImageSrc = aImageSrc.replace(/(i\.imgur\.com\/[0-9a-zA-Z]{7,7})[bsm](\.jpg)$/,
                                   "$1$2");
                                   
     // For tiny tumblr profile thumbs change 
@@ -2130,6 +2141,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://raxanathos.free.fr/modules/td-galerie/mini/20070407230812-4.jpg becomes
     // http://raxanathos.free.fr/modules/td-galerie/imgs/20070407230812-3.jpg
     aImageSrc = aImageSrc.replace("modules/td-galerie/mini/", "modules/td-galerie/imgs/");
+    
+    // photodom.com
+    aImageSrc = aImageSrc.replace(/(photodom\.com\/photos\/.*\/)thumb_([0-9]+\.jpg)/,
+                                  "$1$2");
+    
+    // homedepot.com
+    // http://www.homedepot.com/catalog/productImages/145/30/30756488-d7f9-4ee6-917e-6ecedfe5d037_145.jpg becomes
+    // http://www.homedepot.com/catalog/productImages/400/30/30756488-d7f9-4ee6-917e-6ecedfe5d037_400.jpg
+    aImageSrc = aImageSrc.replace(/(www\.homedepot\.com\/.*productImages)\/[0-9]+\/(.*)_[0-9]+\.jpg/,
+                                  "$1/400/$2_400.jpg");
     
     // For Google Play Android Apps, change
     // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
