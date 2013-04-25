@@ -169,7 +169,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
@@ -184,6 +184,16 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aNode = imgNodes[0];
       }
     }
+    if ("a" == aNodeName && /_4q3/.test(aNodeClass)) {
+      // In Apr 2013 we started seeing profile icons with
+      // <a><span><img>, where hover is detected on the <a>.
+      let imgNodes = aNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the first child.
+        aNode = imgNodes[0];
+      }
+    }
+
     return aNode;
   },
   
@@ -207,12 +217,18 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // In April 2013 we started seeing img src="https://fbstatic-a.akamaihd.net/rsrc.php/v2/y4/r/-PAXP-deijE.gif"
     // with the actual image in the background-image style.  Handle those.
     if (/fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/.test(aImageSrc)) {
-      ThumbnailZoomPlus._logToConsole("FB: found img under _1xx or _1xy");
       let backgroundImage = ThumbnailZoomPlus.FilterService.getBackgroundImageURL(node);
       if (backgroundImage) {
         aImageSrc = backgroundImage;
       }
-      ThumbnailZoomPlus._logToConsole("FB: bg image = " + backgroundImage);
+    }
+    
+    let ajaxify = node.getAttribute("ajaxify");
+    if (ajaxify) {
+      let match = /\&src=([^\&]+)/.exec(ajaxify);
+      if (match) {
+        aImageSrc = unescape(match[1]);
+      }
     }
     
     // Handle externally-linked images.
@@ -1015,8 +1031,9 @@ ThumbnailZoomPlus.Pages.Imgur = {
   name: "Imgur",
   host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
+  
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/(\/[a-z0-9]{5})[bsm](\.[a-z]+)/i);
+    let rex = new RegExp(/(\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
   }
