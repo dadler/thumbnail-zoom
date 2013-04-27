@@ -346,7 +346,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
 
-  _getEntity : function(key) {
+  getEntity : function(key) {
     // Gets name from the <XXXENTITYREF ENTITYkey="..."> attribute in overlay.xul
     // if it exists; this is how we get localized names based on locale.dtd entity
     // definitions.
@@ -394,7 +394,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         menuItem.setAttribute("id", id);
         
         if (name == "") {
-          name = this._getEntity("page_" + pageInfo.key);
+          name = this.getEntity("page_" + pageInfo.key);
           ThumbnailZoomPlus.FilterService.pageList[i].name = name;
         }
         menuItem.setAttribute("label", name);
@@ -3834,7 +3834,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("downloadImage: default ext='" + extension +
                        "' from '" + pickerDefaultName + "'");
 
-    let title = "Save Image: " + this._caption;
+    let title = this.getEntity("save_image_title") + this._caption;
     this._filePicker.init(window, title, Ci.nsIFilePicker.modeSave);
     this._filePicker.appendFilters(Ci.nsIFilePicker.filterAll | Ci.nsIFilePicker.filterImages);
     this._filePicker.defaultString = pickerDefaultName;

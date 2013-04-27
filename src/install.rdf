@@ -45,16 +45,22 @@
     <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
 	
-	<em:localized>
-		<Description>
-			<em:locale>sv-SE</em:locale>
-			<em:name>Thumbnail Zoom Plus</em:name>
-			<em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Bilder, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, och många fler.</em:description>
-			<em:creator>David Adler och Andres Hernandez Monge</em:creator>
-			<em:translator>Mikael Hiort af Ornäs</em:translator>
-		</Description>
-	</em:localized>
+    <em:localized>
+      <Description>
+        <em:locale>sv-SE</em:locale>
+        <em:description>Visar den fullständiga bilden när du mushovrar över en bildminiatyr.  Fungerar med webbplatser som Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Bilder, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, och många fler.</em:description>
+        <em:translator>Mikael Hiort af Ornäs</em:translator>
+      </Description>
+    </em:localized>
 
+    <em:localized>
+      <Description>
+        <em:locale>es</em:locale> <!-- really es-VE -->
+        <em:description>Muestra imagen completa al colocar puntero sobre su miniatura. Funciona en muchos sitios como Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Images, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, Yahoo Images y muchos otros.</em:description>
+        <em:translator>Ricardo A. Rivas.</em:translator>
+      </Description>
+    </em:localized>
+  
     <!-- Firefox -->
     <em:targetApplication>
       <Description>
