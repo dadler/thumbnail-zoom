@@ -2074,6 +2074,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]*\\.pbase\\.com)/[a-z]([0-9]/.*" +
                                              ")/[0-9]/([^/]*" +
                                              EXTS + ")"), "$1/g$2/2/$3");
+                                             
+    // for furaffinity.net:
+    // http://t.facdn.net/10465114@150-1367079848.jpg#babbignes becomes
+    // http://t.facdn.net/10465114@400-1367079848.jpg#babbignes
+    aImageSrc = aImageSrc.replace(/(t\.facdn\.net\/[0-9]+)@[0123][0-9][0-9]-([0-9]+\.jpg#.)/,
+                                  "$1@400-$2");
+    
     // vimeo.com:
     // http://b.vimeocdn.com/ts/313/757/313757860_150.jpg becomes
     // http://b.vimeocdn.com/ts/313/757/313757860_640.jpg
