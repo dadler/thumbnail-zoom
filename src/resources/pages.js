@@ -1510,6 +1510,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|500px\\.com/photo/[0-9]+"
                           + "|dailymotion\\.com/video/"
                           + "|lockerz\\.com/./[0-9]{4,20}"
+                          + "|(wired\\.com/.*[^#])$"
                           + "|(instagram\\.com|instagr\\.am)/p/"
                           // We include yfrog, but note that for pictures we 
                           // could get a URL directly in the Others rule (faster)
@@ -1525,6 +1526,11 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   
   // For "OthersIndirect"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    if (nodeName != "img" && /wired\.com\/./.test(imageSource)) {
+      // For Wired, use OthersIndirect only on linked thumbnails, not
+      // textual links.
+      return null;
+    } 
     node = ThumbnailZoomPlus.Pages.Others.getImageNode(node, nodeName, nodeClass, imageSource);
     return node;
   },
@@ -1591,8 +1597,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return match[1];
     }
     
-    // flickr.com sets, dailymotion.com, yfrog, etc.
-    re = /<meta +property="og:image" +content=\"([^\"]+)"/;
+    // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
+    re = /<meta +property=["']og:image["'] +content=[\"']([^\"']+)["']/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
@@ -2091,7 +2097,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/ps\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
                                   "$1_300.jpg");
     
-    
+    // wired.com:
+    // http://www.wired.com/images_blogs/autopia/2013/04/3448678338_e8785110ff_b-featured-200x100.jpg becomes
+    // http://www.wired.com/images_blogs/autopia/2013/04/3448678338_e8785110ff_b-featured.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(www\\.wired\\.com/.*)-[0-9]+x[0-9]+(" +
+                                  EXTS + ")"), "$1$2");
+                                  
+    // http://www.wired.com/wiredscience/wp-content/gallery/orca-sperm-whale/thumbs/thumbs_8-shawnheinrichs-20130418-120919-_b0a6186.jpg becomes
+    // http://www.wired.com/wiredscience/wp-content/gallery/orca-sperm-whale/8-shawnheinrichs-20130418-120919-_b0a6186.jpg
+    aImageSrc = aImageSrc.replace(/(www\.wired\.com\/.*)\/thumbs\/thumbs_(.*)/, "$1/$2");
+                                  
     // dailymotion.com:
     // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_sprite.jpg becomes
     // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_large.jpg
