@@ -56,7 +56,7 @@
     <em:localized>
       <Description>
         <em:locale>es</em:locale> <!-- specifically, es-VE -->
-        <em:description>Muestra imagen completa al colocar puntero sobre su miniatura. Funciona en muchos sitios como Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Images, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, Yahoo Images y muchos otros.</em:description>
+        <em:description>Muestra imagen completa al colocar puntero sobre su miniatura. Funciona en numerosos sitios como Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Images, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, Yahoo Images y muchos otros.</em:description>
         <em:translator>Ricardo A. Rivas - rivica@gmail.com"</em:translator>
       </Description>
     </em:localized>

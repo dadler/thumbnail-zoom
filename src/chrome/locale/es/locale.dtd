@@ -31,7 +31,11 @@
 <!-- Spanish translation credit: Ricardo A. Rivas - rivica@gmail.com -->
 
 <!-- NOTE: non-ASCII characters may look weird (eg mathematical symbols) in
-     Xcode; run Firefox to see how they really look. -->
+     Xcode; run Firefox to see how they really look.
+     
+     Spanish: tal vez existan distorsiones en los caracteres no ASCII (ej. algebraicos) 
+     en Xcode - probar con Firefox para ver aspecto 
+-->
 
 <!-- Toolbar -->
 <!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
@@ -41,10 +45,10 @@
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Opciones">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus - Opciones">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Habilitar">
 <!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Depurar">
-<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copie registro">
+<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copiar registro">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Pausa antes de visualizar (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostrar imagen parcial luego de (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predeterminado (&thumbnailzoomplus.PERCENT;): ">
@@ -54,7 +58,7 @@
 <!ENTITY thumbnailzoomplus.options.key2.selection.label          ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar la imagen:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
-<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante la superposición de en miniatura">
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante superposición en miniatura">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Tamaño máx:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Sitio">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Ventana">
@@ -68,7 +72,7 @@
 <!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Sitio">
 <!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Título &amp; Sitio">
 <!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Sitio &amp; Título">
-<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Añadir a la historia">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Añadir a historial">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o inhabilitar por sitio">
@@ -89,7 +93,7 @@
 <!ENTITY thumbnailzoomplus.save.image.title                      "Guardar imagen: ">
 
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.tooltip
-"Permite que la ventana emergente se superponga a la imagen o enlace  original, 
+"Permite que la ventana emergente se superponga a la imagen o enlace original, 
 lo cual agranda la ventana emergente pero tal vez oculte el elemento de origen. 
 La ventana emergente desaparece al alejar el cursor de la zona de la imagen o 
 enlace, al hacer clic o al pulsar la tecla Esc. Atajo: Presionar 'a' al aparecer
@@ -102,11 +106,10 @@ Se sugiere inhabilitar en sitios con innumerables miniaturas (por ejemplo, Googl
 Por defecto se inhabilita.">
 
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.tooltip
-"e habilitarse (predeterminado) se le da prioridad a la ventana emergente de 
+"De habilitarse (predeterminado) se le da prioridad a la ventana emergente de 
 modo que se trabaja con los accesos directos de la ventana emergente 
 y no con los del propio sitio.
 La ventana emergente se cierra al perder prioridad con el teclado.
 Inhabilitar de tener problemas para cerrar de inmediato la ventana emergente
 o si se desactivan los elementos del sitio respectivo al aparecer la ventana 
 emergente de Thumbnail Zoom Plus (por ejemplo en algunos sistemas con Linux).">
-
