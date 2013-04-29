@@ -169,7 +169,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
@@ -785,7 +785,8 @@ ThumbnailZoomPlus.Pages.Pinterest = {
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     let image = aNode;
-    if ("div" == aNodeName  && "hoverMask" == aNodeClass &&
+    if ( ("div" == aNodeName  || "span" == aNodeName) && 
+         ("hoverMask" == aNodeClass || "thumbImageWrapper" == aNodeClass) &&
         aNode.nextSibling) {
       image = aNode.parentNode.querySelector("img");
     }
@@ -804,13 +805,15 @@ ThumbnailZoomPlus.Pages.Pinterest = {
 
     // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg becomes
     // http://media-cache-lt0.pinterest.com/550x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com)/[0-9]+x[0-9]*(/.*" + EXTS + ")"),
+    // also from http://media-cache-is0.pinimg.com/45x45/f4/18/de/f418de34daf273ceffddb07f641a5f55.jpg becomes
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com|\\.pinimg\\.com)/[0-9]+x[0-9]*(/.*" + EXTS + ")"),
                                   "$1/550x$2");
-                                  
+    
     // for avatars:
-    // http://media-cdn.pinterest.com/avatars/ohjoy-18.jpg becomes
-    // http://media-cdn.pinterest.com/avatars/ohjoy-18_o.jpg
-    rex = new RegExp("(/avatars/.*)(\\.jpg)$")
+    // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_75.jpg becomes
+    // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_o.jpg
+    http://media-cache-ec3.pinimg.com/avatars/lucialuzv_1361249244_75.jpg
+    rex = new RegExp("(/avatars/.*)_[0-9]+(\\.jpg)$")
     aImageSrc = aImageSrc.replace(rex, "$1_o$2");
     
     return aImageSrc;
