@@ -1036,7 +1036,7 @@ ThumbnailZoomPlus.Pages.Imgur = {
   imageRegExp: /(i\.)?imgur\.com\//,
   
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/(\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)/i);
+    let rex = new RegExp(/(\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
   }
