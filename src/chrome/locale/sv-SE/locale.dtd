@@ -50,7 +50,7 @@
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "dölja">
 <!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
-<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa vit kantlinje">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">

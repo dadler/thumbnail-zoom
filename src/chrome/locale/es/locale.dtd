@@ -57,7 +57,7 @@
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "no visualizar">
 <!ENTITY thumbnailzoomplus.options.key2.selection.label          ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar la imagen:">
-<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde blanco">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostrar borde">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar el tamaño mediante superposición en miniatura">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Tamaño máx:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Sitio">

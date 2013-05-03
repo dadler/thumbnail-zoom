@@ -42,15 +42,23 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   -moz-image-region: rect(16px, 15px, 31px, 0px);
 }
 
-
 #thumbnailzoomplus-panel {
-  border: 1px solid #000 !important;
-  
+  border: none !important;
+  z-index: 10100;
+  padding: 0px;
+}
+
+#thumbnailzoomplus-border-box {
+  /* background-color appears in the padding region (the optional
+     border around the image).  This is set dynamically based
+     on page flags.borderColor */
+  background-color: white;
+  margin: 0px;
   /* the padding value here must match _borderWidth in overlay.js. */
   padding: 5px;
-  z-index: 10100;
+  border: none !important;
 }
-#thumbnailzoomplus-panel[panelnoborder=true] {
+#thumbnailzoomplus-border-box[panelnoborder=true] {
   padding: 0px;
   border: none !important;
 }
@@ -62,6 +70,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-repeat: no-repeat !important;
   background-position: bottom left !important;
   
+  /* background-color appears behind the image before it's fully loaded. */
   /* debug: background-color: red !important; */
   background-color: white !important;
   

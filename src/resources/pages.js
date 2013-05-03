@@ -1647,6 +1647,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   {
     if (/imgur\.com\/a\/./.test(pageUrl)) {
         flags.captionPrefix = "[gallery] ";
+        flags.borderColor = "#aaffaa";
     }
     
     let logger = ThumbnailZoomPlus.Pages._logger;

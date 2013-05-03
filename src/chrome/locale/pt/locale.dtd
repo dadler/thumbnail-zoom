@@ -48,7 +48,7 @@
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "não exibir">
 <!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tecla para maximizar a imagem:">
-<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda branca">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">

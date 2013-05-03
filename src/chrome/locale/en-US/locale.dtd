@@ -50,7 +50,7 @@
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "not display">
 <!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
-<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show white border">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">

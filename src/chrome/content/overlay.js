@@ -268,6 +268,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this._panel = document.getElementById("thumbnailzoomplus-panel");
+    this._borderBox = document.getElementById("thumbnailzoomplus-border-box");
     this._panelHtmlImage = document.getElementById("thumbnailzoomplus-panel-html-image");
     this._panelXulImage = document.getElementById("thumbnailzoomplus-panel-xul-image");
     this._panelImageDiv = document.getElementById("thumbnailzoomplus-panel-image-div");
@@ -2016,6 +2017,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (flags.linkSameAsImage) {
       this._setupCursor(aImageNode);
     }
+    this._borderBox.style.backgroundColor = flags.borderColor;
     
     // Allow the user to use the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -2382,6 +2384,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
                aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET) {
+      // left bracket and right bracket go to previous/next URL numerically.
       this._logger.debug("_doHandleKeyDown: increment/decrement URL");
       let delta = aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ? -1 : +1;
       let aImageSrc = this._offsetUrl(this._currentImage, delta);
@@ -3942,10 +3945,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     let panelBorder = ThumbnailZoomPlus.getPref(this.PREF_PANEL_BORDER, true);
 
     if (panelBorder) {
-      this._panel.removeAttribute("panelnoborder");
+      this._borderBox.removeAttribute("panelnoborder");
       this._widthAddon = this._borderWidth * 2;
     } else {
-      this._panel.setAttribute("panelnoborder", true);
+      this._borderBox.setAttribute("panelnoborder", true);
       this._widthAddon = 0;
     }
   },
