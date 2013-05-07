@@ -3995,20 +3995,15 @@ ThumbnailZoomPlusChrome.Overlay = {
                           .getService(Components.interfaces.nsIIOService);
     let nsIURI = ioService.newURI(url, null, null);
 
-    /*
-       Note: the mozilla add-on validator warns here:
-         `nsIGlobalHistory` has been removed.
-         Warning: The `nsIGlobalHistory` interface has been removed.
-         You can use `nsIGlobalHistory2` instead.
-         See bug https://bugzilla.mozilla.org/show_bug.cgi?id=615213 for more information.
-       This seems to be an incorrect warning which can be ignored since we're
-       using here nsIGlobalHistory2, not nsIGlobalHistory.
-     */    
-    let historyService2 = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                          .getService(Components.interfaces.nsIGlobalHistory2);  
-    
-    historyService2.addURI(nsIURI, false, true, null);  
-    
+    var asyncHistory = Components.classes["@mozilla.org/browser/history;1"]
+                          .getService(Components.interfaces.mozIAsyncHistory);
+    asyncHistory.updatePlaces({
+                              uri: nsIURI,
+                              visits: [{
+                                       transitionType: Ci.nsINavHistoryService.TRANSITION_LINK,
+                                       visitDate: Date.now() * 1000
+                                       }]
+                              });
   },
   
   _addItemsToHistory : function(url, imageSourceNode) {
