@@ -60,22 +60,6 @@
         <menuitem label="&thumbnailzoomplus.toolbar.help.label;"
           oncommand="ThumbnailZoomPlusChrome.Overlay.openHelp();" />
           
-        <!--
-           This XXXENTITYREF tag is ignored when building the user interface,
-           but defines a tag from which overlay.js can retrieve the translation
-           of entities like thumbnailzoomplus.pages.names.others in
-           getEntity().
-           
-           We must define here one attribute for each page name which
-           is localized with an entity and for other strings we need in code.
-         -->
-        <XXXENTITYREF id="thumbnailzoomplus-entity-names"
-           ENTITY_page_others="&thumbnailzoomplus.pages.names.others;" 
-           ENTITY_page_othersindirect="&thumbnailzoomplus.pages.names.othersindirect;"
-           ENTITY_page_thumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
-           ENTITY_page_google="&thumbnailzoomplus.pages.names.google;" 
-           ENTITY_save_image_title="&thumbnailzoomplus.save.image.title;"
-           />
       </menupopup>
     </toolbarbutton>
   </toolbarpalette>
@@ -138,6 +122,23 @@
                  hidden="true" crop="right" height="14px" />
         </vbox>
       </vbox>
+
+      <!--
+         This XXXENTITYREF tag is ignored when building the user interface,
+         but defines a tag from which overlay.js can retrieve the translation
+         of entities like thumbnailzoomplus.pages.names.others in
+         getEntity().
+         
+         We must define here one attribute for each page name which
+         is localized with an entity and for other strings we need in code.
+       -->
+      <XXXENTITYREF id="thumbnailzoomplus-entity-names"
+         ENTITY_page_others="&thumbnailzoomplus.pages.names.others;" 
+         ENTITY_page_othersindirect="&thumbnailzoomplus.pages.names.othersindirect;"
+         ENTITY_page_thumbnail="&thumbnailzoomplus.pages.names.thumbnail;" 
+         ENTITY_page_google="&thumbnailzoomplus.pages.names.google;" 
+         ENTITY_save_image_title="&thumbnailzoomplus.save.image.title;"
+         />
     </panel>
   </window>
 
