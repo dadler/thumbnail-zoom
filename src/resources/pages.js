@@ -2087,8 +2087,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              
     // for furaffinity.net:
     // http://t.facdn.net/10465114@150-1367079848.jpg#babbignes becomes
-    // http://t.facdn.net/10465114@400-1367079848.jpg#babbignes
-    aImageSrc = aImageSrc.replace(/(t\.facdn\.net\/[0-9]+)@[0123][0-9][0-9]-([0-9]+\.jpg#.)/,
+    // http://t.facdn.net/10465114@400-1367079848.jpg#babbignes (note 150 become 400)
+    // http://t.facdn.net/10552258@200-1368057212.jpg becomes
+    // http://t.facdn.net/10552258@400-1368057212.jpg
+    aImageSrc = aImageSrc.replace(/(t\.facdn\.net\/[0-9]+)@[0123][0-9][0-9]-([0-9]+\.jpg)/,
                                   "$1@400-$2");
     
     // vimeo.com:
