@@ -1338,7 +1338,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             "disabled": page's host matches, but is disabled
             "rejectedNode": the thumb/image URL doesn't match imageRegExp 
                             or matches imageDisallowRegExp
-            "launced": everything matched and we launched the popup.
+            "launched": everything matched and we launched the popup.
             "deferred": the request is deferred (awaiting some event).
                         when it's ready, the function will notify the caller by
                         calling completionGenerator.send(status)
@@ -1497,7 +1497,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     if (! this._currentWindow) {
       this._debugToConsole("_getZoomImageCompletion: ignoring since ! _currentWindow (user moved off thumb?)");
-      return;
+      return "";
     }
 
     // Test whether the link URL of the hovered-over node is the same as the full-size
@@ -2227,7 +2227,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // passed automatically, and sending it here would cause
       // it to be sent twice (eg cancelling the effect of
       // Command+Shift+F full-screen).
-      return false;
+      return;
     }
     if (! this._popupTakesFocus()) {
       // If the popup doesn't take focus, the page still has focus and the
@@ -2293,7 +2293,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     if (aEvent.metaKey || aEvent.ctrlKey) {
       // we don't interpret most Command+ or Ctrl+ keys as hotkeys.
-      return false;
+      return;
     }
 
     if (aEvent.keyCode == aEvent.DOM_VK_P) {
