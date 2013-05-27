@@ -38,6 +38,13 @@ const Cu = Components.utils;
 
 Cu.import("resource://thumbnailzoomplus/log4moz.js");
 
+try {
+  Cu.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
+} catch (e) {
+  // old Firefox versions (e.g. 3.6) didn't have PrivateBrowsingUtils.
+}
+
+
 /**
  * ThumbnailZoomPlus namespace.
  */
@@ -325,7 +332,24 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     _logExceptionToConsole : function(preamble, exception) {
       this._logToConsole(preamble + ": ***** EXCEPTION *****: " + exception + 
                          " at " + exception.fileName + ":" + exception.lineNumber);
+    },
+    
+    isPrivateBrowsing : function(win) {
+      this._logger.trace("isPrivateBrowsing");
+      
+      if (win && "undefined" != typeof(PrivateBrowsingUtils) &&
+          PrivateBrowsingUtils.privacyContextFromWindow) {
+        var privacyContext = PrivateBrowsingUtils.privacyContextFromWindow(win);
+        var isPrivate = privacyContext.usePrivateBrowsing;
+      } else {
+        // older than Firefox 19 or couldn't get window.
+          var isPrivate = Components.classes["@mozilla.org/privatebrowsing;1"].
+            getService(Components.interfaces.nsIPrivateBrowsingService).
+            privateBrowsingEnabled;
+      }
+      return isPrivate;
     }
+    
 
   };
 

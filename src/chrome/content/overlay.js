@@ -3982,8 +3982,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   
   _addToHistory : function(url) {    
-    // We don't need to check for Private Browsing mode; addURI is automatically
-    // ignored in that mode.
+    var win = null;
+    if (this._currentThumb) {
+      win = this._currentThumb.ownerDocument.defaultView;
+    }
+    if (ThumbnailZoomPlus.isPrivateBrowsing(win)) {
+      return;
+    }
+    
     if (url.indexOf(" ") != -1   
         || url.split("?")[0].indexOf("..") != -1) {  
       this._logger.debug("_addToHistory: bad URL syntax");  
