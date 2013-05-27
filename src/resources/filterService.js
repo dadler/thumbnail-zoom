@@ -215,11 +215,17 @@ ThumbnailZoomPlus.FilterService = {
                             .getService(Components.interfaces.nsIIOService);
         var uri = ioService.newURI(imageSource, aDocument.characterSet, null);
         try {
-          host = uri.host;
           protocol = uri.scheme + ":";
-          if (host == null || !protocol) {
+          if (!protocol || protocol == "data:") {
+            this._logger.debug("    getHostOfDoc: Reject; couldn't get protocol " + 
+                               imageSource + "; got " + protocol);
+            return null;
+          }
+          ThumbnailZoomPlus._logToConsole("protocol: " + protocol);
+          host = uri.host;
+          if (host == null) {
             this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
-                               imageSrc + "; got " + protocol + "//" + host);
+                               imageSource + "; got " + protocol + "//" + host);
             return null;
           }
         } catch (e) {
