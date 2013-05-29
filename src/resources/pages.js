@@ -1742,6 +1742,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|(//[^/]*.maps.live.com/i/)" // bing.com/maps directions pin
                           + "|^https?://my\\.xmarks\\.com/" // my.xmarks.com
                           + "|.*\\$live\\.controls\\.images/" // microsoft outlook.com
+                          + "|https?://.\\.gfx\\.ms\\/is\\/" // outlook.com icons
                           + "|.*\\.hotmail.com/cal/" // microsoft hotmail/live calendar
                           + "|.*-(word|excel|powerpoint|onenote).*\\.msecnd\\.net/" // microsoft office on skydrive
                           + "|.*\\.wlxrs\\.com/" // microsoft office on skydrive
