@@ -734,6 +734,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMin = -99999;
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMax =  99999;
       }
+      
+      if (!ThumbnailZoomPlus.FilterService.isURLEnabled(doc.documentURI)) {
+        this._debugToConsole("<<<>>> Page URL rejected by disabledSitesRE: " + doc.documentURI);
+        return;
+      }
+        this._debugToConsole("Page URL allowed by disabledSitesRE: " + doc.documentURI);
+
       doc.ThumbnailZoomPlus.addedListeners = this;
 
       let pageConstant = ThumbnailZoomPlus.FilterService.getPageConstantByDoc(doc, 0);

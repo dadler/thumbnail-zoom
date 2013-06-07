@@ -348,6 +348,18 @@ ThumbnailZoomPlus.FilterService = {
     }
   },
 
+  isURLEnabled : function(url) {
+    var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
+    if (disabledRE != "") {
+      ThumbnailZoomPlus._logToConsole("RE: " + disabledRE);
+      var disabledExpr = new RegExp(disabledRE);
+      if (disabledExpr.test(url)) {
+        return false;
+      }
+    }
+    return true;
+  },
+  
   /**
    * applyBaseURI applies the specified document's base URL to fill in
    * missing parts of url.  The returned value is a complete absolute URL.
