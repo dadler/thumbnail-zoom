@@ -149,6 +149,14 @@
     <script type="application/x-javascript"
             src="chrome://thumbnailzoomplus/content/options.js" />
 
+<tabbox>
+  <tabs>
+    <tab label="General" />
+    <tab label="Site Checkboxes" />
+    <tab label="Other Sites" />
+  </tabs>
+  <tabpanels>
+    <tabpanel flex="1">
     <!-- General -->
     <groupbox>
       <caption>
@@ -280,6 +288,10 @@
       </grid>
     </groupbox>
 
+    </tabpanel>
+    
+    
+    <tabpanel>
     <!-- Pages -->
     <groupbox flex="1">
       <caption label="&thumbnailzoomplus.options.enable.groupbox.caption;"/>
@@ -393,6 +405,38 @@
         </vbox>
       </hbox>
     </groupbox>
+    </tabpanel>
+    
+    <tabpanel>
+      <hbox>
+        <richlistbox width="200" seltype="multiple">
+          <listcols>
+            <listcol/>
+            <listcol/>
+          </listcols>
+          <listitem>
+            <listcell><checkbox checked="false"/></listcell>
+            <listcell label="flickr.com"/>
+          </listitem>
+          <richlistitem>
+            <listcell><checkbox checked="true"/></listcell>
+            <listcell label="lowes.com"/>
+          </richlistitem>
+          <richlistitem>
+            <listcell><checkbox checked="true"/></listcell>
+            <listcell label="(others)"/>
+          </richlistitem>
+        </richlistbox>
+      <vbox>
+        <button label="+ Add (current site)" />
+        <button label="+ Add..." />
+        <button label="x Delete" />
+      </vbox>
+      </hbox>
+      </tabpanel>
+    
+    </tabpanels>
+    </tabbox>
   </prefpane>
 
 </prefwindow>
