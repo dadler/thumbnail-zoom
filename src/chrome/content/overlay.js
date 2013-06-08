@@ -287,7 +287,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._installToolbarButton();
     this._updateMenuButtonState();
     this._showPanelBorder();
-    
+
     // setup the preferences change observe.  We define a local function which
     // calls this.observePrefChange() to ensure that it gets the same 'this'
     // as us (otherwise it'd get some other 'this' and toolbar menu updates 
@@ -297,6 +297,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that.observePrefChange(aSubject, aTopic, aData);
     }
     this._preferencesService.addObserver(ThumbnailZoomPlus.PrefBranch, this, false);
+  
     this._addEventListeners();
   },
 
@@ -317,7 +318,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._contextMenu = null;
     this._preferencesService.removeObserver(ThumbnailZoomPlus.PrefBranch, this);
   },
-
 
   /**
    * Installs the toolbar button on the first run.
@@ -4011,7 +4011,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  
+    
   _addToHistory : function(url) {    
     var win = null;
     if (this._currentThumb) {

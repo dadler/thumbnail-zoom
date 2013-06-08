@@ -81,5 +81,87 @@ var ThumbnailZoomPlusOptions = {
       this._logger.debug("copyDebugLog: message=" + log);
       
       this._clipboardHelper.copyString(log);  
+    },
+  
+  _clearRichList : function(list) {
+    var items = list.getElementsByTagName("richlistitem");
+    for (var i=items.length - 1; i >= 0; --i) {
+      list.removeChild(items[i]);
     }
+  },
+  
+  _createSiteListRow : function(enable, url) {
+    var checkboxCell = document.createElement('listcell');    
+    var checkbox = document.createElement('checkbox');
+    checkbox.checked = enable;
+    checkboxCell.appendChild(checkbox);
+    
+    var urlCell = document.createElement('listcell');
+    urlCell.setAttribute('label',url);    
+
+    var item = document.createElement('richlistitem');
+    item.appendChild(checkboxCell);
+    item.appendChild(urlCell);
+    
+    return item;
+  },
+  
+  syncSitesListFromPreference : function() {
+    // Sets the list widget based on values in the preference.
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preferences_system/New_attributes?redirectlocale=en-US&redirectslug=Preferences_System%2FNew_attributes
+    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsyncfrompreference");
+
+    // for testing, only do this first time.
+    if (this.didit != undefined) {
+      return;
+    } else {
+      this.didit = 1;
+    }
+    
+    /*
+       Each item has xul like this:
+          <richlistitem>
+            <listcell><checkbox checked="true"/></listcell>
+            <listcell label="lowes.com"/>
+          </richlistitem>
+       Delete pre-existing items and append new items.
+    */
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    
+    list.style.visibility = "hidden";
+    this._clearRichList(list);
+    var that = this;
+    
+    var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
+                                    prefValue);
+    prefValue.split(" ").forEach(function(entry) {
+      if (entry != "") {
+        var enable = (entry[0] == "1");
+        var url = entry.substr(2);
+        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: entry[0] = " + entry[0] + " for entry=" + entry + " enable=" + enable);
+        list.appendChild(that._createSiteListRow(enable, url));
+      }
+    });
+    list.style.visibility = "visible";
+
+    return "";
+  },
+  
+  syncSitesListToPreference : function() {
+    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsynctopreference");
+
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.getElementsByTagName("richlistitem");
+    var prefValue = "";
+    for (var idx=0; idx < items.length; ++idx) {
+      var cells = items[idx].children;
+      var enable = 0 + cells[0].firstChild.checked;
+      prefValue += enable + ":" + cells[1].getAttribute("label") + " ";
+    }
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
+                                    prefValue);
+    return prefValue;
+  }
+  
 };

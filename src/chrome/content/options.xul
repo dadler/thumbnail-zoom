@@ -41,7 +41,8 @@
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" flex="1">
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" 
+            flex="1">
     <preferences>
       <preference id="thumbnailzoomplus-options-enable-pref"
         name="extensions.thumbnailzoomplus.panel.enable" type="bool"/>
@@ -144,6 +145,10 @@
         name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-thumbnail-pref"
         name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
+        
+      <preference id="thumbnailzoomplus-options-disabled-sites-pref"
+        name="extensions.thumbnailzoomplus.disabledSitesRE" type="string"/>
+        
     </preferences>
 
     <script type="application/x-javascript"
@@ -409,15 +414,16 @@
     
     <tabpanel>
       <hbox>
-        <richlistbox width="200" seltype="multiple">
+        <richlistbox id="thumbnailzoomplus-options-disabled-sites-list"
+                     width="200" seltype="multiple" 
+                     preference="thumbnailzoomplus-options-disabled-sites-pref"
+                     preference-editable="true"
+                     onsyncfrompreference="return ThumbnailZoomPlusOptions.syncSitesListFromPreference();"
+                     onsynctopreference="return ThumbnailZoomPlusOptions.syncSitesListToPreference();">
           <listcols>
             <listcol/>
             <listcol/>
           </listcols>
-          <listitem>
-            <listcell><checkbox checked="false"/></listcell>
-            <listcell label="flickr.com"/>
-          </listitem>
           <richlistitem>
             <listcell><checkbox checked="true"/></listcell>
             <listcell label="lowes.com"/>
