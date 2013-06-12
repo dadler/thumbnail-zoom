@@ -2053,6 +2053,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }
     
+    // myway.com uses imgfarm.com
+    // http://ak.imgfarm.com/images/ap/thumbnails//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg or
+    // http://ak.imgfarm.com/images/ap/gallery//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg become
+    // http://ak.imgfarm.com/images/ap//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg
+    aImageSrc = aImageSrc.replace(/(\.imgfarm\.com\/images\/.*\/)(?:gallery|thumbnails)\/+(.*\.jpg)/, 
+                                  "$1$2");
+    
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p30: so far have " + aImageSrc);
 
