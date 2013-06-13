@@ -83,27 +83,17 @@ var ThumbnailZoomPlusOptions = {
       this._clipboardHelper.copyString(log);  
     },
   
-  _clearRichList : function(list) {
-    var items = list.getElementsByTagName("richlistitem");
-    for (var i=items.length - 1; i >= 0; --i) {
-      list.removeChild(items[i]);
+  _clearList : function(list) {
+    for (var i=list.getRowCount() - 1; i >= 0; --i) {
+      list.removeItemAt(i);
     }
   },
   
-  _createSiteListRow : function(enable, url) {
-    var checkboxCell = document.createElement('listcell');    
-    var checkbox = document.createElement('checkbox');
-    checkbox.checked = enable;
-    checkboxCell.appendChild(checkbox);
-    
-    var urlCell = document.createElement('listcell');
+  _createSiteListRow : function(url) {
+    var urlCell = document.createElement('listitem');
     urlCell.setAttribute('label',url);    
-
-    var item = document.createElement('richlistitem');
-    item.appendChild(checkboxCell);
-    item.appendChild(urlCell);
     
-    return item;
+    return urlCell;
   },
   
   syncSitesListFromPreference : function() {
@@ -111,25 +101,10 @@ var ThumbnailZoomPlusOptions = {
     // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preferences_system/New_attributes?redirectlocale=en-US&redirectslug=Preferences_System%2FNew_attributes
     ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsyncfrompreference");
 
-    // for testing, only do this first time.
-    if (this.didit != undefined) {
-      return;
-    } else {
-      this.didit = 1;
-    }
-    
-    /*
-       Each item has xul like this:
-          <richlistitem>
-            <listcell><checkbox checked="true"/></listcell>
-            <listcell label="lowes.com"/>
-          </richlistitem>
-       Delete pre-existing items and append new items.
-    */
     var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     
     list.style.visibility = "hidden";
-    this._clearRichList(list);
+    this._clearList(list);
     var that = this;
     
     var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
@@ -137,10 +112,8 @@ var ThumbnailZoomPlusOptions = {
                                     prefValue);
     prefValue.split(" ").forEach(function(entry) {
       if (entry != "") {
-        var enable = (entry[0] == "1");
-        var url = entry.substr(2);
-        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: entry[0] = " + entry[0] + " for entry=" + entry + " enable=" + enable);
-        list.appendChild(that._createSiteListRow(enable, url));
+        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: entry = " + entry);
+        list.appendChild(that._createSiteListRow(entry));
       }
     });
     list.style.visibility = "visible";
@@ -152,16 +125,48 @@ var ThumbnailZoomPlusOptions = {
     ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsynctopreference");
 
     var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
-    var items = list.getElementsByTagName("richlistitem");
+    var items = list.getElementsByTagName("listitem");
     var prefValue = "";
     for (var idx=0; idx < items.length; ++idx) {
-      var cells = items[idx].children;
-      var enable = 0 + cells[0].firstChild.checked;
-      prefValue += enable + ":" + cells[1].getAttribute("label") + " ";
+      var cell = items[idx];
+      prefValue += cell.getAttribute("label") + " ";
     }
     ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
                                     prefValue);
+    ThumbnailZoomPlus.setPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
+
     return prefValue;
+  },
+  
+  handleSiteListDoubleClick : function(event) {
+    var target = event.target;
+    while (target && target.localName != "listitem") {
+      target = target.parentNode;
+    }
+    if (target) {
+      var value = target.getAttribute("label")
+    } else {
+      var value = "";
+    }
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: handleSiteListDoubleClick for " + 
+                                    value);    
+    value = window.prompt(value ? "Enter new site URL" : "Edit URL", value);
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    if (value == null) {
+      return; // cancelled
+    }
+    if (value == "") {
+      list.removeChild(target);
+      ThumbnailZoomPlusOptions.syncSitesListToPreference();
+      return;
+    }
+    if (target) {
+      target.setAttribute("label", value);
+    } else {
+      list.appendChild(this._createSiteListRow(value));
+    }
+    ThumbnailZoomPlusOptions.syncSitesListToPreference();
   }
+  
   
 };

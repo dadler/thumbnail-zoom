@@ -414,25 +414,16 @@
     
     <tabpanel>
       <hbox>
-        <richlistbox id="thumbnailzoomplus-options-disabled-sites-list"
+        <listbox id="thumbnailzoomplus-options-disabled-sites-list"
                      width="200" seltype="multiple" 
                      preference="thumbnailzoomplus-options-disabled-sites-pref"
                      preference-editable="true"
                      onsyncfrompreference="return ThumbnailZoomPlusOptions.syncSitesListFromPreference();"
-                     onsynctopreference="return ThumbnailZoomPlusOptions.syncSitesListToPreference();">
-          <listcols>
-            <listcol/>
-            <listcol/>
-          </listcols>
-          <richlistitem>
-            <listcell><checkbox checked="true"/></listcell>
-            <listcell label="lowes.com"/>
-          </richlistitem>
-          <richlistitem>
-            <listcell><checkbox checked="true"/></listcell>
-            <listcell label="(others)"/>
-          </richlistitem>
-        </richlistbox>
+                     onsynctopreference="return ThumbnailZoomPlusOptions.syncSitesListToPreference();"
+                     ondblclick="ThumbnailZoomPlusOptions.handleSiteListDoubleClick(event);">
+          <listitem label="sitea.com"/>
+          <listitem label="(others)"/>
+        </listbox>
       <vbox>
         <button label="+ Add (current site)" />
         <button label="+ Add..." />
