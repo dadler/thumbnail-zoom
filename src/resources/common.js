@@ -291,8 +291,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     /// Sets the specified preference to the specified value and updates the
     /// cache accordingly.
     setPref : function(key, value) {
-      this.Application.prefs.setValue(key, value);
+      // Set cache before setting app pref since setting app pref may trigger
+      // an event which could call getPref, and use the cache.
       this.setPrefCache(key, value);
+      this.Application.prefs.setValue(key, value);
     },
     
     togglePref : function(key) {

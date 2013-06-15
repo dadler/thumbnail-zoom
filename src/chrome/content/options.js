@@ -131,7 +131,7 @@ var ThumbnailZoomPlusOptions = {
       var cell = items[idx];
       prefValue += cell.getAttribute("label") + " ";
     }
-    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: new pref value is " +
                                     prefValue);
     ThumbnailZoomPlus.setPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
 
@@ -154,7 +154,9 @@ var ThumbnailZoomPlusOptions = {
     var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     if (value == null) {
       return; // cancelled
-    }
+    }    
+    
+    // Update the widgets since syncSitesListToPreference will pull from them.
     if (value == "") {
       list.removeChild(target);
       ThumbnailZoomPlusOptions.syncSitesListToPreference();
@@ -167,6 +169,4 @@ var ThumbnailZoomPlusOptions = {
     }
     ThumbnailZoomPlusOptions.syncSitesListToPreference();
   }
-  
-  
 };

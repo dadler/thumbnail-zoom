@@ -349,12 +349,18 @@ ThumbnailZoomPlus.FilterService = {
   },
 
   isURLEnabled : function(url) {
+    ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
     var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
-    if (disabledRE != "") {
-      ThumbnailZoomPlus._logToConsole("RE: " + disabledRE);
-      var disabledExpr = new RegExp(disabledRE);
-      if (disabledExpr.test(url)) {
-        return false;
+    var values = disabledRE.split(" ")
+    for (var i in values) {
+      var entry = values[i];
+      if (entry != "") {
+        ThumbnailZoomPlus._logToConsole("entry: " + entry);
+        var disabledExpr = new RegExp(entry);
+        if (disabledExpr.test(url)) {
+          ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
+          return false;
+        }
       }
     }
     return true;

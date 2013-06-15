@@ -56,6 +56,7 @@ pref("extensions.thumbnailzoomplus.panel.history",      false);
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);
 pref("extensions.thumbnailzoomplus.panel.popupsize",    "webpage");
 pref("extensions.thumbnailzoomplus.panel.savefilename", "caption");
+pref("extensions.thumbnailzoomplus.disabledSitesRE",    "");
 
 // Site preferences.
 pref("extensions.thumbnailzoomplus.hi5.enable",         true);
