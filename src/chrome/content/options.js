@@ -45,7 +45,16 @@ var ThumbnailZoomPlusOptions = {
                                    getService(Ci.nsIConsoleService),
     _clipboardHelper : Components.classes["@mozilla.org/widget/clipboardhelper;1"].  
                            getService(Components.interfaces.nsIClipboardHelper),
-
+    _windowMediator : Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                .getService(Components.interfaces.nsIWindowMediator),
+    _addThisSiteButton : null,
+    
+    init : function() {
+        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlusOptions.init()");
+        this._addThisSiteButton = document.getElementById("thumbnailzoomplus-options-add-last-site");
+        this._updatePerfsDialog();
+    },
+    
     /**
      * Copy console messages to clipboard.
      */
@@ -83,6 +92,30 @@ var ThumbnailZoomPlusOptions = {
       this._clipboardHelper.copyString(log);  
     },
   
+  _getCurrentTabUrl : function() {
+    var recentWindow = this._windowMediator.getMostRecentWindow("navigator:browser");
+    return recentWindow ? recentWindow.content.document.location : null;
+  },
+  
+  _getCurrentTabHost : function() {
+    var recentWindow = this._windowMediator.getMostRecentWindow("navigator:browser");
+    return recentWindow ? ThumbnailZoomPlus.FilterService.getHostOfDoc(recentWindow.content.document, false) : null;
+  },
+
+  _updatePerfsDialog : function() {
+    var url = this._getCurrentTabUrl();
+    var host = this._getCurrentTabHost();
+    this._addThisSiteButton.setAttribute("value", url);
+    if (host) {
+      var label = "Add " + host;
+      this._addThisSiteButton.removeAttribute("disabled");
+    } else {
+      label = "Add current site";
+      this._addThisSiteButton.setAttribute("disabled", "true");
+    }
+    this._addThisSiteButton.setAttribute("label", label);
+  },
+  
   _clearList : function(list) {
     for (var i=list.getRowCount() - 1; i >= 0; --i) {
       list.removeItemAt(i);
@@ -117,7 +150,7 @@ var ThumbnailZoomPlusOptions = {
       }
     });
     list.style.visibility = "visible";
-
+    
     return "";
   },
   
@@ -138,6 +171,32 @@ var ThumbnailZoomPlusOptions = {
     return prefValue;
   },
   
+  _updateSite : function(existingValue, existingItem) {
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
+                                    existingValue);    
+    var newValue = window.prompt(existingValue ? "Enter new site URL" : "Edit URL", 
+                                 existingValue);
+    if (newValue == null) {
+      return; // cancelled
+    }    
+    
+    // Update the widgets since syncSitesListToPreference will pull from them.
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    if (newValue == "") {
+      if (existingItem) {
+        list.removeChild(target);
+      }
+      ThumbnailZoomPlusOptions.syncSitesListToPreference();
+      return;
+    }
+    if (existingItem) {
+      existingItem.setAttribute("label", newValue);
+    } else {
+      list.appendChild(this._createSiteListRow(newValue));
+    }
+    ThumbnailZoomPlusOptions.syncSitesListToPreference();
+  },
+  
   handleSiteListDoubleClick : function(event) {
     var target = event.target;
     while (target && target.localName != "listitem") {
@@ -148,25 +207,14 @@ var ThumbnailZoomPlusOptions = {
     } else {
       var value = "";
     }
-    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: handleSiteListDoubleClick for " + 
-                                    value);    
-    value = window.prompt(value ? "Enter new site URL" : "Edit URL", value);
-    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
-    if (value == null) {
-      return; // cancelled
-    }    
-    
-    // Update the widgets since syncSitesListToPreference will pull from them.
-    if (value == "") {
-      list.removeChild(target);
-      ThumbnailZoomPlusOptions.syncSitesListToPreference();
-      return;
-    }
-    if (target) {
-      target.setAttribute("label", value);
-    } else {
-      list.appendChild(this._createSiteListRow(value));
-    }
-    ThumbnailZoomPlusOptions.syncSitesListToPreference();
+    this._updateSite(value, target);
+  },
+  
+  addThisSiteButtonPressed : function() {
+    this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
   }
+  
 };
+
+window.addEventListener(
+  "load", function() { ThumbnailZoomPlusOptions.init(); }, false);

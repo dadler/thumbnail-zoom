@@ -423,7 +423,8 @@
           <listitem label="(others)"/>
         </listbox>
       <vbox>
-        <button label="+ Add (current site)" />
+        <button id="thumbnailzoomplus-options-add-last-site" label="+ Add current site"
+                oncommand="ThumbnailZoomPlusOptions.addThisSiteButtonPressed();" />
         <button label="+ Add..." />
         <button label="x Delete" />
       </vbox>
