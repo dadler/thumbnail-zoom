@@ -154,13 +154,13 @@
     <script type="application/x-javascript"
             src="chrome://thumbnailzoomplus/content/options.js" />
 
-<tabbox>
+<tabbox flex="1">
   <tabs>
     <tab label="General" />
     <tab label="Site Checkboxes" />
     <tab label="Other Sites" />
   </tabs>
-  <tabpanels>
+  <tabpanels flex="1">
     <tabpanel flex="1">
     <!-- General -->
     <groupbox>
@@ -413,23 +413,23 @@
     </tabpanel>
     
     <tabpanel>
-      <hbox>
+      <hbox flex="1">
         <listbox id="thumbnailzoomplus-options-disabled-sites-list"
-                     width="200" seltype="multiple" 
+                     flex="1" seltype="multiple" 
                      preference="thumbnailzoomplus-options-disabled-sites-pref"
                      onsyncfrompreference="return ThumbnailZoomPlusOptions.syncSitesListFromPreference();"
                      ondblclick="ThumbnailZoomPlusOptions.handleSiteListDoubleClick(event);">
           <listitem label="sitea.com"/>
           <listitem label="(others)"/>
         </listbox>
-      <vbox>
-        <button id="thumbnailzoomplus-options-add-last-site" label="+ Add current site"
-                oncommand="ThumbnailZoomPlusOptions.addThisSiteButtonPressed();" />
-        <button label="+ Add..." />
-        <button label="x Delete" />
-      </vbox>
+        <vbox>
+          <button id="thumbnailzoomplus-options-add-last-site" label="Add current site"
+                  oncommand="ThumbnailZoomPlusOptions.addThisSiteButtonPressed();" />
+          <button label="Add ..." oncommand="ThumbnailZoomPlusOptions.addSiteButtonPressed();" />
+          <button label="Remove" oncommand="ThumbnailZoomPlusOptions.removeSiteButtonPressed();"/>
+        </vbox>
       </hbox>
-      </tabpanel>
+    </tabpanel>
     
     </tabpanels>
     </tabbox>

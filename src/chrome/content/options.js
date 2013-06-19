@@ -212,6 +212,20 @@ var ThumbnailZoomPlusOptions = {
   
   addThisSiteButtonPressed : function() {
     this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
+  },
+
+  addSiteButtonPressed : function() {
+    this._updateSite(this._addThisSiteButton.getAttribute(""), null);
+  },
+  
+  removeSiteButtonPressed : function() {
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.selectedItems;
+    for (var idx = items.length-1; idx >= 0; idx--) {
+      var item = items[idx];
+      list.removeChild(item);
+    }
+    ThumbnailZoomPlusOptions.syncSitesListToPreference();
   }
   
 };
