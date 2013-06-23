@@ -117,9 +117,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       Useful when it's generated not from the direct thumbnail image, but an ancestor or
       peer node.  The image URL will be extracted (in fiterService.js) from the 
       returned node's src, href, or background image (assuming the return is
-      different than aNode).  Note that imageSource may be null if the hovered
-      node isn't an image or link.  The default function returns
-      the image node itself.  
+      different than aNode).  ImageSource is the URL of the link or image the
+      mouse hovered; it may be null if the hovered node isn't an image or link.  
+      The default function returns the image node itself.  
       
     * getZoomImage: required function(aImageSrc, node, popupFlags, pageCompletionFunc);
       returns the image URL.
@@ -1761,12 +1761,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Some sites need to find the image's node from an ancestor node.
     let parentClass = node.parentNode.className;
     // ThumbnailZoomPlus._logToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
-    if (/gii_folder_link/.test(nodeClass) ||
-        (/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
-        (nodeName == "div" && /^(overlay|inner|date|notes)$/.test(nodeClass)) ||
-        /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
-        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
-        (nodeName == "a" && "go" == nodeClass) // for tumblr search results
+    let generationsUp = 0; 
+    if ((/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
+        (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
+        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) // for allmusic.com
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1776,15 +1774,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // is used, eg http://www.valentinovamp.com/archive
       // TODO: a generalization of this logic might be useful in general, e.g.
       // for yahoo.co.jp
-      let generationsUp = 1; // overlay
-      if (/gii_folder_link|inner/.test(nodeClass) ||
-          /cd_activator/.test(parentClass) || // pandora.com
-          (/stage/.test(parentClass) && "go" == nodeClass) // tumblr search results
+      generationsUp = 1;
+    }
+    if (/gii_folder_link/.test(nodeClass) ||
+        (nodeName == "div" && /^inner$/.test(nodeClass)) ||
+          /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
+          (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) // tumblr search results
+          // (nodeName == "a" && /post_glass/.test(parentClass) && "hover" == nodeClass) // tumblr archive
           ) {
-        generationsUp = 2;
-      } else if (/date|notes/.test(nodeClass)) {
-        generationsUp = 3;
-      }
+      generationsUp = 2;
+    } else if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
+      generationsUp = 3;
+    }
+    if (generationsUp > 0) {
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected site which needs ancestor node; going up "
           + generationsUp + " levels and then finding img.");
       let ancestor = node;
@@ -1800,7 +1802,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
           var ancestorClass = ancestor.className;
           if (/gii_folder_link/.test(nodeClass) ||
               /preview_link/.test(ancestorClass) ||  // dailymotion
-              /photo/.test(ancestorClass) ||
+              /photo|post/.test(ancestorClass) ||
               /cd_icon/.test(ancestorClass) || // pandora.com
               /image-container/.test(ancestorClass) // allmusic.com
               ) {
