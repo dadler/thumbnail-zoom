@@ -1764,7 +1764,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let generationsUp = 0; 
     if ((/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
-        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) // for allmusic.com
+        (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
+        (nodeName == "img" && "photo" == nodeClass && /media\.tumblr\.com/.test(imageSource)) // tumblr archive
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1779,8 +1780,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (/gii_folder_link/.test(nodeClass) ||
         (nodeName == "div" && /^inner$/.test(nodeClass)) ||
           /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
-          (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) // tumblr search results
-          // (nodeName == "a" && /post_glass/.test(parentClass) && "hover" == nodeClass) // tumblr archive
+          (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) || // tumblr search results
+          (nodeName == "a" && /post_glass/.test(parentClass) && "hover" == nodeClass) // tumblr archive
           ) {
       generationsUp = 2;
     } else if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
@@ -1804,7 +1805,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               /preview_link/.test(ancestorClass) ||  // dailymotion
               /photo|post/.test(ancestorClass) ||
               /cd_icon/.test(ancestorClass) || // pandora.com
-              /image-container/.test(ancestorClass) // allmusic.com
+              /image-container/.test(ancestorClass) || // allmusic.com
+              ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource))
               ) {
             // take the last img child.
             node = imgNodes[imgNodes.length-1];
