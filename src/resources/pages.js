@@ -1761,7 +1761,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Some sites need to find the image's node from an ancestor node.
     let parentClass = node.parentNode.className;
     // ThumbnailZoomPlus._logToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
-    let generationsUp = 0; 
+    let generationsUp = 0;
+    if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
+      generationsUp = 3;
+    }
+    if (/gii_folder_link/.test(nodeClass) ||
+        (nodeName == "div" && /^inner$/.test(nodeClass)) ||
+          /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
+          (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) || // tumblr search results
+          (nodeName == "a" && "hover" == nodeClass && /post_glass/.test(parentClass)) // tumblr archive
+          ) {
+      generationsUp = 2;
+    }
     if ((/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
         (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
@@ -1777,16 +1788,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // for yahoo.co.jp
       generationsUp = 1;
     }
-    if (/gii_folder_link/.test(nodeClass) ||
-        (nodeName == "div" && /^inner$/.test(nodeClass)) ||
-          /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
-          (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) || // tumblr search results
-          (nodeName == "a" && /post_glass/.test(parentClass) && "hover" == nodeClass) // tumblr archive
-          ) {
-      generationsUp = 2;
-    } else if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
-      generationsUp = 3;
-    }
+    
     if (generationsUp > 0) {
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected site which needs ancestor node; going up "
           + generationsUp + " levels and then finding img.");
@@ -1813,6 +1815,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
           } else {
             ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed.");
           }
+        } else {
+            ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: no img nodes under " + ancestor);
         }
       }
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
