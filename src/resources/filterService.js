@@ -153,8 +153,8 @@ ThumbnailZoomPlus.FilterService = {
     // on imgur.com/a/
     this.captionPrefix = "";
     
-    // color of the optional border around the pop-up (as a CSS color string)
-    this.borderColor = "white";
+    // color override of the optional border around the pop-up (as a CSS color string)
+    this.borderColor = null;
     
     // imageSourceNode is the URL of the thumb or link which the user
     // hovered over (not necessarily the URL of the popup we ended up displaying).

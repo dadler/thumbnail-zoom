@@ -2016,8 +2016,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._setupCaption(aImageNode, flags.captionPrefix);
     if (flags.linkSameAsImage) {
       this._setupCursor(aImageNode);
+      this._borderBox.style.backgroundColor = "white";
+    } else {
+      // Color the border to indicate that the link is more than just the image.  
+      this._borderBox.style.backgroundColor = "#33ccff"; // light blue
     }
-    this._borderBox.style.backgroundColor = flags.borderColor;
+    if (flags.borderColor != null) {
+      this._borderBox.style.backgroundColor = flags.borderColor;
+    }
     
     // Allow the user to use the context (right-click) menu item for
     // "Save Enlarged Image As...".
