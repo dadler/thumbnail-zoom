@@ -37,6 +37,7 @@ pref("extensions.thumbnailzoomplus.panel.enable",       true);
 pref("extensions.thumbnailzoomplus.panel.debug",        false);
 pref("extensions.thumbnailzoomplus.panel.wait",         "0.2"); // seconds
 pref("extensions.thumbnailzoomplus.panel.partialloadwait", "1.0"); // seconds
+pref("extensions.thumbnailzoomplus.panel.hotkeys",      true);
 
 // Note: pref ...panel.key has been replaced by ...panel.activatekey.  The
 // original name is retired to avoid compatibility problems when reverting

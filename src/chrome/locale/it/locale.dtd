@@ -45,6 +45,7 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Ritardo prima di visualizzare (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra immagine parziale dopo (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predefinito (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Tastos">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tasto">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "per">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "di non">

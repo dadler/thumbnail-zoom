@@ -52,6 +52,7 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Pausa antes de visualizar (seg):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostrar imagen parcial luego de (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predeterminado (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Teclas">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tecla para">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "visualizar">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "no visualizar">

@@ -45,6 +45,7 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Tangents">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent för att">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "visa">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "dölja">

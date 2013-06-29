@@ -45,6 +45,7 @@
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Delay before displaying (sec):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Show partial image after (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Default Zoom (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Hotkeys">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Key to">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "display">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "not display">

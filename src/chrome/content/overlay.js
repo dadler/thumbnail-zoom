@@ -60,6 +60,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_SAVE_FILENAME : ThumbnailZoomPlus.PrefBranch + "panel.savefilename",
   PREF_PANEL_ENABLE : ThumbnailZoomPlus.PrefBranch + "panel.enable",
   PREF_PANEL_DEBUG : ThumbnailZoomPlus.PrefBranch + "panel.debug",
+  PREF_PANEL_HOTKEYS : ThumbnailZoomPlus.PrefBranch + "panel.hotkeys",
   
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
@@ -533,6 +534,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _addListenersWhenPopupShown : function(aImageNode) {
     this._logger.trace("_addListenersWhenPopupShown");
+    
+    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_HOTKEYS, true)) {
+      return;
+    }
     
     /*
      * Add key listeners for our hotkeys.
@@ -2432,8 +2437,6 @@ ThumbnailZoomPlusChrome.Overlay = {
                          this._currentAllowCoverThumb + 
                          "; _currentMaxScaleBy = " + this._currentMaxScaleBy);
       this._redisplayPopup();
-    } else if (aEvent.keyCode == aEvent.DOM_VK_H) {
-      this.openHelp();
     }
     
     if (this._recognizedKey(aEvent)) {

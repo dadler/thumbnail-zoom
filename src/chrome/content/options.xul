@@ -79,6 +79,8 @@
         name="extensions.thumbnailzoomplus.panel.defaultzoom" type="int"/>
       <preference id="thumbnailzoomplus-options-savefilename-pref"
         name="extensions.thumbnailzoomplus.panel.savefilename" type="string"/>
+      <preference id="thumbnailzoomplus-options-hotkeys-pref"
+        name="extensions.thumbnailzoomplus.panel.hotkeys" type="bool"/>
 
       <!-- site-specific checkboxes -->
       
@@ -193,7 +195,10 @@
           </row>
 
           <hbox align="center">
-            <label value="&thumbnailzoomplus.options.key1.selection.label;" />
+            <checkbox preference="thumbnailzoomplus-options-hotkeys-pref"
+                      label="&thumbnailzoomplus.options.hotkeys.checkbox.label;" />
+
+            <label value="  &thumbnailzoomplus.options.key1.selection.label;" />
             <menulist preference="thumbnailzoomplus-options-key-display-pref"
                       width="125">
               <menupopup>
