@@ -52,31 +52,30 @@ var ThumbnailZoomPlusOptions = {
     copyDebugLog : function() {
       this._logger.trace("copyDebugLog");
       
-      let messages = {};
-      let count = {};
-      this._consoleService.getMessageArray(messages, count);
+      let out = {};  // Throwaway references to support 'out' parameters.
+      let messages = this._consoleService.getMessageArray(out, {}) || out.value;
 
       let log = "";
-      for (var i in messages.value) {
-        let msg = messages.value[i];
-      if (msg instanceof Ci.nsIScriptError) {
-        let timeStamp = new Date(msg.timeStamp).toLocaleTimeString() + 
-                        String((msg.timeStamp % 1000) / 1000.).replace(/^0\./, ".");
-        var severity = "";
-        if (msg.flags & msg.warningFlag) {
-          severity += "W";
-        } else if (msg.flags & msg.exceptionFlag) {
-          severity += "X";
-        } else if (msg.flags & msg.strictFlag) {
-          severity += "S";
+      for (var i in messages) {
+        let msg = messages[i];
+        if (msg instanceof Ci.nsIScriptError) {
+          let timeStamp = new Date(msg.timeStamp).toLocaleTimeString() + 
+          String((msg.timeStamp % 1000) / 1000.).replace(/^0\./, ".");
+          var severity = "";
+          if (msg.flags & msg.warningFlag) {
+            severity += "W";
+          } else if (msg.flags & msg.exceptionFlag) {
+            severity += "X";
+          } else if (msg.flags & msg.strictFlag) {
+            severity += "S";
+          } else {
+            severity += "E";
+          }
+          var text = timeStamp + " " + severity + " " + msg.category.replace(" ", "_") +
+          ": " + msg.message
         } else {
-          severity += "E";
+          var text = ": " + msg.message;
         }
-        var text = timeStamp + " " + severity + " " + msg.category.replace(" ", "_") +
-                   ": " + msg.message
-      } else {
-        var text = ": " + msg.message;
-      }
         log += "=== " + text + "\n";
       }
       this._logger.debug("copyDebugLog: message=" + log);
