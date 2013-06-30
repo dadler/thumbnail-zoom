@@ -38,14 +38,14 @@
 
 <!-- Settings dialog -->
 <!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
-<!ENTITY thumbnailzoomplus.options.window.title                  "Thumbnail Zoom Plus Inställningar">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Inställningar för Thumbnail Zoom Plus">
 <!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Aktivera">
 <!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Felsöka">
-<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Kopiera Log">
+<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Kopiera logg">
 <!ENTITY thumbnailzoomplus.options.delay.selection.label         "Fördröjning innan bilden visas (s):">
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Visa delvis inläst bild efter (s):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Standardzoomning (&thumbnailzoomplus.PERCENT;): ">
-<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Tangents">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Kortkommandon">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tangent för att">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "visa">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "dölja">
@@ -53,20 +53,20 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
-<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
-<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Screen">
-<!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Scrolling triggers pop-up">
-<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Pop-up takes keyboard focus">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Maxstorlek:">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Webbsida">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Fönster">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Skärm">
+<!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Rullning utlöser popuprutan">
+<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Popuprutan får tangentbordsfokus">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Visa &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Visa bildtext">
-<!ENTITY thumbnailzoomplus.options.savefilename.label            "Save As name:">
-<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Caption">
-<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Web Location">
-<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Caption &amp; Web">
-<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; Caption">
-<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till historien">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Filnamn vid &quot;Spara som&quot;:">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Bildtext">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Webbplats">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Bildtext &amp; webbplats">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Webbplats &amp; bildtext">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Lägg till i historik">
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ingen">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Aktivera/inaktivera för följande webbplatser">
@@ -75,7 +75,7 @@
      To localize a name, add it to XXXENTITYREF in overlay.xul
      and here (in each locale). -->
 <!ENTITY thumbnailzoomplus.pages.names.others                    "Övriga">
-<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Övriga (Indirect)">
+<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Övriga (indirekt)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Miniatyr">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Google Bilder">
 
@@ -84,26 +84,26 @@
 <!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">
 
 <!-- Other Strings -->
-<!ENTITY thumbnailzoomplus.save.image.title                      "Save Image: ">
+<!ENTITY thumbnailzoomplus.save.image.title                      "Spara bild: ">
 
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.tooltip
-"Allows the pop-up to *overlap* the thumbnail or link you hovered over.
-This lets the pop-up appear larger, but you may not see the original thumbnail or link anymore.
-The pop-up will disappear when you move the mouse outside the area of the original 
-thumbnail or link, when you click the mouse, or when you press the “esc” (Escape) key.
-Shortcut: press 'a' while a pop-up is displayed.">
+"Tillåter att popuprutan *överlappar* den miniatyr eller länk som du hovrar över.
+Popuprutan blir större, men den kan helt och hållet dölja originalminiatyren eller -länken.
+Popuprutan försvinner när du flyttar musen utanför originalminiatyrens eller -länkens 
+område, när du klickar med musen eller när du trycker ned Esc-tangenten (Escape).
+Kortkommando: tryck ned &quot;A&quot; medan en popupruta visas.">
 
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.tooltip
-"When on, scrolling the page under the mouse will trigger pop-ups to appear. 
-Enabling is useful on sites which aren’t too dense with thumbnails (eg reddit.com); 
-disabling is useful on sites with very many thumbs (eg Google Images).  
-Default is off.">
+"Om alternativet är aktiverat, kommer rullning av sidan under musen att öppna popuprutor. 
+Aktivering är användbart på webbplatser med förhållandevis få miniatyrer (t.ex. reddit.com); 
+inaktivering är användbart på webbplatser med väldigt många miniatyrer (t.ex. Google Bilder).  
+Standardvärdet är &quot;inaktiverat&quot;.">
 
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.tooltip
-"When on (the default) the pop-up takes keyboard focus
-from the web page so you'll realize typing is for the pop-up's hotkeys, not the web page.
-The pop-up closes when it loses keyboard focus.
-Turn off if you're having trouble with the pop-up closing
-immediately or if a web page's pop-up menus close when the Thumbnail Zoom Plus
-pop-up appears (eg on certain Linux machines).">
+"Om alternativet är aktiverat (standard) övertar popuprutan tangentbordsfokus
+från webbsidan, så att tangentbordstryckningar svarar mot popuprutans kortkommandon
+och inte mot själva webbsidan. Popuprutan stängs när den förlorar tangentbordsfokus.
+Inaktivera om du får problem med den omedelbara stängningen av popuprutan
+eller om en webbsidas popupmenyer stängs när Thumbnail Zoom Plus
+popupruta öppnas (t.ex. på vissa Linux-datorer).">
 
