@@ -1639,7 +1639,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         status = this._tryImageSource(aDocument, aDocument, docHost, aEvent, aPage, node, completionGenerator);
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
-          this._showStatusIcon(node, "working-2dots.png", 16);      
+          this._showStatusIcon(node, "working-2dots.png", 16, null);      
           status = yield;
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
@@ -1674,7 +1674,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
           status = yield;
-          this._showStatusIcon(node, "working-2dots.png", 16);      
+          this._showStatusIcon(node, "working-2dots.png", 16, null);      
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
         this._logger.debug("_findPageAndShowImageGen: got status " + status);
@@ -2007,6 +2007,23 @@ ThumbnailZoomPlusChrome.Overlay = {
     return true;
   },
 
+  _setCursorAndBorderColor : function(aImageNode, flags) {
+    if (! flags) {
+      this._borderBox.style.backgroundColor = "white";
+      return;
+    } 
+    if (flags.linkSameAsImage) {
+      this._setupCursor(aImageNode);
+      this._borderBox.style.backgroundColor = "white";
+    } else {
+      // Color the border to indicate that the link is more than just the image.  
+      this._borderBox.style.backgroundColor = "#33ccff"; // light blue
+    }
+    if (flags.borderColor != null) {
+      this._borderBox.style.backgroundColor = flags.borderColor;
+    }
+  },
+  
   /**
    * Shows the panel (after the image has loaded).
    * @param aImageNode the image node.
@@ -2019,16 +2036,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._currentImage = aImageSrc;
     
     this._setupCaption(aImageNode, flags.captionPrefix);
-    if (flags.linkSameAsImage) {
-      this._setupCursor(aImageNode);
-      this._borderBox.style.backgroundColor = "white";
-    } else {
-      // Color the border to indicate that the link is more than just the image.  
-      this._borderBox.style.backgroundColor = "#33ccff"; // light blue
-    }
-    if (flags.borderColor != null) {
-      this._borderBox.style.backgroundColor = flags.borderColor;
-    }
+    this._setCursorAndBorderColor(aImageNode, flags);
     
     // Allow the user to use the context (right-click) menu item for
     // "Save Enlarged Image As...".
@@ -2557,9 +2565,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     return newUrl;
   },
   
-  _showStatusIcon : function(aImageNode, iconName, iconWidth) {
+  _showStatusIcon : function(aImageNode, iconName, iconWidth, flags) {
     this._logger.trace("_showStatusIcon");
     
+    this._setCursorAndBorderColor(aImageNode, flags);
     let bg =
       "url(\"chrome://thumbnailzoomplus/skin/images/" + iconName + "\")";
     if (this._panelImageDiv.style.backgroundImage == bg) {
@@ -2567,7 +2576,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     this._panelImageDiv.style.backgroundImage = bg;
-    
+
     let iconHeight = 16 + (this._panelInfo.hidden ? 0 : 20);
     this._setExactSize(this._panelImageDiv, iconWidth, iconHeight);
     
@@ -2593,14 +2602,14 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._addListenersWhenPopupShown(aImageNode);
   },
   
-  _showStatusIconBriefly : function(aImageNode, iconName, iconWidth) {
+  _showStatusIconBriefly : function(aImageNode, iconName, iconWidth, flags) {
     this._logger.trace("_showStatusIconBriefly");
 
     // Note that we don't clear this._panelHtmlImage.src nor
     // this._panelXulImage.src since we need them if the user presses Shift
     // after a too-small warning (to display the image overlapping the thumb).
     
-    this._showStatusIcon(aImageNode, iconName, iconWidth);
+    this._showStatusIcon(aImageNode, iconName, iconWidth, flags);
     
     // Hide the icon after a little while
     this._timer.cancel();
@@ -2634,7 +2643,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // loaded to know its dimensions; but it may appear for a while if the
     // image loads slowly.
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
-    this._showStatusIcon(aImageNode, "working-3dots.png", 16);      
+    this._showStatusIcon(aImageNode, "working-3dots.png", 16, flags);      
     
     let imageWidth  = image.naturalWidth;
     let imageHeight = image.naturalHeight;
@@ -2915,7 +2924,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // can tell if it's worth opening the image in a tab to
         // see it bigger than could fit in the window.
         this._updateForActualScale(thumbWidth, imageWidth);
-        this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32);      
+        this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32, flags);      
         this._debugToConsole("ThumbnailZoomPlus: >>> too small (and warned)\n" + aImageSrc);
       } else {
         this._logger.debug("_sizePositionAndDisplayPopup: too small (but noTooSmallWarning)");
@@ -2989,7 +2998,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._logger.debug("image onerror: show warning briefly since error loading image (" + aEvent + ")");
 
       if (! flags.noErrorIndicator) {
-        that._showStatusIconBriefly(aImageNode, "warning16.png", 32);
+        that._showStatusIconBriefly(aImageNode, "warning16.png", 32, flags);
       } else {
         // Close the "working" indicator. 
         // that._debugToConsole("_preloadImage onerror: _closePanel(false)");

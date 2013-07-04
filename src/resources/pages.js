@@ -207,12 +207,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // image and comments, and lightbox image is already pretty large.
       return null;
     }
-    if (aNodeClass && aNodeClass.indexOf("actorPic") >= 0) {
+    if (aNodeClass && aNodeClass.indexOf("UFIActorImage") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
       return null;
     }
+
     
     // In April 2013 we started seeing img src="https://fbstatic-a.akamaihd.net/rsrc.php/v2/y4/r/-PAXP-deijE.gif"
     // with the actual image in the background-image style.  Handle those.
@@ -985,9 +986,11 @@ ThumbnailZoomPlus.Pages.YouTube = {
   
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/default\./);
-    let image =
-      (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/hqdefault.") : null);
-    return image;
+    if (rex.test(aImageSrc)) {
+      flags.borderColor = "#CC181E"; // youtube red
+      return aImageSrc.replace(rex, "/hqdefault.");
+    }
+    return null;
   }
 };
 
@@ -1284,6 +1287,8 @@ ThumbnailZoomPlus.Pages.Others = {
        and then the youtube rule turns it into a jpg.
      */
     
+    var before;
+    
     if (/^https?:\/\/[^\/]*\.wikipedia.org\/wiki\/File:/i.test(aImageSrc)) {
       // wikipedia page URLs look like image URLs but they aren't.  We don't
       // support showing images for wiki page links, but the Wikipedia rule does
@@ -1373,7 +1378,7 @@ ThumbnailZoomPlus.Pages.Others = {
     
     // For google.com/url?v= for youtube.com:
     // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w to
-    // http://www.google.com/url?q=http://www.youtube.com/watch%3Fv%3Dr6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w
+    // http://www.youtube.com/watch?v%=r6-SJLlneLc&sa=X&ei=JMh-T__sEcSviAKIrLSvAw&ved=0CCEQuAIwAA&usg=AFQjCNEl2fsaLGeItGZDrJ0U_IEPghjL0w
     let youtube2Ex = new RegExp("^(?:https?://)(?:[^/]*\\.)?google\\.com/url(?:\\?.*)?[?&]q=([^&]*).*$");
     aImageSrc = decodeURIComponent(aImageSrc.replace(youtube2Ex, "$1"));
 
@@ -1385,8 +1390,12 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://www.youtube.com/embed/87xNpOYOlQ4?rel=0 to
     // http://i3.ytimg.com/vi/87xNpOYOlQ4/hqdefault.jpg
     let youtubeEx = new RegExp("(https?://)(?:[^/]*\\.)?(?:youtube\\.com|nsfwyoutube\\.com|youtu\\.be).*(?:v=|/)([^?&#!/]+)[^/]*/*$");
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
-
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
+    
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
@@ -1419,10 +1428,12 @@ ThumbnailZoomPlus.Pages.Others = {
     // viddy.com (see also in Thumbnail rule)
     // http://www.viddy.com/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794 becomes
     // http://cdn.viddy.com/images/video/a35a8581-7c0f-4fd4-b98f-74c6cf0b5794.jpg
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:[^\/]+\.)?viddy\.com\/(?:play\/)?video\/([^\/?]+).*/i,
                                   "$1/cdn.viddy.com/images/video/$2.jpg");
-    // http://viddy.com/play/video/1c042fbd-66d5-4c19-9896-816a0347d2aa?source=Profile becomes
-    // http://cdn.viddy.com/images/video/1c042fbd-66d5-4c19-9896-816a0347d2aa?source=Profile
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
     
     // imgchili.com:
     // http://imgchili.com/show/7428/9998984_ie_011.jpg becomes
@@ -1551,7 +1562,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return aImageSrc; 
   },
 
-  _getImgFromHtmlText : function(aHTMLString) {
+  _getImgFromHtmlText : function(aHTMLString, flags) {
     let logger = ThumbnailZoomPlus.Pages._logger;
     logger.trace("_getImgFromHtmlText");
 
@@ -1564,6 +1575,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
+      flags.borderColor = "#CC181E"; // youtube red
       return match[1];
     }
     
@@ -1571,6 +1583,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
+      flags.borderColor = "#CC181E"; // youtube red
       return match[1];
     }
     
@@ -1578,6 +1591,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
+      flags.borderColor = "#CC181E"; // youtube red
       return match[1];
     }
     
@@ -1597,9 +1611,10 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
+      flags.borderColor = "#CC181E"; // youtube red
       return match[1];
     }
-    
+        
     // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
     re = /<meta +property=["']og:image["'] +content=[\"']([^\"']+)["']/;
     logger.debug("_getImgFromHtmlText: trying " + re);
@@ -1651,7 +1666,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     }
     
     let logger = ThumbnailZoomPlus.Pages._logger;
-    let result = this._getImgFromHtmlText(aHTMLString);
+    let result = this._getImgFromHtmlText(aHTMLString, flags);
     logger.debug("_getImageFromHtml: from _getImgFromHtmlText got " + result);
 
     // Parse the document.
@@ -1691,6 +1706,10 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     
     result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
     
+    if (/dailymotion\.com\/|liveleak\.com\/|blip\.tv\//.test(aHTMLString)) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
+
     /*
      * Special rules to get bigger images from the result so far
      */
@@ -1933,11 +1952,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         ThumbnailZoomPlus.Pages._logger.debug("getInitialImageSrc: ignoring since Facebook spotlight");
       return null;
     }
-    if (nodeClass && nodeClass.indexOf("actorPic") >= 0) {
+    if (nodeClass && nodeClass.indexOf("UFIActorImage") >= 0) {
       // Don't show popup for small Facebook thumb of the person who's
       // entering a comment since the comment field loses focus and the 
       // thumbnails disappears, which is confusing.
-        ThumbnailZoomPlus.Pages._logger.debug("getInitialImageSrc: ignoring since Facebook actorPic");
+        ThumbnailZoomPlus.Pages._logger.debug("getInitialImageSrc: ignoring since Facebook UFIActorImage");
       return null;
     }
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
@@ -2123,12 +2142,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // vimeo.com:
     // http://b.vimeocdn.com/ts/313/757/313757860_150.jpg becomes
     // http://b.vimeocdn.com/ts/313/757/313757860_640.jpg
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
                                   "$1_640.jpg");
     // http://b.vimeocdn.com/ps/116/353/1163539_75.jpg (profile pic) becomes
     // http://b.vimeocdn.com/ps/116/353/1163539_300.jpg
     aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/ps\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
                                   "$1_300.jpg");
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
     
     // wired.com:
     // http://www.wired.com/images_blogs/autopia/2013/04/3448678338_e8785110ff_b-featured-200x100.jpg becomes
@@ -2143,13 +2166,17 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // dailymotion.com:
     // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_sprite.jpg becomes
     // http://static2.dmcdn.net/static/video/920/961/47169029:jpeg_preview_large.jpg
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/video\/.*:jpeg_preview)_(?:sprite|small|medium)/,
                                   "$1_large");
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_small.jpg?20100906012025 becomes
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_large.jpg?20100906012025
     aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/user\/.*:avatar)_(?:sprite|small|medium)/,
                                   "$1_large");
-    
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
+
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
@@ -2158,11 +2185,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     
     // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
     let regEx = new RegExp("(xh[a-z0-9]*ster.com.*/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
+    aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
     
     aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
     
-    aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
     
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
@@ -2304,10 +2335,15 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // viddy.com (see also in Others rule):
     // http://cdn.viddy.com/images/users/thumb/15dfd804-ab4f-4998-a1f4-fc56277fe0b3_150x150.jpg to
     // http://cdn.viddy.com/images/users/15dfd804-ab4f-4998-a1f4-fc56277fe0b3.jpg
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(new RegExp("^(https?://[^/]+\\.viddy\\.com/.*)/thumb/(.*)_[0-9]+x[0-9]+(" + 
                                              EXTS + ")", "i"),
                                              "$1/$2$3");
-    
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
+
+
     // asos.com:
     // https://marketplace-images.asos.com/fa/6f7a9757-a839-4d07-93f2-7173ff34b677_small.jpg becomes
     // https://marketplace-images.asos.com/fa/6f7a9757-a839-4d07-93f2-7173ff34b677_huge.jpg
@@ -2559,7 +2595,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (before == aImageSrc) {
       aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*)\.[0-9]{2,4}x[0-9]{2,4}-[0-9]{1,3}(\.jpg)/,
                                     "$1$2");
-    }                                
+    }
+               
     // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
     // e.g. on pandora.com.
     aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
