@@ -53,6 +53,7 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Tasto per massimizzare l'immagine:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra bordo">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Massimizzare la dimensione immagine di sovrapposti delle miniature">
+<!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">

@@ -53,6 +53,7 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">
+<!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">

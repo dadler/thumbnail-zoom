@@ -55,6 +55,8 @@
         name="extensions.thumbnailzoomplus.panel.border" type="bool"/>
       <preference id="thumbnailzoomplus-options-large-image-pref"
         name="extensions.thumbnailzoomplus.panel.largeimage" type="bool"/>
+      <preference id="thumbnailzoomplus-options-context-menu-pref"
+        name="extensions.thumbnailzoomplus.panel.contextmenu" type="bool"/>
       <preference id="thumbnailzoomplus-options-popup-on-scroll-pref"
         name="extensions.thumbnailzoomplus.panel.popuponscroll" type="bool"/>
       <preference id="thumbnailzoomplus-options-focuspopup-pref"
@@ -245,6 +247,8 @@
             <checkbox preference="thumbnailzoomplus-options-large-image-pref"
               label="&thumbnailzoomplus.options.largeimage.checkbox.label;" 
               tooltiptext="&thumbnailzoomplus.options.largeimage.checkbox.tooltip;" />
+            <checkbox preference="thumbnailzoomplus-options-context-menu-pref"
+              label="&thumbnailzoomplus.options.contextmenu.checkbox.label;" />
           </hbox>
           <hbox align="center">
             <label value="&thumbnailzoomplus.options.popupsize.selection.label;" />

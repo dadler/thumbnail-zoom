@@ -61,7 +61,8 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_ENABLE : ThumbnailZoomPlus.PrefBranch + "panel.enable",
   PREF_PANEL_DEBUG : ThumbnailZoomPlus.PrefBranch + "panel.debug",
   PREF_PANEL_HOTKEYS : ThumbnailZoomPlus.PrefBranch + "panel.hotkeys",
-  
+  PREF_PANEL_CONTEXT_MENU : ThumbnailZoomPlus.PrefBranch + "panel.contextmenu",
+
   /* Toolbar button preference key. */
   PREF_TOOLBAR_INSTALLED : ThumbnailZoomPlus.PrefBranch + "button.installed",
 
@@ -277,6 +278,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelFocusHost = document.getElementById("thumbnailzoomplus-panel-focus-host");
     this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
+    
+    this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
+;
 
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
@@ -3994,6 +3998,8 @@ ThumbnailZoomPlusChrome.Overlay = {
         case this.PREF_PANEL_ENABLE:
           this._updateMenuButtonState();
           break;
+        case this.PREF_PANEL_CONTEXT_MENU: 
+          this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
       }
     }
   },

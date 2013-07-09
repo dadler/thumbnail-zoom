@@ -53,6 +53,7 @@
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Snabbtangent för att maximera bilden:">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Visa kantlinje">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
+<!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Maxstorlek:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Webbsida">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Fönster">
