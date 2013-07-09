@@ -1161,6 +1161,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
+    + "|http://www\\.livememe\\.com/..."
     + "|qkme.me/"
     + "|^https?://memegenerator.net/instance/"
     + "|/index.php\?.*module=attach" // IP.board, eg rootzwiki.com
@@ -1411,6 +1412,12 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)memegenerator\.net\/instance\/([0-9]+)([?\/].*)?$/i,
                                   "$1cdn.memegenerator.net/instances/600x/$2.jpg");
 
+    // livememe.com:
+    // http://www.livememe.com/84ak9a9 becomes
+    // http://i.lvme.me/84ak9a9.jpg
+    aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:www\.)?livememe\.com\/([^\/]+)$/,
+                                  "$1i.lvme.me/$2.jpg");
+                                  
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
     let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
