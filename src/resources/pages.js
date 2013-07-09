@@ -1536,6 +1536,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           // links (this will slow TZP down so don't enable it
                           // in production releases).
                           // + "|.*"
+                          + "|bugguide.net"
                           , "i"),
   
   // For "OthersIndirect"
@@ -1694,6 +1695,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         'img#gmi-ResViewSizer_fullimg', // deviantart photo
         'img#primary_photo_img', // flickr.com set
         'div#allsizes-photo img', // flickr.com in All Sizes
+        'img.bgimage-image', // bugguide.net
         'div#main-photo-container img[alt="photo"]' // flickr.com home page 'explore thumbs' or a page.
       ];
       
