@@ -52,7 +52,7 @@ var ThumbnailZoomPlusOptions = {
     init : function() {
         ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlusOptions.init()");
         this._addThisSiteButton = document.getElementById("thumbnailzoomplus-options-add-last-site");
-        this._updatePerfsDialog();
+        this.updateSiteInPrefsDialog();
     },
     
     /**
@@ -102,9 +102,10 @@ var ThumbnailZoomPlusOptions = {
     return recentWindow ? ThumbnailZoomPlus.FilterService.getHostOfDoc(recentWindow.content.document, false) : null;
   },
 
-  _updatePerfsDialog : function() {
+  updateSiteInPrefsDialog : function() {
     var url = this._getCurrentTabUrl();
     var host = this._getCurrentTabHost();
+    ThumbnailZoomPlus._logToConsole("updateSiteInPrefsDialog for host " + host);
     this._addThisSiteButton.setAttribute("value", url);
     if (host) {
       var label = "Add " + host;
@@ -173,8 +174,12 @@ var ThumbnailZoomPlusOptions = {
   
   _updateSite : function(existingValue, existingItem) {
     ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
-                                    existingValue);    
-    var newValue = window.prompt(existingValue ? "Enter new site URL" : "Edit URL", 
+                                    existingValue);
+    
+    // Prompt for edited or new value.  Include trailing spaces to make
+    // the input field wider.
+    var newValue = window.prompt(existingValue ? "Edit URL of existing entry                           " : 
+                                                 "Enter site URL for new entry                         ", 
                                  existingValue);
     if (newValue == null) {
       return; // cancelled
@@ -229,6 +234,7 @@ var ThumbnailZoomPlusOptions = {
   }
   
 };
+ThumbnailZoomPlus.Options = ThumbnailZoomPlusOptions;
 
 window.addEventListener(
   "load", function() { ThumbnailZoomPlusOptions.init(); }, false);

@@ -154,24 +154,15 @@
     <script type="application/x-javascript"
             src="chrome://thumbnailzoomplus/content/options.js" />
 
-<tabbox flex="1">
+<tabbox flex="1" >
   <tabs>
-    <tab label="General" />
-    <tab label="Site Checkboxes" />
-    <tab label="Other Sites" />
+    <tab label="&thumbnailzoomplus.options.general.groupbox.caption;" />
+    <tab label="&thumbnailzoomplus.options.enable.groupbox.caption;" />
+    <tab label="Disabled Sites" />
   </tabs>
   <tabpanels flex="1">
-    <tabpanel flex="1">
+    <tabpanel flex="1" >
     <!-- General -->
-    <groupbox>
-      <caption>
-        <hbox width="580px">
-          <label value="&thumbnailzoomplus.options.general.groupbox.caption;"/>
-          <spacer flex="1" />
-          <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
-              href="http://thumbnailzoomplus.wordpress.com/" />
-          </hbox>
-      </caption>
       <grid>
         <columns>
           <column />
@@ -186,6 +177,8 @@
                     label="&thumbnailzoomplus.options.debug.checkbox.label;" />
             <button label="&thumbnailzoomplus.options.copylog.button.label;" 
                     oncommand="ThumbnailZoomPlusOptions.copyDebugLog()" />
+            <label value="&thumbnailzoomplus.toolbar.help.label;" class="text-link" 
+                    href="http://thumbnailzoomplus.wordpress.com/" />
           </hbox>
           
           <row align="center">
@@ -291,15 +284,12 @@
           </hbox>
         </rows>
       </grid>
-    </groupbox>
 
     </tabpanel>
     
     
     <tabpanel>
     <!-- Pages -->
-    <groupbox flex="1">
-      <caption label="&thumbnailzoomplus.options.enable.groupbox.caption;"/>
       <hbox flex="1">
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
@@ -409,7 +399,6 @@
 
         </vbox>
       </hbox>
-    </groupbox>
     </tabpanel>
     
     <tabpanel>
@@ -424,6 +413,7 @@
         </listbox>
         <vbox>
           <button id="thumbnailzoomplus-options-add-last-site" label="Add current site"
+                  disabled="true"
                   oncommand="ThumbnailZoomPlusOptions.addThisSiteButtonPressed();" />
           <button label="Add ..." oncommand="ThumbnailZoomPlusOptions.addSiteButtonPressed();" />
           <button label="Remove" oncommand="ThumbnailZoomPlusOptions.removeSiteButtonPressed();"/>

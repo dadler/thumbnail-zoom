@@ -280,7 +280,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
     
     this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
-;
 
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
@@ -437,7 +436,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     gBrowser.tabContainer.addEventListener(
       "TabSelect",
       function(aEvent) { that._handleTabSelected(aEvent); }, false);
-    
+
+    // Listen for window activation so we can update the "Add (current site)"
+    // button in the preferences dialog.
+    window.addEventListener(
+      "activate",
+      function(aEvent) { that._windowActivated(aEvent); }, false);
+      
     // These handlers are on the popup's window, not the document's:
     this._panel.addEventListener(
       "click",
@@ -635,8 +640,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._clearIgnoreBBox();
     this._debugToConsole("_handleTabSelected: _closePanel(true) since tab selected");
     this._closePanel(true);
+
+    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
   },
   
+  _windowActivated : function(aEvent) {
+    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
+  },
   
   /**
    * Handles the DOMContentLoaded event.  Note that this gets called
@@ -675,6 +685,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._debugToConsole("_handlePageLoaded: _closePanel(true) since page loaded & need to popdown");
       this._closePanel(true);
     }
+    
+    // If we just switched to a tab and that caused it to load, we didn't
+    // know the URL to show in the Preferences dialog's "Add (current site)"
+    // button until now.  Update the button.
+    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
   },
   
   // _addEventListenersToDoc adds listeners to the specified document
