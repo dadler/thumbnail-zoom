@@ -107,11 +107,14 @@ var ThumbnailZoomPlusOptions = {
     var host = this._getCurrentTabHost();
     ThumbnailZoomPlus._logToConsole("updateSiteInPrefsDialog for host " + host);
     this._addThisSiteButton.setAttribute("value", url);
+
     if (host) {
-      var label = "Add " + host;
+      var ruleExists = ! ThumbnailZoomPlus.FilterService.isURLEnabled(url);
+      var operation = ruleExists ? "Remove " : "Add ";
+      var label = operation + host;
       this._addThisSiteButton.removeAttribute("disabled");
     } else {
-      label = "Add current site";
+      var label = "Add/remove current site";
       this._addThisSiteButton.setAttribute("disabled", "true");
     }
     this._addThisSiteButton.setAttribute("label", label);
@@ -200,6 +203,7 @@ var ThumbnailZoomPlusOptions = {
       list.appendChild(this._createSiteListRow(newValue));
     }
     ThumbnailZoomPlusOptions.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
   },
   
   handleSiteListDoubleClick : function(event) {
@@ -216,13 +220,36 @@ var ThumbnailZoomPlusOptions = {
   },
   
   addThisSiteButtonPressed : function() {
-    this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
+    var url = this._addThisSiteButton.getAttribute("value");
+    var ruleExists = ! ThumbnailZoomPlus.FilterService.isURLEnabled(url);
+    if (ruleExists) {
+      this._removeMatchingSites(url);
+    } else {
+      this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
+    }
   },
 
   addSiteButtonPressed : function() {
     this._updateSite(this._addThisSiteButton.getAttribute(""), null);
   },
-  
+
+  _removeMatchingSites : function(url) {
+    var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.getElementsByTagName("listitem");
+    for (var idx = items.length-1; idx >= 0; idx--) {
+      var item = items[idx];
+      var entry = item.getAttribute("label");
+      if (entry != "") {
+        var disabledExpr = new RegExp(entry);
+        if (disabledExpr.test(url)) {
+          list.removeChild(item);
+        }
+      } 
+    }
+    ThumbnailZoomPlusOptions.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
+  },
+    
   removeSiteButtonPressed : function() {
     var list = document.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     var items = list.selectedItems;
@@ -231,6 +258,7 @@ var ThumbnailZoomPlusOptions = {
       list.removeChild(item);
     }
     ThumbnailZoomPlusOptions.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
   }
   
 };
