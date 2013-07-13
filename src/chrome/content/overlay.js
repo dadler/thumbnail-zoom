@@ -36,6 +36,7 @@ Cu.import("resource://thumbnailzoomplus/filterService.js");
 Cu.import("resource://thumbnailzoomplus/downloadService.js");
 Cu.import("resource://thumbnailzoomplus/clipboardService.js");
 Cu.import("resource://thumbnailzoomplus/uninstallService.js");
+Cu.import("resource://thumbnailzoomplus/siteConfigService.js");
 
 /**
  * Controls the browser overlay.
@@ -750,7 +751,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMax =  99999;
       }
       
-      if (!ThumbnailZoomPlus.FilterService.isURLEnabled(doc.documentURI)) {
+      if (!ThumbnailZoomPlus.SiteConfigService.isURLEnabled(doc.documentURI)) {
         this._debugToConsole("<<<>>> Page URL rejected by disabledSitesRE: " + doc.documentURI);
         return;
       }

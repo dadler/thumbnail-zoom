@@ -37,6 +37,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://thumbnailzoomplus/common.js");
+Cu.import("resource://thumbnailzoomplus/siteConfigService.js");
 
 var ThumbnailZoomPlusOptions = {
 
@@ -109,7 +110,7 @@ var ThumbnailZoomPlusOptions = {
     this._addThisSiteButton.setAttribute("value", url);
 
     if (host) {
-      var ruleExists = ! ThumbnailZoomPlus.FilterService.isURLEnabled(url);
+      var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
       var operation = ruleExists ? "Remove " : "Add ";
       var label = operation + host;
       this._addThisSiteButton.removeAttribute("disabled");
@@ -221,7 +222,7 @@ var ThumbnailZoomPlusOptions = {
   
   addThisSiteButtonPressed : function() {
     var url = this._addThisSiteButton.getAttribute("value");
-    var ruleExists = ! ThumbnailZoomPlus.FilterService.isURLEnabled(url);
+    var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
     if (ruleExists) {
       this._removeMatchingSites(url);
     } else {
