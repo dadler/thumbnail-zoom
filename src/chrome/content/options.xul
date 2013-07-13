@@ -298,17 +298,17 @@
         <listbox id="thumbnailzoomplus-options-disabled-sites-list"
                      flex="1" seltype="multiple" 
                      preference="thumbnailzoomplus-options-disabled-sites-pref"
-                     onsyncfrompreference="return ThumbnailZoomPlusOptions.syncSitesListFromPreference();"
-                     ondblclick="ThumbnailZoomPlusOptions.handleSiteListDoubleClick(event);">
+                     onsyncfrompreference="return ThumbnailZoomPlus.SiteConfigService.syncSitesListFromPreference(document);"
+                     ondblclick="ThumbnailZoomPlus.SiteConfigService.handleSiteListDoubleClick(event);">
           <listitem label="sitea.com"/>
           <listitem label="(others)"/>
         </listbox>
         <vbox>
-          <button label="Add ..." oncommand="ThumbnailZoomPlusOptions.addSiteButtonPressed();" />
+          <button label="Add ..." oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
           <button id="thumbnailzoomplus-options-add-last-site" label="Add/Remove current site"
                   disabled="true"
-                  oncommand="ThumbnailZoomPlusOptions.addThisSiteButtonPressed();" />
-          <button label="Remove" oncommand="ThumbnailZoomPlusOptions.removeSiteButtonPressed();"/>
+                  oncommand="ThumbnailZoomPlus.SiteConfigService.addThisSiteButtonPressed();" />
+          <button label="Remove" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
         </vbox>
       </hbox>
     </tabpanel>

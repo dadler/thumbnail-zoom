@@ -642,11 +642,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._debugToConsole("_handleTabSelected: _closePanel(true) since tab selected");
     this._closePanel(true);
 
-    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
+    ThumbnailZoomPlus.SiteConfigService.updateSiteInPrefsDialog();
   },
   
   _windowActivated : function(aEvent) {
-    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
+    ThumbnailZoomPlus.SiteConfigService.updateSiteInPrefsDialog();
   },
   
   /**
@@ -690,7 +690,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // If we just switched to a tab and that caused it to load, we didn't
     // know the URL to show in the Preferences dialog's "Add (current site)"
     // button until now.  Update the button.
-    ThumbnailZoomPlus.Options.updateSiteInPrefsDialog();
+    ThumbnailZoomPlus.SiteConfigService.updateSiteInPrefsDialog();
   },
   
   // _addEventListenersToDoc adds listeners to the specified document

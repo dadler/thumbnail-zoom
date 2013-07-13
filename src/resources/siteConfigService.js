@@ -43,6 +43,10 @@ Cu.import("resource://thumbnailzoomplus/common.js");
 ThumbnailZoomPlus.SiteConfigService = {
   /* Logger for this object. */
   _logger : null,
+  _addThisSiteButton : null,
+  _chrome : null, // the chrome document
+  _windowMediator : Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                              .getService(Components.interfaces.nsIWindowMediator),
 
   /**
    * Initializes the resource.
@@ -52,6 +56,12 @@ ThumbnailZoomPlus.SiteConfigService = {
     this._logger.trace("_init");
   },
 
+  setChromeDoc : function(doc) {
+    this._chrome = doc;
+    this._addThisSiteButton = this._chrome.getElementById("thumbnailzoomplus-options-add-last-site");
+    this.updateSiteInPrefsDialog();
+  },
+    
   isURLEnabled : function(url) {
     ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
     var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
@@ -68,6 +78,184 @@ ThumbnailZoomPlus.SiteConfigService = {
       }
     }
     return true;
+  },
+
+  _getCurrentTabUrl : function() {
+    var recentWindow = this._windowMediator.getMostRecentWindow("navigator:browser");
+    return recentWindow && recentWindow.content ? recentWindow.content.document.location : null;
+  },
+  
+  _getCurrentTabHost : function() {
+    var recentWindow = this._windowMediator.getMostRecentWindow("navigator:browser");
+    return recentWindow && recentWindow.content ? ThumbnailZoomPlus.FilterService.getHostOfDoc(recentWindow.content.document, false) : null;
+  },
+
+  updateSiteInPrefsDialog : function() {
+    if (! this._addThisSiteButton) {
+      return;
+    }
+    var url = this._getCurrentTabUrl();
+    var host = this._getCurrentTabHost();
+    ThumbnailZoomPlus._logToConsole("updateSiteInPrefsDialog for host " + host);
+    this._addThisSiteButton.setAttribute("value", url);
+
+    if (host) {
+      var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
+      var operation = ruleExists ? "Remove " : "Add ";
+      var label = operation + host;
+      this._addThisSiteButton.removeAttribute("disabled");
+    } else {
+      var label = "Add/remove current site";
+      this._addThisSiteButton.setAttribute("disabled", "true");
+    }
+    this._addThisSiteButton.setAttribute("label", label);
+  },
+  
+  _clearList : function(list) {
+    for (var i=list.getRowCount() - 1; i >= 0; --i) {
+      list.removeItemAt(i);
+    }
+  },
+  
+  _createSiteListRow : function(url) {
+    var urlCell = this._chrome.createElement('listitem');
+    urlCell.setAttribute('label',url);    
+    
+    return urlCell;
+  },
+  
+  syncSitesListFromPreference : function(chromeDoc) {
+    // Sets the list widget based on values in the preference.
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preferences_system/New_attributes?redirectlocale=en-US&redirectslug=Preferences_System%2FNew_attributes
+    this.setChromeDoc(chromeDoc);
+    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsyncfrompreference");
+
+    var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    if (! list || ! list.getRowCount) {
+      return;
+    }
+    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: list # elements: " + list.getRowCount());
+
+    list.style.visibility = "hidden";
+    this._clearList(list);
+    var that = this;
+    
+    var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
+                                    prefValue);
+    prefValue.split(" ").forEach(function(entry) {
+      if (entry != "") {
+        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: entry = " + entry);
+        list.appendChild(that._createSiteListRow(entry));
+      }
+    });
+    list.style.visibility = "visible";
+    
+    return "";
+  },
+  
+  syncSitesListToPreference : function() {
+    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsynctopreference");
+
+    var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.getElementsByTagName("listitem");
+    var prefValue = "";
+    for (var idx=0; idx < items.length; ++idx) {
+      var cell = items[idx];
+      prefValue += cell.getAttribute("label") + " ";
+    }
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: new pref value is " +
+                                    prefValue);
+    ThumbnailZoomPlus.setPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
+
+    return prefValue;
+  },
+  
+  _updateSite : function(existingValue, existingItem) {
+    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
+                                    existingValue);
+    
+    // Prompt for edited or new value.  Include trailing spaces to make
+    // the input field wider.
+    var win = this._chrome.defaultView;
+    var newValue = win.prompt(existingValue ? "Edit URL of existing entry                           " : 
+                                                 "Enter site URL for new entry                         ", 
+                                 existingValue);
+    if (newValue == null) {
+      return; // cancelled
+    }    
+    
+    // Update the widgets since syncSitesListToPreference will pull from them.
+    var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    if (newValue == "") {
+      if (existingItem) {
+        list.removeChild(existingItem);
+      }
+      this.syncSitesListToPreference();
+      return;
+    }
+    if (existingItem) {
+      existingItem.setAttribute("label", newValue);
+    } else {
+      list.appendChild(this._createSiteListRow(newValue));
+    }
+    this.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
+  },
+  
+  handleSiteListDoubleClick : function(event) {
+    var target = event.target;
+    while (target && target.localName != "listitem") {
+      target = target.parentNode;
+    }
+    if (target) {
+      var value = target.getAttribute("label")
+    } else {
+      var value = "";
+    }
+    this._updateSite(value, target);
+  },
+  
+  addThisSiteButtonPressed : function() {
+    var url = this._addThisSiteButton.getAttribute("value");
+    var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
+    if (ruleExists) {
+      this._removeMatchingSites(url);
+    } else {
+      this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
+    }
+  },
+
+  addSiteButtonPressed : function() {
+    this._updateSite(this._addThisSiteButton.getAttribute(""), null);
+  },
+
+  _removeMatchingSites : function(url) {
+    var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.getElementsByTagName("listitem");
+    for (var idx = items.length-1; idx >= 0; idx--) {
+      var item = items[idx];
+      var entry = item.getAttribute("label");
+      if (entry != "") {
+        var disabledExpr = new RegExp(entry);
+        if (disabledExpr.test(url)) {
+          list.removeChild(item);
+        }
+      } 
+    }
+    this.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
+  },
+    
+  removeSiteButtonPressed : function() {
+    var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
+    var items = list.selectedItems;
+    for (var idx = items.length-1; idx >= 0; idx--) {
+      var item = items[idx];
+      list.removeChild(item);
+    }
+    this.syncSitesListToPreference();
+    this.updateSiteInPrefsDialog();
   }
 
 };
