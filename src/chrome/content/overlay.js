@@ -1565,7 +1565,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _findPageAndShowImage : function(aDocument, aEvent, aPage, node) {
     // record the current window now in case we want to show a status icon for it.
-    // TODO: I once saw a "Can't access dead object" error here in ff22.0a1
+    // TODO: I once saw a "Can't access dead object" error here in ff22.0a1 when reloading a page.
     this._currentWindow = aDocument.defaultView.top;
     this._logger.debug("_findPageAndShowImage: setting this._currentWindow = " + this._currentWindow);
     

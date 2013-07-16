@@ -47,7 +47,8 @@ ThumbnailZoomPlus.SiteConfigService = {
   _chrome : null, // the chrome document
   _windowMediator : Components.classes["@mozilla.org/appshell/window-mediator;1"]
                               .getService(Components.interfaces.nsIWindowMediator),
-
+  _protocolRegex : /^[a-z0-9]+:\/\//i,
+  
   /**
    * Initializes the resource.
    */
@@ -61,20 +62,53 @@ ThumbnailZoomPlus.SiteConfigService = {
     this._addThisSiteButton = this._chrome.getElementById("thumbnailzoomplus-options-add-last-site");
     this.updateSiteInPrefsDialog();
   },
-    
+  
+  globToRegex : function(glob) {
+    // converts a glob expression with ? and * wildcards to a regular expression.
+    // http://stackoverflow.com/questions/5575609/javascript-regexp-to-match-strings-using-wildcards-and
+    var specialChars = "\\^$*+?.()|{}[]";
+    var regexChars = ["^"];
+    for (var i = 0; i < glob.length; ++i) {
+        var c = glob.charAt(i);
+        switch (c) {
+            case '?':
+                regexChars.push(".");
+                break;
+            case '*':
+                regexChars.push(".*");
+                break;
+            default:
+                if (specialChars.indexOf(c) >= 0) {
+                    regexChars.push("\\");
+                }
+                regexChars.push(c);
+        }
+    }
+    regexChars.push("$");
+    return new RegExp(regexChars.join(""));
+  },
+
+  isURLMatchedByGlob : function(glob, url) {
+    if (glob == "") {
+      return false;
+    }
+    var re = this.globToRegex(glob);
+    ThumbnailZoomPlus._logToConsole("  re: " + re.source);
+
+    return re.test(url);
+  },
+  
   isURLEnabled : function(url) {
     ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
+    url = url.replace(this._protocolRegex, "");
     var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     var values = disabledRE.split(" ")
     for (var i in values) {
       var entry = values[i];
-      if (entry != "") {
-        ThumbnailZoomPlus._logToConsole("entry: " + entry);
-        var disabledExpr = new RegExp(entry);
-        if (disabledExpr.test(url)) {
-          ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
-          return false;
-        }
+      ThumbnailZoomPlus._logToConsole("entry: " + entry);
+      if (this.isURLMatchedByGlob(entry, url)) {
+        ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
+        return false;
       }
     }
     return true;
@@ -82,7 +116,7 @@ ThumbnailZoomPlus.SiteConfigService = {
 
   _getCurrentTabUrl : function() {
     var recentWindow = this._windowMediator.getMostRecentWindow("navigator:browser");
-    return recentWindow && recentWindow.content ? recentWindow.content.document.location : null;
+    return recentWindow && recentWindow.content ? ("" + recentWindow.content.document.location) : null;
   },
   
   _getCurrentTabHost : function() {
@@ -94,10 +128,9 @@ ThumbnailZoomPlus.SiteConfigService = {
     if (! this._addThisSiteButton) {
       return;
     }
-    var url = this._getCurrentTabUrl();
     var host = this._getCurrentTabHost();
+    var url = this._getCurrentTabUrl();
     ThumbnailZoomPlus._logToConsole("updateSiteInPrefsDialog for host " + host);
-    this._addThisSiteButton.setAttribute("value", url);
 
     if (host) {
       var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
@@ -109,6 +142,7 @@ ThumbnailZoomPlus.SiteConfigService = {
       this._addThisSiteButton.setAttribute("disabled", "true");
     }
     this._addThisSiteButton.setAttribute("label", label);
+    this._addThisSiteButton.setAttribute("value", host + "/");
   },
   
   _clearList : function(list) {
@@ -171,6 +205,12 @@ ThumbnailZoomPlus.SiteConfigService = {
     return prefValue;
   },
   
+  /*
+   * adds or removes an entry.
+   * existingValue (if not null) is the default pattern for the site to be
+   *   added.
+   * If editing a pre-existing entry, that entry's list item is existingItem (else null).
+   */
   _updateSite : function(existingValue, existingItem) {
     ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
                                     existingValue);
@@ -178,9 +218,9 @@ ThumbnailZoomPlus.SiteConfigService = {
     // Prompt for edited or new value.  Include trailing spaces to make
     // the input field wider.
     var win = this._chrome.defaultView;
-    var newValue = win.prompt(existingValue ? "Edit URL of existing entry                           " : 
-                                                 "Enter site URL for new entry                         ", 
-                                 existingValue);
+    var newValue = win.prompt(existingValue ? "Edit disabled site URL (?=any one character; *=any characters)" : 
+                                              "New disabled site URL (?=any one character; *=any characters)", 
+                              existingValue);
     if (newValue == null) {
       return; // cancelled
     }    
@@ -195,8 +235,10 @@ ThumbnailZoomPlus.SiteConfigService = {
       return;
     }
     if (existingItem) {
+      // update pattern of existing item
       existingItem.setAttribute("label", newValue);
     } else {
+      // add new item
       list.appendChild(this._createSiteListRow(newValue));
     }
     this.syncSitesListToPreference();
@@ -222,7 +264,8 @@ ThumbnailZoomPlus.SiteConfigService = {
     if (ruleExists) {
       this._removeMatchingSites(url);
     } else {
-      this._updateSite(this._addThisSiteButton.getAttribute("value"), null);
+      var pattern = this._addThisSiteButton.getAttribute("value")+"*";
+      this._updateSite(pattern, null);
     }
   },
 
@@ -236,11 +279,8 @@ ThumbnailZoomPlus.SiteConfigService = {
     for (var idx = items.length-1; idx >= 0; idx--) {
       var item = items[idx];
       var entry = item.getAttribute("label");
-      if (entry != "") {
-        var disabledExpr = new RegExp(entry);
-        if (disabledExpr.test(url)) {
-          list.removeChild(item);
-        }
+      if (this.isURLMatchedByGlob(entry, url)) {
+        list.removeChild(item);
       } 
     }
     this.syncSitesListToPreference();
