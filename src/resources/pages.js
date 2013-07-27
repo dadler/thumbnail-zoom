@@ -2100,6 +2100,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }
     
+    // costco.com:
+    // http://images.costco.com/image/media/150-759675-847__1.jpg becomes
+    // http://images.costco.com/image/media/500-759675-847__1.jpg ; some have 700- too.
+    aImageSrc = aImageSrc.replace(/(:\/\/images\.costco\.com\/image\/media)\/[0-9]{2,3}-([0-9]+-[0-9_]+.jpg)/, 
+                                  "$1/500-$2");
+
     // myway.com uses imgfarm.com
     // http://ak.imgfarm.com/images/ap/thumbnails//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg or
     // http://ak.imgfarm.com/images/ap/gallery//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg become
