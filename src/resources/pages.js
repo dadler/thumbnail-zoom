@@ -1439,16 +1439,16 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:[^\/]+\.)?viddy\.com\/(?:play\/)?video\/([^\/?]+).*/i,
                                   "$1/cdn.viddy.com/images/video/$2.jpg");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.borderColor = "#CC181E"; // youtube red color
     }
     
     // imgchili.com:
     // http://imgchili.com/show/7428/9998984_ie_011.jpg becomes
     // http://i2.imgchili.com/7428/9998984_ie_011.jpg
-    aImageSrc = aImageSrc.replace(/\/\/imgchili\.com\/show\//, "i2.imgchili.com/");
-    
+    aImageSrc = aImageSrc.replace(/:\/\/imgchili\.(?:com|net)\/show\//, "://i2.imgchili.com/");
     aImageSrc = aImageSrc.replace(/(\/\/img..g\.com)\/\?v=/i, "$1/images/");
-    
+    aImageSrc = aImageSrc.replace(/.*\.any\.gs\/url\/(.*)/, "$1");
+
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
@@ -2106,6 +2106,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(:\/\/images\.costco\.com\/image\/media)\/[0-9]{2,3}-([0-9]+-[0-9_]+.jpg)/, 
                                   "$1/500-$2");
 
+    // target.com:
+    // http://img3.targetimg3.com/wcsstore/TargetSAS//img/p/13/04/13040966_138x138.jpg becomes
+    // http://img3.targetimg3.com/wcsstore/TargetSAS//img/p/13/04/13040966.jpg
+    aImageSrc = aImageSrc.replace(/(\.targetimg[0-9]+\.com\/.*\/img\/.*[0-9])_[0-9]+X[0-9]+\./,
+                                  "$1.");
+                                  
+    // walmart.com:
+    // http://i.walmartimages.com/i/p/03/41/77/61/29/0341776129500_180X180.jpg becomes
+    // http://i.walmartimages.com/i/p/03/41/77/61/29/0341776129500_500X500.jpg
+    aImageSrc = aImageSrc.replace(/(\.walmartimages\.com\/.*)_[0-9]+X[0-9]+\./,
+                                  "$1_500X500.");
+                                  
     // myway.com uses imgfarm.com
     // http://ak.imgfarm.com/images/ap/thumbnails//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg or
     // http://ak.imgfarm.com/images/ap/gallery//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg become
@@ -2270,6 +2282,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(www\.homedepot\.com\/.*productImages)\/[0-9]+\/(.*)_[0-9]+\.jpg/,
                                   "$1/400/$2_400.jpg");
     
+    // for homedepot.com user-submitted pics in reviews:
+    // http://homedepot.ugc.bazaarvoice.com/1999/228211/photoThumb.jpg becomes
+    // http://homedepot.ugc.bazaarvoice.com/1999/228211/photo.jpg
+    aImageSrc = aImageSrc.replace(/(homedepot\.ugc\.bazaarvoice\.com\/.*)\/photoThumb\.jpg/,
+                                  "$1/photo.jpg");
+                                  
     // For Google Play Android Apps, change
     // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0=h230 to
     // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
@@ -2385,7 +2403,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // imgchili.com:
     // http://t2.imgchili.com/7428/9998984_ie_011.jpg becomes
     // http://i2.imgchili.com/7428/9998984_ie_011.jpg
-    aImageSrc = aImageSrc.replace(/:\/\/t([0-9]+\.imgchili\.com\/)/, "://i$1/");
+    aImageSrc = aImageSrc.replace(/:\/\/t([0-9]+\.imgchili\.(?:com|net)\/)/, "://i$1/");
 
     // pixiv.net
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
