@@ -1161,6 +1161,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
+    + "|someimage.com/."
     + "|http://www\\.livememe\\.com/..."
     + "|qkme.me/"
     + "|^https?://memegenerator.net/instance/"
@@ -1325,6 +1326,12 @@ ThumbnailZoomPlus.Pages.Others = {
         aImageSrc = "http://" + aImageSrc;
       }
     }
+
+    // someimage.com
+    // http://someimage.com/TkscG18 becomes
+    // http://i1.someimage.com/TkscG18.jpg (but it doesn't always work)
+    aImageSrc = aImageSrc.replace(/\/\/(someimage\.com\/[^\/?]+)$/,
+                                  "//i1.$1.jpg");
 
     // For ixquick.com image search:
     // https://s3-us4.ixquick-proxy.com/do/show_picture.pl?l=english&cat=pics&c=pf&q=cat&h=1080&w=1920&th=90&tw=160&
@@ -2145,6 +2152,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                   EXTS + ")"),
                                   "$1/4$2");
     
+    // someimage.com
+    // http://t1.someimage.com/TkscG18.jpg becomes
+    // http://i1.someimage.com/TkscG18.jpg
+    aImageSrc = aImageSrc.replace(/\/\/t([0-9]+\.someimage\.com\/)/,
+                                  "//i$1");
+                                  
     // For pbase.com (limited support; only works if the image exists as
     // 'large' size, and sometimes the actual image isn't on the same server
     // as the thumb and it doesn't work): change
@@ -2247,6 +2260,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*-web)[_-][0-9]+(" + EXTS + ")"),
                                   "$1$2");
     
+    // xmarks.com thumbs in category pages
+    // http://thumbs.xmarks.com/discover/thumbnail/read?cid=DRFT&id=13544052&size=Small becomes
+    // http://thumbs.xmarks.com/discover/thumbnail/read?cid=DRFT&id=13544052&size=Large
+    aImageSrc = aImageSrc.replace(/(\/\/thumbs\.xmarks\.com\/.*\/thumbnail\/read\?.*&size)=Small/,
+                                  "$1=Large");
+                                  
     // rhapsody.com
     // http://static.rhap.com/img/170x170/7/9/1/8/1328197_170x170.jpg becomes
     // http://static.rhap.com/img/500x500/7/9/1/8/1328197_500x500.jpg
@@ -2633,6 +2652,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
     // e.g. on pandora.com.
     aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
+
 
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.
