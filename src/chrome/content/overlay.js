@@ -2344,7 +2344,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       this._redisplayPopup();
       
-    } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
+    } else if (aEvent.keyCode == aEvent.DOM_VK_T ||
+               aEvent.keyCode == aEvent.DOM_VK_B) {
       // open image in new tab
       //
       // Note: The add-on validator warns "`\.documentURIObject` only available in chrome contexts";
@@ -2352,7 +2353,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_doHandleKeyDown: open in new tab " +this._currentImage +
                          " referrer " + document.documentURIObject);
       let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
-      let tab = openUILinkIn(this._currentImage, "tab", options);
+      let openLocation = aEvent.keyCode == aEvent.DOM_VK_T ? "tab" : "tabshifted";
+      let tab = openUILinkIn(this._currentImage, openLocation, options);
       gBrowser.selectedTab = tab;
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_N) {
