@@ -54,8 +54,9 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
      on page flags.borderColor */
   background-color: white;
   margin: 0px;
-  /* the padding value here must match _borderWidth in overlay.js. */
-  padding: 5px;
+  /* the padding value here must match _borderWidth in overlay.js.
+      Don't add padding on bottom as the caption text will act as bottom border. */
+  padding: 0px;
   border: none !important;
 }
 #thumbnailzoomplus-border-box[panelnoborder=true] {
@@ -96,7 +97,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 #thumbnailzoomplus-panel-vbox {
   /* Set the caption's background.  We do it on the vbox rather
      than the caption label so it'll span the entire width of the pop-up. */
-  background-color: #AAA !important;
+  background-color: #FFF !important;
   /* debug: background-color: blue !important; */
 }
 #thumbnailzoomplus-panel-info {
@@ -110,6 +111,9 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   border-radius: 5px;
   font-weight:bold;
   font-size:9px !important;
+
+  /* Space the info box equally from the sides of the image*/
+  margin-bottom: 6px;
 }
 
 #thumbnailzoomplus-panel-caption {

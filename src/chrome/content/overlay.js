@@ -175,7 +175,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   // and the popup when the border is displayed.  This must equal the
   // #thumbnailzoomplus-panel "padding" value in overlay.css.
   // Debugging tip: set large (30) when debugging popup positioning.
-  _borderWidth : 5, // border itself adds 5 pixels on each edge.
+  _borderWidth : 0, // border itself adds 5 pixels on each edge.
   
   // _widthAddon is additional image width due to border if enabled:
   // 0 or _borderWidth*2.
