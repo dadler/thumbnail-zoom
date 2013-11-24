@@ -813,7 +813,6 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     // for avatars:
     // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_75.jpg becomes
     // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_o.jpg
-    http://media-cache-ec3.pinimg.com/avatars/lucialuzv_1361249244_75.jpg
     rex = new RegExp("(/avatars/.*)_[0-9]+(\\.jpg)$")
     aImageSrc = aImageSrc.replace(rex, "$1_o$2");
     
@@ -1634,6 +1633,12 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     re = /<meta +property=["']og:image["'] +content=[\"']([^\"']+)["']/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
+    if (! match) {
+      // 500px
+      var re2 = /<meta +content=[\"']([^\"']+)["'] +property=["']og:image["']/;
+      logger.debug("_getImgFromHtmlText: trying " + re2);
+      match = re2.exec(aHTMLString);
+    }
     if (match) {
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1])) {
@@ -2146,11 +2151,17 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             "thumbnail getZoomImage p40: so far have " + aImageSrc);
 
     // For 500px.com change
-    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg becomes
     // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
-                                  EXTS + ")"),
+    // But some profile icons need to become /1 rather than /4, eg:
+    // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/1.jpg?1 becomes
+    // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/4.jpg?1
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
+                                  EXTS + ")$"),
                                   "$1/4$2");
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
+                                  EXTS + ").+"),
+                                  "$1/1$2");
     
     // someimage.com
     // http://t1.someimage.com/TkscG18.jpg becomes
