@@ -30,6 +30,13 @@
 
 "use strict";
 
+
+// Define these for Seamonkey (they're already defined for Firefox).
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cu = Components.utils;
+
+
 Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
@@ -330,16 +337,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (!buttonInstalled) {
       let toolbarId =
-        (null == document.getElementById("addon-bar") ? "nav-bar": "addon-bar");
+        (null == document.getElementById("BrowserToolbarPalette") ? "nav-bar": "BrowserToolbarPalette");
       let toolbar = document.getElementById(toolbarId);
-      let newCurrentSet = null;
-
-      if (-1 != toolbar.currentSet.indexOf("urlbar-container")) {
-         newCurrentSet = toolbar.currentSet.replace(
-           /urlbar-container/, "thumbnailzoomplus-toolbar-button,urlbar-container");
-      } else {
-         newCurrentSet = toolbar.currentSet + ",thumbnailzoomplus-toolbar-button";
-      }
+      let newCurrentSet = toolbar.currentSet + ",thumbnailzoomplus-toolbar-button";
       toolbar.setAttribute("currentset", newCurrentSet);
       toolbar.currentSet = newCurrentSet;
       document.persist(toolbarId, "currentset");
