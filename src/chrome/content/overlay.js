@@ -1589,7 +1589,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // send() call after the first next() call.  We'll call this' yield
     // when we need to run asynchronously; such a yield will be followed
     // sometime later by an asynchronous send() call.
-    let completionGenerator = yield;
+    let completionGenerator = yield undefined;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
@@ -1644,7 +1644,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
           this._showStatusIcon(node, "working-2dots.png", 16, null);      
-          status = yield;
+          status = yield undefined;
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
         this._logger.debug("_findPageAndShowImageGen: got status " + status);
@@ -1677,7 +1677,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node, completionGenerator);
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
-          status = yield;
+          status = yield undefined;
           this._showStatusIcon(node, "working-2dots.png", 16, null);      
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
