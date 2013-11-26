@@ -1771,7 +1771,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   imageDisallowRegExp : new RegExp("^[^/]*("
                           +  "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=)" // google maps tiles
-                          + "|(//maps\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
+                          + "|(//(maps|khms.*)\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/)" // google maps button images, google drive file type icons
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//.*maptile.lbs.ovi.com/)" // yahoo maps tiles
