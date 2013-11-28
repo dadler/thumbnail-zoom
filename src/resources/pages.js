@@ -901,6 +901,29 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
       return aImageSrc.replace(rex1, "/");
     }
 
+    // Google Plus Photos
+    // https://lh3.googleusercontent.com/pNJgHstijFQy_mJdJ4JAD991jC_KL1458ytz9z-Mf8Q=w484-h272-p-no scales up
+    // w and h dimensions.
+    let rex4 = /^(.*)=w([0-9]+)-h([0-9]+)-(.*)$/;
+    var match = rex4.exec(aImageSrc);
+    if (match) {
+        var width = 0 + match[2];
+        var height = 0 + match[3];
+        // Scale up larger dimension to at least DESIRED pixels, preserving aspect.
+        var DESIRED = 1200;
+        if (width < DESIRED && height < DESIRED) {
+            if (width > height) {
+              height = Math.floor((height * DESIRED) / width);
+              width = DESIRED;
+            } else {
+                width = Math.floor((width * DESIRED) / height);
+                height = DESIRED;
+            }
+        }
+        aImageSrc = match[1] + "=w" + width + "-h" + height + "-" + match[4];
+        return aImageSrc;
+    }
+    
     // example shared link thumb: https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?url=http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg&container=focus&gadget=a&rewriteMime=image/*&refresh=31536000&resize_h=120&no_expand=1
     // corresponding image: http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg
     let rex2 = /.*gadgets\/proxy\?url=([^&]+).*/;
