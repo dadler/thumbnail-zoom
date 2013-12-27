@@ -30,6 +30,13 @@
 
 "use strict";
 
+
+// Define these for Seamonkey (they're already defined for Firefox).
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cu = Components.utils;
+
+
 Cu.import("resource://thumbnailzoomplus/common.js");
 Cu.import("resource://thumbnailzoomplus/pages.js");
 Cu.import("resource://thumbnailzoomplus/filterService.js");
@@ -330,16 +337,9 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (!buttonInstalled) {
       let toolbarId =
-        (null == document.getElementById("addon-bar") ? "nav-bar": "addon-bar");
+        (null == document.getElementById("BrowserToolbarPalette") ? "nav-bar": "BrowserToolbarPalette");
       let toolbar = document.getElementById(toolbarId);
-      let newCurrentSet = null;
-
-      if (-1 != toolbar.currentSet.indexOf("urlbar-container")) {
-         newCurrentSet = toolbar.currentSet.replace(
-           /urlbar-container/, "thumbnailzoomplus-toolbar-button,urlbar-container");
-      } else {
-         newCurrentSet = toolbar.currentSet + ",thumbnailzoomplus-toolbar-button";
-      }
+      let newCurrentSet = toolbar.currentSet + ",thumbnailzoomplus-toolbar-button";
       toolbar.setAttribute("currentset", newCurrentSet);
       toolbar.currentSet = newCurrentSet;
       document.persist(toolbarId, "currentset");
@@ -1612,7 +1612,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // send() call after the first next() call.  We'll call this' yield
     // when we need to run asynchronously; such a yield will be followed
     // sometime later by an asynchronous send() call.
-    let completionGenerator = yield;
+    let completionGenerator = yield undefined;
     
     let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
     let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
@@ -1667,7 +1667,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
           this._showStatusIcon(node, "working-2dots.png", 16, null);      
-          status = yield;
+          status = yield undefined;
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
         this._logger.debug("_findPageAndShowImageGen: got status " + status);
@@ -1700,7 +1700,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         status = this._tryImageSource(aDocument, node, nodeHost, aEvent, aPage, node, completionGenerator);
         if (status == "deferred") {
           this._debugToConsole("ThumbnailZoomPlus: ... deferred by page " + pageName);
-          status = yield;
+          status = yield undefined;
           this._showStatusIcon(node, "working-2dots.png", 16, null);      
           this._debugToConsole("ThumbnailZoomPlus: ... resumed");
         }
@@ -2066,7 +2066,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._setCursorAndBorderColor(aImageNode, flags);
     
     // Allow the user to use the context (right-click) menu item for
-    // "Save Enlarged Image As...".
+    // "Save Full-size Image As...".
     this._contextMenu.disabled = false;
     this._panelInfo.hidden = true;
 
@@ -2091,7 +2091,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Closes the panel.
    * @param: clearContext: true iff we should entirely clear this popup's
    *         context.  False if we should hide the popup, but still remember
-   *         its image as context e.g. for Save Enlarged As...
+   *         its image as context e.g. for Save Full-size As...
    *         Note that the act of popping up the
    *         context menu causes the popup to lose focus.
    */
@@ -2367,7 +2367,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
       this._redisplayPopup();
       
-    } else if (aEvent.keyCode == aEvent.DOM_VK_T) {
+    } else if (aEvent.keyCode == aEvent.DOM_VK_T ||
+               aEvent.keyCode == aEvent.DOM_VK_B) {
       // open image in new tab
       //
       // Note: The add-on validator warns "`\.documentURIObject` only available in chrome contexts";
@@ -2375,7 +2376,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_doHandleKeyDown: open in new tab " +this._currentImage +
                          " referrer " + document.documentURIObject);
       let options = {referrerURI: document.documentURIObject, relatedToCurrent: true};
-      let tab = openUILinkIn(this._currentImage, "tab", options);
+      let openLocation = aEvent.keyCode == aEvent.DOM_VK_T ? "tab" : "tabshifted";
+      let tab = openUILinkIn(this._currentImage, openLocation, options);
       gBrowser.selectedTab = tab;
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_N) {

@@ -50,7 +50,7 @@ try {
  */
 if ("undefined" == typeof(ThumbnailZoomPlus)) {
   var ThumbnailZoomPlus = {
-    /* The FUEL Application object. */
+    /* The FUEL/SMILE Application object. */
     _application : null,
     
     /* Reference to the observer service. */
@@ -184,11 +184,17 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
 
       if (null == this._application) {
         try {
+          // Firefox
           this._application =
-            Cc["@mozilla.org/fuel/application;1"].
-              getService(Ci.fuelIApplication);
+            Cc["@mozilla.org/fuel/application;1"].getService(Ci.fuelIApplication);
         } catch (e) {
-          throw "The FUEL application object is not available.";
+          try {
+            // Seamonkey
+            this._application =
+              Cc["@mozilla.org/smile/application;1"].getService(Ci.smileIApplication);
+          } catch (e) {
+            throw "The FUEL/SMILE application object is not available.";
+          }
         }
       }
 

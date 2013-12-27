@@ -175,8 +175,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
-      // In June 2012 FB started rolling out new photo layouts on the wall.
+    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -813,7 +812,6 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     // for avatars:
     // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_75.jpg becomes
     // http://media-cache-ec2.pinimg.com/avatars/talkingincodes-20_o.jpg
-    http://media-cache-ec3.pinimg.com/avatars/lucialuzv_1361249244_75.jpg
     rex = new RegExp("(/avatars/.*)_[0-9]+(\\.jpg)$")
     aImageSrc = aImageSrc.replace(rex, "$1_o$2");
     
@@ -902,6 +900,29 @@ ThumbnailZoomPlus.Pages.GooglePlus = {
       return aImageSrc.replace(rex1, "/");
     }
 
+    // Google Plus Photos
+    // https://lh3.googleusercontent.com/pNJgHstijFQy_mJdJ4JAD991jC_KL1458ytz9z-Mf8Q=w484-h272-p-no scales up
+    // w and h dimensions.
+    let rex4 = /^(.*)=w([0-9]+)-h([0-9]+)-(.*)$/;
+    var match = rex4.exec(aImageSrc);
+    if (match) {
+        var width = 0 + match[2];
+        var height = 0 + match[3];
+        // Scale up larger dimension to at least DESIRED pixels, preserving aspect.
+        var DESIRED = 1200;
+        if (width < DESIRED && height < DESIRED) {
+            if (width > height) {
+              height = Math.floor((height * DESIRED) / width);
+              width = DESIRED;
+            } else {
+                width = Math.floor((width * DESIRED) / height);
+                height = DESIRED;
+            }
+        }
+        aImageSrc = match[1] + "=w" + width + "-h" + height + "-" + match[4];
+        return aImageSrc;
+    }
+    
     // example shared link thumb: https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?url=http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg&container=focus&gadget=a&rewriteMime=image/*&refresh=31536000&resize_h=120&no_expand=1
     // corresponding image: http://www.avantmusicnews.com/wp-content/themes/weaver/images/headers/sunset.jpg
     let rex2 = /.*gadgets\/proxy\?url=([^&]+).*/;
@@ -1161,6 +1182,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
+    + "|someimage.com/."
     + "|http://www\\.livememe\\.com/..."
     + "|qkme.me/"
     + "|^https?://memegenerator.net/instance/"
@@ -1325,6 +1347,17 @@ ThumbnailZoomPlus.Pages.Others = {
         aImageSrc = "http://" + aImageSrc;
       }
     }
+
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-P11996894.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-L11996894.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*[-\/])[TP]([0-9]+\.jpe?g.*)/, "$1L$2");
+
+    // someimage.com
+    // http://someimage.com/TkscG18 becomes
+    // http://i1.someimage.com/TkscG18.jpg (but it doesn't always work)
+    aImageSrc = aImageSrc.replace(/\/\/(someimage\.com\/[^\/?]+)$/,
+                                  "//i1.$1.jpg");
 
     // For ixquick.com image search:
     // https://s3-us4.ixquick-proxy.com/do/show_picture.pl?l=english&cat=pics&c=pf&q=cat&h=1080&w=1920&th=90&tw=160&
@@ -1627,6 +1660,12 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     re = /<meta +property=["']og:image["'] +content=[\"']([^\"']+)["']/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
+    if (! match) {
+      // 500px
+      var re2 = /<meta +content=[\"']([^\"']+)["'] +property=["']og:image["']/;
+      logger.debug("_getImgFromHtmlText: trying " + re2);
+      match = re2.exec(aHTMLString);
+    }
     if (match) {
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1])) {
@@ -1759,7 +1798,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   imageDisallowRegExp : new RegExp("^[^/]*("
                           +  "(//.*\\.google\\.(com?(\\.[a-z]+)?|[a-z]+)/(.*/)?(images|logos)/)" // google logos
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=)" // google maps tiles
-                          + "|(//maps\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
+                          + "|(//(maps|khms.*)\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/)" // google maps button images, google drive file type icons
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//.*maptile.lbs.ovi.com/)" // yahoo maps tiles
@@ -2117,7 +2156,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://i.walmartimages.com/i/p/03/41/77/61/29/0341776129500_500X500.jpg
     aImageSrc = aImageSrc.replace(/(\.walmartimages\.com\/.*)_[0-9]+X[0-9]+\./,
                                   "$1_500X500.");
-                                  
+
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c_80.jpg?wid=58&hei=58&op_sharpen=1 or
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c_600.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*)_[0-9]+(\.jpe?g).*/, "$1$2");
+    
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-P11996894.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-L11996894.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*[-\/])[TP]([0-9]+\.jpe?g.*)/, "$1L$2");
+
     // myway.com uses imgfarm.com
     // http://ak.imgfarm.com/images/ap/thumbnails//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg or
     // http://ak.imgfarm.com/images/ap/gallery//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg become
@@ -2139,12 +2189,24 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
             "thumbnail getZoomImage p40: so far have " + aImageSrc);
 
     // For 500px.com change
-    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg to
+    // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/2.jpg becomes
     // http://pcdn.500px.net/6151440/23d1e866fda841f169e5f1bc5a329a7c217392cd/4.jpg
-    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.net/.*)/[123](" + 
-                                  EXTS + ")"),
+    // But some profile icons need to become /1 rather than /4, eg:
+    // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/1.jpg?1 becomes
+    // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/4.jpg?1
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
+                                  EXTS + ")$"),
                                   "$1/4$2");
+    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
+                                  EXTS + ").+"),
+                                  "$1/1$2");
     
+    // someimage.com
+    // http://t1.someimage.com/TkscG18.jpg becomes
+    // http://i1.someimage.com/TkscG18.jpg
+    aImageSrc = aImageSrc.replace(/\/\/t([0-9]+\.someimage\.com\/)/,
+                                  "//i$1");
+                                  
     // For pbase.com (limited support; only works if the image exists as
     // 'large' size, and sometimes the actual image isn't on the same server
     // as the thumb and it doesn't work): change
@@ -2247,6 +2309,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(new RegExp("(\\.etsy\\.com/.*-web)[_-][0-9]+(" + EXTS + ")"),
                                   "$1$2");
     
+    // xmarks.com thumbs in category pages
+    // http://thumbs.xmarks.com/discover/thumbnail/read?cid=DRFT&id=13544052&size=Small becomes
+    // http://thumbs.xmarks.com/discover/thumbnail/read?cid=DRFT&id=13544052&size=Large
+    aImageSrc = aImageSrc.replace(/(\/\/thumbs\.xmarks\.com\/.*\/thumbnail\/read\?.*&size)=Small/,
+                                  "$1=Large");
+                                  
     // rhapsody.com
     // http://static.rhap.com/img/170x170/7/9/1/8/1328197_170x170.jpg becomes
     // http://static.rhap.com/img/500x500/7/9/1/8/1328197_500x500.jpg
@@ -2633,6 +2701,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
     // e.g. on pandora.com.
     aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
+
 
     // Using the thumb itself as source; don't annoy the user with
     // "too small" warnings, which would be quite common.

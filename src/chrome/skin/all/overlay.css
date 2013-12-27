@@ -75,7 +75,7 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   background-color: white !important;
   
   background-position: top left !important;
-  image-rendering: optimizeQuality;
+  /* image-rendering: optimizeQuality; */
 }
 #thumbnailzoomplus-panel-image-vbox {
   /*

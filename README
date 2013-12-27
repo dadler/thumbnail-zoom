@@ -50,9 +50,9 @@ In my developer profile in Firefox, I create a pointer file as follows
 (this should work on OSX or Linux but your directory may vary; on Windows see
 the mozilla link above).
 
-  cd "$HOME/Library/Application Support/Firefox/Profiles/dfminpsd.Aurora/extensions/"
+  cd "$HOME/Library/Application Support/Firefox/Profiles/"*"/extensions/"
   rm -f thumbnailZoom@dadler.github.com.xpi
-  echo /$HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom/src > thumbnailZoom@dadler.github.com
+  echo $HOME/Documents/p/ff-addons/tzp/thumbnail-zoom/src > thumbnailZoom@dadler.github.com
 
 where $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
 my git repository. 

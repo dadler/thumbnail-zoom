@@ -128,7 +128,7 @@ ThumbnailZoomPlus.PagesIndirect = {
                  " invocationNumber " + invocationNumber);
 
     // The first call to generator.send() passes in the generator itself.
-    let generator = yield;
+    let generator = yield undefined;
     
     let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -157,7 +157,7 @@ ThumbnailZoomPlus.PagesIndirect = {
 
     // Wait for headers to be available.
     this._logger.debug("_getImageFromLinkedPageGen: waiting for headers");
-    yield;
+    yield undefined;
     
     if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
       // This request is obsolete.
@@ -186,7 +186,7 @@ ThumbnailZoomPlus.PagesIndirect = {
       this._logger.debug("_getImageFromLinkedPageGen: waiting for body; readyState=" + req.readyState);
       this._logger.debug("_getImageFromLinkedPageGen:   invocationNumber=" + invocationNumber + 
                    "; this.invocationNumber=" + ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber);
-      yield;
+      yield undefined;
       if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
         // This request is obsolete.
         this._logger.debug("_getImageFromLinkedPageGen: aborting obsolete request.");
