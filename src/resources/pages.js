@@ -175,8 +175,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
-      // In June 2012 FB started rolling out new photo layouts on the wall.
+    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -1349,6 +1348,11 @@ ThumbnailZoomPlus.Pages.Others = {
       }
     }
 
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-P11996894.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-L11996894.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*[-\/])[TP]([0-9]+\.jpe?g.*)/, "$1L$2");
+
     // someimage.com
     // http://someimage.com/TkscG18 becomes
     // http://i1.someimage.com/TkscG18.jpg (but it doesn't always work)
@@ -2152,7 +2156,18 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://i.walmartimages.com/i/p/03/41/77/61/29/0341776129500_500X500.jpg
     aImageSrc = aImageSrc.replace(/(\.walmartimages\.com\/.*)_[0-9]+X[0-9]+\./,
                                   "$1_500X500.");
-                                  
+
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c_80.jpg?wid=58&hei=58&op_sharpen=1 or
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c_600.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/6322591/Infinity-Collection-Blue-Area-Rug-710-x-103-d2d88537-8712-4ea8-b910-9e60c589236c.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*)_[0-9]+(\.jpe?g).*/, "$1$2");
+    
+    // overstock.com:
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-P11996894.jpg becomes
+    // http://ak1.ostkcdn.com/images/products/3962805/Ultra-Non-slip-Rug-Pad-8-x-10-L11996894.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/ak[0-9]+\.ostkcdn\.com\/images\/.*[-\/])[TP]([0-9]+\.jpe?g.*)/, "$1L$2");
+
     // myway.com uses imgfarm.com
     // http://ak.imgfarm.com/images/ap/thumbnails//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg or
     // http://ak.imgfarm.com/images/ap/gallery//NSA-Phone_Records-Snowden_Girlfriend.sff_RPBW101_20130611214357.jpg become
