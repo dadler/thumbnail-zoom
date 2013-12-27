@@ -2043,7 +2043,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._setCursorAndBorderColor(aImageNode, flags);
     
     // Allow the user to use the context (right-click) menu item for
-    // "Save Enlarged Image As...".
+    // "Save Full-size Image As...".
     this._contextMenu.disabled = false;
     this._panelInfo.hidden = true;
 
@@ -2068,7 +2068,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * Closes the panel.
    * @param: clearContext: true iff we should entirely clear this popup's
    *         context.  False if we should hide the popup, but still remember
-   *         its image as context e.g. for Save Enlarged As...
+   *         its image as context e.g. for Save Full-size As...
    *         Note that the act of popping up the
    *         context menu causes the popup to lose focus.
    */

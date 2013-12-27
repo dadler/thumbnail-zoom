@@ -81,7 +81,7 @@
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Google Images">
 
 <!-- Context (right-click) menu -->
-<!ENTITY thumbnailzoomplus.context.download.label                "Save Enlarged Image As...">
+<!ENTITY thumbnailzoomplus.context.download.label                "Save Full-size Image As...">
 <!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">
 
 <!-- Other Strings -->
