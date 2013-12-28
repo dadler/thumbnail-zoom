@@ -170,7 +170,7 @@
           <column />
         </columns>
         <rows>
-          <hbox>
+          <hbox align="center">
             <checkbox preference="thumbnailzoomplus-options-enable-pref"
                     label="&thumbnailzoomplus.options.enable.checkbox.label;" />
             <spacer flex="1" />
