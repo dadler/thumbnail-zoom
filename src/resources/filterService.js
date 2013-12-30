@@ -347,24 +347,6 @@ ThumbnailZoomPlus.FilterService = {
       ThumbnailZoomPlus.setPref(pagePrefKey, !pageEnable);
     }
   },
-
-  isURLEnabled : function(url) {
-    ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
-    var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
-    var values = disabledRE.split(" ")
-    for (var i in values) {
-      var entry = values[i];
-      if (entry != "") {
-        ThumbnailZoomPlus._logToConsole("entry: " + entry);
-        var disabledExpr = new RegExp(entry);
-        if (disabledExpr.test(url)) {
-          ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
-          return false;
-        }
-      }
-    }
-    return true;
-  },
   
   /**
    * applyBaseURI applies the specified document's base URL to fill in

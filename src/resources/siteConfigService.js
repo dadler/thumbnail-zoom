@@ -38,7 +38,8 @@ const Cu = Components.utils;
 Cu.import("resource://thumbnailzoomplus/common.js");
 
 /**
- * The Filter Service.
+ * The SiteConfigService manages the Disabled Sites preference dialog
+ * and applying it to URLs.
  */
 ThumbnailZoomPlus.SiteConfigService = {
   /* Logger for this object. */
@@ -57,13 +58,17 @@ ThumbnailZoomPlus.SiteConfigService = {
     this._logger.trace("_init");
   },
 
+  /**
+   * setChromeDoc informs the service of the 'chrome' document from which it can get
+   * preference dialog widgets.  This is called from options.js.
+   */
   setChromeDoc : function(doc) {
     this._chrome = doc;
     this._addThisSiteButton = this._chrome.getElementById("thumbnailzoomplus-options-add-last-site");
     this.updateSiteInPrefsDialog();
   },
   
-  globToRegex : function(glob) {
+  _globToRegex : function(glob) {
     // converts a glob expression with ? and * wildcards to a regular expression.
     // http://stackoverflow.com/questions/5575609/javascript-regexp-to-match-strings-using-wildcards-and
     var specialChars = "\\^$*+?.()|{}[]";
@@ -88,16 +93,19 @@ ThumbnailZoomPlus.SiteConfigService = {
     return new RegExp(regexChars.join(""));
   },
 
-  isURLMatchedByGlob : function(glob, url) {
+  _isURLMatchedByGlob : function(glob, url) {
     if (glob == "") {
       return false;
     }
-    var re = this.globToRegex(glob);
+    var re = this._globToRegex(glob);
     ThumbnailZoomPlus._logToConsole("  re: " + re.source);
 
     return re.test(url);
   },
   
+  /**
+   * Returns true iff the specified url is allowed by the site configurations.
+   */
   isURLEnabled : function(url) {
     ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
     url = url.replace(this._protocolRegex, "");
@@ -106,7 +114,7 @@ ThumbnailZoomPlus.SiteConfigService = {
     for (var i in values) {
       var entry = values[i];
       ThumbnailZoomPlus._logToConsole("entry: " + entry);
-      if (this.isURLMatchedByGlob(entry, url)) {
+      if (this._isURLMatchedByGlob(entry, url)) {
         ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
         return false;
       }
@@ -124,6 +132,11 @@ ThumbnailZoomPlus.SiteConfigService = {
     return recentWindow && recentWindow.content ? ThumbnailZoomPlus.FilterService.getHostOfDoc(recentWindow.content.document, false) : null;
   },
 
+  /**
+   * updateSiteInPrefsDialog updates the _addThisSiteButton's label text
+   * to be Add or Remove and the current tab's site's name.  It also 
+   * enables/disables the button as appropriate.
+   */
   updateSiteInPrefsDialog : function() {
     if (! this._addThisSiteButton) {
       return;
@@ -145,12 +158,14 @@ ThumbnailZoomPlus.SiteConfigService = {
     this._addThisSiteButton.setAttribute("value", host + "/");
   },
   
+  /// Clears the specified list widget.
   _clearList : function(list) {
     for (var i=list.getRowCount() - 1; i >= 0; --i) {
       list.removeItemAt(i);
     }
   },
   
+  /// Creates and returns a listitem whose label is the specified url.
   _createSiteListRow : function(url) {
     var urlCell = this._chrome.createElement('listitem');
     urlCell.setAttribute('label',url);    
@@ -158,8 +173,9 @@ ThumbnailZoomPlus.SiteConfigService = {
     return urlCell;
   },
   
+  /// Sets the disabled sites list widget based on values in the preference.
   syncSitesListFromPreference : function(chromeDoc) {
-    // Sets the list widget based on values in the preference.
+    // background on preferences XUL:
     // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preferences_system/New_attributes?redirectlocale=en-US&redirectslug=Preferences_System%2FNew_attributes
     this.setChromeDoc(chromeDoc);
     ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsyncfrompreference");
@@ -188,7 +204,10 @@ ThumbnailZoomPlus.SiteConfigService = {
     return "";
   },
   
-  syncSitesListToPreference : function() {
+  /**
+   * Sets the preference to match items in the list widget.
+   */
+  _syncSitesListToPreference : function() {
     ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsynctopreference");
 
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
@@ -206,10 +225,12 @@ ThumbnailZoomPlus.SiteConfigService = {
   },
   
   /*
-   * adds or removes an entry.
-   * existingValue (if not null) is the default pattern for the site to be
-   *   added.
-   * If editing a pre-existing entry, that entry's list item is existingItem (else null).
+   * _updateSite adds or removes a disabled-site entry.
+   *
+   * existingValue is the default pattern for the site to be
+   *   added (if non-existent) or removed (if already existing); specify null to add a new
+   *   site without default pattern.
+   * When editing a pre-existing entry, that entry's list item is existingItem (else null).
    */
   _updateSite : function(existingValue, existingItem) {
     ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
@@ -225,13 +246,14 @@ ThumbnailZoomPlus.SiteConfigService = {
       return; // cancelled
     }    
     
-    // Update the widgets since syncSitesListToPreference will pull from them.
+    // Update the widgets since _syncSitesListToPreference will pull from them.
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     if (newValue == "") {
+      // Empty input field; remove site.
       if (existingItem) {
         list.removeChild(existingItem);
       }
-      this.syncSitesListToPreference();
+      this._syncSitesListToPreference();
       return;
     }
     if (existingItem) {
@@ -241,10 +263,15 @@ ThumbnailZoomPlus.SiteConfigService = {
       // add new item
       list.appendChild(this._createSiteListRow(newValue));
     }
-    this.syncSitesListToPreference();
+    this._syncSitesListToPreference();
     this.updateSiteInPrefsDialog();
   },
   
+  /**
+   * handleSiteListDoubleClick is called when the user double-clicks on an
+   * item in the disabled sites list.  It calls _updateSite to let the user
+   * edit the item's pattern.
+   */
   handleSiteListDoubleClick : function(event) {
     var target = event.target;
     while (target && target.localName != "listitem") {
@@ -279,11 +306,11 @@ ThumbnailZoomPlus.SiteConfigService = {
     for (var idx = items.length-1; idx >= 0; idx--) {
       var item = items[idx];
       var entry = item.getAttribute("label");
-      if (this.isURLMatchedByGlob(entry, url)) {
+      if (this._isURLMatchedByGlob(entry, url)) {
         list.removeChild(item);
       } 
     }
-    this.syncSitesListToPreference();
+    this._syncSitesListToPreference();
     this.updateSiteInPrefsDialog();
   },
     
@@ -294,7 +321,7 @@ ThumbnailZoomPlus.SiteConfigService = {
       var item = items[idx];
       list.removeChild(item);
     }
-    this.syncSitesListToPreference();
+    this._syncSitesListToPreference();
     this.updateSiteInPrefsDialog();
   }
 

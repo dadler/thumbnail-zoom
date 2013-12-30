@@ -755,7 +755,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._debugToConsole("<<<>>> Page URL rejected by disabledSitesRE: " + doc.documentURI);
         return;
       }
-        this._debugToConsole("Page URL allowed by disabledSitesRE: " + doc.documentURI);
+      this._debugToConsole("Page URL allowed by disabledSitesRE: " + doc.documentURI);
 
       doc.ThumbnailZoomPlus.addedListeners = this;
 
