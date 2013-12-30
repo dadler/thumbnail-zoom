@@ -309,6 +309,7 @@
                   disabled="true"
                   oncommand="ThumbnailZoomPlus.SiteConfigService.addThisSiteButtonPressed();" />
           <button label="Remove" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
+          <label>Changes apply after restarting</label><label>or reloading tabs/windows.</label>
         </vbox>
       </hbox>
     </tabpanel>
