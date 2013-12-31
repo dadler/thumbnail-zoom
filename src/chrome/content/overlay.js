@@ -4086,10 +4086,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _debugToConsole : function(msg) {
-    this._logger.debug("### CONSOLE: " + msg);
-    if (ThumbnailZoomPlus.getPref(this.PREF_PANEL_DEBUG, false)) {
-      ThumbnailZoomPlus._logToConsole(msg);
-    }
+    ThumbnailZoomPlus.debugToConsole(msg);
   }
   
 };

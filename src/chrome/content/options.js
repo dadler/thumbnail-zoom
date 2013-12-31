@@ -48,7 +48,7 @@ var ThumbnailZoomPlusOptions = {
                            getService(Components.interfaces.nsIClipboardHelper),
     
     init : function() {
-        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlusOptions.init()");
+        ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlusOptions.init()");
         ThumbnailZoomPlus.SiteConfigService.setChromeDoc(document);
     },
     

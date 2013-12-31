@@ -341,7 +341,14 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       this._logToConsole(preamble + ": ***** EXCEPTION *****: " + exception + 
                          " at " + exception.fileName + ":" + exception.lineNumber);
     },
-    
+      
+    debugToConsole : function(msg) {
+      this._logger.debug("### CONSOLE: " + msg);
+      if (this.getPref(this.PrefBranch + "panel.debug", false)) {
+        this._logToConsole(msg);
+      }
+    },
+      
     isPrivateBrowsing : function(win) {
       this._logger.trace("isPrivateBrowsing");
       

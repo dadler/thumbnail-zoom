@@ -98,7 +98,6 @@ ThumbnailZoomPlus.SiteConfigService = {
       return false;
     }
     var re = this._globToRegex(glob);
-    ThumbnailZoomPlus._logToConsole("  re: " + re.source);
 
     return re.test(url);
   },
@@ -107,18 +106,19 @@ ThumbnailZoomPlus.SiteConfigService = {
    * Returns true iff the specified url is allowed by the site configurations.
    */
   isURLEnabled : function(url) {
-    ThumbnailZoomPlus._logToConsole("  isURLEnabled " + url);
+    ThumbnailZoomPlus.debugToConsole("isURLEnabled " + url + " ...");
     url = url.replace(this._protocolRegex, "");
     var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     var values = disabledRE.split(" ")
     for (var i in values) {
       var entry = values[i];
-      ThumbnailZoomPlus._logToConsole("entry: " + entry);
+      // ThumbnailZoomPlus.debugToConsole("entry: " + entry);
       if (this._isURLMatchedByGlob(entry, url)) {
-        ThumbnailZoomPlus._logToConsole("Disabled by entry: " + entry);
+        ThumbnailZoomPlus.debugToConsole("  disabled by entry: " + entry);
         return false;
       }
     }
+
     return true;
   },
 
@@ -143,7 +143,7 @@ ThumbnailZoomPlus.SiteConfigService = {
     }
     var host = this._getCurrentTabHost();
     var url = this._getCurrentTabUrl();
-    ThumbnailZoomPlus._logToConsole("updateSiteInPrefsDialog for host " + host);
+    ThumbnailZoomPlus.debugToConsole("updateSiteInPrefsDialog for host " + host);
 
     if (host) {
       var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
@@ -178,24 +178,22 @@ ThumbnailZoomPlus.SiteConfigService = {
     // background on preferences XUL:
     // https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preferences_system/New_attributes?redirectlocale=en-US&redirectslug=Preferences_System%2FNew_attributes
     this.setChromeDoc(chromeDoc);
-    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsyncfrompreference");
+    ThumbnailZoomPlus.debugToConsole("thumbnailZoomPlus: onsyncfrompreference");
 
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     if (! list || ! list.getRowCount) {
       return;
     }
-    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: list # elements: " + list.getRowCount());
 
     list.style.visibility = "hidden";
     this._clearList(list);
     var that = this;
     
     var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
-    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: pref value is " +
+    ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: pref value is " +
                                     prefValue);
     prefValue.split(" ").forEach(function(entry) {
       if (entry != "") {
-        ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: entry = " + entry);
         list.appendChild(that._createSiteListRow(entry));
       }
     });
@@ -208,7 +206,7 @@ ThumbnailZoomPlus.SiteConfigService = {
    * Sets the preference to match items in the list widget.
    */
   _syncSitesListToPreference : function() {
-    ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: onsynctopreference");
+    ThumbnailZoomPlus.debugToConsole("thumbnailZoomPlus: onsynctopreference");
 
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     var items = list.getElementsByTagName("listitem");
@@ -217,7 +215,7 @@ ThumbnailZoomPlus.SiteConfigService = {
       var cell = items[idx];
       prefValue += cell.getAttribute("label") + " ";
     }
-    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: new pref value is " +
+    ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: new pref value is " +
                                     prefValue);
     ThumbnailZoomPlus.setPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
 
@@ -233,8 +231,8 @@ ThumbnailZoomPlus.SiteConfigService = {
    * When editing a pre-existing entry, that entry's list item is existingItem (else null).
    */
   _updateSite : function(existingValue, existingItem) {
-    ThumbnailZoomPlus._logToConsole("ThumbnailZoomPlus: _updateSite for " + 
-                                    existingValue);
+    ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: _updateSite for " + 
+                                      existingValue);
     
     // Prompt for edited or new value.  Include trailing spaces to make
     // the input field wider.

@@ -221,7 +221,7 @@ ThumbnailZoomPlus.FilterService = {
                                imageSource + "; got " + protocol);
             return null;
           }
-          ThumbnailZoomPlus._logToConsole("protocol: " + protocol);
+          this._logger.debug("protocol: " + protocol);
           host = uri.host;
           if (host == null) {
             this._logger.debug("    getHostOfDoc: Reject; couldn't get host from doc.src " + 
