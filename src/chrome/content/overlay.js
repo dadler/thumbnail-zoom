@@ -2599,7 +2599,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        this._panel.state);
 
     this._panelXulImage.hidden = true;
-    this._panelHtmlImage.hidden = false;
+    this._panelHtmlImage.hidden = true;
     if (this._panel.state != "open") {
       this._logger.debug("_showStatusIcon: popping up to show " + iconName);
       this._panel.openPopup(aImageNode, "end_before", this._pad, this._pad, false, false);
