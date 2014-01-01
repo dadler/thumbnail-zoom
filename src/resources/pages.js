@@ -2175,6 +2175,17 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.imgfarm\.com\/images\/.*\/)(?:gallery|thumbnails)\/+(.*\.jpg)/, 
                                   "$1$2");
     
+    // http://toronto.kijiji.ca/ ; http://petites-annonces.kijiji.be/ ; http://oesterreich.kijiji.at ; http://intoko.kijiji.com.tr ; kijiji.com.tw
+    // (ebay classified outside the US):
+    // http://i.ebayimg.com/00/s/NzkwWDEwMDA=/$%28KGrHqZ,!rIFG,bz!vV7BRnYvVH,Qg~~48_14.JPG becomes
+    // http://i.ebayimg.com/00/s/NzkwWDEwMDA=/$%28KGrHqZ,!rIFG,bz!vV7BRnYvVH,Qg~~48_10.JPG
+    aImageSrc = aImageSrc.replace(/(i\.ebayimg\.com\/00\/.*)_(?:14|74)(\.jpg)/i, "$1_10$2");
+    
+    // http://www.kijiji.it
+    // http://img1.annuncicdn.it/4f/90/4f90e626b2cca6c11a7614a93c16d2fb_thumbnail.jpg becomes
+    // http://img1.annuncicdn.it/4f/90/4f90e626b2cca6c11a7614a93c16d2fb_orig.jpg
+    aImageSrc = aImageSrc.replace(/(img[0-9]+\.annuncicdn\.it\/.*)_thumbnail(\.jpg)/i, "$1_orig$2");
+    
     if (verbose) ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getZoomImage p30: so far have " + aImageSrc);
 
