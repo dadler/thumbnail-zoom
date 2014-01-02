@@ -1169,6 +1169,14 @@ ThumbnailZoomPlus.Pages.Others = {
   host: /.*/,
   preferLinkOverThumb: true,
   
+  /*
+     A note about imgur.com URLs:
+     - imgur.com/a/ is an html page of an album (hosting multiple images).
+     - imgur.com/gallery/ is an html page of a single image or an album (you
+       can't tell which from the URL).
+     - Album links typically but not always appear e.g. on reddit.com in /a/ form.
+  */
+
   // imgur.com links (except imgur.com/a/) w/o image type suffix give page containing image.
   // Allow that; we'll add suffix in getZoomImage.  Also allow youtube links,
   // which getZoomImage will convert to a youtube thumb.
@@ -1685,7 +1693,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         // Return all the images we matched (eg for imgur.com albums).
         var matches = new Array();
         while (match) {
-          matches.push(match[1]);
+          if (match[1] != "http://i.imgur.com/" && match[1] != "https://i.imgur.com/") {
+            matches.push(match[1]);
+          }
           match = re.exec(aHTMLString);
         }
         if (matches.length == 1) {
@@ -1744,19 +1754,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
    * Returns a URL string, and array of them, or null.
    */
   _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
-  {
-    /*
-       A note about imgur.com URLs:
-       - imgur.com/a/ is an html page of an album (hosting multiple images).
-       - imgur.com/gallery/ is an html page of a single image or an album (you
-         can't tell which from the URL).
-       - Album links typically but not always appear e.g. on reddit.com in /a/ form.
-     */
-    if (/imgur\.com\/a\/./.test(pageUrl)) {
-        flags.captionPrefix = "[gallery] ";
-        flags.borderColor = "#aaffaa"; // light green
-    }
-    
+  {    
     let logger = ThumbnailZoomPlus.Pages._logger;
     let result = this._getImgFromHtmlText(aHTMLString, flags);
     logger.debug("_getImageFromHtml: from _getImgFromHtmlText got " + result);

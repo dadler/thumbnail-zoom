@@ -131,6 +131,8 @@ ThumbnailZoomPlusChrome.Overlay = {
      tab, open in new window, and save as. */
   _currentImage : null,
 
+  _currentPopupFlags : null,
+  
   _galleryImageUrls : null,
   _galleryPosition : 0,
   
@@ -325,6 +327,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption = null;
     this._panelInfo = null;
     this._currentImage = null;
+    this._currentPopupFlags = null;
     this._galleryImageUrls = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(ThumbnailZoomPlus.PrefBranch, this);
@@ -1526,9 +1529,12 @@ ThumbnailZoomPlusChrome.Overlay = {
                          "; type=" + typeof getZoomImageResult);
 
     if ("[object Array]" == Object.prototype.toString.call(getZoomImageResult)) {
+        // Multi-image gallery.
         this._galleryImageUrls = getZoomImageResult;
         this._galleryPosition = 0;
         var zoomImageSrc = getZoomImageResult[0];
+        flags.captionPrefix = "1 of " + getZoomImageResult.length + ": ";
+        flags.borderColor = "#aaffaa"; // light green
         this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage detected " +  getZoomImageResult.length +
                              " gallery images.");
     } else {
@@ -2080,6 +2086,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._originalURI = this._currentWindow.document.documentURI;
     this._currentImage = aImageSrc;
+    this._currentPopupFlags = flags;
     
     this._setupCaption(aImageNode, flags.captionPrefix);
     this._setCursorAndBorderColor(aImageNode, flags);
@@ -2148,6 +2155,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (clearContext) {
         this._contextMenu.disabled = true;
         this._currentImage = null;
+        this._currentPopupFlags = null;
         this._galleryImageUrls = null;
       }
       this._timer.cancel();
@@ -2478,10 +2486,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
                            aImageSrc);
       if (aImageSrc && this._currentThumb) {
-        // use default flags; TODO: ought to use same flags as prior popup.
-        let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
-        flags.requireImageBiggerThanThumb = false;
-        flags.imageSourceNode = this._currentThumb;
+        this._currentPopupFlags.requireImageBiggerThanThumb = false;
+        this._currentPopupFlags.imageSourceNode = this._currentThumb;
+        this._currentPopupFlags.captionPrefix = (this._galleryPosition+1) + " of " +
+                                                 this._galleryImageUrls.length + ": ";
+        this._currentPopupFlags.borderColor = this._galleryPosition == 0 ?
+                                                "#aaffaa" : // light green
+                                                "#668866"; // dark green
+
         this._currentImage = aImageSrc;
         this._debugToConsole("ThumbnailZoomPlus: >>> [ or ] launching \n" +
                              aImageSrc);
@@ -2489,7 +2501,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // displaying the new image will close the current one; we don't
         // want that to cause a popup of the current image again.
         this._setIgnoreBBoxPageRelative();
-        this._showZoomImage(aImageSrc, flags, this._currentThumb,
+        this._showZoomImage(aImageSrc, this._currentPopupFlags, this._currentThumb,
                             aEvent);
       }
 
