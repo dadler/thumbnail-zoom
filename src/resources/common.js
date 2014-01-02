@@ -334,7 +334,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      *   try {
      *     ...
      *   } catch (e) {
-     *     ThumbnailZoomPlus._logExceptionToConsole("_getImageFromLinkedPageGen", e);
+     *     ThumbnailZoomPlus._logExceptionToConsole("_getImage", e);
      *   }
      */
     _logExceptionToConsole : function(preamble, exception) {
