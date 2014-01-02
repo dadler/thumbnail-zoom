@@ -216,7 +216,7 @@ ThumbnailZoomPlus.PagesIndirect = {
   // getImageFromLinkedPage returns the URL of an image determined by analyzing
   // the html at the specified URL.  
   // getImageFromHtmlFunc() is supplied by the caller, and is called as:
-  //   getImageFromHtmlFunc(doc, pageUrl,aHTMLString).
+  //   getImageFromHtmlFunc(doc, pageUrl,aHTMLString).  Returns "deferred".
   getImageFromLinkedPage : function(doc, pageUrl, flags, invocationNumber, pageCompletionFunc,
                                     getImageFromHtmlFunc)
   {

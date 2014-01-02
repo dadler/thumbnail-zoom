@@ -1705,6 +1705,13 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return null;  
   },
 
+  /**
+   * tries to get an image URL from the aHTMLString, either via
+   * _getImgFromHtmltext (raw text parsing) or via getImgFromSelectors
+   * (html-based CSS selectors to find the appropriate node).
+   *
+   * Returns a URL string or null.
+   */
   _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
   {
     if (/imgur\.com\/a\/./.test(pageUrl)) {
