@@ -131,6 +131,9 @@ ThumbnailZoomPlusChrome.Overlay = {
      tab, open in new window, and save as. */
   _currentImage : null,
 
+  _galleryImageUrls : null,
+  _galleryPosition : 0,
+  
   // The image object which is currently being loaded (as in new Image ...)
   _imageObjectBeingLoaded : null,
   
@@ -322,6 +325,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption = null;
     this._panelInfo = null;
     this._currentImage = null;
+    this._galleryImageUrls = null;
     this._contextMenu = null;
     this._preferencesService.removeObserver(ThumbnailZoomPlus.PrefBranch, this);
   },
@@ -1452,7 +1456,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = this;
     /*
      * completionFunc is a function which ThumbnailZoomPlus.FilterService
-     * .getZoomImage() calls.  It passes in the zoomImageSrc and a flag
+     * .getZoomImage() calls.  It passes in the zoomImageSrc or an array
+     * of them and a flag
      * indicating whether it is being called as a deferred callback.
      * It returns a status just like _tryImageSource() returns
      * (except never "deferred").
@@ -1516,7 +1521,21 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getZoomImageCompletionImmediate : function(aDocument, aEvent, aPage, node,
                                               imageSourceNode, 
                                               flags, pageName,
-                                              zoomImageSrc) {
+                                              getZoomImageResult) {
+    this._debugToConsole("_getZoomImageCompletionImmediate: getZoomImageResult=" + getZoomImageResult +
+                         "; type=" + typeof getZoomImageResult);
+
+    if ("[object Array]" == Object.prototype.toString.call(getZoomImageResult)) {
+        this._galleryImageUrls = getZoomImageResult;
+        this._galleryPosition = 0;
+        var zoomImageSrc = getZoomImageResult[0];
+        this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage detected " +  getZoomImageResult.length +
+                             " gallery images.");
+    } else {
+        var zoomImageSrc = getZoomImageResult;
+        this._galleryImageUrls = null;
+    }
+    
     if (zoomImageSrc == "") {
       this._logger.debug("_getZoomImageCompletion: getZoomImage returned '' (matched but disabled by user).");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with ''");
@@ -2119,7 +2138,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _closePanel : function(clearContext) {
     try {
-      // When called from _handlePageHide after closing window with Control+W
+      // Note: When called from _handlePageHide after closing window with Control+W
       // while popup is up, some of the statements below raise exceptions
       // e.g. there is no this._contextMenu.  I suspect it's because the
       // chrome is already being destroyed when this is called.  So we
@@ -2129,6 +2148,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       if (clearContext) {
         this._contextMenu.disabled = true;
         this._currentImage = null;
+        this._galleryImageUrls = null;
       }
       this._timer.cancel();
       this._removeListenersWhenPopupHidden();
@@ -2454,7 +2474,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // left bracket and right bracket go to previous/next URL numerically.
       this._logger.debug("_doHandleKeyDown: increment/decrement URL");
       let delta = aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ? -1 : +1;
-      let aImageSrc = this._offsetUrl(this._currentImage, delta);
+      let aImageSrc = this._getAdjacentImage(this._currentImage, delta);
       this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
                            aImageSrc);
       if (aImageSrc && this._currentThumb) {
@@ -2576,6 +2596,23 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.trace("_handleHashChange");
     that._debugToConsole("_handleHashChange: _closePanel(true)");
     that._closePanel(true);
+  },
+  
+  /**
+   * _getAdjacentImage returns the URL of the 'adjacent' image, meaning the one
+   * before or after the current one, according to delta (-1 or +1).
+   * For galleries, this updates the current gallery position and returns the
+   * corresponding image.  For other images it tries to increment/decrement
+   * a number in the URL.
+   */
+  _getAdjacentImage : function(url, delta) {
+    if (this._galleryImageUrls) {
+      var length =this._galleryImageUrls.length;
+      this._galleryPosition = (this._galleryPosition + delta + length) % length;
+      return this._galleryImageUrls[this._galleryPosition];
+    } else {
+      return this._offsetUrl(url, delta)
+    }
   },
   
   /**

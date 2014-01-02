@@ -583,12 +583,13 @@ ThumbnailZoomPlus.FilterService = {
 
   /**
    * Gets the zoomed image source, using the page's getZoomImage().
-   * Sends the image source to the specified completionFunc
+   * Sends the image source or array of image sources to the specified completionFunc
    * @param aImageSrc the image source url.
    * @param flags: an object which this function may modify.  Members:
    *   see PopupFlags() constructor above.
    * @param aPage the filtered page.
-   * @param completionFunc: will be called with the image source and a
+   * @param completionFunc: will be called with the image source or an
+   *   array of them, and a
    *   flag which is true iff getting the zoom image is deferred.  Note that
    *   this call will come from getZoomImage if not deferred, or from
    *   somewhere else later if deferred.  Completion func returns a status

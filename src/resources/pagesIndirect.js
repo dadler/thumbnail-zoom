@@ -207,13 +207,15 @@ ThumbnailZoomPlus.PagesIndirect = {
     aHTMLString = aHTMLString.replace(/\<\/?noscript.*\>/ig, "");
     this._logger.debug("  Got doc type " + docType + ":" + aHTMLString);
     
-    let url = getImageFromHtmlFunc(doc, pageUrl, flags, aHTMLString);
-    
-    pageCompletionFunc(url);
+    // result is a url or an array of them.
+    let result = getImageFromHtmlFunc(doc, pageUrl, flags, aHTMLString);
+
+    pageCompletionFunc(result);
   },
 
 
-  // getImageFromLinkedPage returns the URL of an image determined by analyzing
+  // getImageFromLinkedPage calls pageCompletionFunc with the URL of an image or
+  // an array of them, as determined by analyzing
   // the html at the specified URL.  
   // getImageFromHtmlFunc() is supplied by the caller, and is called as:
   //   getImageFromHtmlFunc(doc, pageUrl,aHTMLString).  Returns "deferred".

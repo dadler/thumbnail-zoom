@@ -1667,8 +1667,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return match[1];
     }
         
-    // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
-    re = /<meta +property=["']og:image["'] +content=[\"']([^\"']+)["']/;
+    // imgur.com albums, flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
+    re = /<meta +property=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (! match) {
@@ -1678,11 +1678,21 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       match = re2.exec(aHTMLString);
     }
     if (match) {
+      // Return this unless it's a yfrog video or ebay thumb,
+      // for which we can get a larger image via getImgFromSelectors().
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1])) {
-        // Return this unless it's a yfrog video or ebay thumb,
-        // for which we can get a larger image via getImgFromSelectors().
-        return match[1];
+        // Return all the images we matched (eg for imgur.com albums).
+        var matches = new Array();
+        while (match) {
+          matches.push(match[1]);
+          match = re.exec(aHTMLString);
+        }
+        if (matches.length == 1) {
+          return matches[1];
+        } else {
+          return matches;
+        }
       }
     }
 
@@ -1731,7 +1741,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
    * _getImgFromHtmltext (raw text parsing) or via getImgFromSelectors
    * (html-based CSS selectors to find the appropriate node).
    *
-   * Returns a URL string or null.
+   * Returns a URL string, and array of them, or null.
    */
   _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
   {
@@ -1787,27 +1797,30 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return null;
     }
     
-    result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
-    
-    if (/dailymotion\.com\/|liveleak\.com\/|blip\.tv\//.test(aHTMLString)) {
-      flags.borderColor = "#CC181E"; // youtube red
+    if ("[object Array]" != Object.prototype.toString.call(result)) {
+      // We have a single result (not a gallery).  Process it.  We assume galleries don't need this.
+      result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
+        
+      if (/dailymotion\.com\/|liveleak\.com\/|blip\.tv\//.test(aHTMLString)) {
+        flags.borderColor = "#CC181E"; // youtube red
+      }
+
+      /*
+       * Special rules to get bigger images from the result so far
+       */
+
+      // ebay:
+      // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
+      // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
+      result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
+      // or _3 for somewhat lower rez?
+
+      // flickr
+      result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
+        
+      // Thumbnail (to potentially get larger thumb from the URL we have so far)
+      result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
     }
-
-    /*
-     * Special rules to get bigger images from the result so far
-     */
-
-    // ebay:
-    // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_1.JPG becomes
-    // http://i.ebayimg.com/t/.../s/ODAwWDQ5Ng==/$%28KGrHqRHJD!E+Ug!B9sIBQPCnqVgSw~~60_3.JPG becomes
-    result = result.replace(/(\.ebayimg\.com\/.*~~(?:60)?)_[0-9]+(\.jpg)/i, "$1_57$2");
-    // or _3 for somewhat lower rez?
-
-    // flickr
-    result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Flickr.aPage, docInfo.body, result);
-    
-    // Thumbnail (to potentially get larger thumb from the URL we have so far)
-    result = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Thumbnail.aPage, docInfo.body, result);
 
     return result;
   }
