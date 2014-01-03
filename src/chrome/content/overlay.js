@@ -2337,12 +2337,15 @@ ThumbnailZoomPlusChrome.Overlay = {
         var delta = (aEvent.keyCode == aEvent.DOM_VK_DOWN) ? 2 : -2;
         this._currentWindow.scrollByLines(delta);
       }
+      
+    /* DISABLED so left/right can move through gallery:
     } else if (aEvent.keyCode == aEvent.DOM_VK_LEFT ||
                aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
       if (aEvent.type == "keydown") {
         var delta = (aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -16 : 16;
         this._currentWindow.scrollBy(delta, 0);
       }
+    */
     } else {
     
       // Send synthetic event to the web page itself.
@@ -2478,10 +2481,13 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._redisplayPopup();
       
     } else if (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
-               aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET) {
+               aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET ||
+               aEvent.keyCode == aEvent.DOM_VK_LEFT ||
+               aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
       // left bracket and right bracket go to previous/next URL numerically.
       this._logger.debug("_doHandleKeyDown: increment/decrement URL");
-      let delta = aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ? -1 : +1;
+      let delta = (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
+                   aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -1 : +1;
       let aImageSrc = this._getAdjacentImage(this._currentImage, delta);
       this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
                            aImageSrc);
