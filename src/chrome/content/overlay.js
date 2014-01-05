@@ -2303,6 +2303,8 @@ ThumbnailZoomPlusChrome.Overlay = {
             aEvent.keyCode == aEvent.DOM_VK_HYPHEN_MINUS || // Firefox 15.0 and newer
             aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
             aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET ||
+            aEvent.keyCode == aEvent.DOM_VK_LEFT ||
+            aEvent.keyCode == aEvent.DOM_VK_RIGHT ||
             (aEvent.keyCode >= aEvent.DOM_VK_A &&
              aEvent.keyCode <= aEvent.DOM_VK_Z) ||
             aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
@@ -2338,9 +2340,9 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._currentWindow.scrollByLines(delta);
       }
       
-    /* DISABLED so left/right can move through gallery:
     } else if (aEvent.keyCode == aEvent.DOM_VK_LEFT ||
                aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
+    /* DISABLED so left/right can move through gallery:
       if (aEvent.type == "keydown") {
         var delta = (aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -16 : 16;
         this._currentWindow.scrollBy(delta, 0);
