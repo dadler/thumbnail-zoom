@@ -616,7 +616,7 @@ ThumbnailZoomPlus.Pages.Flickr = {
       let imgNodes = aNode.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: returning " +
-        imgNodes[0]);
+                                              imgNodes[0]);
       }
       return imgNodes[0];
     }
@@ -1622,6 +1622,28 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return aImageSrc; 
   },
 
+  _allMatchesOf : function(re, firstMatch, aHTMLString) {
+    // Return all the images we matched (eg for imgur.com albums).
+    var matches = new Array();
+    var match = firstMatch;
+    while (match) {
+      var url = match[1];
+      // append the url if it's not a dummy imgur url and not a dup
+      // of the previous one (both of which I've seen on imgur.com).
+      if (url != "http://i.imgur.com/" &&
+          url != "https://i.imgur.com/" &&
+          (matches.length == 0 || matches[matches.length-1] != url) ) {
+        matches.push(url);
+      }
+      match = re.exec(aHTMLString);
+    }
+    if (matches.length == 1) {
+      return matches[1];
+    } else {
+      return matches;
+    }
+  },
+  
   _getImgFromHtmlText : function(aHTMLString, flags) {
     let logger = ThumbnailZoomPlus.Pages._logger;
     logger.trace("_getImgFromHtmlText");
@@ -1690,19 +1712,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       // for which we can get a larger image via getImgFromSelectors().
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1])) {
-        // Return all the images we matched (eg for imgur.com albums).
-        var matches = new Array();
-        while (match) {
-          if (match[1] != "http://i.imgur.com/" && match[1] != "https://i.imgur.com/") {
-            matches.push(match[1]);
-          }
-          match = re.exec(aHTMLString);
-        }
-        if (matches.length == 1) {
-          return matches[1];
-        } else {
-          return matches;
-        }
+        return this._allMatchesOf(re, match, aHTMLString);
       }
     }
 
