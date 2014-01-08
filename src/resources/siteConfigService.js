@@ -68,11 +68,12 @@ ThumbnailZoomPlus.SiteConfigService = {
     this.updateSiteInPrefsDialog();
   },
   
-  _globToRegex : function(glob) {
+  _globToRegex : function(glob, ignoreProtocol) {
     // converts a glob expression with ? and * wildcards to a regular expression.
     // http://stackoverflow.com/questions/5575609/javascript-regexp-to-match-strings-using-wildcards-and
     var specialChars = "\\^$*+?.()|{}[]";
     var regexChars = ["^"];
+    var ignoreLeadingSlashes = false;
     for (var i = 0; i < glob.length; ++i) {
         var c = glob.charAt(i);
         switch (c) {
@@ -82,38 +83,53 @@ ThumbnailZoomPlus.SiteConfigService = {
             case '*':
                 regexChars.push(".*");
                 break;
+            case ':':
+                if (ignoreProtocol) {
+                    regexChars = ["^"];
+                    ignoreProtocol = false;
+                    ignoreLeadingSlashes = true;
+                }
+                break;
+            case '/':
+                ignoreProtocol = false;
+                if (ignoreLeadingSlashes) {
+                    break;
+                }
+                // fall through to default case.
+                
             default:
                 if (specialChars.indexOf(c) >= 0) {
                     regexChars.push("\\");
                 }
                 regexChars.push(c);
+                ignoreLeadingSlashes = false;
         }
     }
     regexChars.push("$");
     return new RegExp(regexChars.join(""));
   },
 
-  _isURLMatchedByGlob : function(glob, url) {
+  _isURLMatchedByGlob : function(glob, url1, url2, ignoreProtocol) {
     if (glob == "") {
       return false;
     }
-    var re = this._globToRegex(glob);
+    var re = this._globToRegex(glob, ignoreProtocol);
 
-    return re.test(url);
+    return re.test(url1) || re.test(url2);
   },
   
   /**
    * Returns true iff the specified url is allowed by the site configurations.
    */
-  isURLEnabled : function(url) {
+  isURLEnabled : function(url, ignoreProtocol) {
     ThumbnailZoomPlus.debugToConsole("isURLEnabled " + url + " ...");
-    url = url.replace(this._protocolRegex, "");
+    var urlWithoutProtocol = url.replace(this._protocolRegex, "");
     var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     var values = disabledRE.split(" ")
     for (var i in values) {
       var entry = values[i];
       // ThumbnailZoomPlus.debugToConsole("entry: " + entry);
-      if (this._isURLMatchedByGlob(entry, url)) {
+      if (this._isURLMatchedByGlob(entry, url, urlWithoutProtocol, ignoreProtocol)) {
         ThumbnailZoomPlus.debugToConsole("  disabled by entry: " + entry);
         return false;
       }
@@ -146,7 +162,7 @@ ThumbnailZoomPlus.SiteConfigService = {
     ThumbnailZoomPlus.debugToConsole("updateSiteInPrefsDialog for host " + host);
 
     if (host) {
-      var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
+      var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url, true);
       var operation = ruleExists ? "Remove " : "Add ";
       var label = operation + host;
       this._addThisSiteButton.removeAttribute("disabled");
@@ -285,7 +301,7 @@ ThumbnailZoomPlus.SiteConfigService = {
   
   addThisSiteButtonPressed : function() {
     var url = this._addThisSiteButton.getAttribute("value");
-    var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url);
+    var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url, true);
     if (ruleExists) {
       this._removeMatchingSites(url);
     } else {
@@ -299,12 +315,13 @@ ThumbnailZoomPlus.SiteConfigService = {
   },
 
   _removeMatchingSites : function(url) {
+    var urlWithoutProtocol = url.replace(this._protocolRegex, "");
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
     var items = list.getElementsByTagName("listitem");
     for (var idx = items.length-1; idx >= 0; idx--) {
       var item = items[idx];
       var entry = item.getAttribute("label");
-      if (this._isURLMatchedByGlob(entry, url)) {
+      if (this._isURLMatchedByGlob(entry, url, url, true)) {
         list.removeChild(item);
       } 
     }

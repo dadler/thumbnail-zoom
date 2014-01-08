@@ -751,7 +751,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         doc.ThumbnailZoomPlus.addedListeners._ignoreBBox.yMax =  99999;
       }
       
-      if (!ThumbnailZoomPlus.SiteConfigService.isURLEnabled(doc.documentURI)) {
+      if (!ThumbnailZoomPlus.SiteConfigService.isURLEnabled(doc.documentURI, false)) {
         this._debugToConsole("<<<>>> Page URL rejected by disabledSitesRE: " + doc.documentURI);
         return;
       }
