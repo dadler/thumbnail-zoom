@@ -2284,6 +2284,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       flags.borderColor = "#CC181E"; // youtube red
     }
 
+    // http://x1.fap.to/images/thumb/40/967/123456789.jpg becomes
+    // http://fap.to/images/full/40/967/123456789.jpg
+    aImageSrc = aImageSrc.replace(/\/\/x[0-9]*\.fap\.to\/images\/(mini|thumb)\//, "//fap.to/images/full/");
+    
     // For some sites where /images/thumb/(digits) changes thumb to full.
     // This really belongs more in the Others rule, but it often wouldn't
     // work since it'd instead follow the <a> link around the image.
