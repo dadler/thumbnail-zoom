@@ -1807,6 +1807,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|(//[a-z0-9]+\\.google\\.com?[.a-z]*/.*[/?&]lyrs=)" // google maps tiles
                           + "|(//(maps|khms.*)\\.google\\.com?[.a-z]*/)" // google maps user photo popups, etc.
                           + "|(//.*\\.gstatic\\.com?[.a-z]*/)" // google maps button images, google drive file type icons
+                          + "|//.*opencyclemap\\.org/" // openStreetMap.org tiles
                           + "|(//[^/]*\.google\\.com?[.a-z]*/forum/.*\\.cache\\.(png|gif))" // groups.google.com, productforums.google.com
                           + "|(//.*maptile.lbs.ovi.com/)" // yahoo maps tiles
                           + "|(//sh\\.deviantart\\.net/shadow/)" // deviantart frame around thumbs
