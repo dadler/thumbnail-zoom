@@ -1051,7 +1051,7 @@ ThumbnailZoomPlus.Pages.IMDb = {
 };
 
 /**
- * Imgur
+ * Imgur images (not galleries)
  */
 ThumbnailZoomPlus.Pages.Imgur = {
   key: "imgur",
@@ -1060,7 +1060,7 @@ ThumbnailZoomPlus.Pages.Imgur = {
   imageRegExp: /(i\.)?imgur\.com\//,
   
   getZoomImage : function(aImageSrc, node, flags) {
-    let rex = new RegExp(/(\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
+    let rex = new RegExp(/(imgur\.com\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
   }
@@ -1178,7 +1178,7 @@ ThumbnailZoomPlus.Pages.Others = {
   imageRegExp: new RegExp(
       EXTS + "([?&].*)?$"
     + "|tumblr.com/(photo/|tumblr_)"
-    + "|imgur\\.com/(gallery/)?(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
+    + "|imgur\\.com/(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
     + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
@@ -1203,7 +1203,7 @@ ThumbnailZoomPlus.Pages.Others = {
     imageDisallowRegExp: new RegExp(
       // We disallow certain sites where
       // we know an image-link link is really an html page (such as an imgur gallery).
-      "^https?:\/\/([^/]*\.)?(imgur\\.com/a/|image.aven\\.net/img\\.php|image.enue\\.com/img\\.php)"
+      "^https?:\/\/([^/]*\.)?(imgur\\.com/(?:a|gallery)/|image.aven\\.net/img\\.php|image.enue\\.com/img\\.php)"
     // end
     , "i"),
                           
@@ -1452,9 +1452,8 @@ ThumbnailZoomPlus.Pages.Others = {
                                   "$1i.lvme.me/$2.jpg");
                                   
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
-    // Also turn http://imgur.com/gallery/24Av1.jpg into http://imgur.com/24Av1.jpg
-    let imgurRex = new RegExp(/(imgur\.com\/)(gallery\/)?([^\/&#]+)([&#].*)?/);
-    aImageSrc = aImageSrc.replace(imgurRex, "$1$3");
+    let imgurRex = new RegExp(/(imgur\.com\/)([^\/&#]+)([&#].*)?/);
+    aImageSrc = aImageSrc.replace(imgurRex, "$1$2");
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
     aImageSrc = aImageSrc.replace(quickmemeEx, "i.qkme.me/$1");
@@ -1547,7 +1546,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // Expression Tips:
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
-  imageRegExp: new RegExp(  "imgur\\.com/a/"
+  imageRegExp: new RegExp(  "imgur\\.com/(?:a|gallery)/"
                           + "|\\.ebay\\.com/(itm|viewitem|ebaymotors|ctg)|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
                           + "|\\.ebay\\.com/ws/eBayISAPI\\.dll\\?viewItem"
                           + "|flickr\\.com/photos/.*/[0-9]{7,20}/"
@@ -1686,7 +1685,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       let result = match[1];
       result = result.replace(/w=[0-9]+&/, "w=640&").replace(/h=[0-9]+&/, "h=480&");
 
-      if (/imgur\.com/.test(result) && ! EXTS_RE.test(result)) {
+      if (/imgur\.com\/(?!gallery).*$/.test(result) && ! EXTS_RE.test(result)) {
         result = result + ".jpg";
       }
       return result;
@@ -1714,6 +1713,13 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
    */
   _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
   {
+    /*
+       A note about imgur.com URLs:
+       - imgur.com/a/ is an html page of an album (hosting multiple images).
+       - imgur.com/gallery/ is an html page of a single image or an album (you
+         can't tell which from the URL).
+       - Album links typically but not always appear e.g. on reddit.com in /a/ form.
+     */
     if (/imgur\.com\/a\/./.test(pageUrl)) {
         flags.captionPrefix = "[gallery] ";
         flags.borderColor = "#aaffaa"; // light green
