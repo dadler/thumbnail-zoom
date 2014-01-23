@@ -189,6 +189,27 @@ ThumbnailZoomPlus.SiteConfigService = {
     return urlCell;
   },
   
+  _insertListItemSorted : function(list, label) {
+    var low = 0, high = list.getRowCount() - 1;
+
+    while (low <= high) {
+        var i = Math.floor((low + high) / 2);
+        var probeItem = list.getItemAtIndex(i);
+        var probeValue = probeItem.getAttribute("label");
+        if (probeValue < label) { low = i + 1; continue; };
+        if (probeValue > label) { high = i - 1; continue; };
+        
+        // found it.
+        probeItem.setAttribute("label", label);
+        return;
+    }
+    // Item not found.
+    if (probeValue < label) {
+        i = i + 1;
+    }
+    list.insertItemAt(i, label);
+  },
+  
   /// Sets the disabled sites list widget based on values in the preference.
   syncSitesListFromPreference : function(chromeDoc) {
     // background on preferences XUL:
@@ -208,7 +229,9 @@ ThumbnailZoomPlus.SiteConfigService = {
     var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: pref value is " +
                                     prefValue);
-    prefValue.split(" ").forEach(function(entry) {
+    var prefValues = prefValue.split(" ");
+    prefValues.sort();
+    prefValues.forEach(function(entry) {
       if (entry != "") {
         list.appendChild(that._createSiteListRow(entry));
       }
@@ -272,10 +295,11 @@ ThumbnailZoomPlus.SiteConfigService = {
     }
     if (existingItem) {
       // update pattern of existing item
-      existingItem.setAttribute("label", newValue);
+      list.removeChild(existingItem);
+      this._insertListItemSorted(list, newValue);
     } else {
       // add new item
-      list.appendChild(this._createSiteListRow(newValue));
+      this._insertListItemSorted(list, newValue);
     }
     this._syncSitesListToPreference();
     this.updateSiteInPrefsDialog();
