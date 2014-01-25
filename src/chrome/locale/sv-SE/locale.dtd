@@ -71,6 +71,7 @@
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ingen">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Allmänt">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Aktivera/inaktivera för följande webbplatser">
+<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Disabled Sites">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul

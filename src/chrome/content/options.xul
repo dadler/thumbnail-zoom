@@ -35,13 +35,12 @@
 
 <!DOCTYPE overlay SYSTEM "chrome://thumbnailzoomplus/locale/locale.dtd">
 
-<!-- On Windows only the title is visible; on Mac only the prefpane is visible.
-     So we set both the same. -->
 <prefwindow id="thumbnailzoomplus-options-window"
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.window.title;" 
+  <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.general.groupbox.caption;"
+      image="chrome://thumbnailzoomplus/skin/images/prefs-icon-gear32.png"
             flex="1">
     <preferences>
       <preference id="thumbnailzoomplus-options-enable-pref"
@@ -84,85 +83,12 @@
         name="extensions.thumbnailzoomplus.panel.savefilename" type="string"/>
       <preference id="thumbnailzoomplus-options-hotkeys-pref"
         name="extensions.thumbnailzoomplus.panel.hotkeys" type="bool"/>
-
-      <!-- site-specific checkboxes -->
-      
-      <preference id="thumbnailzoomplus-options-twitter-pref"
-        name="extensions.thumbnailzoomplus.twitter.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-twitpic-pref"
-        name="extensions.thumbnailzoomplus.twitpic.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-facebook-pref"
-        name="extensions.thumbnailzoomplus.facebook.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-linkedin-pref"
-        name="extensions.thumbnailzoomplus.linkedin.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-amazon-pref"
-        name="extensions.thumbnailzoomplus.amazon.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-hi5-pref"
-        name="extensions.thumbnailzoomplus.hi5.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-picasa-pref"
-        name="extensions.thumbnailzoomplus.picasa.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-myspace-pref"
-        name="extensions.thumbnailzoomplus.myspace.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-netflix-pref"
-        name="extensions.thumbnailzoomplus.netflix.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-flickr-pref"
-        name="extensions.thumbnailzoomplus.flickr.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-wikipedia-pref"
-        name="extensions.thumbnailzoomplus.wikipedia.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-deviantart-pref"
-        name="extensions.thumbnailzoomplus.deviantart.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-photobucket-pref"
-        name="extensions.thumbnailzoomplus.photobucket.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-pinterest-pref"
-        name="extensions.thumbnailzoomplus.pinterest.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-tagged-pref"
-        name="extensions.thumbnailzoomplus.tagged.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-lastfm-pref"
-        name="extensions.thumbnailzoomplus.lastfm.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-google-pref"
-        name="extensions.thumbnailzoomplus.google.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-googleplus-pref"
-        name="extensions.thumbnailzoomplus.googleplus.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-gmail-pref"
-        name="extensions.thumbnailzoomplus.gmail.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-youtube-pref"
-        name="extensions.thumbnailzoomplus.youtube.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-dailymile-pref"
-        name="extensions.thumbnailzoomplus.dailymile.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-imdb-pref"
-        name="extensions.thumbnailzoomplus.imdb.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-imgur-pref"
-        name="extensions.thumbnailzoomplus.imgur.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-okcupid-pref"
-        name="extensions.thumbnailzoomplus.okcupid.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-photosight-pref"
-        name="extensions.thumbnailzoomplus.photosight.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-fotop-pref"
-        name="extensions.thumbnailzoomplus.fotop.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-engadget-pref"
-        name="extensions.thumbnailzoomplus.engadget.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-others-pref"
-        name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
-      <preference id="thumbnailzoomplus-options-thumbnail-pref"
-        name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
-        
-      <preference id="thumbnailzoomplus-options-disabled-sites-pref"
-        name="extensions.thumbnailzoomplus.disabledSitesRE" type="string"/>
         
     </preferences>
 
     <script type="application/x-javascript"
             src="chrome://thumbnailzoomplus/content/options.js" />
 
-<tabbox flex="1" >
-  <tabs>
-    <tab label="&thumbnailzoomplus.options.general.groupbox.caption;" />
-    <tab label="Disabled Sites" />
-    <tab label="&thumbnailzoomplus.options.enable.groupbox.caption;" />
-  </tabs>
-  <tabpanels flex="1">
-
-    <tabpanel flex="1" >
     <!-- General -->
       <grid>
         <columns>
@@ -286,12 +212,19 @@
         </rows>
       </grid>
 
-    </tabpanel>
-    
-    
-    
-    <tabpanel>
-      <!-- 
+  </prefpane>
+  <prefpane id="thumbnailzoomplus-options-pane2"
+            label="&thumbnailzoomplus.options.disabledSites.groupbox.caption;"
+            image="chrome://thumbnailzoomplus/skin/images/prefs-icon-minus32.png"
+            flex="1">
+    <preferences>
+          <!-- site-specific checkboxes -->
+      
+       <preference id="thumbnailzoomplus-options-disabled-sites-pref"
+        name="extensions.thumbnailzoomplus.disabledSitesRE" type="string"/>
+    </preferences>
+
+      <!--
           Disabled Sites 
         -->
       <hbox flex="1">
@@ -312,10 +245,73 @@
           <label>Changes apply after restarting</label><label>or reloading tabs/windows.</label>
         </vbox>
       </hbox>
-    </tabpanel>
-    
-    <tabpanel>
+
+  </prefpane>
+  <prefpane id="thumbnailzoomplus-options-pane3" label="&thumbnailzoomplus.options.enable.groupbox.caption;"
+      image="chrome://thumbnailzoomplus/skin/images/prefs-icon-plus32.png"
+            flex="1">
     <!-- Site Checkboxes -->
+    <preferences>
+         <preference id="thumbnailzoomplus-options-twitter-pref"
+        name="extensions.thumbnailzoomplus.twitter.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-twitpic-pref"
+        name="extensions.thumbnailzoomplus.twitpic.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-facebook-pref"
+        name="extensions.thumbnailzoomplus.facebook.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-linkedin-pref"
+        name="extensions.thumbnailzoomplus.linkedin.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-amazon-pref"
+        name="extensions.thumbnailzoomplus.amazon.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-hi5-pref"
+        name="extensions.thumbnailzoomplus.hi5.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-picasa-pref"
+        name="extensions.thumbnailzoomplus.picasa.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-myspace-pref"
+        name="extensions.thumbnailzoomplus.myspace.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-netflix-pref"
+        name="extensions.thumbnailzoomplus.netflix.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-flickr-pref"
+        name="extensions.thumbnailzoomplus.flickr.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-wikipedia-pref"
+        name="extensions.thumbnailzoomplus.wikipedia.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-deviantart-pref"
+        name="extensions.thumbnailzoomplus.deviantart.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-photobucket-pref"
+        name="extensions.thumbnailzoomplus.photobucket.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-pinterest-pref"
+        name="extensions.thumbnailzoomplus.pinterest.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-tagged-pref"
+        name="extensions.thumbnailzoomplus.tagged.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-lastfm-pref"
+        name="extensions.thumbnailzoomplus.lastfm.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-google-pref"
+        name="extensions.thumbnailzoomplus.google.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-googleplus-pref"
+        name="extensions.thumbnailzoomplus.googleplus.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-gmail-pref"
+        name="extensions.thumbnailzoomplus.gmail.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-youtube-pref"
+        name="extensions.thumbnailzoomplus.youtube.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-dailymile-pref"
+        name="extensions.thumbnailzoomplus.dailymile.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-imdb-pref"
+        name="extensions.thumbnailzoomplus.imdb.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-imgur-pref"
+        name="extensions.thumbnailzoomplus.imgur.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-okcupid-pref"
+        name="extensions.thumbnailzoomplus.okcupid.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-photosight-pref"
+        name="extensions.thumbnailzoomplus.photosight.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-fotop-pref"
+        name="extensions.thumbnailzoomplus.fotop.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-engadget-pref"
+        name="extensions.thumbnailzoomplus.engadget.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-others-pref"
+        name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
+      <preference id="thumbnailzoomplus-options-thumbnail-pref"
+        name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
+
+    </preferences>
       <hbox flex="1">
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
@@ -425,11 +421,6 @@
 
         </vbox>
       </hbox>
-    </tabpanel>
-
-
-    </tabpanels>
-    </tabbox>
   </prefpane>
 
 </prefwindow>

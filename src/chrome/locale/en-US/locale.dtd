@@ -71,6 +71,7 @@
 <!ENTITY thumbnailzoomplus.options.key.none.label                "None">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Site Checkboxes">
+<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Disabled Sites">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul
