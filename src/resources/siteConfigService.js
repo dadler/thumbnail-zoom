@@ -189,6 +189,8 @@ ThumbnailZoomPlus.SiteConfigService = {
     return urlCell;
   },
   
+  /// Inserts an item in sorted order in the specified list, if it isn't
+  /// already in the list.
   _insertListItemSorted : function(list, label) {
     var low = 0, high = list.getRowCount() - 1;
 

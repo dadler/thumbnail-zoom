@@ -1430,6 +1430,9 @@ ThumbnailZoomPlus.Pages.Others = {
       flags.borderColor = "#CC181E"; // youtube red
     }
     
+    // for anon..: change ...img.php?path=http://... to http://...
+    aImageSrc = aImageSrc.replace(/.*img\.php\?path=/, "");
+    
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
@@ -2055,7 +2058,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(/(\/galleries\/.*\/x-.*-)ltn\.jpg/,
                                     "$1sml.jpg");
     }
-    
+        
     // For Wordpress and (formerly) Bing Images, etc., get URL from
     // imgurl=... part.
     // eg, change:
