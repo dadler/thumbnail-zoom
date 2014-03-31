@@ -3757,7 +3757,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let optionsDialog =
       window.openDialog("chrome://thumbnailzoomplus/content/options.xul",
-        "thumbnailzoomplus-options-window", "chrome,titlebar,toolbar,centerscreen");
+        "thumbnailzoomplus-options-window", "chrome,titlebar,toolbar,centerscreen,resizable");
     optionsDialog.focus();
   },
 
