@@ -39,6 +39,9 @@
   title="&thumbnailzoomplus.options.window.title;"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <!--
+      General Preferences
+    -->
   <prefpane id="thumbnailzoomplus-options-pane" label="&thumbnailzoomplus.options.general.groupbox.caption;"
       image="chrome://thumbnailzoomplus/skin/images/prefs-icon-gear32.png"
             flex="1">
@@ -89,7 +92,10 @@
     <script type="application/x-javascript"
             src="chrome://thumbnailzoomplus/content/options.js" />
 
-    <!-- General -->
+      <!--
+          General Preferences Layout
+      -->
+    <vbox>
       <grid>
         <columns>
           <column />
@@ -99,7 +105,7 @@
           <hbox align="center">
             <checkbox preference="thumbnailzoomplus-options-enable-pref"
                     label="&thumbnailzoomplus.options.enable.checkbox.label;" />
-            <spacer flex="1" />
+            <spacer flex="1"/>
             <checkbox preference="thumbnailzoomplus-options-debug-pref"
                     label="&thumbnailzoomplus.options.debug.checkbox.label;" />
             <button label="&thumbnailzoomplus.options.copylog.button.label;" 
@@ -211,8 +217,17 @@
           </hbox>
         </rows>
       </grid>
-
+      <!-- hack alert: Firefox (28.0) OSX sizes the prefs dialog too short; by
+           trial and error I find that adding this extra label gives enough space
+           to work around the problem. -->
+      <label height="40px;" style="margin-bottom: 0px"/>
+    </vbox>
   </prefpane>
+  
+  
+  <!--
+      Disabled Sites Preferences
+    -->
   <prefpane id="thumbnailzoomplus-options-pane2"
             label="&thumbnailzoomplus.options.disabledSites.groupbox.caption;"
             image="chrome://thumbnailzoomplus/skin/images/prefs-icon-minus32.png"
@@ -225,16 +240,15 @@
     </preferences>
 
       <!--
-          Disabled Sites 
+          Disabled Sites Layout
         -->
+    <vbox flex="1">
       <hbox flex="1">
         <listbox id="thumbnailzoomplus-options-disabled-sites-list"
-                     flex="1" seltype="multiple" 
+                     flex="1" seltype="multiple" rows="14"
                      preference="thumbnailzoomplus-options-disabled-sites-pref"
                      onsyncfrompreference="return ThumbnailZoomPlus.SiteConfigService.syncSitesListFromPreference(document);"
                      ondblclick="ThumbnailZoomPlus.SiteConfigService.handleSiteListDoubleClick(event);">
-          <listitem label="sitea.com"/>
-          <listitem label="(others)"/>
         </listbox>
         <vbox>
           <button label="Add ..." oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
@@ -245,14 +259,22 @@
           <label>Changes apply after restarting</label><label>or reloading tabs/windows.</label>
         </vbox>
       </hbox>
-
+      <!-- hack alert: Firefox (28.0) OSX sizes the prefs dialog too short; by
+           trial and error I find that adding this extra label gives enough space
+           to work around the problem. -->
+      <label height="40px;" style="margin-bottom: 0px"/>
+    </vbox>
   </prefpane>
+  
+  <!--
+     Site Checkboxes Preferences
+    -->
   <prefpane id="thumbnailzoomplus-options-pane3" label="&thumbnailzoomplus.options.enable.groupbox.caption;"
       image="chrome://thumbnailzoomplus/skin/images/prefs-icon-plus32.png"
             flex="1">
     <!-- Site Checkboxes -->
     <preferences>
-         <preference id="thumbnailzoomplus-options-twitter-pref"
+      <preference id="thumbnailzoomplus-options-twitter-pref"
         name="extensions.thumbnailzoomplus.twitter.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-twitpic-pref"
         name="extensions.thumbnailzoomplus.twitpic.enable" type="bool"/>
@@ -310,8 +332,12 @@
         name="extensions.thumbnailzoomplus.others.enable" type="bool"/>
       <preference id="thumbnailzoomplus-options-thumbnail-pref"
         name="extensions.thumbnailzoomplus.thumbnail.enable" type="bool"/>
-
     </preferences>
+    
+      <!--
+          Site Preferences Layout
+        -->
+    <vbox>
       <hbox flex="1">
         <vbox class="thumbnailzoomplus-options-pages-column" flex="1">
 
@@ -421,6 +447,11 @@
 
         </vbox>
       </hbox>
+      <!-- hack alert: Firefox (28.0) OSX sizes the prefs dialog too short; by
+           trial and error I find that adding this extra label gives enough space
+           to work around the problem. -->
+      <label height="40px;" style="margin-bottom: 0px"/>
+    </vbox>
   </prefpane>
 
 </prefwindow>
