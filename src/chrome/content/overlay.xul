@@ -99,7 +99,7 @@
                  see issue #77. -->
             <vbox id="thumbnailzoomplus-panel-image-vbox" >
               <html:div id="thumbnailzoomplus-panel-image-div" >
-                <html:img id="thumbnailzoomplus-panel-html-image" />
+                <html:video id="thumbnailzoomplus-panel-html-image" />
               </html:div>
             </vbox>
 

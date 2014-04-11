@@ -2132,6 +2132,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_closePanel: clearing image onload & onerror");
         this._imageObjectBeingLoaded.src = null;
         this._imageObjectBeingLoaded.onload = null;
+        this._imageObjectBeingLoaded.onloadeddata = null;
         this._imageObjectBeingLoaded.onerror = null;
         this._imageObjectBeingLoaded = null;
       }
@@ -2157,8 +2158,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // briefly show the prior image on the next pop-up, even though
       // we already cleared its src.
       var newImg = 
-          document.createElementNS("http://www.w3.org/1999/xhtml","img");
+          document.createElementNS("http://www.w3.org/1999/xhtml","video");
       newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
+      newImg.setAttribute("autoplay", "1");
+      newImg.setAttribute("loop", "1");
+      newImg.setAttribute("preload", "auto");
       this._panelImageDiv.replaceChild(newImg, this._panelHtmlImage);
       this._panelHtmlImage = newImg;
     } catch (e) {
@@ -2678,7 +2682,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let imageHeight = image.naturalHeight;
     this._logger.debug("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
                        "; width=" + image.width + "; iw=" + imageWidth);
-    if (imageWidth > 0 && imageHeight > 0) {
+    if (true || imageWidth > 0 && imageHeight > 0) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
@@ -2739,6 +2743,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // Make sure we don't get called again as an onLoad, if current call
     // was due to the timer.
     image.onload = null;
+    image.onloadeddata = null;
     
     this._timer.cancel();
 
@@ -2752,8 +2757,8 @@ ThumbnailZoomPlusChrome.Overlay = {
      * Get image size from naturalWidth, which tells us the image's true
      * size, uninfluenced by CSS
      */
-    let imageWidth  = image.naturalWidth;
-    let imageHeight = image.naturalHeight;
+    let imageWidth  = image.width; // or videoWidth
+    let imageHeight = image.height;
     if (imageWidth == 0 || imageHeight == 0) {
       // Some images (such as .svg Scalable Vector Graphics) don't always have
       // an explicit size.  Give it an arbitrary resolution, at which it'll
@@ -3045,7 +3050,8 @@ ThumbnailZoomPlusChrome.Overlay = {
       that._imageOnLoad(aImageNode, aImageSrc, flags, image);
       that._imageObjectBeingLoaded = null;
     };
-
+    image.onloadeddata = image.onload;
+    
     if (loadInTempImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the

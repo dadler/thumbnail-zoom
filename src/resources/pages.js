@@ -38,7 +38,7 @@ const Cu = Components.utils;
 
 // EXTS is a non-remembering expression which matches
 // image file suffixes.
-const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg)";
+const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg|\\.webm)";
 const EXTS_RE = new RegExp(EXTS, 'i');
 
 Cu.import("resource://thumbnailzoomplus/common.js");
