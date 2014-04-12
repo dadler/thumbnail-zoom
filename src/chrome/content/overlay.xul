@@ -99,7 +99,10 @@
                  see issue #77. -->
             <vbox id="thumbnailzoomplus-panel-image-vbox" >
               <html:div id="thumbnailzoomplus-panel-image-div" >
-                <html:video id="thumbnailzoomplus-panel-html-image" />
+                <!-- This tag will be dynamically recreated as 
+                     html:img or html:video by _recreateImgOrVideoTag().
+                 -->
+                <html:img id="thumbnailzoomplus-panel-html-image" />
               </html:div>
             </vbox>
 

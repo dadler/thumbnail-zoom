@@ -2087,6 +2087,28 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
+  _recreateImgOrVideoTag : function(url) {
+      // Remove and recreate the html image node size Firefox 19 and newer 
+      // would otherwise return the prior image's width and height and
+      // briefly show the prior image on the next pop-up, even though
+      // we already cleared its src.
+    if (this._endsWith(url, ".webm")) {
+      this._debugToConsole("ThumbnailZoomPlus: recreate image tag as video for " + url);
+      // for webm, use "video" tag; see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
+      var newImg =
+          document.createElementNS("http://www.w3.org/1999/xhtml","video");
+      newImg.setAttribute("autoplay", "1");
+      newImg.setAttribute("loop", "1");
+      newImg.setAttribute("preload", "auto");
+    } else {
+      this._debugToConsole("ThumbnailZoomPlus: recreate image tag as img for " + url);
+      var newImg = document.createElementNS("http://www.w3.org/1999/xhtml","img");
+    }
+    newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
+    this._panelImageDiv.replaceChild(newImg, this._panelHtmlImage);
+    this._panelHtmlImage = newImg;
+  },
+  
   /**
    * Closes the panel.
    * @param: clearContext: true iff we should entirely clear this popup's
@@ -2153,18 +2175,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._panelXulImage.src = null;
       this._currentThumb = null;
       
-      // Remove and recreate the html image node size Firefox 19 and newer 
+      // Remove and recreate the html image node.  Firefox 19 and newer
       // would otherwise return the prior image's width and height and
       // briefly show the prior image on the next pop-up, even though
       // we already cleared its src.
-      var newImg = 
-          document.createElementNS("http://www.w3.org/1999/xhtml","video");
-      newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
-      newImg.setAttribute("autoplay", "1");
-      newImg.setAttribute("loop", "1");
-      newImg.setAttribute("preload", "auto");
-      this._panelImageDiv.replaceChild(newImg, this._panelHtmlImage);
-      this._panelHtmlImage = newImg;
+      this._recreateImgOrVideoTag("dummy.png");
     } catch (e) {
       ThumbnailZoomPlus._logExceptionToConsole("_closePanel 2", e);
     }
@@ -2678,11 +2693,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_checkIfImageLoaded: showing popup as 'working' indicator.");
     this._showStatusIcon(aImageNode, "working-3dots.png", 16, flags);      
     
-    let imageWidth  = image.naturalWidth;
-    let imageHeight = image.naturalHeight;
-    this._logger.debug("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
-                       "; width=" + image.width + "; iw=" + imageWidth);
-    if (true || imageWidth > 0 && imageHeight > 0) {
+    if (this._panelHtmlImage.localName == "img") {
+      let imageWidth  = image.naturalWidth;
+      let imageHeight = image.naturalHeight;
+      var haveSize = (imageWidth > 0 && imageHeight > 0);
+      this._debugToConsole("_checkIfImageLoaded: naturalWidth=" + image.naturalWidth +
+                         "; width=" + image.width + "; iw=" + imageWidth);
+    } else {
+      // assume "video" tag.
+      var haveSize = image.readState > 0;
+      this._debugToConsole("_checkIfImageLoaded: readState=" + image.readState +
+                         "; height = " + image.height + "; videoHeight=" + image.videoHeight);
+    }
+    if (haveSize) {
       /*
        * The image has a size so we could technically display it now.  But that
        * often causes it to appear very briefly only half-displayed, with
@@ -2757,8 +2780,18 @@ ThumbnailZoomPlusChrome.Overlay = {
      * Get image size from naturalWidth, which tells us the image's true
      * size, uninfluenced by CSS
      */
-    let imageWidth  = image.width; // or videoWidth
-    let imageHeight = image.height;
+    this._debugToConsole("ThumbnailZoomPlus: image tag type: " + image.localName);
+    if (image.localName == "video") {
+      var imageWidth  = image.videoWidth;
+      var imageHeight = image.videoHeight;
+     } else {
+      // img
+      var imageWidth  = image.naturalWidth;
+      var imageHeight = image.naturalHeight;
+    }
+    this._debugToConsole("_imageOnLoad: width=" + imageWidth + "; height=" + imageHeight +
+                         ".width=" + image.width + "; .videoWidth=" + image.videoWidth);
+
     if (imageWidth == 0 || imageHeight == 0) {
       // Some images (such as .svg Scalable Vector Graphics) don't always have
       // an explicit size.  Give it an arbitrary resolution, at which it'll
@@ -3002,6 +3035,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let loadInTempImage = /\.gif/.test(aImageSrc);
     this._logger.debug("_preloadImage: loadInTempImage=" + loadInTempImage);
 
+    this._recreateImgOrVideoTag(aImageSrc);
     if (loadInTempImage) {
       // We don't load solely into _panelXulImage since an xul image doesn't
       // return a valid width when queried; we must also load into the
