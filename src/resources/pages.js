@@ -1453,7 +1453,7 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i.lvme.me/84ak9a9.jpg
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:www\.)?livememe\.com\/([^\/]+)$/,
                                   "$1i.lvme.me/$2.jpg");
-                                  
+    
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     let imgurRex = new RegExp(/(imgur\.com\/)([^\/&#]+)([&#].*)?/);
     aImageSrc = aImageSrc.replace(imgurRex, "$1$2");
@@ -1567,6 +1567,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|dailymotion\\.com/video/"
                           + "|lockerz\\.com/./[0-9]{4,20}"
                           + "|(wired\\.com/.*[^#])$"
+                          + "|gfycat\.com/[A-Z][^/]*$"
                           + "|(instagram\\.com|instagr\\.am)/p/"
                           // We include yfrog, but note that for pictures we 
                           // could get a URL directly in the Others rule (faster)
@@ -1587,7 +1588,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       // For Wired, use OthersIndirect only on linked thumbnails, not
       // textual links.
       return null;
-    } 
+    }
+    
     node = ThumbnailZoomPlus.Pages.Others.getImageNode(node, nodeName, nodeClass, imageSource);
     return node;
   },
@@ -1596,6 +1598,13 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
     this.invocationNumber++;
     
+    if (/gfycat\.com\/[A-Z][^\/]+$/.test(aImageSrc)) {
+      // Convert e.g. http://www.gfycat.com/DapperQuarrelsomeImago to
+      // http://gfycat.com/cajax/get/DapperQuarrelsomeImago.webm
+      aImageSrc = aImageSrc.replace(/(gfycat\.com\/)/,
+                                    "$1cajax/get/");
+    }
+
     // Note: .bind() doesn't seem to be available in Firefox 3.6.
     aImageSrc = ThumbnailZoomPlus.PagesIndirect.
                 getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
@@ -1703,6 +1712,16 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return match[1];
     }
 
+    // gfycat is actually parsing the return from their json api:
+    // see http://gfycat.com/api
+    // eg ... "webmUrl":"http:\/\/giant.gfycat.com\/HoarseWhichArkshell.webm", ...
+    re = /"webmUrl" *: *"([^"]+?)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return match[1].replace(/\\/g, "");
+    }
+    
     logger.debug("_getImgFromHtmlText: didn't match");
     return null;  
   },

@@ -3480,7 +3480,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       scale.height = scale.width / scaleRatio;
     }
     this._logger.debug("_getScaleDimensions: after w/h limiting, display size = " +
-                       scale.width + " x " + thumbHeight);
+                       scale.width + " x " + scale.height);
 
     // Calc sideScale as the biggest size we can use for the image without
     // overlapping the thumb.  Start out with large size and reduce to fit.
