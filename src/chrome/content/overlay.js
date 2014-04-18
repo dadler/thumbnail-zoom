@@ -2486,7 +2486,9 @@ ThumbnailZoomPlusChrome.Overlay = {
                aEvent.keyCode == aEvent.DOM_VK_CLOSE_BRACKET ||
                aEvent.keyCode == aEvent.DOM_VK_LEFT ||
                aEvent.keyCode == aEvent.DOM_VK_RIGHT) {
-      // left bracket and right bracket go to previous/next URL numerically.
+      // left and right arrows or brackets go to previous/next URL numerically.
+      // brackets are useful within a site like imgur.com gallery where
+      // the site interprets left and right.
       this._logger.debug("_doHandleKeyDown: increment/decrement URL");
       let delta = (aEvent.keyCode == aEvent.DOM_VK_OPEN_BRACKET ||
                    aEvent.keyCode == aEvent.DOM_VK_LEFT) ? -1 : +1;
@@ -2505,7 +2507,8 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._currentImage = aImageSrc;
         this._debugToConsole("ThumbnailZoomPlus: >>> [ or ] launching \n" +
                              aImageSrc);
-                             
+        this._recreateImgOrVideoTag(aImageSrc);
+        
         // displaying the new image will close the current one; we don't
         // want that to cause a popup of the current image again.
         this._setIgnoreBBoxPageRelative();
