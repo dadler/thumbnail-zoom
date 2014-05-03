@@ -165,6 +165,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
      Example image URLs:
      https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
+     https://fbexternal-a.akamaihd.net/safe_image.php?d=AQDfl4vB8khOLSTS&w=428&h=224&url=http%3A%2F%2Fcdn.cstatic.net%2Fimages%2Fgridfs%2F534c6766f92ea1398d030b36%2Fclayton3.jpg&cfs=1&upscale
      https://vthumb.xx.fbcdn.net/hvthumb-ash4/p206x206/409885_608939578186_608937931486_1576_1469_b.jpg
      https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
@@ -228,6 +229,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
       let match = /\&src=([^\&]+)/.exec(ajaxify);
       if (match) {
         aImageSrc = unescape(match[1]);
+      } else {
+        // seen 2014-04-18: https://www.facebook.com/charlesphoenix.usa/photos/a.378890579425.160195.153552674425/10152093900964426/?type=1&src=https%3A%2F%2Fscontent-a-lax.xx.fbcdn.net%2Fhphotos-prn2%2Ft1.0-9%2F1902874_10152093900964426_3846687682006043902_n.png&size=936%2C699&fbid=10152093900964426&source=13
+        aImageSrc = ajaxify;
       }
     }
     
@@ -2545,6 +2549,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://i2.imgchili.com/7428/9998984_ie_011.jpg
     aImageSrc = aImageSrc.replace(/:\/\/t([0-9]+\.imgchili\.(?:com|net)\/)/, "://i$1/");
 
+    // http://img02.redtubefiles.com/_thumbs/0000442/0442998/1234567_015m.jpg becomes
+    // http://img02.redtubefiles.com/_thumbs/0000442/0442998/1234567_015i.jpg
+    // disabled since while hovering a thumb on their site, losing
+    // focus causes their animated thumb to scroll very quickly.
+    // aImageSrc = aImageSrc.replace(/(redtubefiles\.com\/_thumbs\/.*)m(\.jpg)/,
+    //                              "$1i$2");
+                                  
     // pixiv.net
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
     // http://img29.pixiv.net/img/puppy/12345678_m.jpg
