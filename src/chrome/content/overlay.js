@@ -1434,7 +1434,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (imageSourceInfo.node != null) {
       imageSourceNode = imageSourceInfo.node;
       if (imageSourceNode != node) {
-        this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + ">: imageSourceNode: <" +
+        this._debugToConsole("ThumbnailZoomPlus:    >>> PAGE '" + pageName + "' (" + aPage +
+                             "): imageSourceNode: <" +
                            imageSourceNode.localName.toLowerCase() + "> url: \n" +
                            String(imageSourceNode) + " \n" + imageSourceNode.getAttribute("src"));
       }
@@ -1442,15 +1443,16 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     if (null == imageSource ||     
         ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
-      this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + 
-                           "> imageRegExp or imageDisallowRegExp rejected imageSource \n" +
+      this._debugToConsole("ThumbnailZoomPlus:    !!! PAGE '" + pageName + "' (" + aPage +
+                            ") imageRegExp or imageDisallowRegExp rejected imageSource \n" +
                            imageSource);
 
       return "rejectedNode";
     }
 
-    this._debugToConsole("ThumbnailZoomPlus: page " + aPage + " <" + pageName + "> matches imageSource \n" +
-                       imageSource);
+    this._debugToConsole("ThumbnailZoomPlus:    !!! PAGE '" + pageName + "' (" + aPage +
+                             ") matches imageSource \n" +
+                           imageSource);
 
     // Found a matching page with an image source!
     let flags = new ThumbnailZoomPlus.FilterService.PopupFlags();
@@ -2119,7 +2121,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // briefly show the prior image on the next pop-up, even though
       // we already cleared its src.
     if (this._endsWith(url, ".webm")) {
-      this._debugToConsole("ThumbnailZoomPlus: recreate image tag as video for " + url);
+      // this._debugToConsole("ThumbnailZoomPlus: recreate image tag as video for " + url);
       // for webm, use "video" tag; see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
       var newImg =
           document.createElementNS("http://www.w3.org/1999/xhtml","video");
@@ -2127,7 +2129,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       newImg.setAttribute("loop", "1");
       newImg.setAttribute("preload", "auto");
     } else {
-      this._debugToConsole("ThumbnailZoomPlus: recreate image tag as img for " + url);
+      // this._debugToConsole("ThumbnailZoomPlus: recreate image tag as img for " + url);
       var newImg = document.createElementNS("http://www.w3.org/1999/xhtml","img");
     }
     newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
