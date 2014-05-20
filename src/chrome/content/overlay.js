@@ -1789,6 +1789,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       case 4:
         active = (useState && ((aEvent.buttons & 2) > 0)) || 
                  (aEvent.button != undefined && aEvent.button == 2);
+
+        //TODO: prevent context menu only if TZP is going to succeed.
+        if (active) this._preventNextContextMenuEvent();
+
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'right mouse button', return " 
                            + active);
@@ -1804,6 +1808,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     return active;
   },
 
+  /**
+   * Prevents context menu to open on the earliest occurrence.
+   */
+  _preventNextContextMenuEvent: function() {
+    this._logger.trace("_preventNextContextMenuEvent");
+
+    window.addEventListener("contextmenu", function _preventNextContextMenuEvent(aEvent) {
+      aEvent.stopPropagation();
+      aEvent.preventDefault();
+      this.removeEventListener("contextmenu", _preventNextContextMenuEvent, false);
+    }, false);
+  },
 
   /**
    * Gets the hover time.
