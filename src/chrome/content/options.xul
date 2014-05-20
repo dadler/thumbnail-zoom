@@ -156,6 +156,7 @@
                 <menuitem value="1" label="CTRL" />
                 <menuitem value="2" label="SHIFT" />
                 <menuitem value="3" label="ALT" />
+                <menuitem value="4" label="RMB" />
               </menupopup>
             </menulist>
           </hbox>

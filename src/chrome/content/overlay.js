@@ -1782,6 +1782,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         this._logger.debug("_isKeyActive: based on 'alt key', return " 
                            + active);
         break;
+      case 4:
+        active = (useState && ((aEvent.buttons & 2) > 0)) || 
+                 (aEvent.button != undefined && aEvent.button == 2);
+        active = active ^ negate;
+        this._logger.debug("_isKeyActive: based on 'right mouse button', return " 
+                           + active);
+        break;
       default:
         // none; 'negate' flag does not apply.
         active = true;
