@@ -1785,6 +1785,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       case 4:
         active = (useState && ((aEvent.buttons & 2) > 0)) || 
                  (aEvent.button != undefined && aEvent.button == 2);
+
+        //TODO: prevent context menu only if TZP is going to succeed.
+        if (active) this._preventNextContextMenuEvent();
+
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'right mouse button', return " 
                            + active);
@@ -1800,6 +1804,24 @@ ThumbnailZoomPlusChrome.Overlay = {
     return active;
   },
 
+  /**
+   * Prevents context menu to open on the earliest occurrence.
+   *
+   * This method will block only mouse related occurrences, so context menu key
+   * (sometimes app key) functionality won't be affected. Listener is attached
+   * to window object (which includes Firefox UI) as user may release RMB there.
+   */
+  _preventNextContextMenuEvent: function() {
+    this._logger.trace("_preventNextContextMenuEvent");
+
+    window.addEventListener("contextmenu", function _preventNextContextMenuEvent(aEvent) {
+      if (aEvent.button === 2) {
+        aEvent.stopPropagation();
+        aEvent.preventDefault();
+        this.removeEventListener("contextmenu", _preventNextContextMenuEvent, false);
+      }
+    }, false);
+  },
 
   /**
    * Gets the hover time.
