@@ -83,7 +83,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // On Mac OSX it might be
       // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
       // On Windows it might be
-      // 
+      // tail --follow=name --retry "%AppData%\Mozilla\Firefox\Profiles\7sep894p.developer\ThumbnailZoomPlus\log.txt"
+      // (Recommended Windows ports of GNU tail: MSYS, PortableGit, http://unxutils.sourceforge.net)
       // To debug, set enableDebug above to true and monitor the log file
       // in a terminal using this command:
       // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
@@ -119,6 +120,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
 
       // This appender will log to the file system.
       app = new Log4Moz.RotatingFileAppender(logFile, formatter);
+      // Some Windows ports of GNU tail work best without rotating logs:
+      //app = new Log4Moz.FileAppender(logFile, formatter);
       
       if (enableTrace) {
         app.level = Log4Moz.Level["Trace"];
