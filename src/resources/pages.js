@@ -176,7 +176,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/_1xx|_1xy|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+    if (/_6l-|__c_|_1xx|_1xy|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -184,7 +184,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aNode = imgNodes[0];
       }
     }
-    if ("a" == aNodeName && /_4q3/.test(aNodeClass)) {
+    if ("a" == aNodeName && /_4q3|_4-eo/.test(aNodeClass)) {
       // In Apr 2013 we started seeing profile icons with
       // <a><span><img>, where hover is detected on the <a>.
       let imgNodes = aNode.getElementsByTagName("img");
@@ -1926,7 +1926,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // for yahoo.co.jp
       generationsUp = 1;
     }
-    
+    // 500px.com/flow has the image in the background-image of a <div>
+    // parent of the <a> link.
+    if (nodeName == "a" && "link" == nodeClass) {
+      generationsUp = 2;
+      selector = "div.photo";
+    }
     if (generationsUp >= 0) {
       ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: detected site which needs ancestor node; going up "
           + generationsUp + " levels and then finding " + selector);
@@ -1946,6 +1951,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               /photo|post/.test(ancestorClass) ||
               /cd_icon/.test(ancestorClass) || // pandora.com
               /image-container/.test(ancestorClass) || // allmusic.com
+              /photo one/.test(ancestorClass) || // 500px.com
               ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource))
               ) {
             // take the last child.
@@ -1958,7 +1964,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                                   ancestor + " class " + ancestorClass);
         }
       }
-      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: minus.com or tumblr.com archive got " + node);
+      ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: initially got " + node);
     }
     
     if (nodeName == "img" && /\/blank\.gif$/.test(imageSource)) {
@@ -2017,11 +2023,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let backImage = node.style.backgroundImage;
     let urlRegExp = /url\("(.*)"\)$/i;
     if (backImage && "" != backImage && urlRegExp.test(backImage)) {
-      if (node.children.length > 0 && ! /thumb|mem-photo-small/.test(nodeClass)) {
+      if (node.children.length > 0 && ! /thumb|mem-photo-small|photo/.test(nodeClass)) {
         // Ignore e.g. in Google Offers, where a big map image is the background
         // around the guts of the page.
         // But we explicitly allow using background image if nodeClass
-        // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com
+        // contains "thumb", as on ??? or "mem-photo-small" as on meetup.com or "photo" on 500px.com/flow
         ThumbnailZoomPlus.Pages._logger.debug(
             "thumbnail getInitialImageSrc: ignoring background image since has " +
             node.children.length + " children > 0");
@@ -2267,11 +2273,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/1.jpg?1 becomes
     // http://pacdn.500px.org/3033393/fddffd2e3c80bf36d69cc3a0ecaac88f436090ad/4.jpg?1
     aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
-                                  EXTS + ")$"),
+                                  EXTS + ")"),
                                   "$1/4$2");
-    aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
-                                  EXTS + ").+"),
-                                  "$1/1$2");
+    //aImageSrc = aImageSrc.replace(new RegExp("(https?://[^/?]*\\.500px\\.(?:net|org)/.*)/[123](" +
+    //                              EXTS + ").+"),
+    //                              "$1/1$2");
     
     // someimage.com
     // http://t1.someimage.com/TkscG18.jpg becomes
