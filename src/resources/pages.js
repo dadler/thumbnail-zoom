@@ -2719,7 +2719,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     //
     // http://o1.aolcdn.com/dims-shared/dims3/PATCH/resize/273x203/http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285 becomes
     // http://hss-prod.hss.aol.com/hss/storage/patch/c7157cb57f56381e37cae1012e591285
-    match = /\/(?:resize|thumbnail)\/[0-9]+x[0-9]+(?:\/crop\/[0-9]+x[0-9]+(?:\+[0-9]+\+[0-9]+)?)?\/(https?:\/\/.*)/.exec(aImageSrc);
+    //
+    // http://o.aolcdn.com/dims-shared/dims3/PATCH/format/jpg/quality/82/resize/108x72%5E/crop/108x72%2B1%2B0/http://hss-prod.hss.aol.com/hss/storage/patch/afb5a18780fc705d602fefcb75fab709
+    match = /\/(?:resize|thumbnail)\/.*(?:\/crop\/.*)?\/(https?:\/\/.*)/.exec(aImageSrc);
     if (match) {
       aImageSrc = match[1];
     }
