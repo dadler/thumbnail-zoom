@@ -1911,6 +1911,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     }
     if (/gii_folder_link/.test(nodeClass) ||
         (nodeName == "div" && /^inner$/.test(nodeClass)) ||
+         nodeName == "span" && /preview-overlay-container/.test(nodeClass) || //  google play apps
           /cd_activator/.test(parentClass) || // pandora.com small thumb in upper-right corner
           (nodeName == "a" && /stage/.test(parentClass) && "go" == nodeClass) // tumblr search results
           ) {
@@ -1967,12 +1968,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               /cd_icon/.test(ancestorClass) || // pandora.com
               /image-container/.test(ancestorClass) || // allmusic.com
               /photo one/.test(ancestorClass) || // 500px.com
+              /cover/.test(ancestorClass) || // google play apps
               ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource))
               ) {
             // take the last child.
             node = imgNodes[imgNodes.length-1];
           } else {
-            ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed.");
+            ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed, class " + ancestorClass);
           }
         } else {
             ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: no matching nodes under " + 
