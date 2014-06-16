@@ -1626,12 +1626,16 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     return aImageSrc; 
   },
 
+  // For "OthersIndirect"
   _allMatchesOf : function(re, firstMatch, aHTMLString) {
     // Return all the images we matched (eg for imgur.com albums).
     var matches = new Array();
     var match = firstMatch;
-    while (match) {
+    var nMatches = 0;
+    while (match != null) {
       var url = match[1];
+      ThumbnailZoomPlus.Pages._logger.debug("_allMatchesOf: url=" + url +
+                 "; re.lastIndex=" + re.lastIndex);
       // append the url if it's not a dummy imgur url and not a dup
       // of the previous one (both of which I've seen on imgur.com).
       if (url != "http://i.imgur.com/" &&
@@ -1639,15 +1643,22 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
           (matches.length == 0 || matches[matches.length-1] != url) ) {
         matches.push(url);
       }
+      ++nMatches;
+      if (nMatches > 5000) {
+        // prevent infinite or very long loop
+        break;
+      }
       match = re.exec(aHTMLString);
     }
     if (matches.length == 1) {
-      return matches[1];
+      // single match (not handled as a gallery).
+      return matches[0];
     } else {
       return matches;
     }
   },
   
+  // For "OthersIndirect"
   _getImgFromHtmlText : function(aHTMLString, flags) {
     let logger = ThumbnailZoomPlus.Pages._logger;
     logger.trace("_getImgFromHtmlText");
@@ -1702,14 +1713,17 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     }
         
     // imgur.com albums, flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
-    re = /<meta +property=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
+    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (! match) {
       // 500px
-      var re2 = /<meta +content=[\"']([^\"']+)["'] +property=["']og:image["']/;
+      var re2 = /<meta +content=[\"']([^\"']+)["'] +property=["']og:image["']/g;
       logger.debug("_getImgFromHtmlText: trying " + re2);
       match = re2.exec(aHTMLString);
+      if (match) {
+        re = re2;
+      }
     }
     if (match) {
       // Return this unless it's a yfrog video or ebay thumb,
