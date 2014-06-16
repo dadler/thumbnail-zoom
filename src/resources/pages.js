@@ -539,11 +539,11 @@ ThumbnailZoomPlus.Pages.Netflix = {
   key: "netflix",
   name: "Netflix",
   host: /^(.*\.)?(netflix\.com|netflix\..*llnwd\.net|instantwatcher\.com)$/,
-  imageRegExp: new RegExp("://movies\\.netflix\\.com/WiPlayer\\?movieid=|" +
-                          "://movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
-                          "\\.nflximg\\.com/.*" + EXTS + "$|" +
-                          "netflix\\..*llnwd\\.net/.*" + EXTS + "$"),
-                          
+  imageRegExp: new RegExp("\\.netflix\\.com/WiPlayer\\?movieid=|" +
+                          "\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*|" +
+                          "(?:\\.nflximg\\.com/|netflix\.com|netflix\\..*llnwd\\.net).*" + EXTS + "$"),
+  // eg https://secure.netflix.com/us/boxshots/large/70251536.jpg
+  
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     if (nodeName == "a" || nodeName == "img") {
       return aNode;
@@ -581,8 +581,8 @@ ThumbnailZoomPlus.Pages.Netflix = {
     // http://cdn-1.nflximg.com/en_us/boxshots/ghd/70128681.jpg
     // and http://movies.netflix.com/WiMovie/Phineas_Ferb/70177007?trkid=4009636
     // to http://cdn-1.nflximg.com/en_us/boxshots/ghd/70177007.jpg
-    let netflixRex3 = new RegExp(".*//movies\\.netflix\\.com/WiPlayer\\?movieid=([0-9]+).*");
-    let netflixRex4 = new RegExp(".*//movies\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*");
+    let netflixRex3 = new RegExp(".*\\.netflix\\.com/WiPlayer\\?movieid=([0-9]+).*");
+    let netflixRex4 = new RegExp(".*\\.netflix\\.com/WiMovie/.*/([0-9]+)\\?.*");
     if (netflixRex3.test(aImageSrc) || netflixRex4.test(aImageSrc)) {
       // large popup for "play now"
       flags.popupAvoiderWidth = 384;
@@ -601,8 +601,8 @@ ThumbnailZoomPlus.Pages.Flickr = {
   key: "flickr",
   name: "Flickr",
   host: /^(.*\.)?(static)?flickr\.com$/,
-  imageRegExp: /farm[0-9]+\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
-  
+  imageRegExp: /.*\.static\.?flickr\.com|l.yimg.com\/g\/images\/spaceout.gif/,
+  //c2.staticflickr.com/8/7285/9040002362_8ee2a01c9c_z.jpg
   getImageNode : function(aNode, nodeName, nodeClass, imageSource) {
     
     /*
@@ -615,7 +615,7 @@ ThumbnailZoomPlus.Pages.Flickr = {
         the site so we could disable our own save, but I don't see how to tell
         that from the html.
     */
-    if (-1 != nodeClass.indexOf("spaceball")) {
+    if (/ui-display-shield|meta-bar|ui-bottom-gradient|spaceball/.test(nodeClass)) {
       ThumbnailZoomPlus.Pages._logger.debug("Flickr getImageNode: saw spaceball");
       let imgNodes = aNode.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -634,20 +634,21 @@ ThumbnailZoomPlus.Pages.Flickr = {
     
     return aNode;
   },
-    
+
+  // for flickr.com
   getZoomImage : function(aImageSrc, node, flags) {
-    // match an image name with a s, m, or t size code, or no size code, e.g.
+    // match an image name with a size code or no size code, e.g.
     // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04_s.jpg or
     // http://farm2.staticflickr.com/1120/1054724938_a67ff6eb04.jpg
-    let rexSmall = new RegExp(/(?:_[ac-np-z])?(\.[a-z]+)$/);
-    let rexLarge = new RegExp(/(?:_[bo])(\.[a-z]+)$/);
+    let rexSmall = new RegExp(/(?:_[ac-np-y])?(\.[a-z]+)(?:\?.*)?$/);
+    let rexLarge = new RegExp(/(?:_[boz])(\.[a-z]+)(?:\?.*)?$/);
     
     // Substitute to the letter code for the desired size (_z=Medium_640).
     // It's tempting to use a code for a larger size, but some images aren't
     // available in larger size, causing them to get no popup at all if we change
     // it.
     // We'll change most single-letter size codes into "medium" (z), but
-    // don't change the larger size codes b, o (rexLarge)
+    // don't change the larger size codes of at least "medium" (rexLarge)
     if (rexLarge.test(aImageSrc)) {
       // it's already larger than the "medium" size we'd set it to.
       return aImageSrc;
