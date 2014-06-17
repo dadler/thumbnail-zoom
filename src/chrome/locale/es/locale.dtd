@@ -78,7 +78,7 @@
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Ninguna">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o inhabilitar por sitio">
-<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Disabled Sites">
+<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Sitios inhabilitados">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.js

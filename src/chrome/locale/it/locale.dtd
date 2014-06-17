@@ -71,7 +71,7 @@
 <!ENTITY thumbnailzoomplus.options.key.none.label                "Nessuno">
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Generale">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Attivare o disattivare per sito">
-<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Disabled Sites">
+<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Siti per disabili">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul
