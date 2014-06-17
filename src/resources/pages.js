@@ -1593,6 +1593,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           // in production releases).
                           // + "|.*"
                           + "|bugguide.net"
+                          + "|deviantart\.com/art/"
                           , "i"),
   
   // For "OthersIndirect"
@@ -1810,7 +1811,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         'div#show-photo img#mainphoto', // 500px.com photo page
         'div#the-image a img', // yfrog.com pic
         'div.the-image img#main_image', // yfrog.com video
-        'img#gmi-ResViewSizer_fullimg', // deviantart photo
+        'img#gmi-ResViewSizer_fullimg', // deviantart photo (old?)
+        'img#dev-content-normal', // deviantart photo
         'img#primary_photo_img', // flickr.com set
         'div#allsizes-photo img', // flickr.com in All Sizes
         'img.bgimage-image', // bugguide.net
