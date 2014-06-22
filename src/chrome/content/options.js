@@ -41,17 +41,122 @@ Cu.import("resource://thumbnailzoomplus/siteConfigService.js");
 
 var ThumbnailZoomPlusOptions = {
 
+    _prefWindow : null,
     _logger :  ThumbnailZoomPlus.getLogger("ThumbnailZoomPlusOptions"),
     _consoleService : Cc["@mozilla.org/consoleservice;1"].
                                    getService(Ci.nsIConsoleService),
     _clipboardHelper : Components.classes["@mozilla.org/widget/clipboardhelper;1"].  
                            getService(Components.interfaces.nsIClipboardHelper),
-    
+    _appInfo : Components.classes["@mozilla.org/xre/app-info;1"].
+                  getService(Components.interfaces.nsIXULAppInfo),
+    _versionComparator : Components.classes["@mozilla.org/xpcom/version-comparator;1"].
+                  getService(Components.interfaces.nsIVersionComparator),
+    _runtime : Components.classes["@mozilla.org/xre/app-info;1"].
+                  getService(Components.interfaces.nsIXULRuntime),
+
     init : function() {
         ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlusOptions.init()");
         ThumbnailZoomPlus.SiteConfigService.setChromeDoc(document);
+
+        this._prefWindow = document.documentElement;
+        this._checkPrefsCompatibility();
     },
-    
+
+    /**
+     * All elements in prefwindow with compatibility restrictions are checked
+     * and disabled if the requirements are not met.
+     *
+     * Available restrictions:
+     *   minVersion.........minimal app version (inclusive)
+     *   maxVersion.........maximal app version (inclusive)
+     *   targetApplication..space separated whitelist of app GUIDs
+     *   targetPlatform.....space separated whitelist of operating systems
+     *
+     * When option with unmet requirements is disabled but was active (selected),
+     * fallback option searched. You can explicitly mark sibling option (e.g.
+     * menuitem) as fallback with attribute `fallback="true"`, otherwise first
+     * sibling is selected. This happens during option window init and the
+     * changes are saved automatically.
+     *
+     * Note: current implementation expects menuitem elements for simplicity,
+     * this may change in the future.
+     */
+    _checkPrefsCompatibility : function() {
+      this._logger.trace("_checkPrefsCompatibility");
+
+      var elems = document.querySelectorAll("[minVersion],[maxVersion],[targetApplication],[targetPlatform]");
+      this._logger.debug("_checkPrefsCompatibility: number of elements to be checked=" + elems.length);
+
+      for (var i = 0; i < elems.length; i++) {
+        var elem = elems[i];
+        this._logger.debug("_checkPrefsCompatibility: checking element[" + i + "]="+ elem.tagName);
+
+        if (elem.hasAttribute("minVersion") &&
+            this._versionComparator.compare(this._appInfo.version, elem.getAttribute("minVersion")) < 0) {
+              this._logger.debug("_checkPrefsCompatibility: minVersion requirement not met. Disabling element.");
+              elem.disabled = true;
+        } else
+        if (elem.hasAttribute("maxVersion") &&
+            this._versionComparator.compare(this._appInfo.version, elem.getAttribute("maxVersion")) > 0) {
+              this._logger.debug("_checkPrefsCompatibility: maxVersion requirement not met. Disabling element.");
+              elem.disabled = true;
+        } else
+        if (elem.hasAttribute("targetApplication") &&
+            elem.getAttribute("targetApplication").indexOf(this._appInfo.ID) < 0) {
+              this._logger.debug("_checkPrefsCompatibility: targetApplication requirement not met. Disabling element.");
+              elem.disabled = true;
+        } else
+        if (elem.hasAttribute("targetPlatform") &&
+            elem.getAttribute("targetPlatform").indexOf(this._runtime.OS) < 0) {
+              this._logger.debug("_checkPrefsCompatibility: targetPlatform requirement not met. Disabling element.");
+              elem.disabled = true;
+        } else {
+          this._logger.debug("_checkPrefsCompatibility: all requirements met. Skipping for next element if any.");
+          break;
+        }
+
+        // Incompatible option can't be active at the same time.
+        if (elem.disabled && elem.selected) {
+          var fallback = elem.parentNode.querySelector("[fallback]");
+          var defaultElem = fallback ? fallback : elem.parentNode.firstChild;
+          this._logger.debug("_checkPrefsCompatibility: the examined element is disabled and selected. Found substitute element=" + defaultElem.tagName);
+
+          // Find first parent that is keeping track of selected item.
+          // Note: this is probably menulist specific.
+          var parent = elem;
+          var updatePreferences = false;
+          do {
+            parent = parent.parentNode;
+            if (parent && typeof parent.selectedItem === "object") {
+              this._logger.debug("_checkPrefsCompatibility: parent element " + parent.tagName + " is updated with substitute element " + defaultElem.tagName);
+              // Change selected item in UI.
+              parent.selectedItem = defaultElem;
+
+              // Notify preference element about the change.
+              var changeEvent = document.createEvent("Event");
+              changeEvent.initEvent("change", true, false);
+              parent.dispatchEvent(changeEvent);
+
+              // Write the changes once we finish iterating.
+              updatePreferences = true;
+              break;
+            }
+          } while (parent);
+        }
+      }
+
+      // Save changed preferences for all prefpanes.
+      if (updatePreferences) {
+        var prefpanes = this._prefWindow.preferencePanes;
+        for (var i = 0; i < prefpanes.length; i++){
+          prefpanes[i].writePreferences(false);
+          this._logger.debug("_checkPrefsCompatibility: preferences saved for prefpane[" + i + "]");
+        }
+      } else this._logger.debug("_checkPrefsCompatibility: no preferences were changed.");
+
+      this._logger.debug("_checkPrefsCompatibility: done.");
+    },
+
     /**
      * Copy console messages to clipboard.
      */
