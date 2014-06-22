@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  - Copyright (c) 2010 Andres Hernandez Monge and 
@@ -42,6 +42,7 @@
     
     <em:creator>David Adler and Andres Hernandez Monge</em:creator>
     <em:contributor>Alexey Kuznetsov</em:contributor>
+    <em:contributor>Vlastimil Ovčáčík</em:contributor>
     <em:homepageURL>https://addons.mozilla.org/en-US/firefox/addon/thumbnail-zoom-plus/</em:homepageURL>
     <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
