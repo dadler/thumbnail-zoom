@@ -63,6 +63,35 @@ var ThumbnailZoomPlusOptions = {
     },
 
     /**
+     * Returns first element matching the xpath under the context element,
+     * otherwise null.
+     *
+     * Note: the context element takes effect only if the xpath does *not* begin
+     *       with "/" or "//". Furthermore I would recommend to start the xpath
+     *       with "./" or ".//".
+     */
+    _xpathSelector : function(context, xpath) {
+      return document.evaluate(xpath, context, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    },
+
+    /**
+     * Returns array of elements matching the xpath under the context element,
+     * otherwise empty array.
+     *
+     * Note: the context element takes effect only if the xpath does *not* begin
+     *       with "/" or "//". Furthermore I would recommend to start the xpath
+     *       with "./" or ".//".
+     */
+    _xpathSelectorAll : function(context, xpath) {
+      var result = [];
+      var snapshots = document.evaluate(xpath, context, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+      for (var i = 0; i < snapshots.snapshotLength; i++) {
+        result[i] = snapshots.snapshotItem(i);
+      }
+      return result;
+    },
+
+    /**
      * All elements in prefwindow with compatibility restrictions are checked
      * and disabled if the requirements are not met.
      *
@@ -75,8 +104,8 @@ var ThumbnailZoomPlusOptions = {
      * When option with unmet requirements is disabled but was active (selected),
      * fallback option searched. You can explicitly mark sibling option (e.g.
      * menuitem) as fallback with attribute `fallback="true"`, otherwise first
-     * sibling is selected. This happens during option window init and the
-     * changes are saved automatically.
+     * child of parent element is selected. This happens during option window init
+     * and the changes are saved automatically.
      *
      * Note: current implementation expects menuitem elements for simplicity,
      * this may change in the future.
@@ -84,7 +113,7 @@ var ThumbnailZoomPlusOptions = {
     _checkPrefsCompatibility : function() {
       this._logger.trace("_checkPrefsCompatibility");
 
-      var elems = document.querySelectorAll("[minVersion],[maxVersion],[targetApplication],[targetPlatform]");
+      var elems = this._xpathSelectorAll(document, ".//*[@minVersion] | .//*[@maxVersion] | .//*[@targetApplication] | .//*[@targetPlatform]");
       this._logger.debug("_checkPrefsCompatibility: number of elements to be checked=" + elems.length);
 
       for (var i = 0; i < elems.length; i++) {
@@ -117,7 +146,7 @@ var ThumbnailZoomPlusOptions = {
 
         // Incompatible option can't be active at the same time.
         if (elem.disabled && elem.selected) {
-          var fallback = elem.parentNode.querySelector("[fallback]");
+          var fallback = this._xpathSelector(elem.parentNode, "./*[@fallback]");
           var defaultElem = fallback ? fallback : elem.parentNode.firstChild;
           this._logger.debug("_checkPrefsCompatibility: the examined element is disabled and selected. Found substitute element=" + defaultElem.tagName);
 

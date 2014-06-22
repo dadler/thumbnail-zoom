@@ -152,11 +152,17 @@
             <menulist preference="thumbnailzoomplus-options-activate-key-pref">
               <menupopup>
                 <menuitem value="0"
-                  label="&thumbnailzoomplus.options.key.none.label;" />
+                  label="&thumbnailzoomplus.options.key.none.label;"
+                  fallback="true"
+                />
                 <menuitem value="1" label="CTRL" />
                 <menuitem value="2" label="SHIFT" />
                 <menuitem value="3" label="ALT" />
-                <menuitem value="4" label="RMB" />
+                <menuitem value="4" label="RMB"
+                  minVersion="15.0"
+                  targetApplication="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                  targetPlatform="WINNT Linux Darwin"
+                />
               </menupopup>
             </menulist>
           </hbox>
