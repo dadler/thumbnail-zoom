@@ -176,7 +176,8 @@ ThumbnailZoomPlus.PagesIndirect = {
 
     // Check the doc type so we don't e.g. try to parse an image as if it were html.
     let docType = req.getResponseHeader('Content-Type');
-    if (! /text\/html/.test(docType)) {
+    if (! /text\/html|application\/json/.test(docType)) {
+      // json is for gfycat.com, for which we run an ajax query which returns json.
       this._logger.debug("_getImageFromLinkedPageGen: unsupported doc type returned: " + docType);
       pageCompletionFunc(null);
     }

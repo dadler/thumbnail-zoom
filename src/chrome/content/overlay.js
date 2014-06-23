@@ -1545,17 +1545,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (zoomImageSrc == "") {
-      this._logger.debug("_getZoomImageCompletion: getZoomImage returned '' (matched but disabled by user).");
+      this._logger.debug("_getZoomImageCompletionImmediate: getZoomImage returned '' (matched but disabled by user).");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with ''");
       return "rejectedNode";
     }
     if (zoomImageSrc == null) {
-      this._logger.debug("_getZoomImageCompletion: getZoomImage returned null.");
+      this._logger.debug("_getZoomImageCompletionImmediate: getZoomImage returned null.");
       this._debugToConsole("ThumbnailZoomPlus: page " + pageName + " getZoomImage rejected with null");
       return "rejectedNode";
     }
     if (! this._currentWindow) {
-      this._debugToConsole("_getZoomImageCompletion: ignoring since ! _currentWindow (user moved off thumb?)");
+      this._debugToConsole("_getZoomImageCompletionImmediate: ignoring since ! _currentWindow (user moved off thumb?)");
       return "";
     }
 
@@ -1569,11 +1569,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // The document doesn't have a window; don't pop-up.  I've seen this
       // happen when an asynchronous pop-up tried to pop-up after the
       // tab was closed.
-      this._logger.debug("_getZoomImageCompletion: no defaultView");
+      this._logger.debug("_getZoomImageCompletionImmediate: no defaultView");
       return "";
     }
     this._originalURI = this._currentWindow.document.documentURI;
-    this._logger.debug("_getZoomImageCompletion: *** Setting _originalURI=" + 
+    this._logger.debug("_getZoomImageCompletionImmediate: *** Setting _originalURI=" +
                        this._originalURI);
 
     this._debugToConsole("ThumbnailZoomPlus: >>> page " + pageName + " launching \n" +
