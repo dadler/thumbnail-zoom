@@ -1594,6 +1594,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           // + "|.*"
                           + "|bugguide.net"
                           + "|deviantart\.com/art/"
+                          + "|www.furaffinity.net/view/"
                           , "i"),
   
   // For "OthersIndirect"
@@ -1772,6 +1773,15 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return match[1].replace(/\\/g, "");
     }
     
+    // furaffinity.net
+    // eg 'var full_url  = "//d.facdn.net/art/minnowfish/1365804573.minnowfish_redwblacksable.png";'
+    re = /var full_url *= *"([^"]+)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return match[1];
+    }
+
     logger.debug("_getImgFromHtmlText: didn't match");
     return null;  
   },
