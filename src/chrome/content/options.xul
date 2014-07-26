@@ -161,7 +161,7 @@
                 <menuitem value="4" label="RMB"
                   minVersion="15.0"
                   targetApplication="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                  targetPlatform="WINNT Linux"
+                  targetPlatform="WINNT Linux Darwin"
                 />
               </menupopup>
             </menulist>
