@@ -3339,7 +3339,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                        xOffset + "," + yOffset);
 
     result.xMin = Math.ceil(xOffset + box.left * pageZoom);
-		result.yMin = Math.ceil(yOffset + box.top  * pageZoom);
+    result.yMin = Math.ceil(yOffset + box.top  * pageZoom);
     result.xMax = Math.floor(xOffset + box.right * pageZoom);
     result.yMax = Math.floor(yOffset + box.bottom * pageZoom);
     
@@ -4368,7 +4368,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     );
     aMouseEvent.originalTarget.dispatchEvent(freshMouseEvent);
   }
-  
+
 };
 
 window.addEventListener(
