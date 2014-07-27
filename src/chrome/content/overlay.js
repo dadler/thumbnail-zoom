@@ -250,10 +250,27 @@ ThumbnailZoomPlusChrome.Overlay = {
   // Firefox version is the major version of Firefox as an integer, like
   // 3 or 12.
   _firefoxVersion : 0,
-  
+
+  /**
+   * True if we have attached listener that will prevent next contextmenu event.
+   */
+  _preventingNextContextMenuEvent : false,
+
+  /**
+   * If set to true, the _handleContextMenu will skip next contextmenu event
+   * originated form RMB mouse event. It has its equilibrium in false and will
+   * return there automatically after skipping the event.
+   */
+  _skipPostponeContextMenuEvent : false,
+
+  /**
+   * The last contextmenu event we have postponed.
+   */
+  _postponedContextMenuEvent : null,
+
   // observe is the function called when preferences change (set in init() ).
   observe : null,
-  
+
   /**
    * Initializes the object.
    */
@@ -803,6 +820,18 @@ ThumbnailZoomPlusChrome.Overlay = {
           function(aEvent) {
             that._handleMouseOut(doc, aEvent, pageConstant);
           }, true);
+        // RMB feature needs to listen to contexmenu.
+        doc.addEventListener(
+          "contextmenu",
+          function(aEvent) {
+            that._handleContextMenu(doc, aEvent, pageConstant);
+          }, true);
+        // RMB feature needs to listen to mouseup.
+        doc.addEventListener(
+          "mouseup",
+          function(aEvent) {
+            that._handleMouseUp(doc, aEvent, pageConstant);
+          }, true);
       } else {
         this._logger.debug("_addEventListenersToDoc: not on a matching site: " + doc.documentURI);
       }
@@ -1204,6 +1233,21 @@ ThumbnailZoomPlusChrome.Overlay = {
     that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
     that._scrolledSinceMoved = false;
     that._movedSincePoppedUp = true;
+
+    /*
+     * If RMB is activation key and we haven't prevented next contextmenu event
+     * and RMB is dragged, then prevent next contextmenu event.
+     */
+    if (!this._preventingNextContextMenuEvent && ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4) {
+      this._logger.debug("_handleMouseMove: RMB is activation key.");
+
+      let rmbActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, false, true, aEvent);
+      if (rmbActive) {
+        this._logger.debug("_handleMouseMove: preventing next contextmenu event.");
+
+        this._preventNextContextMenuEvent();
+      }
+    }
   },
 
   _handleScroll : function (aDocument, aEvent, aPage) {
@@ -1789,10 +1833,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       case 4:
         active = (useState && ((aEvent.buttons & 2) > 0)) || 
                  (aEvent.button != undefined && aEvent.button == 2);
-
-        //TODO: prevent context menu only if TZP is going to succeed.
-        if (active) this._preventNextContextMenuEvent();
-
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'right mouse button', return " 
                            + active);
@@ -1806,19 +1846,6 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
 
     return active;
-  },
-
-  /**
-   * Prevents context menu to open on the earliest occurrence.
-   */
-  _preventNextContextMenuEvent: function() {
-    this._logger.trace("_preventNextContextMenuEvent");
-
-    window.addEventListener("contextmenu", function _preventNextContextMenuEvent(aEvent) {
-      aEvent.stopPropagation();
-      aEvent.preventDefault();
-      this.removeEventListener("contextmenu", _preventNextContextMenuEvent, false);
-    }, false);
   },
 
   /**
@@ -4263,8 +4290,139 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _debugToConsole : function(msg) {
     ThumbnailZoomPlus.debugToConsole(msg);
+  },
+
+  /* ***************************************************************************
+   * Right mouse button activation key & handling of context menu appearence.
+   * **************************************************************************/
+
+  /**
+   * Reset the state variables for RMB and context menu handling functions.
+   */
+  _resetRMBHandling : function() {
+    this._logger.trace("_resetRMBHandling");
+
+    this._preventingNextContextMenuEvent = false;
+    this._skipPostponeContextMenuEvent = false;
+    this._postponedContextMenuEvent = null;
+    window.removeEventListener("contextmenu", this._preventNextContextMenuEventImpl, false);
+  },
+
+  /**
+   * Prevents context menu to open on the earliest occurrence.
+   */
+  _preventNextContextMenuEvent: function() {
+    this._logger.trace("_preventNextContextMenuEvent");
+
+    if (!this._preventingNextContextMenuEvent) {
+      window.addEventListener("contextmenu", this._preventNextContextMenuEventImpl, false);
+      this._preventingNextContextMenuEvent = true;
+    }
+  },
+
+  _preventNextContextMenuEventImpl : function(aEvent) {
+    var that = ThumbnailZoomPlusChrome.Overlay;
+    that._logger.trace("_preventNextContextMenuEventImpl");
+
+    aEvent.stopPropagation();
+    aEvent.preventDefault();
+    that._resetRMBHandling();
+  },
+
+  /**
+   * Listening to all contextmenu events per document.
+   */
+  _handleContextMenu : function(aDocument, aEvent, aPage) {
+    this._logger.trace("_handleContextMenu on " + aEvent.target);
+
+    if (
+      (aEvent.buttons & 2) > 0 ||
+      (aEvent.button != undefined && aEvent.button == 2)
+    ) {
+      // the aEvent was initiated by RMB
+      /*
+       * Context menu event may be fired after:
+       * - mousedown event (Linux)
+       * - mouseup event (Windows)
+       * For RMB feature it is essential to postpone the context menu after the
+       * mouseup event.
+       */
+      if (!this._skipPostponeContextMenuEvent) {
+        /*
+         * All contextmenu events originated from RMB should be postponed until
+         * the RMB is released. In the meantime we decide if we want to prevent
+         * the context menu from appearing or not.
+         */
+        this._logger.debug("_handleContextMenu: postponing a contextmenu event on " + aEvent.target);
+        aEvent.stopPropagation();
+        aEvent.preventDefault();
+        this._postponedContextMenuEvent = aEvent;
+      } else {
+        /*
+         * We are skipping this contextmenu event and it will continue to propagate.
+         * However this does not mean the contextmenu wont be prevented from
+         * appearing by us (see _preventNextContextMenuEvent) or something else.
+         */
+        this._logger.debug("_handleContextMenu: disabling _skipPostponeContextMenuEvent.");
+        this._skipPostponeContextMenuEvent = false;
+      }
+    }
+  },
+
+  /**
+   * Listening to all mouseup events per document.
+   */
+  _handleMouseUp : function(aDocument, aEvent, aPage) {
+    this._logger.trace("_handleMouseUp on " + aEvent.target);
+
+    if (
+      (aEvent.buttons & 2) > 0 ||
+      (aEvent.button != undefined && aEvent.button == 2)
+    ) {
+      // the aEvent was initiated by RMB
+      /*
+       * RMB was released. We can let all contextmenu events after this point to
+       * propagate. If we have "paused" a contextmenu event before, resume it now.
+       */
+      this._logger.debug("_handleMouseUp: enabling _skipPostponeContextMenuEvent.");
+      this._skipPostponeContextMenuEvent = true;
+
+      if (this._postponedContextMenuEvent != null) {
+        // the default action of the event has been prevented, lets make clone
+        // of the event and dispatch it again
+        this._redispatchMouseEvent(this._postponedContextMenuEvent);
+      }
+    }
+  },
+
+  /**
+   * Redispatch a faithful clone of aMouseEvent.
+   */
+  _redispatchMouseEvent : function(aMouseEvent) {
+    this._logger.trace("_redispatchMouseEvent");
+
+    this._logger.debug("_redispatchMouseEvent: redispatching event " + aMouseEvent.type + " on " + aMouseEvent.originalTarget);
+    var freshMouseEvent = document.createEvent("MouseEvents");
+    freshMouseEvent.initMouseEvent(
+      aMouseEvent.type,
+      aMouseEvent.bubbles,
+      aMouseEvent.cancelable,
+      aMouseEvent.view,
+      aMouseEvent.detail,
+      aMouseEvent.screenX,
+      aMouseEvent.screenY,
+      aMouseEvent.clientX,
+      aMouseEvent.clientY,
+      aMouseEvent.ctrlKey,
+      aMouseEvent.altKey,
+      aMouseEvent.shiftKey,
+      aMouseEvent.metaKey,
+      aMouseEvent.button,
+      aMouseEvent.relatedTarget
+    );
+    aMouseEvent.originalTarget.dispatchEvent(freshMouseEvent);
   }
-  
+
 };
 
 window.addEventListener(
