@@ -3189,6 +3189,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     
+    if (! this._currentWindow) {
+      this._logToConsole("_focusThePopup: _currentWindow is null");
+      return;
+    }
+    
     let doc = this._currentWindow.document;
     let focused = doc.activeElement;
 
