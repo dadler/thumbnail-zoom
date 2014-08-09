@@ -750,10 +750,10 @@ ThumbnailZoomPlus.Pages.OkCupid = {
   key: "okcupid",
   name: "okCupid",
   host: /^.*\.okcupid\.com$/,
-  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.(jpe?g|png|gif)$/i,
+  imageRegExp: /^https?:\/\/[^\/]*\.okccdn\.com\/.*\/images\/.*\/[0-9]+\.(jpe?g|png|gif).*$/i,
   getZoomImage : function(aImageSrc, node, flags) {
     // http://ak1.okccdn.com/php/load_okc_image.php/images/160x160/160x160/189x210/687x708/2/17985133630795268990.jpeg
-    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.(jpe?g|png|gif))$/);
+    let picRex = new RegExp(/^(.*\.okccdn\.com\/.*\/images\/)[0-9x\/]*\/([0-9]+\.(jpe?g|png|gif)).*$/);
     let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1$2") : 
                  null);
     return image;
