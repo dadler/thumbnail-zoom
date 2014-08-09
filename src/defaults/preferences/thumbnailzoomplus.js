@@ -47,14 +47,14 @@ pref("extensions.thumbnailzoomplus.panel.activatekey",  0); // NONE
 pref("extensions.thumbnailzoomplus.panel.keydisplay",   true);
 pref("extensions.thumbnailzoomplus.panel.maxkey",       2); // SHIFT
 pref("extensions.thumbnailzoomplus.panel.border",       true);
-pref("extensions.thumbnailzoomplus.panel.largeimage",   false);
+pref("extensions.thumbnailzoomplus.panel.largeimage",   true);
 pref("extensions.thumbnailzoomplus.panel.popuponscroll",false);
 pref("extensions.thumbnailzoomplus.panel.focuspopup",   true);
 pref("extensions.thumbnailzoomplus.panel.showpercent",  true);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);
-pref("extensions.thumbnailzoomplus.panel.popupsize",    "webpage");
+pref("extensions.thumbnailzoomplus.panel.popupsize",    "window");
 pref("extensions.thumbnailzoomplus.panel.savefilename", "caption");
 pref("extensions.thumbnailzoomplus.disabledSitesRE",    "");
 
