@@ -176,7 +176,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/_6l-|__c_|_1xx|_1xy|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
@@ -271,12 +271,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/p417x417/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2 becomes
     // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2
+    // It may also have v/l/ instead of just v/.
     // (handle /v/t1.0-9 part)
-    aImageSrc = aImageSrc.replace(/\/v\/t[0-9]+\.[0-9]+-[0-9]\//i, "/");
+    aImageSrc = aImageSrc.replace(/\/v(?:\/l)?\/t[0-9]+\.[0-9]+-[0-9]+\//i, "/");
 
-    let rex3 = new RegExp(/\/[sp][0-9]+x[0-9]+\//);
+    let rex3 = new RegExp(/\/[spn][0-9]+x[0-9]+\//);
     aImageSrc = aImageSrc.replace(rex3, "/");
-
+    
     // http://graph.facebook.com/1368249070/picture?type=square becomes
     // http://graph.facebook.com/1368249070/picture?type=large
     // e.g. from pandora.com.
