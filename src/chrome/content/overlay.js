@@ -678,7 +678,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let doc = aEvent.originalTarget;
     this._addEventListenersToDoc(doc);
 
-    if (this._needToPopDown(doc.defaultView.top)) {
+    if (this._needToPopDown(doc.defaultView)) {
       // Detected that the user loaded a different page into our window, e.g.
       // by clicking a link.  So close the popup.
       this._logger.debug("_handlePageLoaded: *** closing since a page loaded into its host window");
@@ -1294,8 +1294,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }    
 
-
-    if (this._needToPopDown(aDocument.defaultView.top)) {
+    if (this._needToPopDown(aDocument.defaultView)) {
       this._debugToConsole("_handleMouseOverImpl: _closePanel(true) since different doc.");
       this._closePanel(true);
       return;
@@ -2125,7 +2124,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // for webm, use "video" tag; see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
       var newImg =
           document.createElementNS("http://www.w3.org/1999/xhtml","video");
-      newImg.setAttribute("autoplay", "1");
+      newImg.setAttribute("autoplay", "");
       newImg.setAttribute("loop", "1");
       newImg.setAttribute("preload", "auto");
     } else {
@@ -2593,7 +2592,18 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  _needToPopDown : function(affectedWindow) {
+  _needToPopDown : function(view) {
+    // null view and "TypeError: can't access dead object" reported when
+    // accessing view.top.  In the case of "dead object",
+    // TZP stopped working.  I had clicked a link and Firefox was spinning
+    // waiting to load it, while the prior page was still visible.
+    // Moving mouse over that prior page caused these errors and no pop-ups.
+    // To work around at least the null problem we test for it.
+    if (! view) {
+        this._debugToConsole("_needToPopdown: ignoring due to null view");
+        return;
+    }
+    var affectedWindow = view.top;
     let needTo = 
       (this._originalURI != "" &&
        this._currentWindow == affectedWindow &&
@@ -2607,9 +2617,9 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   _handlePageHide : function(aEvent) {
     let that = ThumbnailZoomPlusChrome.Overlay;
-    let affectedWindow = aEvent.originalTarget.defaultView.top;
+    let affectedView = aEvent.originalTarget.defaultView;
     that._logger.trace("_handlePageHide");
-    if (that._needToPopDown(affectedWindow)) {
+    if (that._needToPopDown(affectedView)) {
       that._debugToConsole("_handlePageHide: _closePanel(true)");
       that._closePanel(true);
     }
