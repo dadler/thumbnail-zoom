@@ -88,6 +88,8 @@ ThumbnailZoomPlus.SiteConfigService = {
                     regexChars = ["^"];
                     ignoreProtocol = false;
                     ignoreLeadingSlashes = true;
+                } else {
+                    regexChars.push(c);
                 }
                 break;
             case '/':
@@ -115,7 +117,11 @@ ThumbnailZoomPlus.SiteConfigService = {
     }
     var re = this._globToRegex(glob, ignoreProtocol);
 
-    return re.test(url1) || re.test(url2);
+    var matched = re.test(url1) || re.test(url2);
+
+    // ThumbnailZoomPlus.debugToConsole("_isURLMatchedByGlob: " + glob + " " + re + " " + url1 + " " + url2 + " " + ignoreProtocol + ": " + matched);
+    
+    return matched;
   },
   
   /**
