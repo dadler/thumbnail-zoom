@@ -81,14 +81,11 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // Log messages will be written to ThumbnailZoomPlus/log.txt under
       // your profile dir.
       // On Mac OSX it might be
-      // "/Users/$USER/Library/Application Support/Firefox/Profiles/7sep894p.developer/ThumbnailZoomPlus/log.txt"
+      //   tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
       // On Windows it might be
       // tail --follow=name --retry "%AppData%\Mozilla\Firefox\Profiles\7sep894p.developer\ThumbnailZoomPlus\log.txt"
       // (Recommended Windows ports of GNU tail: MSYS, PortableGit, http://unxutils.sourceforge.net)
       // To debug, set enableDebug above to true and monitor the log file
-      // in a terminal using this command:
-      // tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
-      //
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       // 
       let enableDebug = false;

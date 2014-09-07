@@ -774,9 +774,11 @@ ThumbnailZoomPlus.Pages.PhotoBucket = {
   name: "PhotoBucket",
   host: /^(.*\.)?photobucket\.com$/,
   imageRegExp: /\.photobucket.com\/(albums|groups)/,
+
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/th_/);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "/") : null);
+        
     return image;
   }
 };
@@ -1216,6 +1218,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://(instagr\\.am|instagram\\.com)/p/.*/media/"
     + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
     + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
+    + "|^https?://webm\.land\/w\/"
     // end
     , "i"),
   
@@ -1502,6 +1505,9 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/:\/\/imgchili\.(?:com|net)\/show\//, "://i2.imgchili.com/");
     aImageSrc = aImageSrc.replace(/(\/\/img..g\.com)\/\?v=/i, "$1/images/");
     aImageSrc = aImageSrc.replace(/.*\.any\.gs\/url\/(.*)/, "$1");
+
+    // http://webm.land/w/eMmD/ becomes http://webm.land/media/eMmD.webm
+    aImageSrc = aImageSrc.replace(/:\/\/webm\.land\/w\/([^\/?]+).*/, "://webm.land/media/$1.webm");
 
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
@@ -1948,7 +1954,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if ((/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
         (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
-        (nodeName == "img" && "photo" == nodeClass && /media\.tumblr\.com/.test(imageSource)) // tumblr archive
+        (nodeName == "img" && "photo" == nodeClass && /media\.tumblr\.com/.test(imageSource)) || // tumblr archive
+        (nodeName == "div" && "thumbnailOverlay" == nodeClass) // photobucket
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
@@ -1987,7 +1994,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               /image-container/.test(ancestorClass) || // allmusic.com
               /photo one/.test(ancestorClass) || // 500px.com
               /cover/.test(ancestorClass) || // google play apps
-              ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource))
+              ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource)) ||
+              (/thumbnailLink/.test(ancestorClass))
               ) {
             // take the last child.
             node = imgNodes[imgNodes.length-1];
@@ -2241,6 +2249,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       aImageSrc = aImageSrc.replace(leBonCoinRegExp, "/images/$1");
     }
     
+    // photobucket (see also the photobucket rule).
+    // http://rs915.pbsrc.com/albums/ac353/ThunderCracker_photos/Tempest%20Skies%20Photography/123.jpg~c200 becomes
+    // http://i915.photobucket.com/albums/ac353/ThunderCracker_photos/Tempest%20Skies%20Photography/123.jpg
+    aImageSrc = aImageSrc.replace(/:\/\/rs([0-9]+)\.pbsrc\.com\/(.*)~c200$/, "://i$1.photobucket.com/$2");
+
     // costco.com:
     // http://images.costco.com/image/media/150-759675-847__1.jpg becomes
     // http://images.costco.com/image/media/500-759675-847__1.jpg ; some have 700- too.
