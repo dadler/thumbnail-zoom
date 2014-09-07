@@ -170,7 +170,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
    */
-  imageRegExp: /profile|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if ("a" == aNodeName && "album_link" == aNodeClass) {

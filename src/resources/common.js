@@ -83,7 +83,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // On Mac OSX it might be
       //   tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
       // On Windows it might be
-      // tail --follow=name --retry "%AppData%\Mozilla\Firefox\Profiles\7sep894p.developer\ThumbnailZoomPlus\log.txt"
+      //   tail --follow=name --retry "%AppData%\Mozilla\Firefox\Profiles\7sep894p.developer\ThumbnailZoomPlus\log.txt"
       // (Recommended Windows ports of GNU tail: MSYS, PortableGit, http://unxutils.sourceforge.net)
       // To debug, set enableDebug above to true and monitor the log file
       // Enabling these increases CPU usage when moving the mouse in Firefox.
