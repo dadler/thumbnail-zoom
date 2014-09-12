@@ -2496,7 +2496,13 @@ ThumbnailZoomPlusChrome.Overlay = {
       let aImageSrc = this._getAdjacentImage(this._currentImage, delta);
       this._debugToConsole("_doHandleKeyDown: delta of " + delta + " yields\n" + 
                            aImageSrc);
-      if (aImageSrc && this._currentThumb) {
+      // TODO:this._galleryImageUrls in the 'if' below means these
+      // keys work only for recognized galleries, and we've lost the
+      // ability to use the to simply increment numbers in the URL.
+      // We could change it to increment on [ or ] and use arrows
+      // for prev/next gallery.  Incrementing on arrows would be confusing
+      // since users would think they have a broken gallery.
+      if (aImageSrc && this._currentThumb && this._galleryImageUrls) {
         this._currentPopupFlags.requireImageBiggerThanThumb = false;
         this._currentPopupFlags.imageSourceNode = this._currentThumb;
         this._currentPopupFlags.captionPrefix = (this._galleryPosition+1) + " of " +
@@ -2666,18 +2672,19 @@ ThumbnailZoomPlusChrome.Overlay = {
     if (match) {
       this._logger.debug("_offsetURL: match=" + match[1] + ", " + match[2] + ", " + match[3]);
     }
-    let newUrl = url.replace(re, function(matchPart, prefix, num, suffix) {
-                      let adj = String((+num) + delta);
-                      if (num[0] == "0" && 
-                          num.length > adj.length) {
-                        // original image has 0-pading; pad to the same length.
-                        // Note that when decrementing eg down from 10 we don't
-                        // know whether or not to pad (to 9 or 09) so we don't pad.
-                        adj = "0000000000".substring(0, num.length - adj.length) + adj;
-                      }
-                      let result = prefix + adj + suffix
-                      return result;
-                    });
+    let newUrl = url.replace(re,
+      function(matchPart, prefix, num, suffix) {
+                             let adj = String((+num) + delta);
+                             if (num[0] == "0" &&
+                                 num.length > adj.length) {
+                             // original image has 0-pading; pad to the same length.
+                             // Note that when decrementing eg down from 10 we don't
+                             // know whether or not to pad (to 9 or 09) so we don't pad.
+                             adj = "0000000000".substring(0, num.length - adj.length) + adj;
+                             }
+                             let result = prefix + adj + suffix
+                             return result;
+                             });
     if (newUrl == url) {
       return null;
     }
