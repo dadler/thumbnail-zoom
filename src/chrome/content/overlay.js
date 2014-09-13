@@ -482,12 +482,14 @@ ThumbnailZoomPlusChrome.Overlay = {
      * event for the doc (since it was already loaded before), but its doc
      * will already be existing when we initialize chrome for the new window. 
      */
+    if (false) {
     for (let i=0; i < gBrowser.browsers.length; i++) {
       this._logger.debug("_addEventListeners: " +
                          " adding for pre-existing doc #" + i + ": " + 
                          gBrowser.getBrowserAtIndex(i).contentDocument +
                          " " + gBrowser.getBrowserAtIndex(i).contentDocument.documentURI);
       this._addEventListenersToDoc(gBrowser.getBrowserAtIndex(i).contentDocument);
+    }
     }
   },
 
