@@ -2134,7 +2134,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       var newImg = document.createElementNS("http://www.w3.org/1999/xhtml","img");
     }
     newImg.setAttribute("id", "thumbnailzoomplus-panel-html-image");
-    this._panelImageDiv.replaceChild(newImg, this._panelHtmlImage);
+    // Replace the current _panelHtmlImage with newImg.  But remove all
+    // children of its container since flashblock may have removed
+    // or added children!
+    var child = this._panelImageDiv.firstChild;
+    while (child) {
+        this._panelImageDiv.removeChild(child);
+        child = this._panelImageDiv.firstChild;
+    }
+    this._panelImageDiv.appendChild(newImg);
     this._panelHtmlImage = newImg;
   },
   
