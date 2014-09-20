@@ -1693,7 +1693,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     
     re = /flv_player.*?<img src=\"([^\"]+)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    match = re.exec(aHTMLString);
     if (match) {
       flags.borderColor = "#CC181E"; // youtube red
       return match[1];
@@ -1701,7 +1701,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     
     re = /flash-player-embed.*?url_bigthumb=([^&]*)/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    match = re.exec(aHTMLString);
     if (match) {
       flags.borderColor = "#CC181E"; // youtube red
       return match[1];
@@ -1709,7 +1709,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     
     re = /<img src=\"([^\"]*image.enue.com\/loc[^"]*)/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    match = re.exec(aHTMLString);
     if (match) {
       return match[1];
     }
@@ -2404,7 +2404,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(regEx, "$1/full/$3");
     
     // For xh*ster.com, change 000/014/111/004_160.jpg to 000/014/111/004_1000.jpg
-    let regEx = new RegExp("(xh[a-z0-9]*ster.com.*/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
+    regEx = new RegExp("(xh[a-z0-9]*ster.com.*/[0-9]+/[0-9]+/[0-9]+/[0-9]+)_[0-9]{1,3}(\.[a-z]+)");
     before = aImageSrc;
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
@@ -2492,7 +2492,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // https://lh6.ggpht.com/JAPlPOSg988jbSWvtxUjFObCguHOJk1yB1haLgUmFES_r7ZhAZ-c7WQEhC3-Sz9qDT0 and
     // and ...=w124 and ...==w78-h78
     let googlePlayRegExp = new RegExp("(\\.ggpht\\.com/.*)=[-wh0-9]+$");
-    let aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
+    aImageSrc = aImageSrc.replace(googlePlayRegExp, "$1");
     
     // Google Play album: change
     // https://lh4.googleusercontent.com/Z0AD4MsVIa8qoMs69GmZqNRHq-dzapfbO_HrviLyBmmbgnwi1_YmhId29CojSoERSbdrqEMonBU=w128 to

@@ -487,8 +487,8 @@ ThumbnailZoomPlus.FilterService = {
         // and we ignore if localName is null, as sometimes happens if the
         // returned node is the document itself (seen when reloading Google Images)
         if (imageNode != null && imageNode.localName) {
-          var nodeName = imageNode.localName;
-          let nodeClass = imageNode.className;
+          nodeName = imageNode.localName;
+          nodeClass = imageNode.className;
           this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
