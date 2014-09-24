@@ -348,7 +348,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     // lockerz, etc.:
     // http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http%3A%2F%2Flockerz.com%2Fs%2F198302791
     let rexPlixi = new RegExp("(.*/api\\.plixi\\.com/.*[?&])size=[a-z]+(.*)$");
-    let rex1 = new RegExp(/[:_](thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
+    let rex1 = new RegExp(/[:_](small|thumb|bigger|mini|normal|reasonably_small)(?![^.])/);
     let rex2 = new RegExp(/-(mini|thumb)\./);
     // eg http://twitpic.com/show/mini/563w31; in this case mini and iphone exist but full doesn't.
     let rex3 = new RegExp(/\/(mini|thumb|iphone|large)\//);
