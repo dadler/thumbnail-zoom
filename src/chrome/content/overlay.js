@@ -516,18 +516,19 @@ ThumbnailZoomPlusChrome.Overlay = {
    * we could get into a popup/popdown cycle.
    */
   _allowPopupTakesFocusForNode : function(aImageNode) {
+    let nodeClass = aImageNode.className;
     let parent = aImageNode.parentNode || aImageNode;
     let parent2 = parent.parentNode || parent;
     let parent3 = parent2.parentNode || parent2;
     let parent2Class = parent2.className;
     let parent3id = parent3.id;
     this._logger.debug("_allowPopupTakesFocusForNode: aImageNode=" + aImageNode +
-                       "; class=" + aImageNode.className + 
+                       "; class=" + nodeClass +
                        "; p.class=" + parent.className + 
                        "; p.p.class=" + parent2Class +
                        "; p.p.p.id=" + parent3id);
-    if (parent2Class.indexOf("deviants") >= 0 ||
-        parent2Class.indexOf("grp hh") >= 0) {
+    if (nodeClass.indexOf("username") >= 0 &&
+        /deviantart\.com/.test(this._originalURI)) {
       // This is the deviantart.com Deviants or Groups pulldown menu.
       // Focusing would immediately dismiss the menu so we don't.
       // TODO: it'd be better to detect this more generically if we knew how.
