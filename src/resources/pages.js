@@ -1017,6 +1017,7 @@ ThumbnailZoomPlus.Pages.YouTube = {
   name: "YouTube",
   host: /^(.*\.)?(nsfw)?youtube\.com|i[0-9]*\.ytimg\.com$/,
   imageRegExp: /i[0-9]*\.ytimg\.com\/vi\//,
+  // see also "Others" rule.
   
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/default\./);
@@ -1200,7 +1201,7 @@ ThumbnailZoomPlus.Pages.Others = {
       EXTS + "([?&].*)?$"
     + "|tumblr.com/(photo/|tumblr_)"
     + "|imgur\\.com/(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
-    + "|(?:www\\.(nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
+    + "|((nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
     + "|someimage.com/."
