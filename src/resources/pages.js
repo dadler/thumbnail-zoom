@@ -269,12 +269,17 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // (handle the c0.0.133.133 part)
     aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
 
-    // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/p417x417/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2 becomes
-    // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2
-    // It may also have v/l/ instead of just v/.
-    // (handle /v/t1.0-9 part)
-    aImageSrc = aImageSrc.replace(/\/v(?:\/l)?\/t[0-9]+\.[0-9]+-[0-9]+\//i, "/");
-
+    if (aNodeClass && aNodeClass.indexOf("_ksh") >= 0) {
+        // image in Facebook chat is already full-rez; don't try to change it.
+    } else {
+        // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/p417x417/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2 becomes
+        // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2
+        // It may also have v/l/ instead of just v/.
+        // (handle /v/t1.0-9 part).
+        // But for images in facebook chat don't change this:
+        aImageSrc = aImageSrc.replace(/\/v(?:\/l)?\/t[0-9]+\.[0-9]+-[0-9]+\//i, "/");
+    }
+    
     let rex3 = new RegExp(/\/[spn][0-9]+x[0-9]+\//);
     aImageSrc = aImageSrc.replace(rex3, "/");
     
