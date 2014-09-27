@@ -1927,6 +1927,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|//img[0-9]+\\.wsimg\\.com/DNSManager/" // goDaddy: DNS Manager https://dns.godaddy.com/default.aspx 
                           + "|//.*twimg.*/img/front_page/" // Twitter background image on login page.
                           + "|//.*/images/tiny_mce" // toolbar of html editor in jive cms and elsewhere
+                          + "|.*\\.4sqi\\.net/.*sprite" // foursquare map sprites
                           + ").*", "i"),
   
   // For "Thumbnail"
@@ -2375,6 +2376,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       flags.borderColor = "#CC181E"; // youtube red
     }
     
+    // foursquare.com:
+    // https://irs3.4sqi.net/img/general/300x300/3824770_Mz86LtkdkQZPYZj6hPfgj1xLWG_pwWWKedGtlOrLCAQ.jpg becomes
+    // https://irs3.4sqi.net/img/general/width960/3824770_Mz86LtkdkQZPYZj6hPfgj1xLWG_pwWWKedGtlOrLCAQ.jpg
+    // https://irs1.4sqi.net/img/user/64x64/WVP02LFNO4A25W2E.jpg becomes
+    // https://irs1.4sqi.net/img/user/width960/WVP02LFNO4A25W2E.jpg
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.4sqi\\.net/img.*)/[0-9]+x[0-9]+/"), "$1/width960/");
+
     // wired.com:
     // http://www.wired.com/images_blogs/autopia/2013/04/3448678338_e8785110ff_b-featured-200x100.jpg becomes
     // http://www.wired.com/images_blogs/autopia/2013/04/3448678338_e8785110ff_b-featured.jpg
