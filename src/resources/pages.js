@@ -2222,6 +2222,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let blogspotRegExp = new RegExp("(\\.(blogspot|blogger)\\.com/.*)/s[0-9]+(-[a-z])?/([^/?&]+\.[^./?&]*)$");
     aImageSrc = aImageSrc.replace(blogspotRegExp, "$1/s1600/$4");
     
+    // iconosquare.com (formerly Statigr.am) and possibly other instagram.com-related sites:
+    // http://scontent-b.cdninstagram.com/hphotos-xfa1/l/t51.2885-15/10665653_493240594153262_1854672376_s.jpg becomes
+    // http://scontent-b.cdninstagram.com/hphotos-xfa1/l/t51.2885-15/10665653_493240594153262_1854672376_n.jpg
+    // http://scontent-a.cdninstagram.com/hphotos-xap1/t51.2885-15/10518093_541390389340215_1536433172_s.jpg similarly.
+    // also, for user's own photos:
+    // http://scontent-a.cdninstagram.com/hphotos-xfa1/outbound-distilleryimage4/t0.0-17/OBPTH/8a5f1e0e873411e1af7612313813f8e8_5.jpg becomes
+    // http://scontent-a.cdninstagram.com/hphotos-xfa1/outbound-distilleryimage4/t0.0-17/OBPTH/8a5f1e0e873411e1af7612313813f8e8_7.jpg
+    aImageSrc = aImageSrc.replace(/(\/\/scontent-.\.cdninstagram.com\/.*)_s.jpg/, "$1_n.jpg");
+    aImageSrc = aImageSrc.replace(/(\/\/scontent-.\.cdninstagram.com\/.*)_[0-6].jpg/, "$1_7.jpg");
+
     // For weibo.com profile pics, change
     // http://tp1.sinaimg.cn/1744655144/50/5602386657/0 to
     // http://tp1.sinaimg.cn/1744655144/180/5602386657/0
