@@ -2823,6 +2823,23 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
 
+  _getThumbSize : function(aImageNode)
+  {
+    // Seen in ff15: Error: TypeError: can't access dead object
+    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let thumbSize = {width:99999, height:9999};
+    for (var depth = 1; depth <=6 && aImageNode; ++depth) {
+      let thisWidth = aImageNode.clientWidth * pageZoom;
+      thumbSize.width = Math.min(thumbSize.width, thisWidth);
+      let thisHeight = aImageNode.clientHeight * pageZoom;
+      thumbSize.height = Math.min(thumbSize.height, thisHeight);
+      this._logger.debug("_getThumbSize @ " + depth + ": " +
+                         thumbSize.width + " x " + thumbSize.height);
+      aImageNode = aImageNode.parentNode;
+    }
+    return thumbSize;
+  },
+
   /**
    * _imageOnLoad displays the full-size image (if it's called on the
    * appropriate image's window).
@@ -2860,11 +2877,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     this._timer.cancel();
 
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-
-    // Seen in ff15: Error: TypeError: can't access dead object
-    let thumbWidth = aImageNode.clientWidth * pageZoom;
-    let thumbHeight = aImageNode.clientHeight * pageZoom;
+    let thumbSize = this._getThumbSize(aImageNode)
+    let thumbWidth = thumbSize.width;
+    let thumbHeight = thumbSize.height;
     
     /*
      * Get image size from naturalWidth, which tells us the image's true
@@ -3029,14 +3044,13 @@ ThumbnailZoomPlusChrome.Overlay = {
                                           flags, 
                                           imageWidth, imageHeight)
   {
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
-    
     let available = this._getAvailableSizeOutsideThumb(aImageNode, flags);
-    let thumbWidth = aImageNode.clientWidth * pageZoom;
-    let thumbHeight = aImageNode.clientHeight * pageZoom;
+    let thumbSize = this._getThumbSize(aImageNode)
+    let thumbWidth = thumbSize.width;
+    let thumbHeight = thumbSize.height;
     this._logger.debug("_sizePositionAndDisplayPopup: thumb size = " +
                        thumbWidth + " x " + thumbHeight +
-                       "; pageZoom=" + pageZoom);
+                       "; clientHeight=" + aImageNode.clientHeight);
 
     // Get the popup image's display size, which is the largest we
     // can display the image (without magnifying it and without it
@@ -3322,9 +3336,12 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._logger.debug("_calcThumbBBox: x,y offset = " +
                        xOffset + "," + yOffset);
+    this._logger.debug("_calcThumbBBox: raw bbox = " +
+                       box.left + ".." + box.right + ", " +
+                       box.top + ".." + box.bottom);
 
     result.xMin = Math.ceil(xOffset + box.left * pageZoom);
-		result.yMin = Math.ceil(yOffset + box.top  * pageZoom);
+    result.yMin = Math.ceil(yOffset + box.top  * pageZoom);
     result.xMax = Math.floor(xOffset + box.right * pageZoom);
     result.yMax = Math.floor(yOffset + box.bottom * pageZoom);
     
@@ -3534,6 +3551,8 @@ ThumbnailZoomPlusChrome.Overlay = {
    * @param available: contains (width, height, left, right, top, bottom, 
    *                             windowWidth, windowHeight):
    *   the max space available to the left or right and top or bottom of the thumb.
+   * @param thumbWidth, thumbHeight
+   * @param flags
    * @return the scale dimensions and position in these fields:
    *   {width: displayed width of image
    *    height: displayed height of image 
