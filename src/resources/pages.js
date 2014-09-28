@@ -365,7 +365,7 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     // http://s235.photobucket.com/albums/ee124/snasearles/?action=view&current=IMAG0019.jpg ->
     // http://s235.photobucket.com/albums/ee124/snasearles/IMAG0019.jpg
     let rex6 = new RegExp("(\.photobucket\.com/albums/.*/)\\?.*=([a-z0-9]\\.[a-z0-9]+)", "i");
-    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|lockers\.com|instagram.com|twimg|\.photobucket\.com\/albums|photozou\.jp\/p\/img\/)/);
+    let rexNoModNecessary = new RegExp(/(\/large\/|yfrog\.com|instagr\.am|lockers\.com|instagram.com|\.photobucket\.com\/albums|photozou\.jp\/p\/img\/)/);
     
     // photozou.jp:
     // http://photozou.jp/p/img/91576005 use as-is
@@ -419,6 +419,10 @@ ThumbnailZoomPlus.Pages.Twitpic = {
     } else if (rexNoModNecessary.test(aImageSrc)) {
       ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic: rexNoModNecessary");
       image = aImageSrc;
+    } else {
+        // https://pbs.twimg.com/media/ByhBR9PCQAA1KG4.jpg becomes
+        // https://pbs.twimg.com/media/ByhBR9PCQAA1KG4.jpg:large
+        image = aImageSrc.replace(/(\/\/pbs\.twimg\.com\/media\/.*\.jpg)$/, "$1:large");
     }
     
     ThumbnailZoomPlus.Pages._logger.debug("getZoomImage twitpic p20: " + image);
