@@ -1487,7 +1487,8 @@ ThumbnailZoomPlus.Pages.Others = {
                                   "$1i.lvme.me/$2.jpg");
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
-    let imgurRex = new RegExp(/(imgur\.com\/)([^\/&#]+)([&#].*)?/);
+    // Take just the first image if multiple as https://imgur.com/nugJJ&yQU0G,308472a,va204a1
+    let imgurRex = new RegExp(/(imgur\.com\/)([^\/&#,]+)([&#][^,]*)?.*/);
     aImageSrc = aImageSrc.replace(imgurRex, "$1$2");
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
