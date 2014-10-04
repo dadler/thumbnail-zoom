@@ -158,7 +158,7 @@
                 <menuitem value="1" label="CTRL" />
                 <menuitem value="2" label="SHIFT" />
                 <menuitem value="3" label="ALT" />
-                <menuitem value="4" label="RMB"
+                <menuitem value="4" label="&thumbnailzoomplus.options.mouse.button.right.name;"
                   minVersion="15.0"
                   targetApplication="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                   targetPlatform="WINNT Linux Darwin"
