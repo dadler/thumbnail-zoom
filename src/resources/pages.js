@@ -1642,7 +1642,15 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       aImageSrc = aImageSrc.replace(/(gfycat\.com\/)/,
                                     "$1cajax/get/");
     }
-
+    
+    // For imgur.com, make sure it makes more than 11 images available.  EG:
+    // http://imgur.com/a/bDIdw#0 becomes
+    // http://imgur.com/a/bDIdw/all
+    // we'd like to also convert /gallery/ to /a/ since /gallery/ may not support /all,
+    // and so wouldn't give access to images beyond ~11.  But some gallery links
+    // don't exist as /a/ (possibly single-pic ones) so this isn't reliable.  issue #171.
+    aImageSrc = aImageSrc.replace(/imgur\.com\/a\/([^#?/]+).*/, "imgur.com/a/$1/all");
+    
     // Note: .bind() doesn't seem to be available in Firefox 3.6.
     aImageSrc = ThumbnailZoomPlus.PagesIndirect.
                 getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
@@ -1653,13 +1661,18 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   },
 
   // For "OthersIndirect"
-  _allMatchesOf : function(re, firstMatch, aHTMLString) {
-    // Return all the images we matched (eg for imgur.com albums).
+  _allMatchesOf : function(re, firstMatch, aHTMLString, resultPattern) {
+    // Return a string or array of strings representing all the matches of re
+    // in aHTMLString, there the first match has already been done,
+    // and is firstMatch.  Each match returns resultPattern with "$1"
+    // replaced by the contents of the first re group.  Only $1
+    // is supported (not $2 etc).
+    // The regular expression must have the 'g' global flag (/..../g).
     var matches = new Array();
     var match = firstMatch;
     var nMatches = 0;
     while (match != null) {
-      var url = match[1];
+      var url = resultPattern.replace("$1", match[1]);
       ThumbnailZoomPlus.Pages._logger.debug("_allMatchesOf: url=" + url +
                  "; re.lastIndex=" + re.lastIndex);
       // append the url if it's not a dummy imgur url and not a dup
@@ -1737,8 +1750,19 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       flags.borderColor = "#CC181E"; // youtube red
       return match[1];
     }
-        
-    // imgur.com albums, flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
+    
+    // imgur.com albums, supporting > 11 images.
+    // match e.g. <img alt="" src="//i.imgur.com/fXq9wP4s.jpg" gives
+    // "http://i.imgur.com/fXq9wP4.jpg" (note removal of "s").
+    re = /<img[^>]* src="(\/\/i\.imgur\.com\/[^"\.>]+?)s?\.(?:png|jpg)/g;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return this._allMatchesOf(re, match, aHTMLString, "https://$1.png");
+    }
+    
+    // imgur.com albums fallback (in case rule above doesn't work),
+    // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
     re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
@@ -1756,7 +1780,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       // for which we can get a larger image via getImgFromSelectors().
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1])) {
-        return this._allMatchesOf(re, match, aHTMLString);
+        return this._allMatchesOf(re, match, aHTMLString, "$1");
       }
     }
 
