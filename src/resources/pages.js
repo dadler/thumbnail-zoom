@@ -176,8 +176,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
-    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
+      // _117p = fb Page cover photo
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
@@ -188,6 +189,14 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // In Apr 2013 we started seeing profile icons with
       // <a><span><img>, where hover is detected on the <a>.
       let imgNodes = aNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the first child.
+        aNode = imgNodes[0];
+      }
+    }
+    if (/coverBorder/.test(aNodeClass)) {
+      // For profile's cover photo, we need the <img> peer of the the detected <div>.
+      let imgNodes = aNode.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
         aNode = imgNodes[0];
