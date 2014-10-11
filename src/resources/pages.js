@@ -2447,13 +2447,13 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     before = aImageSrc;
     aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/video\/.*:jpeg_preview)_(?:sprite|small|medium)/,
                                   "$1_large");
+    if (before != aImageSrc) {
+      flags.borderColor = "#CC181E"; // youtube red
+    }
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_small.jpg?20100906012025 becomes
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_large.jpg?20100906012025
     aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/user\/.*:avatar)_(?:sprite|small|medium)/,
                                   "$1_large");
-    if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
-    }
 
     // http://x1.fap.to/images/thumb/40/967/123456789.jpg becomes
     // http://fap.to/images/full/40/967/123456789.jpg
