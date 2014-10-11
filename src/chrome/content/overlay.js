@@ -1231,20 +1231,19 @@ ThumbnailZoomPlusChrome.Overlay = {
       // I've seen this happen after dragging a tab to a new window.
       return;
     }
-    let that = ThumbnailZoomPlusChrome.Overlay;
-    that._logger.debug("___________________________");
-    that._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
-    that._scrolledSinceMoved = false;
-    that._movedSincePoppedUp = true;
+    this._logger.debug("___________________________");
+    this._logger.debug("_handleMouseMove: _scrolledSinceMoved=false");
+    this._scrolledSinceMoved = false;
+    this._movedSincePoppedUp = true;
 
     /*
-     * If RMB is activation key and we haven't prevented next contextmenu event
+     * If RMB is a special key and we haven't prevented next contextmenu event
      * and RMB is dragged, then prevent next contextmenu event.
      */
-    if (! this._preventingNextContextMenuEvent && ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4) {
+    if (! this._preventingNextContextMenuEvent && this._isRMBConfigured()) {
       this._logger.debug("_handleMouseMove: RMB is activation key.");
 
-      let rmbActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, false, true, aEvent);
+      let rmbActive = this._isRMBActive(true, aEvent);
       if (rmbActive) {
         this._logger.debug("_handleMouseMove: preventing next contextmenu event.");
 
@@ -1795,6 +1794,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel(false);
   },
   
+  _isRMBActive : function(useState, aEvent) {
+    return (useState && ((aEvent.buttons & 2) > 0)) ||
+            (aEvent.button != undefined && aEvent.button == 2);
+  },
+  
   /**
    * Verifies if the key is active.
    * @param prefName: the preference which determines which modifier key we look for
@@ -1834,8 +1838,7 @@ ThumbnailZoomPlusChrome.Overlay = {
                            + active);
         break;
       case 4:
-        active = (useState && ((aEvent.buttons & 2) > 0)) || 
-                 (aEvent.button != undefined && aEvent.button == 2);
+        active = this._isRMBActive(useState, aEvent);
         active = active ^ negate;
         this._logger.debug("_isKeyActive: based on 'right mouse button', return " 
                            + active);
@@ -1914,6 +1917,14 @@ ThumbnailZoomPlusChrome.Overlay = {
       return ThumbnailZoomPlus.getPref(this.PREF_PANEL_LARGE_IMAGE, false);
   },
 
+  /**
+   * returns true iff the Right Mouse Button is configured for anything in preferences.
+   * If so, we use special logic to prevent the context menu from appearing on a drag.
+   */
+  _isRMBConfigured : function() {
+    return (ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4);
+  },
+  
   /**
    * Shows the zoom image panel.
    * @param aImageSrc the image source
