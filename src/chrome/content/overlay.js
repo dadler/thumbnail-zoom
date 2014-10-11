@@ -4354,6 +4354,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       (aEvent.button != undefined && aEvent.button == 2)
     ) {
       // the aEvent was initiated by RMB
+      if (! this._isRMBConfigured()) {
+        return;
+      }
+
       /*
        * Context menu event may be fired after:
        * - mousedown event (Linux)
@@ -4394,6 +4398,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       (aEvent.button != undefined && aEvent.button == 2)
     ) {
       // the aEvent was initiated by RMB
+      if (! this._isRMBConfigured()) {
+        return;
+      }
+
       /*
        * RMB was released. We can let all contextmenu events after this point to
        * propagate. If we have "paused" a contextmenu event before, resume it now.
