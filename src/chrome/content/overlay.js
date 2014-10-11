@@ -261,7 +261,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * originated form RMB mouse event. It is normally false and will
    * return there automatically after skipping the event.
    */
-  _skipPostponeContextMenuEvent : false,
+  _postponeContextMenuEvent : false,
 
   /**
    * The last contextmenu event we have postponed.
@@ -4305,7 +4305,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_resetRMBHandling");
 
     this._preventingNextContextMenuEvent = false;
-    this._skipPostponeContextMenuEvent = false;
+    this._postponeContextMenuEvent = false;
     this._postponedContextMenuEvent = null;
     window.removeEventListener("contextmenu", this._preventNextContextMenuEventImpl, false);
   },
@@ -4349,7 +4349,7 @@ ThumbnailZoomPlusChrome.Overlay = {
        * For RMB feature it is essential to postpone the context menu after the
        * mouseup event.
        */
-      if (! this._skipPostponeContextMenuEvent) {
+      if (! this._postponeContextMenuEvent) {
         /*
          * All contextmenu events originated from RMB should be postponed until
          * the RMB is released. In the meantime we decide if we want to prevent
@@ -4365,8 +4365,8 @@ ThumbnailZoomPlusChrome.Overlay = {
          * However the contextmenu could still be prevented from
          * appearing by us (see _preventNextContextMenuEvent) or something else.
          */
-        this._logger.debug("_handleContextMenu: disabling _skipPostponeContextMenuEvent.");
-        this._skipPostponeContextMenuEvent = false;
+        this._logger.debug("_handleContextMenu: disabling _postponeContextMenuEvent.");
+        this._postponeContextMenuEvent = false;
       }
     }
   },
@@ -4386,8 +4386,8 @@ ThumbnailZoomPlusChrome.Overlay = {
        * RMB was released. We can let all contextmenu events after this point to
        * propagate. If we have "paused" a contextmenu event before, resume it now.
        */
-      this._logger.debug("_handleMouseUp: enabling _skipPostponeContextMenuEvent.");
-      this._skipPostponeContextMenuEvent = true;
+      this._logger.debug("_handleMouseUp: enabling _postponeContextMenuEvent.");
+      this._postponeContextMenuEvent = true;
 
       if (this._postponedContextMenuEvent != null) {
         // the default action of the event has been prevented, lets make clone
