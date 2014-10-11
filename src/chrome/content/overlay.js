@@ -258,7 +258,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /**
    * If set to true, the _handleContextMenu will skip next contextmenu event
-   * originated form RMB mouse event. It has its equilibrium in false and will
+   * originated form RMB mouse event. It is normally false and will
    * return there automatically after skipping the event.
    */
   _skipPostponeContextMenuEvent : false,
@@ -821,12 +821,14 @@ ThumbnailZoomPlusChrome.Overlay = {
             that._handleMouseOut(doc, aEvent, pageConstant);
           }, true);
         // RMB feature needs to listen to contexmenu.
+        // TODO: register only if RMB configured.
         doc.addEventListener(
           "contextmenu",
           function(aEvent) {
             that._handleContextMenu(doc, aEvent, pageConstant);
           }, true);
         // RMB feature needs to listen to mouseup.
+        // TODO: register only if RMB configured.
         doc.addEventListener(
           "mouseup",
           function(aEvent) {
@@ -1238,7 +1240,7 @@ ThumbnailZoomPlusChrome.Overlay = {
      * If RMB is activation key and we haven't prevented next contextmenu event
      * and RMB is dragged, then prevent next contextmenu event.
      */
-    if (!this._preventingNextContextMenuEvent && ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4) {
+    if (! this._preventingNextContextMenuEvent && ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4) {
       this._logger.debug("_handleMouseMove: RMB is activation key.");
 
       let rmbActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, false, true, aEvent);
@@ -4347,7 +4349,7 @@ ThumbnailZoomPlusChrome.Overlay = {
        * For RMB feature it is essential to postpone the context menu after the
        * mouseup event.
        */
-      if (!this._skipPostponeContextMenuEvent) {
+      if (! this._skipPostponeContextMenuEvent) {
         /*
          * All contextmenu events originated from RMB should be postponed until
          * the RMB is released. In the meantime we decide if we want to prevent
@@ -4360,7 +4362,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       } else {
         /*
          * We are skipping this contextmenu event and it will continue to propagate.
-         * However this does not mean the contextmenu wont be prevented from
+         * However the contextmenu could still be prevented from
          * appearing by us (see _preventNextContextMenuEvent) or something else.
          */
         this._logger.debug("_handleContextMenu: disabling _skipPostponeContextMenuEvent.");
