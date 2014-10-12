@@ -1756,8 +1756,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      flags.setVideoBorderColor(match[1], "meta itemprop vimeo");
-      return match[1];
+      if (/vimeo\.com/.exec(match[1])) {
+        flags.setVideoBorderColor(match[1], "meta itemprop vimeo");
+      }
     }
     
     // imgur.com albums, supporting > 11 images.
@@ -2666,12 +2667,16 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // http://i2.imgchili.com/7428/9998984_ie_011.jpg
     aImageSrc = aImageSrc.replace(/:\/\/t([0-9]+\.imgchili\.(?:com|net)\/)/, "://i$1/");
 
+    // redtube.com
     // http://img02.redtubefiles.com/_thumbs/0000442/0442998/1234567_015m.jpg becomes
     // http://img02.redtubefiles.com/_thumbs/0000442/0442998/1234567_015i.jpg
+    // more recently,
+    // http://mimg06.redtubefiles.com/m=e0YH8f/_thumbs/0000615/0111111/0611111_002m.jpg becomes
+    // http://mimg06.redtubefiles.com/_thumbs/0000615/0615297/0615297_002i.jpg
     // disabled since while hovering a thumb on their site, losing
     // focus causes their animated thumb to scroll very quickly.
-    // aImageSrc = aImageSrc.replace(/(redtubefiles\.com\/_thumbs\/.*)m(\.jpg)/,
-    //                              "$1i$2");
+    // aImageSrc = aImageSrc.replace(/(redtubefiles\.com\/).*(_thumbs\/.*)[im](\.jpg)/,
+    //                               "$1$2i$3");
                                   
     // pixiv.net
     // http://img29.pixiv.net/img/puppy/12345678_s.jpg becomes
