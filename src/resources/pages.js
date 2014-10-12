@@ -1219,6 +1219,7 @@ ThumbnailZoomPlus.Pages.Others = {
       EXTS + "([?&].*)?$"
     + "|tumblr.com/(photo/|tumblr_)"
     + "|imgur\\.com/(?!gallery|tools|signin|register|tos$|contact|removalrequest|faq$)[^/&\\?]+(&.*)?$"
+    + "|imgbox\\.com/[^/]+/?$"
     + "|((nsfw)?youtube\\.com|youtu.be)/(watch|embed)"
     + "|/youtu.be/[^/]+$"
     + "|quickmeme\\.com/meme/"
@@ -1529,6 +1530,11 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://webm.land/w/eMmD/ becomes http://webm.land/media/eMmD.webm
     aImageSrc = aImageSrc.replace(/:\/\/webm\.land\/w\/([^\/?]+).*/, "://webm.land/media/$1.webm");
 
+    // imgbox.com:
+    // http://imgbox.com/dAwF3YOJ becomes
+    // http://i.imgbox.com/dAwF3YOJ
+    aImageSrc = aImageSrc.replace(/:\/\/imgbox\.com\/([^/]+)$/, "://i.imgbox.com/$1");
+
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
@@ -1595,6 +1601,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
   imageRegExp: new RegExp(  "imgur\\.com/(?:a|gallery)/"
+                          + "|imgbox\.com/g/[^/]+$"
                           + "|\\.ebay\\.com/(itm|viewitem|ebaymotors|ctg)|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
                           + "|\\.ebay\\.com/ws/eBayISAPI\\.dll\\?viewItem"
                           + "|flickr\\.com/photos/.*/[0-9]{7,20}/"
@@ -1771,6 +1778,15 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return this._allMatchesOf(re, match, aHTMLString, "https://$1.png");
     }
     
+    // for imgbox.com galleries, eg look for e.g.
+    // <img alt="92xy6bpu" src="http://8.s.imgbox.com/92XY6bPu.jpg" />
+    re = /<img[^>]* src=".*\.s\.(imgbox\.com\/[^"\>]+)/g;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return this._allMatchesOf(re, match, aHTMLString, "http://i.$1");
+    }
+
     // imgur.com albums fallback (in case rule above doesn't work),
     // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
     re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
