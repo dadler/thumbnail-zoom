@@ -1040,7 +1040,7 @@ ThumbnailZoomPlus.Pages.YouTube = {
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/\/default\./);
     if (rex.test(aImageSrc)) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(aImageSrc, "youtube");
       return aImageSrc.replace(rex, "/hqdefault.");
     }
     return null;
@@ -1468,7 +1468,7 @@ ThumbnailZoomPlus.Pages.Others = {
     before = aImageSrc;
     aImageSrc = aImageSrc.replace(youtubeEx, "$1i3.ytimg.com/vi/$2/hqdefault.jpg");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(aImageSrc, "youtube in \"Others\"");
     }
     
     // for anon..: change ...img.php?path=http://... to http://...
@@ -1516,7 +1516,7 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/^(https?:\/\/)(?:[^\/]+\.)?viddy\.com\/(?:play\/)?video\/([^\/?]+).*/i,
                                   "$1/cdn.viddy.com/images/video/$2.jpg");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red color
+      flags.setVideoBorderColor(aImageSrc, "viddy.com");
     }
     
     // imgchili.com: 
@@ -1720,7 +1720,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(match[1], "liveleak.com, etc. due to jwplayer");
       return match[1];
     }
     
@@ -1728,7 +1728,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(match[1], "flv_player");
       return match[1];
     }
     
@@ -1736,7 +1736,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(match[1], "flash-player-embed");
       return match[1];
     }
     
@@ -1747,7 +1747,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       return match[1];
     }
     
-    // vimeo.com:  
+    // vimeo.com, etc. (pages indicating an image for Google+):
     // <meta itemprop="image" content="http://b.vimeocdn.com/ts/313/368/313368979_640.jpg">
     // Also works on weather.com
     // (I tried matching this in getImgFromSelectors but its contentattribute
@@ -1756,7 +1756,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(match[1], "meta itemprop vimeo");
       return match[1];
     }
     
@@ -1897,7 +1897,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
         
       if (/dailymotion\.com\/|liveleak\.com\/|blip\.tv\//.test(aHTMLString)) {
-        flags.borderColor = "#CC181E"; // youtube red
+        flags.setVideoBorderColor(result, "dailymotion or liveleak.com or blip.tv");
       }
 
       /*
@@ -2421,7 +2421,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.vimeocdn\.com\/ps\/.*\/[0-9]+)_[0-9]{2,3}\.jpg/,
                                   "$1_300.jpg");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+        flags.setVideoBorderColor(aImageSrc, "vimeocdn");
     }
     
     // foursquare.com:
@@ -2448,7 +2448,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(/(\.dmcdn\.net\/static\/video\/.*:jpeg_preview)_(?:sprite|small|medium)/,
                                   "$1_large");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+      flags.setVideoBorderColor(aImageSrc, "dailymotion in \"Thumbnail\"");
     }
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_small.jpg?20100906012025 becomes
     // http://static2.dmcdn.net/static/user/783/119/35911387:avatar_large.jpg?20100906012025
@@ -2471,7 +2471,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(regEx, "$1_1000$2");
     aImageSrc = aImageSrc.replace(/\/livesnap100\//, "/livesnap320/");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+        flags.setVideoBorderColor(aImageSrc, "xh[a-z0-9]*ster.com.*");
     }
     
     aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
@@ -2634,7 +2634,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                              EXTS + ")", "i"),
                                              "$1/$2$3");
     if (before != aImageSrc) {
-      flags.borderColor = "#CC181E"; // youtube red
+        flags.setVideoBorderColor(aImageSrc, "viddy.com");
     }
 
 

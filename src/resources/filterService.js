@@ -161,6 +161,11 @@ ThumbnailZoomPlus.FilterService = {
     // This is useful so we can record it in the browser's history.
     // Should never be null if we've found an image to pop-up.
     this.imageSourceNode = null;
+    
+    this.setVideoBorderColor = function(url, comment) {
+        this.borderColor = "#CC181E"; // youtube red
+        ThumbnailZoomPlus.debugToConsole("setVideoBorderColor: due to '" + comment + "' for " + url);
+    };
   },
   
   _allowProtocol : function(protocol, host, strict) {
