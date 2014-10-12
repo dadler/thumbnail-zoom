@@ -4371,7 +4371,11 @@ ThumbnailZoomPlusChrome.Overlay = {
          * the RMB is released. In the meantime we decide if we want to prevent
          * the context menu from appearing or not.
          */
-        this._logger.debug("_handleContextMenu: postponing a contextmenu event on " + aEvent.target);
+        this._logger.debug("_handleContextMenu: postponing a contextmenu.  target=" + aEvent.target +
+                           ", originalTarget=" + aEvent.originalTarget +
+                           ", explicitOriginalTarget=" + aEvent.explicitOriginalTarget +
+                           ", relatedTarget=" + aEvent.relatedTarget +
+                           ", currentTarget=" + aEvent.currentTarget);
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this._postponedContextMenuEvent = aEvent;
@@ -4423,7 +4427,10 @@ ThumbnailZoomPlusChrome.Overlay = {
   _redispatchMouseEvent : function(aMouseEvent) {
     this._logger.trace("_redispatchMouseEvent");
 
-    this._logger.debug("_redispatchMouseEvent: redispatching event " + aMouseEvent.type + " on " + aMouseEvent.originalTarget);
+    // a side-effect of redispatching the event seems to be preventing
+    // spell-check suggestions.  The problem happens even if we create the
+    // event differently or dispatch on a different target; see #172.
+    if (true) {
     var freshMouseEvent = document.createEvent("MouseEvents");
     freshMouseEvent.initMouseEvent(
       aMouseEvent.type,
@@ -4442,7 +4449,34 @@ ThumbnailZoomPlusChrome.Overlay = {
       aMouseEvent.button,
       aMouseEvent.relatedTarget
     );
-    aMouseEvent.originalTarget.dispatchEvent(freshMouseEvent);
+    } else {
+      var freshMouseEvent = new MouseEvent(aMouseEvent.type, {
+      'bubbles': aMouseEvent.bubbles,
+      'cancelable': aMouseEvent.cancelable,
+      'view': aMouseEvent.view,
+      'detail': aMouseEvent.detail,
+      'screenX': aMouseEvent.screenX,
+      'screenY': aMouseEvent.screenY,
+      'clientX': aMouseEvent.clientX,
+      'clientY': aMouseEvent.clientY,
+      'ctrlKey': aMouseEvent.ctrlKey,
+      'altKey': aMouseEvent.altKey,
+      'shiftKey': aMouseEvent.shiftKey,
+      'metaKey': aMouseEvent.metaKey,
+      'button': aMouseEvent.button,
+      'relatedTarget': aMouseEvent.relatedTarget,
+      'target': aMouseEvent.target,
+      'originalTarget': aMouseEvent.originalTarget,
+      'explicitOriginalTarget': aMouseEvent.explicitOriginalTarget
+  });
+  }
+  
+    //var target = aMouseEvent.originalTarget;
+    //var target = aMouseEvent.target;
+    //var target = aMouseEvent.explicitOriginalTarget;
+    var target = aMouseEvent.explicitOriginalTarget;
+    this._logger.debug("_redispatchMouseEvent: redispatching event " + aMouseEvent.type + " on " + target);
+    target.dispatchEvent(freshMouseEvent);
   }
 
 };
