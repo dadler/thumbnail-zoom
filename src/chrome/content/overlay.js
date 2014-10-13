@@ -4378,14 +4378,13 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
 
-      /*
-       * Context menu event may be fired after:
-       * - mousedown event (Linux)
-       * - mouseup event (Windows)
-       * For RMB feature it is essential to postpone the context menu after the
-       * mouseup event.
-       */
-      if (this._postponeContextMenuEvent) {
+      var target = aEvent.explicitOriginalTarget || aEvent.target;
+      if (target.localName.toLowerCase() == "textarea") {
+        // Don't prevent context menu in textareas since that would prevent spell check suggestions (#172).
+        this._logger.debug("_handleContextMenu: skipping due to target element target=" + target.localName.toLowerCase());
+        return;
+      }
+      
         /*
          * All contextmenu events originated from RMB should be postponed until
          * the RMB is released. In the meantime we decide if we want to prevent
@@ -4395,7 +4394,8 @@ ThumbnailZoomPlusChrome.Overlay = {
                            ", originalTarget=" + aEvent.originalTarget +
                            ", explicitOriginalTarget=" + aEvent.explicitOriginalTarget +
                            ", relatedTarget=" + aEvent.relatedTarget +
-                           ", currentTarget=" + aEvent.currentTarget);
+                           ", currentTarget=" + aEvent.currentTarget +
+                           ", element type=" + target.localName.toLowerCase());
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this._postponedContextMenuEvent = aEvent;
