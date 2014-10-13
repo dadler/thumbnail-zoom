@@ -260,6 +260,10 @@ ThumbnailZoomPlusChrome.Overlay = {
    * If set to true, the _handleContextMenu will cause the next contextmenu event
    * originated form RMB mouse event to be postponed. When false, the
    * context menu is allowed to be handled normally.
+   *
+   * This is normally true, but temporarily set to false when we send the
+   * synthetic event which we want to actually cause a context menu to appear;
+   * that false prevents our own handler from intercepting our synthetic event.
    */
   _postponeContextMenuEvent : true,
 
@@ -4345,9 +4349,25 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   /**
    * Listening to all contextmenu events per document.
+   *
+   * Context menu event may be fired after:
+   * - mousedown event (Linux)
+   * - mouseup event (Windows)
+   * For RMB feature it is essential to postpone the context menu after the
+   * mouseup event.
    */
   _handleContextMenu : function(aDocument, aEvent, aPage) {
     this._logger.trace("_handleContextMenu on " + aEvent.target);
+    var origPostponeContextMenuEvent = this._postponeContextMenuEvent;
+    this._postponeContextMenuEvent = true;
+    if (! origPostponeContextMenuEvent) {
+        /*
+         * We are skipping this contextmenu event and it will continue to propagate.
+         * However the contextmenu could still be prevented from
+         * appearing by us (see _preventNextContextMenuEvent) or something else.
+         */
+         return;
+    }
 
     if (
       (aEvent.buttons & 2) > 0 ||
@@ -4379,15 +4399,6 @@ ThumbnailZoomPlusChrome.Overlay = {
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this._postponedContextMenuEvent = aEvent;
-      } else {
-        /*
-         * We are skipping this contextmenu event and it will continue to propagate.
-         * However the contextmenu could still be prevented from
-         * appearing by us (see _preventNextContextMenuEvent) or something else.
-         */
-        this._logger.debug("_handleContextMenu: enabling _postponeContextMenuEvent.");
-        this._postponeContextMenuEvent = true;
-      }
     }
   },
 
@@ -4410,9 +4421,6 @@ ThumbnailZoomPlusChrome.Overlay = {
        * RMB was released. We can let all contextmenu events after this point to
        * propagate. If we have "paused" a contextmenu event before, resume it now.
        */
-      this._logger.debug("_handleMouseUp: disabling _postponeContextMenuEvent.");
-      this._postponeContextMenuEvent = false;
-
       if (this._postponedContextMenuEvent != null) {
         // the default action of the event has been prevented, lets make clone
         // of the event and dispatch it again
@@ -4426,6 +4434,9 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _redispatchMouseEvent : function(aMouseEvent) {
     this._logger.trace("_redispatchMouseEvent");
+
+    this._logger.debug("_handleMouseUp: disabling _postponeContextMenuEvent.");
+    this._postponeContextMenuEvent = false;
 
     // a side-effect of redispatching the event seems to be preventing
     // spell-check suggestions.  The problem happens even if we create the
