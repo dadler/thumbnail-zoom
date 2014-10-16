@@ -1239,6 +1239,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
     + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
     + "|^https?://webm\.land\/w\/"
+    + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     // end
     , "i"),
   
@@ -1534,7 +1535,13 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://imgbox.com/dAwF3YOJ becomes
     // http://i.imgbox.com/dAwF3YOJ
     aImageSrc = aImageSrc.replace(/:\/\/imgbox\.com\/([^/]+)$/, "://i.imgbox.com/$1");
-
+    
+    // gyazo.com gif links:
+    // http://i.gyazo.com/3a087c19400cc960039a734ff66a488d.gif or
+    // http://gyazo.com/3a087c19400cc960039a734ff66a488d.gif becomes
+    // http://i.gyazo.com/3a087c19400cc960039a734ff66a488d.mp4
+    aImageSrc = aImageSrc.replace(/:\/\/(?:i\.)?gyazo.com\/([a-z0-9]{32})\.gif$/, "://i.gyazo.com/$1.mp4");
+    
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
