@@ -1239,6 +1239,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
     + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
     + "|^https?://webm\.land\/w\/"
+    + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     // end
     , "i"),
   
@@ -1638,6 +1639,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|bugguide.net"
                           + "|deviantart\.com/art/"
                           + "|www.furaffinity.net/view/"
+                          + "|gyazo.com/[a-z0-9]{32}"
                           , "i"),
   
   // For "OthersIndirect"
@@ -1808,12 +1810,23 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     if (match) {
       // Return this unless it's a yfrog video or ebay thumb,
       // for which we can get a larger image via getImgFromSelectors().
+      // gyazo.com images skipped because og:image links to thumbnails, twitter:image regex below will handle it
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
-          ! /ebaystatic\.com\/./.test(match[1])) {
+          ! /ebaystatic\.com\/./.test(match[1]) &&
+          ! /gyazo\.com/.test(match[1])) {
         return this._allMatchesOf(re, match, aHTMLString, "$1");
       }
     }
-
+    
+    // gyazo.com
+    // <meta content="http://i.gyazo.com/5a72871c5d808492e41c732a71dca8e8.png" name="twitter:image" />
+    re = /<meta +content=\"([^\"]+)"\s+name="twitter:image"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+        return match[1];
+    }
+    
     // blip.tv, imgur.com/a/... (imgur may need .jpg added):
     //	<meta name="twitter:image"
     //     value="http://3.i.blip.tv/g?src=Rat2008-Micros02464-972.jpg&w=120&h=120&fmt=png&bc=FFFFFF&ac=0"/>
