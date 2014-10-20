@@ -38,7 +38,7 @@ const Cu = Components.utils;
 
 // EXTS is a non-remembering expression which matches
 // image file suffixes.
-const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg|\\.webm)";
+const EXTS = "(?:\\.gif|\\.jpe?g|\\.png|\\.bmp|\\.svg|\\.webm|\\.mp4)";
 const EXTS_RE = new RegExp(EXTS, 'i');
 
 Cu.import("resource://thumbnailzoomplus/common.js");
@@ -1239,6 +1239,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
     + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
     + "|^https?://webm\.land\/w\/"
+    + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     // end
     , "i"),
   
@@ -1534,7 +1535,13 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://imgbox.com/dAwF3YOJ becomes
     // http://i.imgbox.com/dAwF3YOJ
     aImageSrc = aImageSrc.replace(/:\/\/imgbox\.com\/([^/]+)$/, "://i.imgbox.com/$1");
-
+    
+    // gyazo.com gif links:
+    // http://i.gyazo.com/3a087c19400cc960039a734ff66a488d.gif or
+    // http://gyazo.com/3a087c19400cc960039a734ff66a488d.gif becomes
+    // http://i.gyazo.com/3a087c19400cc960039a734ff66a488d.mp4
+    aImageSrc = aImageSrc.replace(/:\/\/(?:i\.)?gyazo.com\/([a-z0-9]{32})\.gif$/, "://i.gyazo.com/$1.mp4");
+    
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
@@ -1634,6 +1641,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|bugguide.net"
                           + "|deviantart\.com/art/"
                           + "|www.furaffinity.net/view/"
+                          + "|gyazo.com/[a-z0-9]{32}"
                           , "i"),
   
   // For "OthersIndirect"
@@ -1804,16 +1812,20 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     if (match) {
       // Return this unless it's a yfrog video or ebay thumb,
       // for which we can get a larger image via getImgFromSelectors().
+      // gyazo.com images skipped because og:image links to thumbnails, twitter:image regex below will handle it
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
-          ! /ebaystatic\.com\/./.test(match[1])) {
+          ! /ebaystatic\.com\/./.test(match[1]) &&
+          ! /gyazo\.com/.test(match[1])) {
         return this._allMatchesOf(re, match, aHTMLString, "$1");
       }
     }
 
-    // blip.tv, imgur.com/a/... (imgur may need .jpg added):
+    // blip.tv, imgur.com/a/, gyazo.com... (imgur may need .jpg added):
     //	<meta name="twitter:image"
     //     value="http://3.i.blip.tv/g?src=Rat2008-Micros02464-972.jpg&w=120&h=120&fmt=png&bc=FFFFFF&ac=0"/>
-    re = /<meta +name="twitter:image"\s+value=\"([^\"]+)"/;
+    // gyazo.com uses "content" for the URL rather than value
+    // All gyazo.com gif links can also be opened as mp4 files, so we replace all ".gif" with ".mp4"
+    re = /<meta +name="twitter:image"\s+(?:value|content)=\"([^\"]+)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
@@ -1823,6 +1835,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
 
       if (/imgur\.com\/(?!gallery).*$/.test(result) && ! EXTS_RE.test(result)) {
         result = result + ".jpg";
+      }
+      if (/gyazo\.com\/.*\.gif$/.test(result)) {
+        result = result.replace(/\.gif/, ".mp4")
       }
       return result;
     }
