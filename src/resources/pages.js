@@ -1534,7 +1534,11 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://imgbox.com/dAwF3YOJ becomes
     // http://i.imgbox.com/dAwF3YOJ
     aImageSrc = aImageSrc.replace(/:\/\/imgbox\.com\/([^/]+)$/, "://i.imgbox.com/$1");
-
+    
+    // We can't display imgur's gifv's (which are mp4's and require Flash) but
+    // imgur can usually serve a webm, which we can display.  So request that.
+    aImageSrc = aImageSrc.replace(/(imgur\.com\/.*)\.gifv/, "$1.webm");
+    
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
@@ -1659,7 +1663,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                                     "$1cajax/get/");
     }
     
-    // For imgur.com, make sure it makes more than 11 images available.  EG:
+    // For imgur.com, make sure it allows more than 11 images.  EG:
     // http://imgur.com/a/bDIdw#0 becomes
     // http://imgur.com/a/bDIdw/all
     // we'd like to also convert /gallery/ to /a/ since /gallery/ may not support /all,
