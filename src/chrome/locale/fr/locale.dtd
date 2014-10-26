@@ -54,7 +54,7 @@
 <!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "Ctrl">
 <!ENTITY thumbnailzoomplus.options.shift.hotkey					 "Maj">
 <!ENTITY thumbnailzoomplus.options.alt.hotkey					 "Alt">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Bouton droit de la souris">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Afficher la bordure">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Afficher les images en utilisant tout l'espace disponible">
 <!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Menu contextuel (bouton droit)">

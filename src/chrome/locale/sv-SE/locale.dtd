@@ -55,7 +55,7 @@
 <!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
 <!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
 <!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Button">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximera bildstorleken genom att överlappa miniatyren">
 <!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Maxstorlek:">

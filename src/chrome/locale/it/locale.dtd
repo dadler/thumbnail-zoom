@@ -49,7 +49,7 @@
 <!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
 <!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
 <!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Button">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tasto">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "per">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "di non">
