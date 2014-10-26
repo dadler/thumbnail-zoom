@@ -171,9 +171,9 @@
             <label value="&thumbnailzoomplus.options.maxkey.selection.label;" />
             <menulist preference="thumbnailzoomplus-options-max-key-pref">
               <menupopup>
-                <menuitem value="1" label="CTRL" />
-                <menuitem value="2" label="SHIFT" />
-                <menuitem value="3" label="ALT" />
+                <menuitem value="1" label="&thumbnailzoomplus.options.ctrl.hotkey;" />
+                <menuitem value="2" label="&thumbnailzoomplus.options.shift.hotkey;" />
+                <menuitem value="3" label="&thumbnailzoomplus.options.alt.hotkey;" />
               </menupopup>
             </menulist>
             <label value="&thumbnailzoomplus.options.savefilename.label;" />
@@ -258,12 +258,12 @@
                      ondblclick="ThumbnailZoomPlus.SiteConfigService.handleSiteListDoubleClick(event);">
         </listbox>
         <vbox>
-          <button label="Add ..." oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
-          <button id="thumbnailzoomplus-options-add-last-site" label="Add/Remove current site"
+          <button label="&thumbnailzoomplus.buttons.add.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
+          <button id="thumbnailzoomplus-options-add-last-site" label="&thumbnailzoomplus.buttons.add.addremove.currentsite;"
                   disabled="true"
                   oncommand="ThumbnailZoomPlus.SiteConfigService.addThisSiteButtonPressed();" />
-          <button label="Remove" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
-          <label>Changes apply after restarting</label><label>or reloading tabs/windows.</label>
+          <button label="&thumbnailzoomplus.buttons.remove.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
+          <label>&thumbnailzoomplus.buttons.changes.apply.one;</label><label>&thumbnailzoomplus.buttons.changes.apply.two;</label>
         </vbox>
       </hbox>
       <!-- hack alert: Firefox (28.0) OSX sizes the prefs dialog too short; by

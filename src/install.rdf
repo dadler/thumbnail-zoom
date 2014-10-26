@@ -63,6 +63,14 @@
         <em:translator>Ricardo A. Rivas - rivica@gmail.com"</em:translator>
       </Description>
     </em:localized>
+    
+        <em:localized>
+      <Description>
+        <em:locale>fr</em:locale> 
+        <em:description>Affiche l'image pleine taille au survol de la souris sur la vignette. Fonctionne avec de nombreux site dont Amazon, Baidu Images, Bing Images, Facebook, Flickr, Google+, Google Images, IMDb, LinkedIn, Netflix, Pinterest, Reddit, Taobao, Tumblr, Twitter, Yandex.ru, YouTube, Weibo, Wikipedia, WordPress, Yahoo Images, et bien d'autres.</em:description>
+        <em:translator>JB Marcon - goofy@babelzilla.org</em:translator>
+      </Description>
+    </em:localized>
   
     <!-- Firefox -->
     <em:targetApplication>

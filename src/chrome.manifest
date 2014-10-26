@@ -35,6 +35,7 @@
 content   thumbnailzoomplus                chrome/content/ contentaccessible=yes
 locale    thumbnailzoomplus   en-US        chrome/locale/en-US/
 locale    thumbnailzoomplus   es           chrome/locale/es/
+locale    thumbnailzoomplus   fr           chrome/locale/fr/
 locale    thumbnailzoomplus   it           chrome/locale/it/
 locale    thumbnailzoomplus   pt           chrome/locale/pt/
 locale    thumbnailzoomplus   sv-SE        chrome/locale/sv-SE/

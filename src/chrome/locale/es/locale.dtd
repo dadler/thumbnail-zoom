@@ -53,6 +53,10 @@
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostrar imagen parcial luego de (seg):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predeterminado (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Teclas">
+<!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
+<!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
+<!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tecla para">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "visualizar">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "no visualizar">
@@ -79,8 +83,13 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar o inhabilitar por sitio">
 <!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Sitios inhabilitados">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name        "Right Mouse Buttom">
 
+<!-- Add/remove sites feature -->
+<!ENTITY thumbnailzoomplus.buttons.add.label "Add">
+<!ENTITY thumbnailzoomplus.buttons.add.addremove.currentsite "Add/Remove current site">
+<!ENTITY thumbnailzoomplus.buttons.remove.label "Remove">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.one "Changes apply after restarting">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.two "or reloading tabs/windows.">
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.js
      and here (in each locale). -->

@@ -1,0 +1,107 @@
+<!--
+ - Copyright (c) 2010 Andres Hernandez Monge and 
+ - Copyright (c) 2011-2012 David M. Adler
+ - All rights reserved.
+ -
+ - Redistribution and use in source and binary forms, with or without
+ - modification, are permitted provided that the following conditions
+ - are met:
+ - 1. Redistributions of source code must retain the above copyright
+ -    notice, this list of conditions and the following disclaimer.
+ - 2. Redistributions in binary form must reproduce the above copyright
+ -    notice, this list of conditions and the following disclaimer in the
+ -    documentation and/or other materials provided with the distribution.
+ - 3. Neither the name of copyright holders nor the names of its
+ -    contributors may be used to endorse or promote products derived
+ -    from this software without specific prior written permission.
+ -
+ - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ - "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ - TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ - PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL COPYRIGHT HOLDERS OR CONTRIBUTORS
+ - BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ - CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ - SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ - INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ - CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ - ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ - POSSIBILITY OF SUCH DAMAGE.
+ -->
+
+
+
+<!-- Toolbar -->
+<!ENTITY thumbnailzoomplus.toolbar.label                         "Thumbnail Zoom Plus">
+<!ENTITY thumbnailzoomplus.toolbar.tooltip                       "Thumbnail Zoom Plus">
+<!ENTITY thumbnailzoomplus.toolbar.settings.label                "Préférences…">
+<!ENTITY thumbnailzoomplus.toolbar.help.label                    "Aide">
+
+<!-- Settings dialog -->
+<!ENTITY thumbnailzoomplus.PERCENT                               "&#37;">
+<!ENTITY thumbnailzoomplus.options.window.title                  "Préférences de l'extension Thumbnail Zoom Plus">
+<!ENTITY thumbnailzoomplus.options.enable.checkbox.label         "Activer">
+<!ENTITY thumbnailzoomplus.options.debug.checkbox.label          "Débogage">
+<!ENTITY thumbnailzoomplus.options.copylog.button.label          "Copier le log (journal)">
+<!ENTITY thumbnailzoomplus.options.delay.selection.label         "Délai avant l'affichage (en secondes) :">
+<!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Afficher une vue partielle de l'image après (en secondes) :">
+<!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom par défaut (&thumbnailzoomplus.PERCENT;): ">
+<!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Touches de raccourci">
+<!ENTITY thumbnailzoomplus.options.key1.selection.label          "Touche pour">
+<!ENTITY thumbnailzoomplus.options.key.display.label                 "afficher">
+<!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "ne pas afficher">
+<!ENTITY thumbnailzoomplus.options.key2.selection.label              " :">
+<!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Touche pour agrandir l'image au maximum :">
+<!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "Ctrl">
+<!ENTITY thumbnailzoomplus.options.shift.hotkey					 "Maj">
+<!ENTITY thumbnailzoomplus.options.alt.hotkey					 "Alt">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
+<!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Afficher la bordure">
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Afficher les images en utilisant tout l'espace disponible">
+<!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Menu contextuel (bouton droit)">
+<!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Taille maximum :">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Page web">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Fenêtre">
+<!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Écran">
+<!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Le défilement à la souris fait apparaître les images en pop-ups">
+<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Les pop-ups sont dépendantes du clavier">
+<!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Affichage (&thumbnailzoomplus.PERCENT;)">
+<!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Afficher la légende">
+<!ENTITY thumbnailzoomplus.options.savefilename.label            "Enregistrer sous le nom :">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.caption.label    "Légende">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.web.label        "Adresse sur le Web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.captionweb.label "Légende &amp; adresse web">
+<!ENTITY thumbnailzoomplus.options.savefilename.item.webcaption.label "Web &amp; légende">
+<!ENTITY thumbnailzoomplus.options.history.checkbox.label        "Ajouter à l'historique">
+<!ENTITY thumbnailzoomplus.options.key.none.label                "Aucune">
+<!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Général">
+<!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Sites activés">
+<!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Sites désactivés">
+
+<!-- Site Names
+     To localize a name, add it to XXXENTITYREF in overlay.xul
+     and here (in each locale). -->
+<!ENTITY thumbnailzoomplus.pages.names.others                    "Autres">
+<!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Autres (indirects)">
+<!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Vignettes">
+<!ENTITY thumbnailzoomplus.pages.names.google                    "Google Images">
+<!-- Add/remove sites feature -->
+<!ENTITY thumbnailzoomplus.buttons.add.label "Ajouter">
+<!ENTITY thumbnailzoomplus.buttons.add.addremove.currentsite "Ajouter/supprimer le site courant">
+<!ENTITY thumbnailzoomplus.buttons.remove.label "Supprimer">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.one "Les changements seront effectifs au redémarrage">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.two "ou au rechargement des onglets ou fenêtres.">
+
+<!-- Context (right-click) menu -->
+<!ENTITY thumbnailzoomplus.context.download.label                "Enregistrer l'image pleine taille sous…">
+<!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">
+
+<!-- Other Strings -->
+<!ENTITY thumbnailzoomplus.save.image.title                      "Enregistrer l'image : ">
+
+<!ENTITY thumbnailzoomplus.options.largeimage.checkbox.tooltip
+"Autorise le pop-up à *chevaucher* la vignette ou le lien que vous survolez avec la souris. Cela permet de faire apparaître le popup de façon plus large, mais vous ne pouvez plus voir la vignette ou le lien d'origine. Le pop-up va disparaître lorsque vous déplacez la souris en-dehors de la zone de la miniature ou lien d'origine, lorsque vous cliquez sur la souris, ou lorsque vous appuyez sur la touche esc (Echap). Raccourci : appuyez sur 'a' pendant que le popup s'affiche.">
+<!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.tooltip
+"Lorsque cette fonction est activée, faites défiler la page à la souris déclenchera l'apparition des pop-ups. Ceci peut être utile sur des sites qui ne comportent pas un trop grand nombre de vignettes (par exemple reddit.com) ; Désactiver cette fonction, au contraire, peut être utile sur des sites qui comportent beaucoup d'images (par exemple Google Images). Par défaut, la fonction est désactivée.">
+<!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.tooltip
+"Selon sa valeur par défaut le pop-up réagit en priorité au clavier sur la page web, vous vous rendrez compte qu'en appuyant sur des touches vous déclenchez des raccourcis-claviers de la pop-up, et non la page web. Le pop-up se ferme quand il n'est plus sous le contrôle du clavier. Désactivez si vous avez des problèmes avec la fermeture immédiate du pop-up ou si les menus pop-up d'une page web se ferment quand ceux de l'extension Thumbnail Zoom Plus apparaissent (par exemple, sur certains machines Linux).">
+

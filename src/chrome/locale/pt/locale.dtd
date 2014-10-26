@@ -52,6 +52,10 @@
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Mostra borda">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Maximizar o tamanho através da sobreposição">
 <!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
+<!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
+<!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
+<!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
 <!ENTITY thumbnailzoomplus.options.popupsize.selection.label     "Max size:">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.webpage.label      "Web page">
 <!ENTITY thumbnailzoomplus.options.popupsize.item.window.label       "Window">
@@ -70,7 +74,13 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Geral">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Habilitar ou deshabilitar por site">
 <!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "sites de desactivado">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name        "Right Mouse Buttom">
+
+<!-- Add/remove sites feature -->
+<!ENTITY thumbnailzoomplus.buttons.add.label "Add">
+<!ENTITY thumbnailzoomplus.buttons.add.addremove.currentsite "Add/Remove current site">
+<!ENTITY thumbnailzoomplus.buttons.remove.label "Remove">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.one "Changes apply after restarting">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.two "or reloading tabs/windows.">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul

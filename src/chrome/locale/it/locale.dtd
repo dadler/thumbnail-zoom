@@ -46,6 +46,10 @@
 <!ENTITY thumbnailzoomplus.options.partialloadwait.selection.label "Mostra immagine parziale dopo (sec):">
 <!ENTITY thumbnailzoomplus.options.defaultzoom.selection.label   "Zoom predefinito (&thumbnailzoomplus.PERCENT;): ">
 <!ENTITY thumbnailzoomplus.options.hotkeys.checkbox.label        "Tastos">
+<!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
+<!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
+<!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
 <!ENTITY thumbnailzoomplus.options.key1.selection.label          "Tasto">
 <!ENTITY thumbnailzoomplus.options.key.display.label                 "per">
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "di non">
@@ -72,7 +76,6 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "Generale">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Attivare o disattivare per sito">
 <!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Siti per disabili">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name        "Right Mouse Buttom">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul
@@ -81,6 +84,13 @@
 <!ENTITY thumbnailzoomplus.pages.names.othersindirect            "Altrui (Indirect)">
 <!ENTITY thumbnailzoomplus.pages.names.thumbnail                 "Thumbnail">
 <!ENTITY thumbnailzoomplus.pages.names.google                    "Google Immagini">
+
+<!-- Add/remove sites feature -->
+<!ENTITY thumbnailzoomplus.buttons.add.label "Add">
+<!ENTITY thumbnailzoomplus.buttons.add.addremove.currentsite "Add/Remove current site">
+<!ENTITY thumbnailzoomplus.buttons.remove.label "Remove">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.one "Changes apply after restarting">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.two "or reloading tabs/windows.">
 
 <!-- Context (right-click) menu -->
 <!ENTITY thumbnailzoomplus.context.download.label                "Salva inmmagine ingrandita con nome...">

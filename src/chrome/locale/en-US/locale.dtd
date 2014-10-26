@@ -51,6 +51,10 @@
 <!ENTITY thumbnailzoomplus.options.key.notdisplay.label              "not display">
 <!ENTITY thumbnailzoomplus.options.key2.selection.label              ":">
 <!ENTITY thumbnailzoomplus.options.maxkey.selection.label        "Key to maximize the image:">
+<!ENTITY thumbnailzoomplus.options.ctrl.hotkey					 "CTRL">
+<!ENTITY thumbnailzoomplus.options.shift.hotkey					 "SHIFT">
+<!ENTITY thumbnailzoomplus.options.alt.hotkey					 "ALT">
+<!ENTITY thumbnailzoomplus.options.mouse.button.right.name       "Right Mouse Buttom">
 <!ENTITY thumbnailzoomplus.options.border.checkbox.label         "Show border">
 <!ENTITY thumbnailzoomplus.options.largeimage.checkbox.label     "Show pictures using all available space">
 <!ENTITY thumbnailzoomplus.options.contextmenu.checkbox.label    "Context menu">
@@ -72,7 +76,6 @@
 <!ENTITY thumbnailzoomplus.options.general.groupbox.caption      "General">
 <!ENTITY thumbnailzoomplus.options.enable.groupbox.caption       "Site Checkboxes">
 <!ENTITY thumbnailzoomplus.options.disabledSites.groupbox.caption "Disabled Sites">
-<!ENTITY thumbnailzoomplus.options.mouse.button.right.name        "Right Mouse Buttom">
 
 <!-- Site Names
      To localize a name, add it to XXXENTITYREF in overlay.xul
@@ -85,6 +88,13 @@
 <!-- Context (right-click) menu -->
 <!ENTITY thumbnailzoomplus.context.download.label                "Save Full-size Image As...">
 <!ENTITY thumbnailzoomplus.context.download.accesskey            "Z">
+
+<!-- Add/remove sites feature -->
+<!ENTITY thumbnailzoomplus.buttons.add.label "Add">
+<!ENTITY thumbnailzoomplus.buttons.add.addremove.currentsite "Add/Remove current site">
+<!ENTITY thumbnailzoomplus.buttons.remove.label "Remove">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.one "Changes apply after restarting">
+<!ENTITY thumbnailzoomplus.buttons.changes.apply.two "or reloading tabs/windows.">
 
 <!-- Other Strings -->
 <!ENTITY thumbnailzoomplus.save.image.title                      "Save Image: ">
