@@ -2190,7 +2190,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // would otherwise return the prior image's width and height and
       // briefly show the prior image on the next pop-up, even though
       // we already cleared its src.
-    if (this._endsWith(url, ".webm") || this._endsWith(url, ".mp4")) {
+    if (this._endsWith(url, ".webm")) {
       // this._debugToConsole("ThumbnailZoomPlus: recreate image tag as video for " + url);
       // for webm, use "video" tag; see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
       var newImg =
