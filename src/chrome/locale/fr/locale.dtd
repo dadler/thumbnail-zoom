@@ -64,6 +64,7 @@
 <!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Écran">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Le défilement à la souris fait apparaître les images en pop-ups">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Les pop-ups sont dépendantes du clavier">
+<!ENTITY thumbnailzoomplus.options.showdimensions.checkbox.label "Affichage l x H">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Affichage (&thumbnailzoomplus.PERCENT;)">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Afficher la légende">
 <!ENTITY thumbnailzoomplus.options.savefilename.label            "Enregistrer sous le nom :">

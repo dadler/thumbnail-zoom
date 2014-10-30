@@ -71,6 +71,7 @@
 <!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Pantalla">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Cursor genera ventana emergente">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Prioridad para ventana emergente">
+<!ENTITY thumbnailzoomplus.options.showdimensions.checkbox.label "Show W x H">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Mostrar &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Mostrar título">
 <!ENTITY thumbnailzoomplus.options.savefilename.label            "Nombre a guardar:">

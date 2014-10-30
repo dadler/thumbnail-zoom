@@ -51,6 +51,7 @@ pref("extensions.thumbnailzoomplus.panel.largeimage",   true);
 pref("extensions.thumbnailzoomplus.panel.popuponscroll",false);
 pref("extensions.thumbnailzoomplus.panel.focuspopup",   true);
 pref("extensions.thumbnailzoomplus.panel.showpercent",  true);
+pref("extensions.thumbnailzoomplus.panel.showdimensions", false);
 pref("extensions.thumbnailzoomplus.panel.caption",      true);
 pref("extensions.thumbnailzoomplus.panel.history",      false);                
 pref("extensions.thumbnailzoomplus.panel.defaultzoom",  144);

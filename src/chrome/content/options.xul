@@ -66,6 +66,8 @@
         name="extensions.thumbnailzoomplus.panel.focuspopup" type="bool"/>
       <preference id="thumbnailzoomplus-options-show-percent-pref"
         name="extensions.thumbnailzoomplus.panel.showpercent" type="bool"/>
+      <preference id="thumbnailzoomplus-options-show-dimensions-pref"
+        name="extensions.thumbnailzoomplus.panel.showdimensions" type="bool"/>
       <preference id="thumbnailzoomplus-options-popup-size-pref"
         name="extensions.thumbnailzoomplus.panel.popupsize" type="string"/>
       <preference id="thumbnailzoomplus-options-caption-pref"
@@ -206,6 +208,8 @@
               </menupopup>
             </menulist>
 
+            <checkbox preference="thumbnailzoomplus-options-show-dimensions-pref"
+              label=" &thumbnailzoomplus.options.showdimensions.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-show-percent-pref"
               label=" &thumbnailzoomplus.options.showpercent.checkbox.label;" />
             <checkbox preference="thumbnailzoomplus-options-caption-pref"

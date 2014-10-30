@@ -64,6 +64,7 @@
 <!ENTITY thumbnailzoomplus.options.popupsize.item.screen.label       "Skärm">
 <!ENTITY thumbnailzoomplus.options.popuponscroll.checkbox.label  "Rullning utlöser popuprutan">
 <!ENTITY thumbnailzoomplus.options.focuspopup.checkbox.label     "Popuprutan får tangentbordsfokus">
+<!ENTITY thumbnailzoomplus.options.showdimensions.checkbox.label "Show W x H">
 <!ENTITY thumbnailzoomplus.options.showpercent.checkbox.label    "Visa &thumbnailzoomplus.PERCENT;">
 <!ENTITY thumbnailzoomplus.options.caption.checkbox.label        "Visa bildtext">
 <!ENTITY thumbnailzoomplus.options.savefilename.label            "Filnamn vid &quot;Spara som&quot;:">

@@ -62,6 +62,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   PREF_PANEL_POPUP_ON_SCROLL : ThumbnailZoomPlus.PrefBranch + "panel.popuponscroll",
   PREF_PANEL_FOCUS_POPUP : ThumbnailZoomPlus.PrefBranch + "panel.focuspopup",
   PREF_PANEL_SHOW_PERCENT : ThumbnailZoomPlus.PrefBranch + "panel.showpercent",
+  PREF_PANEL_SHOW_DIMENSIONS : ThumbnailZoomPlus.PrefBranch + "panel.showdimensions",
   PREF_PANEL_CAPTION : ThumbnailZoomPlus.PrefBranch + "panel.caption",
   PREF_PANEL_HISTORY : ThumbnailZoomPlus.PrefBranch + "panel.history",
   PREF_PANEL_MAX_ZOOM : ThumbnailZoomPlus.PrefBranch + "panel.defaultzoom",
@@ -3063,7 +3064,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
   },
   
-  _updateForActualScale : function(displayedImageWidth, rawImageWidth)
+  _updateForActualScale : function(displayedImageWidth, rawImageWidth, rawImageHeight)
   /**
     Calculates the actual image scale (actual size / raw image size)
     and sets _currentMaxScaleBy to it and displays it as text overlaid on
@@ -3072,16 +3073,24 @@ ThumbnailZoomPlusChrome.Overlay = {
   {
     let actualScale = displayedImageWidth / rawImageWidth;
     let percent = Math.round(100 * actualScale);
-
     
     // Set the actual scale to what we ended up with, so the user won't
     // increase the requested scale beyond what we're able to fit.
     this._currentMaxScaleBy = actualScale;
     
     let showPercent = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SHOW_PERCENT, true);
-    if (showPercent && displayedImageWidth > 90) {
+    let showDimensions = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SHOW_DIMENSIONS, true);
+    if ((showPercent || showDimensions) && displayedImageWidth > 90) {
       // Display the actual size % unless it would cover too much of the image.
-      this._panelInfo.value = " " + percent + "% ";
+      // this._panelInfo.value = " " + percent + "% ";
+      this._panelInfo.value = " ";
+      if (showDimensions) {
+        this._panelInfo.value += rawImageWidth + " x " + rawImageHeight;
+        this._panelInfo.value += (showPercent ? ", " : " ");
+      }
+      if (showPercent) {
+        this._panelInfo.value += percent + "% ";
+      }
       this._panelInfo.hidden = false;
     } else {
       this._panelInfo.hidden = true;
@@ -3162,7 +3171,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         // show the thumb's size as a % of raw image's size, so the user
         // can tell if it's worth opening the image in a tab to
         // see it bigger than could fit in the window.
-        this._updateForActualScale(thumbWidth, imageWidth);
+        this._updateForActualScale(thumbWidth, imageWidth, imageHeight);
         this._showStatusIconBriefly(aImageNode, "tooSmall16.png", 32, flags);      
         this._debugToConsole("ThumbnailZoomPlus: >>> too small (and warned)\n" + aImageSrc);
       } else {
@@ -3177,7 +3186,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     this._openAndPositionPopup(aImageNode, imageSize, available);
-    this._updateForActualScale(imageSize.width, imageWidth);
+    this._updateForActualScale(imageSize.width, imageWidth, imageHeight);
     this._showPopupCursor();
     
     return true;
