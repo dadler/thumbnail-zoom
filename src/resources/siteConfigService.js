@@ -45,6 +45,9 @@ ThumbnailZoomPlus.SiteConfigService = {
   /* Logger for this object. */
   _logger : null,
   _addThisSiteButton : null,
+  _addOrRemoveLabelText : "",
+  _addLabelText : "",
+  _removeLabelText : "",
   _chrome : null, // the chrome document
   _windowMediator : Components.classes["@mozilla.org/appshell/window-mediator;1"]
                               .getService(Components.interfaces.nsIWindowMediator),
@@ -65,6 +68,10 @@ ThumbnailZoomPlus.SiteConfigService = {
   setChromeDoc : function(doc) {
     this._chrome = doc;
     this._addThisSiteButton = this._chrome.getElementById("thumbnailzoomplus-options-add-last-site");
+    // grab label text from widgets so we can access localized versions of them.
+    this._addOrRemoveLabelText = this._addThisSiteButton.getAttribute("label");
+    this._addLabelText = this._chrome.getElementById("thumbnailzoomplus-options-add-site").getAttribute("label");
+    this._removeLabelText = this._chrome.getElementById("thumbnailzoomplus-options-remove-site").getAttribute("label");
     this.updateSiteInPrefsDialog();
   },
   
@@ -169,11 +176,11 @@ ThumbnailZoomPlus.SiteConfigService = {
 
     if (host) {
       var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url, true);
-      var operation = ruleExists ? "Remove " : "Add ";
-      var label = operation + host;
+      var operation = ruleExists ? this._removeLabelText : this._addLabelText;
+      var label = operation + " " + host;
       this._addThisSiteButton.removeAttribute("disabled");
     } else {
-      var label = "Add/remove current site";
+      var label = this._addOrRemoveLabelText;
       this._addThisSiteButton.setAttribute("disabled", "true");
     }
     this._addThisSiteButton.setAttribute("label", label);

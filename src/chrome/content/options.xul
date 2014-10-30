@@ -258,11 +258,11 @@
                      ondblclick="ThumbnailZoomPlus.SiteConfigService.handleSiteListDoubleClick(event);">
         </listbox>
         <vbox>
-          <button label="&thumbnailzoomplus.buttons.add.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
+          <button id="thumbnailzoomplus-options-add-site" label="&thumbnailzoomplus.buttons.add.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.addSiteButtonPressed();" />
           <button id="thumbnailzoomplus-options-add-last-site" label="&thumbnailzoomplus.buttons.add.addremove.currentsite;"
                   disabled="true"
                   oncommand="ThumbnailZoomPlus.SiteConfigService.addThisSiteButtonPressed();" />
-          <button label="&thumbnailzoomplus.buttons.remove.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
+          <button id="thumbnailzoomplus-options-remove-site" label="&thumbnailzoomplus.buttons.remove.label;" oncommand="ThumbnailZoomPlus.SiteConfigService.removeSiteButtonPressed();"/>
           <label>&thumbnailzoomplus.buttons.changes.apply.one;</label><label>&thumbnailzoomplus.buttons.changes.apply.two;</label>
         </vbox>
       </hbox>
