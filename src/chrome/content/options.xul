@@ -155,9 +155,9 @@
                   label="&thumbnailzoomplus.options.key.none.label;"
                   fallback="true"
                 />
-                <menuitem value="1" label="CTRL" />
-                <menuitem value="2" label="SHIFT" />
-                <menuitem value="3" label="ALT" />
+                <menuitem value="1" label="&thumbnailzoomplus.options.ctrl.hotkey;" />
+                <menuitem value="2" label="&thumbnailzoomplus.options.shift.hotkey;" />
+                <menuitem value="3" label="&thumbnailzoomplus.options.alt.hotkey;" />
                 <menuitem value="4" label="&thumbnailzoomplus.options.mouse.button.right.name;"
                   minVersion="15.0"
                   targetApplication="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
