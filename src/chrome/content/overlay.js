@@ -1092,7 +1092,13 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getEffectiveTitleForNode : function(aNode) {
     // Search ancestors for a node with non-blank textContent.
     let title = "";
-    while (aNode != null && aNode.localName.toLowerCase() != "body") {
+    var iteration = 0; // a user reported long-running script here so we add a limit.
+    while (aNode != null && aNode.localName && aNode.localName.toLowerCase() != "body") {
+      if (++iteration > 100) {
+        ThumbnailZoomPlus._logToConsole("_getEffectiveTitleForNode: gave up after " + iteration + " iterations; aNode=" + aNode);
+        break;
+      }
+      
       if (aNode.title != undefined && 
           aNode.title != "" ) {
         title = aNode.title;
@@ -1150,7 +1156,7 @@ ThumbnailZoomPlusChrome.Overlay = {
             text = text.replace(/ +Similar . More sizes */i, "");
           }
           if (/sg_/.test(aNode.className)) {
-            // Specia clean-up for Bing Images.  EG change
+            // Special clean-up for Bing Images.  EG change
             // from: prefer to make my pizza in a 15 inch pizza pan 900 x 602 . 544 kB . jpeg www.perfecthomemadepizza.com More sizes
             //   to: prefer to make my pizza in a 15 inch pizza pan . www.perfecthomemadepizza.com
             // The - and x are non-ASCII characters.
@@ -3309,7 +3315,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (! this._currentWindow) {
-      this._logToConsole("_focusThePopup: _currentWindow is null");
+      ThumbnailZoomPlus._logToConsole("_focusThePopup: _currentWindow is null");
       return;
     }
     
