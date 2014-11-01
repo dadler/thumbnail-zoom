@@ -1324,8 +1324,9 @@ ThumbnailZoomPlus.Pages.Others = {
         new RegExp("\\.tumblr\\.com/(photo/|tumblr_).*" +
                    "|(.*" + EXTS + ")" +
                    "|fotoblur\.com/images/[0-9]+", "i");
-      if (// We disallow assets.tumblr.com, e.g. the "dashboard" button.
+      if (// We disallow assets.tumblr.com, e.g. the "dashboard" button, and tiny thumbs.
           ! /assets\.tumblr\.com/.test(imgNodeURL) &&
+          ! /_75sq\./.test(imgNodeURL) &&
           // test the link node's URL to see if it's an image:
           (aNode == null || ! tumblrOrPhotoRegExp.test(String(aNode))) ) {
         this._logger.debug("Others: detected tumblr; using thumb as image, node "
@@ -2231,6 +2232,10 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     // But we aren't guaranteed that those sizes exist so we don't handle that case.
     let tumblrRegExp = /(\.tumblr\.com\/avatar_[a-f0-9]+)_[0-9][0-9]\./;
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
+    
+    // other sites embedding tumblr images, eg tumview.com
+    aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_75sq\.(png|jpg)/, "$1_500.$2");
+    aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_75sq\.gif/, "$1_400.gif");
 
     if (! /-tour-/.test(aImageSrc)) {
       aImageSrc = aImageSrc.replace(/(\/galleries\/.*\/x-.*-)ltn\.jpg/,
