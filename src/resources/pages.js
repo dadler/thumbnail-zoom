@@ -2422,6 +2422,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     //                              EXTS + ").+"),
     //                              "$1/1$2");
     
+    // anon ib
+    aImageSrc = aImageSrc.replace(/\.com\/photos\/(?:medium|thumb)\/([0-9]+\.)/, ".com/photos/$1");
+    
     // someimage.com
     // http://t1.someimage.com/TkscG18.jpg becomes
     // http://i1.someimage.com/TkscG18.jpg
