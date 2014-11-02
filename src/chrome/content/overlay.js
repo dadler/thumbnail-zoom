@@ -2140,15 +2140,17 @@ ThumbnailZoomPlusChrome.Overlay = {
 
   _setCursorAndBorderColor : function(aImageNode, flags) {
     if (! flags) {
-      this._borderBox.style.backgroundColor = "white";
+      // gray
+      this._borderBox.style.backgroundColor = "#777777";
       return;
     } 
     if (flags.linkSameAsImage) {
+      // gray
       this._setupCursor(aImageNode);
-      this._borderBox.style.backgroundColor = "white";
+      this._borderBox.style.backgroundColor = "#777777";
     } else {
       // Color the border to indicate that the link is more than just the image.  
-      this._borderBox.style.backgroundColor = "#33ccff"; // light blue
+      this._borderBox.style.backgroundColor = "#5599bb"; // light blue
     }
     if (flags.borderColor != null) {
       this._borderBox.style.backgroundColor = flags.borderColor;
