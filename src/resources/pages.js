@@ -1650,6 +1650,10 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       // textual links.
       return null;
     }
+    if (/navigate-target/.test(nodeClass)) {
+      // don't pop-up from main image in flickr.com lightbox view.
+      return null;
+    }
     
     node = ThumbnailZoomPlus.Pages.Others.getImageNode(node, nodeName, nodeClass, imageSource);
     return node;
