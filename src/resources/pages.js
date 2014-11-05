@@ -2938,18 +2938,25 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                   "$1.large.");
     
     // itunes: music becomes 600x600; others remove resolution.
+    // find example pages by searching 'mozart' on main itunes.com page.  eg
+    // https://itunes.apple.com/us/artist/academy-st.-martin-in-fields/id6783956?ign-mpt=uo%3D4
     // http://a5.mzstatic.com/us/r1000/092/Music/6c/ed/86/mzi.oltlbval.170x170-75.jpg becomes
     // http://a5.mzstatic.com/us/r1000/092/Music/6c/ed/86/mzi.oltlbval.600x600-75.jpg
     // http://a5.mzstatic.com/us/r1000/090/Video/v4/40/e1/fa/40e1fa55-b9fc-a05f-2e9f-dc98ff836cd5/mza_3406439828248633386.227x227-75.jpg becomes
     // http://a5.mzstatic.com/us/r1000/090/Video/v4/40/e1/fa/40e1fa55-b9fc-a05f-2e9f-dc98ff836cd5/mza_3406439828248633386.jpg
+    // more recently (11/2014):
+    // http://a3.mzstatic.com/us/r30/Music/v4/83/90/6d/83906dbe-1b14-a543-cc0d-205fd7502347/cover100x100.jpeg becomes
+    // http://a3.mzstatic.com/us/r30/Music/v4/83/90/6d/83906dbe-1b14-a543-cc0d-205fd7502347/cover600x600.jpeg
     before = aImageSrc;
-    aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*\/Music[0-9]*\/.*)\.[0-9]{2,4}x[0-9]{2,4}(-[0-9]{1,3}\.jpg)/,
+    aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*\/Music[0-9]*\/.*)\.[0-9]{2,4}x[0-9]{2,4}(-[0-9]{1,3}\.jpe?g)/,
                                   "$1.600x600$2");
     if (before == aImageSrc) {
-      aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*)\.[0-9]{2,4}x[0-9]{2,4}-[0-9]{1,3}(\.jpg)/,
+      aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*)\.[0-9]{2,4}x[0-9]{2,4}-[0-9]{1,3}(\.jpe?g)/,
                                     "$1$2");
     }
-               
+    aImageSrc = aImageSrc.replace(/(\.mzstatic\.com\/.*\/Music[0-9]*\/.*?)[0-9]{2,3}x[0-9]{2,3}(\.jpe?g)/,
+                                  "$1600x600$2");
+                                  
     // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
     // e.g. on pandora.com.
     aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
