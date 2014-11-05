@@ -2204,9 +2204,10 @@ ThumbnailZoomPlusChrome.Overlay = {
       // for webm, use "video" tag; see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
       var newImg =
           document.createElementNS("http://www.w3.org/1999/xhtml","video");
-      newImg.setAttribute("autoplay", "");
-      newImg.setAttribute("loop", "1");
-      newImg.setAttribute("preload", "auto");
+      newImg.autoplay = true;
+      newImg.loop = true;
+      newImg.muted = true;
+      newImg.preload = "auto";
     } else {
       // this._debugToConsole("ThumbnailZoomPlus: recreate image tag as img for " + url);
       var newImg = document.createElementNS("http://www.w3.org/1999/xhtml","img");
