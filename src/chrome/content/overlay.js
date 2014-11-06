@@ -2908,13 +2908,21 @@ ThumbnailZoomPlusChrome.Overlay = {
     let thumbSize = {width:99999, height:9999};
     for (var depth = 1; depth <=6 && aImageNode; ++depth) {
       let thisWidth = aImageNode.clientWidth * pageZoom;
+      if (depth > 1 && ! (thisWidth > 0)) {
+        break;
+      }
       thumbSize.width = Math.min(thumbSize.width, thisWidth);
       let thisHeight = aImageNode.clientHeight * pageZoom;
+      if (depth > 1 && ! (thisHeight > 0)) {
+        break;
+      }
       thumbSize.height = Math.min(thumbSize.height, thisHeight);
       this._logger.debug("_getThumbSize @ " + depth + ": " +
-                         thumbSize.width + " x " + thumbSize.height);
+                         thumbSize.width + " x " + thumbSize.height + " node " + aImageNode);
       aImageNode = aImageNode.parentNode;
     }
+    this._logger.debug("_getThumbSize: " +
+                       thumbSize.width + " x " + thumbSize.height + " node " + aImageNode);
     return thumbSize;
   },
 
