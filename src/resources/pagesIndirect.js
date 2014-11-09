@@ -62,27 +62,19 @@ ThumbnailZoomPlus.PagesIndirect = {
   // a result object with result.doc and result.body set.
   parseHtmlDoc : function(doc, pageUrl, aHTMLString) {
     this._logger.debug("parseHtmlDoc: Building doc");
+
+    // firefox 12 and newer.
+    // https://developer.mozilla.org/en-US/docs/nsIDOMParser
+    var parser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
+                 .createInstance(Components.interfaces.nsIDOMParser);
+    // set document URI so it'll appear in console if there is a parse error.
+    // we default security 'principal' and base URI.
+    // TODO: is this the URL we retrieved aHTMLString from or the
+    // URL containing the thumbnail/link?
+    parser.init(null, doc.documentURIObject, null);
+    var tempdoc = parser.parseFromString(aHTMLString, "text/html");
+    var body = tempdoc.body;
     
-    var tempdoc = doc.implementation.createDocument("http://www.w3.org/1999/xhtml", "html", null);
-
-    var head = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "head");
-    tempdoc.documentElement.appendChild(head);
-    var base = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "base");
-    base.href = pageUrl;
-    head.appendChild(base);
-    
-    var body = tempdoc.createElementNS("http://www.w3.org/1999/xhtml", "body");
-    tempdoc.documentElement.appendChild(body);
-
-    this._logger.debug("parseHtmlDoc: parsing html fragment");
-    let tree = 
-      Components.classes["@mozilla.org/feed-unescapehtml;1"]
-      .getService(Components.interfaces.nsIScriptableUnescapeHTML)
-      .parseFragment(aHTMLString, false, null, body);
-
-    this._logger.debug("parseHtmlDoc: inserting tree into doc");
-    body.appendChild(tree);
-
     // this._logger.debug("\n\n\n\nDOC tree:\n" + body.outerHTML + "\n\n\n\n");
     
     return {'doc': tempdoc, 'body': body};
