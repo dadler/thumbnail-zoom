@@ -3000,8 +3000,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     
     if (flags.requireImageBiggerThanThumb &&
-        (thumbWidth  >= imageWidth ||
-         thumbHeight >= imageHeight) ) {
+        (thumbWidth >= imageWidth * this._currentMaxScaleBy ||
+         thumbHeight >= imageHeight * this._currentMaxScaleBy) ) {
       // skip
       // TODO: ought to allow if file types are different (like the
       // check already done in _sizePositionAndDisplayPopup).
