@@ -205,7 +205,7 @@ ThumbnailZoomPlus.PagesIndirect = {
     }
     // parseFragment won't run javascript so we need to not ignore the contents
     // of <noscript> tags.  Remove them.
-    aHTMLString = aHTMLString.replace(/\<\/?noscript.*\>/ig, "");
+    aHTMLString = aHTMLString.replace(/\<\/?noscript[^>]*\>/ig, "");
     this._logger.debug("  Got doc type " + docType + ":" + aHTMLString);
     
     // result is a url or an array of them.
