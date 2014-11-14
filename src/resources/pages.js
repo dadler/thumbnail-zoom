@@ -169,10 +169,16 @@ ThumbnailZoomPlus.Pages.Facebook = {
      https://vthumb.xx.fbcdn.net/hvthumb-ash4/p206x206/409885_608939578186_608937931486_1576_1469_b.jpg
      https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
+
+     Starting 2014-11-11,
+     thm: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/p160x160/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38 becomes
+     yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
+     no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
   imageRegExp: /\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    return null; // disable this rule, allowing another page to handle it.
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
@@ -207,6 +213,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
   },
   
   getZoomImage : function(aImageSrc, node, flags) {
+    return null; // disable this rule, allowing another page to handle it.
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
                                           node + "; class=" +
@@ -1641,7 +1648,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|deviantart\.com/art/"
                           + "|www.furaffinity.net/view/"
                           + "|gyazo.com/[a-z0-9]{32}"
-                          , "i"),
+                          + "|://www\\.facebook\\.com/photo\\.php\\?fbid="
+                          + "|://www\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
+                        , "i"),
   
   // For "OthersIndirect"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
@@ -1670,6 +1679,10 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                                     "$1cajax/get/");
     }
     
+    // convert www.facebook.com to m.facebook.com so we can parse it for an image URL
+    // without running the page's javascript.
+    aImageSrc = aImageSrc.replace(/:\/\/[a-z0-9]+\.facebook\.com\//, "://m.facebook.com/")
+
     // For imgur.com, make sure it allows more than 11 images.  EG:
     // http://imgur.com/a/bDIdw#0 becomes
     // http://imgur.com/a/bDIdw/all
@@ -1684,13 +1697,13 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                                        this.invocationNumber, pageCompletionFunc,
                                        this._getImageFromHtml.bind(this));
     
-    return aImageSrc; 
+    return aImageSrc;
   },
 
   // For "OthersIndirect"
   _allMatchesOf : function(re, firstMatch, aHTMLString, resultPattern) {
     // Return a string or array of strings representing all the matches of re
-    // in aHTMLString, there the first match has already been done,
+    // in aHTMLString, where the first match has already been done,
     // and is firstMatch.  Each match returns resultPattern with "$1"
     // replaced by the contents of the first re group.  Only $1
     // is supported (not $2 etc).
@@ -1731,10 +1744,20 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
 
     var re;
 
+    // m.facebook.com
+    // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
+    // View Full Size</a>'
+    re = /<a class="[^"]*" href="([^"]+)" *>[^<]*View Full Size/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1].replace(/&amp;/gi, "&");
+    }
+
     // liveleak.com and other flash player sites:
     // Search for the jwplayer(...).setup(...) javascript call.  Note that
     // the '.' pattern doesn't match newlines so we use [\\\S] instead.
-    re  = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
+    re = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
