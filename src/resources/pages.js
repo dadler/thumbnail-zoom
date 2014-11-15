@@ -175,10 +175,21 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|\?fref=hovercard|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
-    return null; // disable this rule, allowing another page to handle it.
+    if (aNode.localName.toLowerCase() != "img") {
+      return null;
+    }
+    aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
+    return aNode;
+    
+    
+    
+    ////////
+    // code below is disabled and largely obsolete.
+    ///////
+
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
     }
@@ -213,7 +224,19 @@ ThumbnailZoomPlus.Pages.Facebook = {
   },
   
   getZoomImage : function(aImageSrc, node, flags) {
-    return null; // disable this rule, allowing another page to handle it.
+    var original = aImageSrc;
+    
+    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^/?]+)(?:\?fref=hovercard)?$/,
+                                    "://graph.facebook.com/$1/picture?width=750&height=750");
+    if (original == aImageSrc) {
+      return null; // disable this rule, allowing another page to handle it.
+    }
+    return aImageSrc;
+    
+    
+    ////////
+    // code below is disabled and largely obsolete.
+    ///////
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
                                           node + "; class=" +
