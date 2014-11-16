@@ -163,19 +163,22 @@ ThumbnailZoomPlus.Pages.Facebook = {
      and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
      test e.g. at https://www.facebook.com/Levis?sk=wall
 
-     Example image URLs:
+     Example image URLs (before 2014-11-11):
      https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
      https://fbexternal-a.akamaihd.net/safe_image.php?d=AQDfl4vB8khOLSTS&w=428&h=224&url=http%3A%2F%2Fcdn.cstatic.net%2Fimages%2Fgridfs%2F534c6766f92ea1398d030b36%2Fclayton3.jpg&cfs=1&upscale
      https://vthumb.xx.fbcdn.net/hvthumb-ash4/p206x206/409885_608939578186_608937931486_1576_1469_b.jpg
      https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
      https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
 
-     Starting 2014-11-11,
+     Starting 2014-11-11, some photos require different numbers in oh=, oe=, __gda= fields for
+     zoomed vs thumb versions of images, so we can't guess the zoomed URL from the thumb URL.
+     That forced us to handle photos via Others Indirect.  The Facebook rule is still
+     used for profile pics and external images.
      thm: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/p160x160/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38 becomes
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|\?fref=(photo|hovercard)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|\?fref=(photo|hovercard)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
@@ -189,9 +192,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
     }
 
     if (aNode.localName.toLowerCase() != "img") {
+      // Don't use this rules for e.g. profile thumbs which link to
+      // hovercard facebook pop-ups.
       return null;
     }
     
+    // We'll detect profile thumbs from the page they link to, which we get
+    // from Others.getImageNode.
     aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
 
     return aNode;
@@ -230,7 +237,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
     
     aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^/?]+)(?:\?fref=(?:photo|hovercard))?$/,
                                     "://graph.facebook.com/$1/picture?width=750&height=750");
-    
     
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
@@ -330,7 +336,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     aImageSrc = aImageSrc.replace(/(graph\.facebook\.com\/.*\/picture\?type=)square/, "$1large");
     
     if (original == aImageSrc) {
-      return null; // disable this rule, allowing another page to handle it.
+      return null; // disable this rule, allowing Others Indirect to handle it.
     }
 
     return aImageSrc;
@@ -2063,7 +2069,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     // Some sites need to find the image's node from an ancestor node.
     let parentClass = node.parentNode.className;
-    // ThumbnailZoomPlus._logToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
+    // ThumbnailZoomPlus.debugToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
     let generationsUp = -1;
     let selector = "img"; // css selector for child node relative to generationsUp.
     if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
