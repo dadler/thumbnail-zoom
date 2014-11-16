@@ -1635,7 +1635,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("_getZoomImageCompletionImmediate: *** Setting _originalURI=" +
                        this._originalURI);
 
-    this._debugToConsole("ThumbnailZoomPlus: >>> page " + pageName + " launching \n" +
+    this._debugToConsole("ThumbnailZoomPlus: >>>------ page " + pageName + " LAUNCHING \n" +
                        zoomImageSrc);
     
     this._showZoomImage(zoomImageSrc, flags, node, aEvent);

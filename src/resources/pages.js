@@ -175,15 +175,26 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|\?fref=hovercard|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|\?fref=(photo|hovercard)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\/photo\.php.*[^#]$|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstanb]\.|([0-9]\/)[qstan]([0-9]))|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+      // The hover detects a <div> and we need to find its child <img>.
+      // _117p = fb Page cover photo; _6l- = external image
+      let imgNodes = aNode.getElementsByTagName("img");
+      if (imgNodes.length > 0) {
+        // take the first child.
+        return imgNodes[0];
+      }
+    }
+
     if (aNode.localName.toLowerCase() != "img") {
       return null;
     }
-    aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
-    return aNode;
     
+    aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
+
+    return aNode;
     
     
     ////////
@@ -192,15 +203,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     if ("a" == aNodeName && "album_link" == aNodeClass) {
        aNode = aNode.parentNode;
-    }
-    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
-      // The hover detects a <div> and we need to find its child <img>.
-      // _117p = fb Page cover photo
-      let imgNodes = aNode.getElementsByTagName("img");
-      if (imgNodes.length > 0) {
-        // take the first child.
-        aNode = imgNodes[0];
-      }
     }
     if ("a" == aNodeName && /_4q3|_4-eo/.test(aNodeClass)) {
       // In Apr 2013 we started seeing profile icons with
@@ -226,21 +228,15 @@ ThumbnailZoomPlus.Pages.Facebook = {
   getZoomImage : function(aImageSrc, node, flags) {
     var original = aImageSrc;
     
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^/?]+)(?:\?fref=hovercard)?$/,
+    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^/?]+)(?:\?fref=(?:photo|hovercard))?$/,
                                     "://graph.facebook.com/$1/picture?width=750&height=750");
-    if (original == aImageSrc) {
-      return null; // disable this rule, allowing another page to handle it.
-    }
-    return aImageSrc;
     
     
-    ////////
-    // code below is disabled and largely obsolete.
-    ///////
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
                                           node + "; class=" +
                                           aNodeClass);
+/*
     if (aNodeClass == "spotlight") {
       // Disable for lightbox view since popup covers tags in lightbox
       // image and comments, and lightbox image is already pretty large.
@@ -252,8 +248,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // thumbnails disappears, which is confusing.
       return null;
     }
-
-    
+*/
+/*
     // In April 2013 we started seeing img src="https://fbstatic-a.akamaihd.net/rsrc.php/v2/y4/r/-PAXP-deijE.gif"
     // with the actual image in the background-image style.  Handle those.
     if (/fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/.test(aImageSrc)) {
@@ -262,7 +258,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aImageSrc = backgroundImage;
       }
     }
-    
+*/
     let ajaxify = node.getAttribute("ajaxify");
     if (ajaxify) {
       let match = /\&src=([^\&]+)/.exec(ajaxify);
@@ -300,6 +296,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
       flags.allowAbove = false;
     }
 
+/*
     aImageSrc = aImageSrc.replace(/_[qstan]\./, "_n.");
     aImageSrc = aImageSrc.replace(/([0-9]\/)[qsta]([0-9])/, "$1n$2");
 
@@ -307,7 +304,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/560586_10150817981981045_883718611_n.jpg
     // (handle the c0.0.133.133 part)
     aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
+*/
 
+/*
     if (aNodeClass && aNodeClass.indexOf("_ksh") >= 0) {
         // image in Facebook chat is already full-rez; don't try to change it.
     } else {
@@ -318,15 +317,22 @@ ThumbnailZoomPlus.Pages.Facebook = {
         // But for images in facebook chat don't change this:
         aImageSrc = aImageSrc.replace(/\/v(?:\/l)?\/t[0-9]+\.[0-9]+-[0-9]+\//i, "/");
     }
-    
+*/
+
+/*
     let rex3 = new RegExp(/\/[spn][0-9]+x[0-9]+\//);
     aImageSrc = aImageSrc.replace(rex3, "/");
-    
+*/
+
     // http://graph.facebook.com/1368249070/picture?type=square becomes
     // http://graph.facebook.com/1368249070/picture?type=large
     // e.g. from pandora.com.
     aImageSrc = aImageSrc.replace(/(graph\.facebook\.com\/.*\/picture\?type=)square/, "$1large");
     
+    if (original == aImageSrc) {
+      return null; // disable this rule, allowing another page to handle it.
+    }
+
     return aImageSrc;
   }
 };
