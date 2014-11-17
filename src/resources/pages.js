@@ -1414,7 +1414,11 @@ ThumbnailZoomPlus.Pages.Others = {
       // Thumbnails rule handle them.
       return null;
     }
-        
+     
+    if (/:\/\/[a-z0-9]+\.facebook\.com\/photo\.php/i.test(aImageSrc)) {
+      return null;
+    }
+    
     // For StumbleUpon.com links, change
     // http://www.stumbleupon.com/to/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg/t:7ed1a2cbdd70f;src:all or
     // http://www.stumbleupon.com/su/3roKbh/content.mindcrap.com/gallery/dogs/15/34.jpg to
