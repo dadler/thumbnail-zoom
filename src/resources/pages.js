@@ -181,9 +181,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
   imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
-    if (/scaledImageFitWidth/.test(aNodeClass)) {
+    if (/scaledImageFitWidth|_46-i/.test(aNodeClass)) {
       // disallow for scaledImageFitWidth (top half of small cover photo on user's pop-up) since
       // we need it to show cover photo from Others (Indirect), not user's photo.
+      // _46-i is similar for facebook pages rather than users.
       return null;
     }
     
