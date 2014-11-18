@@ -181,6 +181,12 @@ ThumbnailZoomPlus.Pages.Facebook = {
   imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+    if (/scaledImageFitWidth/.test(aNodeClass)) {
+      // disallow for scaledImageFitWidth (top half of small cover photo on user's pop-up) since
+      // we need it to show cover photo from Others (Indirect), not user's photo.
+      return null;
+    }
+    
     if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       // _117p = fb Page cover photo; _6l- = external image
