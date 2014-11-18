@@ -178,7 +178,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
@@ -236,9 +236,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
     var original = aImageSrc;
     
     // https://www.facebook.com/profile.php?id=1553390408&fref=hovercard
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/profile\.php\?id=([^\/?&]+)(?:&fref=(?:photo|hovercard))?$/,
+    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/profile\.php\?id=([^\/?&]+)(?:&fref=(?:photo|hovercard|pb|ts))?$/,
                                     "://graph.facebook.com/$1/picture?width=750&height=750");
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^\/?]+)(?:\?fref=(?:photo|hovercard))?$/,
+    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^\/?]+)(?:\?fref=(?:photo|hovercard|pb|ts))?$/,
                                     "://graph.facebook.com/$1/picture?width=750&height=750");
 
     let aNodeClass = node.getAttribute("class");
