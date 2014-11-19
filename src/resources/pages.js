@@ -151,6 +151,42 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       
  ***********/
 
+let _allMatchesOf = function(re, firstMatch, aHTMLString, resultPattern) {
+    // Return a string or array of strings representing all the matches of re
+    // in aHTMLString, where the first match has already been done,
+    // and is firstMatch.  Each match returns resultPattern with "$1"
+    // replaced by the contents of the first re group.  Only $1
+    // is supported (not $2 etc).
+    // The regular expression must have the 'g' global flag (/..../g).
+    var matches = new Array();
+    var match = firstMatch;
+    var nMatches = 0;
+    while (match != null) {
+      var url = resultPattern.replace("$1", match[1]);
+      ThumbnailZoomPlus.Pages._logger.debug("_allMatchesOf: url=" + url +
+                 "; re.lastIndex=" + re.lastIndex);
+      // append the url if it's not a dummy imgur url and not a dup
+      // of the previous one (both of which I've seen on imgur.com).
+      if (url != "http://i.imgur.com/" &&
+          url != "https://i.imgur.com/" &&
+          (matches.length == 0 || matches[matches.length-1] != url) ) {
+        matches.push(url);
+      }
+      ++nMatches;
+      if (nMatches > 5000) {
+        // prevent infinite or very long loop
+        break;
+      }
+      match = re.exec(aHTMLString);
+    }
+    if (matches.length == 1) {
+      // single match (not handled as a gallery).
+      return matches[0];
+    } else {
+      return matches;
+    }
+  };
+
 /**
  * Facebook
  */
@@ -1752,43 +1788,6 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   },
 
   // For "OthersIndirect"
-  _allMatchesOf : function(re, firstMatch, aHTMLString, resultPattern) {
-    // Return a string or array of strings representing all the matches of re
-    // in aHTMLString, where the first match has already been done,
-    // and is firstMatch.  Each match returns resultPattern with "$1"
-    // replaced by the contents of the first re group.  Only $1
-    // is supported (not $2 etc).
-    // The regular expression must have the 'g' global flag (/..../g).
-    var matches = new Array();
-    var match = firstMatch;
-    var nMatches = 0;
-    while (match != null) {
-      var url = resultPattern.replace("$1", match[1]);
-      ThumbnailZoomPlus.Pages._logger.debug("_allMatchesOf: url=" + url +
-                 "; re.lastIndex=" + re.lastIndex);
-      // append the url if it's not a dummy imgur url and not a dup
-      // of the previous one (both of which I've seen on imgur.com).
-      if (url != "http://i.imgur.com/" &&
-          url != "https://i.imgur.com/" &&
-          (matches.length == 0 || matches[matches.length-1] != url) ) {
-        matches.push(url);
-      }
-      ++nMatches;
-      if (nMatches > 5000) {
-        // prevent infinite or very long loop
-        break;
-      }
-      match = re.exec(aHTMLString);
-    }
-    if (matches.length == 1) {
-      // single match (not handled as a gallery).
-      return matches[0];
-    } else {
-      return matches;
-    }
-  },
-  
-  // For "OthersIndirect"
   _getImgFromHtmlText : function(aHTMLString, flags) {
     let logger = ThumbnailZoomPlus.Pages._logger;
     logger.trace("_getImgFromHtmlText");
@@ -1860,7 +1859,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      return this._allMatchesOf(re, match, aHTMLString, "https://$1.png");
+      return _allMatchesOf(re, match, aHTMLString, "https://$1.png");
     }
     
     // for imgbox.com galleries, eg look for e.g.
@@ -1869,7 +1868,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
-      return this._allMatchesOf(re, match, aHTMLString, "http://i.$1");
+      return _allMatchesOf(re, match, aHTMLString, "http://i.$1");
     }
 
     // imgur.com albums fallback (in case rule above doesn't work),
@@ -1893,7 +1892,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
           ! /ebaystatic\.com\/./.test(match[1]) &&
           ! /gyazo\.com/.test(match[1])) {
-        return this._allMatchesOf(re, match, aHTMLString, "$1");
+        return _allMatchesOf(re, match, aHTMLString, "$1");
       }
     }
     
