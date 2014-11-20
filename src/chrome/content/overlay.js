@@ -1500,8 +1500,15 @@ ThumbnailZoomPlusChrome.Overlay = {
       }
     }
 
-    if (null == imageSource ||     
-        ! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
+    if (null == imageSource) {
+      this._debugToConsole("ThumbnailZoomPlus:    !!! PAGE '" + pageName + "' (" + aPage +
+                            ") getImageSource rejected imageSource \n" +
+                           imageSource);
+
+      return "rejectedNode";
+    }
+
+    if (! ThumbnailZoomPlus.FilterService.filterImage(imageSource, aPage)) {
       this._debugToConsole("ThumbnailZoomPlus:    !!! PAGE '" + pageName + "' (" + aPage +
                             ") imageRegExp or imageDisallowRegExp rejected imageSource \n" +
                            imageSource);
@@ -1544,8 +1551,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     };
 
     return ThumbnailZoomPlus.FilterService
-                      .getZoomImage(imageSource, imageSourceNode, flags, aPage,
-                                    completionFunc);
+                      .getZoomImage(imageSource, imageSourceNode, flags,
+                                    imageSourceInfo.pageSpecificData,
+                                    aPage, completionFunc);
   },
 
   /**

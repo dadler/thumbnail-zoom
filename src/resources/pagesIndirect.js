@@ -190,7 +190,7 @@ ThumbnailZoomPlus.PagesIndirect = {
       yield undefined;
       if (invocationNumber != ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber) {
         // This request is obsolete.
-        this._logger.debug("_getImageFromLinkedPageGen: aborting obsolete request.");
+        ThumbnailZoomPlus.debugToConsole("_getImageFromLinkedPageGen: aborting obsolete request." + pageURl);
         // we don't abort since it causes 'already executing generator' error in generator.next() call above:
         // disabled: req.abort();
         generator = null;
@@ -200,7 +200,7 @@ ThumbnailZoomPlus.PagesIndirect = {
     
     var aHTMLString = req.responseText;
     if (! aHTMLString) {
-      this._logger.debug("_getImageFromLinkedPageGen: site returned empty/null text " + aHTMLString);
+      ThumbnailZoomPlus.debugToConsole("_getImageFromLinkedPageGen: site returned empty/null text " + aHTMLString);
       pageCompletionFunc(null);
     }
     // parseFragment won't run javascript so we need to not ignore the contents
@@ -223,6 +223,7 @@ ThumbnailZoomPlus.PagesIndirect = {
   getImageFromLinkedPage : function(doc, pageUrl, flags, invocationNumber, pageCompletionFunc,
                                     getImageFromHtmlFunc)
   {
+    ThumbnailZoomPlus.debugToConsole("getImageFromLinkedPage from page " + pageUrl);
     try {
       let generator = this._getImageFromLinkedPageGen(doc, pageUrl, flags, invocationNumber, 
                                                 pageCompletionFunc, 
