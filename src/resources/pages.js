@@ -1791,7 +1791,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // View Full Size</a>'
     re = /<a class="[^"]*" href="([^"]+)" *>[^<]*View Full Size/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    var match = re.exec(aHTMLString);
     if (match) {
       return match[1].replace(/&amp;/gi, "&");
     }
@@ -1801,7 +1801,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // the '.' pattern doesn't match newlines so we use [\\\S] instead.
     re = /(?:jwplayer|flashvars)[\s\S]*?\s'?image'?[:=] *[\'\"]?([^\"\'&]+)["'&]/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    var match = re.exec(aHTMLString);
     if (match) {
       flags.setVideoBorderColor(match[1], "liveleak.com, etc. due to jwplayer");
       return match[1];
