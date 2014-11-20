@@ -111,7 +111,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       this can run faster and be easier to understand than using a negative 
       look-ahead pattern in imageRegExp.
 
-    * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource).  
+    * getImageNode: optional function(aNode, nodeName, nodeClass, imageSource, pageSpecificData).
       Returns the node from which the popup image's link will be generated, or 
       null if the popup should be disabled (i.e. to REJECT the popup).  
       Useful when it's generated not from the direct thumbnail image, but an ancestor or
@@ -119,9 +119,11 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       returned node's src, href, or background image (assuming the return is
       different than aNode).  ImageSource is the URL of the link or image the
       mouse hovered; it may be null if the hovered node isn't an image or link.  
-      The default function returns the image node itself.  
+      The default function returns the image node itself.  Optional arg pageSpecificData
+      is an object (initally {}) to which getImageNode can add fields of data to be returned,
+      which will be passed into the corresponding call to getZoomImage.
       
-    * getZoomImage: required function(aImageSrc, node, popupFlags, pageCompletionFunc);
+    * getZoomImage: required function(aImageSrc, node, popupFlags, pageSpecificData, pageCompletionFunc);
       returns the image URL.
      
       Translates the aImageSrc URL from the previous functions into the final
@@ -195,16 +197,22 @@ ThumbnailZoomPlus.Pages.Facebook = {
   name: "Facebook",
   host: /^(.*\.)?facebook\.com$/,
   /*
+     The Facebook operates in a few ways:
+     1. for user profiles, whe can get an image directly from graph.facebook.com if
+     we know the user's ID or username, which we can generally get from the link
+     in effect where a profile image appears.
+     
+     2. for photos, we operate like Others (Indiret), but within the Facebook rule.
+     The URL we retrieve is the mobile version of the photo's page since that one
+     contains a direct HTML link to the full-size image, without needing to
+     run javascript from the facebook page.
+     
+     3. for some externally-linked pages, we can parse the external photo's
+     image URL from the Facebook image URL.
+
      Thumb URLs seem different when logged into Facebook vs when logged out
      and refreshed.  When logged in I see akamaihd; when logged out I see fbcdn.
      test e.g. at https://www.facebook.com/Levis?sk=wall
-
-     Example image URLs (before 2014-11-11):
-     https://s-external.ak.fbcdn.net/safe_image.php?d=AQBTSEn7MQEFZ1lI&w=90&h=90&url=http%3A%2F%2Fmy.eimg.net%2Fharvest_xml%2FNEWS%2Fimg%2F20111128%2Fa81e4575-1079-4efd-b650-59d72173f185.jpg
-     https://fbexternal-a.akamaihd.net/safe_image.php?d=AQDfl4vB8khOLSTS&w=428&h=224&url=http%3A%2F%2Fcdn.cstatic.net%2Fimages%2Fgridfs%2F534c6766f92ea1398d030b36%2Fclayton3.jpg&cfs=1&upscale
-     https://vthumb.xx.fbcdn.net/hvthumb-ash4/p206x206/409885_608939578186_608937931486_1576_1469_b.jpg
-     https://fbcdn-photos-a.akamaihd.net/hphotos-ak-ash4/260453_10150229109580662_95181800661_7448013_4160400_s.jpg
-     https://www.facebook.com/app_full_proxy.php?app=143390175724971&v=1&size=z&cksum=52557e63c5c84823a5c1cbcd8b0d0fe2&src=http%3A%2F%2Fupload.contextoptional.com%2F20111205180038358277.jpg
 
      Starting 2014-11-11, some photos require different numbers in oh=, oe=, __gda= fields for
      zoomed vs thumb versions of images, so we can't guess the zoomed URL from the thumb URL.
@@ -214,13 +222,19 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp: /.*|:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
-    if (/scaledImageFitWidth|_46-i/.test(aNodeClass)) {
+    if (false && /scaledImageFitWidth/.test(aNodeClass)) {
       // disallow for scaledImageFitWidth (top half of small cover photo on user's pop-up) since
       // we need it to show cover photo from Others (Indirect), not user's photo.
-      // _46-i is similar for facebook pages rather than users.
+      // But it also happens for some photos in timeline so not a safe check.
+      
+      // _46-i is similar for facebook pages rather than users, but also triggers on
+      // photos in comments, which is a problem (eg on facebook.com/teslamotors).
+      
+      // we need this for profile hovercards, but it interferes with chat profile photos.
+      ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to class " + aNodeClass);
       return null;
     }
     
@@ -230,13 +244,15 @@ ThumbnailZoomPlus.Pages.Facebook = {
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
-        return imgNodes[0];
+        // disabled, but we may still need this: return imgNodes[0];
       }
     }
 
-    if (aNode.localName.toLowerCase() != "img") {
+    if (aNodeName != "img" && aNodeName != "i" && ! aNode.querySelector("img")) {
       // Don't use this rules for e.g. profile thumbs which link to
-      // hovercard facebook pop-ups.
+      // hovercard facebook pop-ups, or textual links.
+      // 'i' tags are seen in e.g. a user's albums.
+      ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to non-img node type " + aNodeName);
       return null;
     }
     
@@ -275,17 +291,53 @@ ThumbnailZoomPlus.Pages.Facebook = {
     return aNode;
   },
   
-  getZoomImage : function(aImageSrc, node, flags) {
+  /**
+   * tries to get an image URL from the aHTMLString, either via
+   * _getImgFromHtmltext (raw text parsing) or via getImgFromSelectors
+   * (html-based CSS selectors to find the appropriate node).
+   *
+   * Returns a URL string, and array of them, or null.
+   */
+  _getImageFromFBHtml : function(doc, pageUrl, flags, aHTMLString)
+  {    
+    let logger = ThumbnailZoomPlus.Pages._logger;
+    logger.trace("_getImageFromFBHtml");
+
+    var re;
+
+    // m.facebook.com
+    // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
+    // View Full Size</a>'
+    re = /<a class="[^"]*" href="([^"]+)" *>[^<]*View Full Size/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    let match = re.exec(aHTMLString);
+    if (match) {
+      return match[1].replace(/&amp;/gi, "&");
+    }
+
+    logger.debug("_getImageFromFBHtml: didn't match");
+    return null;  
+  },
+
+  getZoomImage : function(aImageSrc, node, flags, pageSpecificData, pageCompletionFunc) {
     var original = aImageSrc;
     
+    // handle profile links.
     // https://www.facebook.com/profile.php?id=1553390408&fref=hovercard
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/profile\.php\?id=([^\/?&]+)(?:&fref=(?:photo|hovercard|pb|ts))?$/,
-                                    "://graph.facebook.com/$1/picture?width=750&height=750");
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^\/?]+)(?:\?fref=(?:photo|hovercard|pb|ts))?$/,
-                                    "://graph.facebook.com/$1/picture?width=750&height=750");
-    aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/messages\/([^\/?]+)$/,
-                                    "://graph.facebook.com/$1/picture?width=750&height=750");
-
+    if (node.parentNode.localName != "div" ||
+        ! /_7lj/.test(node.parentNode.class)) {
+        // we disallow showing profile pop-up in top part of cover photo in hovercard pop-up.
+        ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: trying as profile pic");
+        aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/profile\.php\?id=([^\/?&]+)(?:&fref=(?:photo|hovercard|pb|ts))?$/,
+                                        "://graph.facebook.com/$1/picture?width=750&height=750");
+        aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^\/?]+)(?:\?fref=(?:photo|hovercard|pb|ts))?$/,
+                                        "://graph.facebook.com/$1/picture?width=750&height=750");
+        aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/messages\/([^\/?]+)$/,
+                                        "://graph.facebook.com/$1/picture?width=750&height=750");
+    } else {
+        ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: not a profile pic; " + imgSrc);
+    }
+    
     let aNodeClass = node.getAttribute("class");
     ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
                                           node + "; class=" +
@@ -314,8 +366,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
     }
 */
     let ajaxify = node.getAttribute("ajaxify");
-    if (ajaxify) {
+    if (false && ajaxify) { // disabled until we can verify it still always works.
       let match = /\&src=([^\&]+)/.exec(ajaxify);
+      ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: ajaxify=" + ajaxify + "; match=" + match);
       if (match) {
         aImageSrc = unescape(match[1]);
       } else {
@@ -323,6 +376,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aImageSrc = ajaxify;
       }
     }
+    
+    // TODO: do these still work, now that getImageNode is using Others.getImageNode?
     
     // Handle externally-linked images.
     let rexExternal = /.*\/safe_image.php\?(?:.*&)?url=([^&]+).*/;
@@ -383,8 +438,21 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // e.g. from pandora.com.
     aImageSrc = aImageSrc.replace(/(graph\.facebook\.com\/.*\/picture\?type=)square/, "$1large");
     
-    if (original == aImageSrc) {
-      return null; // disable this rule, allowing Others Indirect to handle it.
+    if (original == aImageSrc && node.localName.toLowerCase() == "a") {
+        // This isn't a profile or other recognized case; try to handle as a photo
+        // in the manner of Others (Indirect).
+        
+        // Convert www.facebook.com to m.facebook.com so we can parse it for an image URL
+        // without running the page's javascript.
+        aImageSrc = aImageSrc.replace(/:\/\/[a-z0-9]+\.facebook\.com\//, "://m.facebook.com/")
+
+        ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber++;
+
+        aImageSrc = ThumbnailZoomPlus.PagesIndirect.
+                    getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
+                                           ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber,
+                                           pageCompletionFunc,
+                                           this._getImageFromFBHtml.bind(this));
     }
 
     return aImageSrc;
@@ -1690,6 +1758,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // getZoomImage.  We use this to detect and abort a request if a
   // newer request has been made (so we don't see a prior request's
   // pop-up appear after hovering a different thumb).
+  // Also accessed globally from pagesIndirect.js.
   invocationNumber : 0,
   
   // Set imageRegExp to match pages which are likely to produce a thumbnail,
@@ -1756,7 +1825,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   },
   
   // For "OthersIndirect"
-  getZoomImage : function(aImageSrc, node, flags, pageCompletionFunc) {
+  getZoomImage : function(aImageSrc, node, flags, pageSpecificData, pageCompletionFunc) {
     this.invocationNumber++;
     
     if (/gfycat\.com\/[A-Z][^\/]+$/.test(aImageSrc)) {
@@ -2200,6 +2269,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
    *
    * This is used by rules Thumbnail and ThumbnailItself.
    */
+  // For "Thumbnail"
   getInitialImageSrc : function(aImageSrc, node) {
     let verbose = false;
     let nodeClass = node.getAttribute("class");

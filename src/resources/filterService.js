@@ -460,6 +460,7 @@ ThumbnailZoomPlus.FilterService = {
    *     node: the node from which imageURL was determined
    *     imageURL: string (null if not apply);
    *     noTooSmallWarning: boolean
+   *     pageSpecificData: undefined or ...
    */
   getImageSource : function(aDocument, aNode, aPage) {
     let result = {imageURL: null, noTooSmallWarning: false, node: aNode};
@@ -482,11 +483,12 @@ ThumbnailZoomPlus.FilterService = {
     let imageSource = this.getUrlFromNode(imageNode, preferLinkOverThumb);
     
     // Call getImageNode if defined.
+    var pageSpecificData = {};
     if (pageInfo.getImageNode) {
       this._logger.debug("getImageSource: calling getImageNode for " +
                          "aNode=" + aNode + ", nodeName=" + nodeName +
                          ", nodeClass=" + nodeClass + ", imageSource=" + imageSource);
-      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass, imageSource);      
+      imageNode = pageInfo.getImageNode(aNode, nodeName, nodeClass, imageSource, pageSpecificData);
       if (imageNode != aNode) {
         // changed nodes.   If imageNode == null, we're shouldn't do a popup.
         // and we ignore if localName is null, as sometimes happens if the
@@ -539,7 +541,8 @@ ThumbnailZoomPlus.FilterService = {
     
     result.imageURL = imageSource;
     result.node = imageNode;
-    
+    result.pageSpecificData = pageSpecificData;
+ 
     return result;
   },
 
@@ -602,7 +605,7 @@ ThumbnailZoomPlus.FilterService = {
    *
    * @return a status string (such as "deferred").
    */
-  getZoomImage : function(aImageSrc, node, flags, aPage, completionFunc) {
+  getZoomImage : function(aImageSrc, node, flags, pageSpecificData, aPage, completionFunc) {
     this._logger.debug("getZoomImage");
 
     let pageInfo = this.pageList[aPage];
@@ -615,7 +618,7 @@ ThumbnailZoomPlus.FilterService = {
                      " " + zoomImage);
       completionFunc(zoomImageResult, true);
     };      
-    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags,
+    let zoomImage = pageInfo.getZoomImage(aImageSrc, node, flags, pageSpecificData,
                                           pageCompletionFunc);
       
     if (zoomImage == "deferred") {
