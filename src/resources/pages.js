@@ -254,10 +254,17 @@ ThumbnailZoomPlus.Pages.Facebook = {
     }
     
     //if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
-    if (/_6l-|photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
+    if (/_6l-|photoWrap|uiPhotoThumb|external|_2qo3/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       // _117p = fb Page cover photo; _6l- = external image
-      let imgNodes = aNode.getElementsByTagName("img");
+      var parent = aNode;
+      if (/_2qo3/.test(aNodeClass)) {
+        // For a photo for a linked article (/l.php), the img node is a child of the
+        // great grandparent.  Structure is <div><a><div><img/></div></a>   <div><div><A>...
+        // where hover is detected on <A>.
+        parent = aNode.parentNode.parentNode.parentNode;
+      }
+      let imgNodes = parent.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
         return imgNodes[0];
@@ -265,7 +272,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     }
 
     if (aNodeName != "img" && aNodeName != "i" && ! aNode.querySelector("img")) {
-      // Don't use this rules for e.g. profile thumbs which link to
+      // Don't use this rule for e.g. profile thumbs which link to
       // hovercard facebook pop-ups, or textual links.
       // 'i' tags are seen in e.g. a user's albums.
       ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to non-img node type " + aNodeName);
@@ -275,7 +282,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // We'll detect profile thumbs from the page they link to, which we get
     // from Others.getImageNode.
     aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
-
+    
     return aNode;
     
     
