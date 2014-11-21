@@ -1862,10 +1862,6 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                                     "$1cajax/get/");
     }
     
-    // convert www.facebook.com to m.facebook.com so we can parse it for an image URL
-    // without running the page's javascript.
-    aImageSrc = aImageSrc.replace(/:\/\/[a-z0-9]+\.facebook\.com\//, "://m.facebook.com/")
-
     // For imgur.com, make sure it allows more than 11 images.  EG:
     // http://imgur.com/a/bDIdw#0 becomes
     // http://imgur.com/a/bDIdw/all
@@ -1889,16 +1885,6 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     logger.trace("_getImgFromHtmlText");
 
     var re;
-
-    // m.facebook.com
-    // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
-    // View Full Size</a>'
-    re = /<a class="[^"]*" href="([^"]+)" *>[^<]*View Full Size/;
-    logger.debug("_getImgFromHtmlText: trying " + re);
-    var match = re.exec(aHTMLString);
-    if (match) {
-      return match[1].replace(/&amp;/gi, "&");
-    }
 
     // liveleak.com and other flash player sites:
     // Search for the jwplayer(...).setup(...) javascript call.  Note that
