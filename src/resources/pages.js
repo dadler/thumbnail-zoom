@@ -139,6 +139,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       you'd need to use getImageNode).  Also, if you use a different node,
       that node will not be considered by site enable flags.
 
+      pageSpecificData is the same object which was sent into getImageNode, and
+      which contains any fields added by that routine.  It lets you
+      pass arbitrary data from getImageNode into getZoomImage.
+ 
       The last argument pageCompletionFunc is optional and is for supporting
       asynchronous functions.  If getZoomImage wants to work asynchronously,
       it should return the string "deferred".  In that case, it must cause
@@ -224,7 +228,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
    */
   imageRegExp: /.*|:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
 
-  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
+  getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
+    pageSpecificData.originalNode = aNode;
+    pageSpecificData.originalImageURL = imageSource;
+    
     if (false && /scaledImageFitWidth/.test(aNodeClass)) {
       // disallow for scaledImageFitWidth (top half of small cover photo on user's pop-up) since
       // we need it to show cover photo from Others (Indirect), not user's photo.
@@ -321,12 +328,22 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
   getZoomImage : function(aImageSrc, node, flags, pageSpecificData, pageCompletionFunc) {
     var original = aImageSrc;
+    var originalNode = pageSpecificData.originalNode;
+    var aNodeClass = node.getAttribute("class");
+    var originalImageURL = pageSpecificData.originalImageURL;
     
+    ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: node=" +
+                                          node + "; class=" +
+                                          aNodeClass + "; originalNode=" +
+                                          originalNode + "; originalNodeClass=" +
+                                          originalNode.className + "; originalImageURL=" +
+                                          pageSpecificData.originalImageURL);
+
     // handle profile links.
     // https://www.facebook.com/profile.php?id=1553390408&fref=hovercard
-    if (node.parentNode.localName != "div" ||
-        ! /_7lj/.test(node.parentNode.class)) {
-        // we disallow showing profile pop-up in top part of cover photo in hovercard pop-up.
+    if (/profile-/.test(originalImageURL)) {
+        // only show a profile pop-up if the image the link surrounds is a profile image.
+        // This excludes it for the top part of cover photo in hovercard pop-up.
         ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: trying as profile pic");
         aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/profile\.php\?id=([^\/?&]+)(?:&fref=(?:photo|hovercard|pb|ts))?$/,
                                         "://graph.facebook.com/$1/picture?width=750&height=750");
@@ -335,13 +352,9 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/messages\/([^\/?]+)$/,
                                         "://graph.facebook.com/$1/picture?width=750&height=750");
     } else {
-        ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: not a profile pic; " + imgSrc);
+        ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: not a profile pic; " + originalImageURL);
     }
     
-    let aNodeClass = node.getAttribute("class");
-    ThumbnailZoomPlus.Pages._logger.debug("facebook getZoomImage: node=" +
-                                          node + "; class=" +
-                                          aNodeClass);
 /*
     if (aNodeClass == "spotlight") {
       // Disable for lightbox view since popup covers tags in lightbox
@@ -3102,7 +3115,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                                   
     // Apply Facebook rule to improve if we've gotten a small Facebook thumb,
     // e.g. on pandora.com.
-    aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
+    // TODO: need to see if this would still work.  Don't have pageSpecificData.
+    // getZoomImage may expect a different kind of node.
+    // aImageSrc = _getZoomImageViaPage(ThumbnailZoomPlus.Pages.Facebook.aPage, node, aImageSrc);
 
 
     // Using the thumb itself as source; don't annoy the user with
