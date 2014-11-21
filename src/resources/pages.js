@@ -226,7 +226,15 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  imageRegExp: /.*|:\/\/[^\/?]+\/[^\/?]+$|[\?&]fref=(photo|hovercard|pb|ts)|\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  // old: imageRegExp: /\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
+  imageRegExp : new RegExp("^[^/]*("
+                          + "//[^/?]+/[^/?]+$"
+                          + "|.*[?&]fref=(photo|hovercard|pb|ts)"
+                          + "|//graph\\.facebook\\.com.*/picture"
+                          + "|//www\\.facebook\\.com/photo\\.php\\?fbid="
+                          + "|//www\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
+                          + "|.*/safe_image.php\\?"
+                          + ").*", "i"),
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
     pageSpecificData.originalNode = aNode;
@@ -245,13 +253,14 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return null;
     }
     
-    if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+    //if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
+    if (/_6l-|photoWrap|uiPhotoThumb|external/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       // _117p = fb Page cover photo; _6l- = external image
       let imgNodes = aNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
-        // disabled, but we may still need this: return imgNodes[0];
+        return imgNodes[0];
       }
     }
 
@@ -1817,8 +1826,6 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|deviantart\.com/art/"
                           + "|www.furaffinity.net/view/"
                           + "|gyazo.com/[a-z0-9]{32}"
-                          + "|://www\\.facebook\\.com/photo\\.php\\?fbid="
-                          + "|://www\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
                         , "i"),
   
   // For "OthersIndirect"
@@ -2161,7 +2168,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|//.*/images/tiny_mce" // toolbar of html editor in jive cms and elsewhere
                           + "|.*\\.4sqi\\.net/.*sprite" // foursquare map sprites
                           + ").*", "i"),
-  
+
   // For "Thumbnail"
   getImageNode : function(node, nodeName, nodeClass, imageSource) {
     // Some sites need to find the image's node from an ancestor node.
