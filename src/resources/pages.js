@@ -231,11 +231,10 @@ ThumbnailZoomPlus.Pages.Facebook = {
                           + "//[^/?]+/[^/?]+$"
                           + "|.*[?&]fref=(photo|hovercard|pb|ts)"
                           + "|//graph\\.facebook\\.com.*/picture"
-                          + "|//www\\.facebook\\.com/photo\\.php\\?fbid="
-                          + "|//www\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
+                          + "|//[a-z0-9]+\\.facebook\\.com/photo\\.php\\?fbid="
+                          + "|//[a-z0-9]+\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
                           + "|.*/safe_image.php\\?"
                           + ").*", "i"),
-    
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
     pageSpecificData.originalNode = aNode;
