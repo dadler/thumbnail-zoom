@@ -240,20 +240,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
     pageSpecificData.originalNode = aNode;
     pageSpecificData.originalImageURL = imageSource;
-    
-    if (false && /scaledImageFitWidth/.test(aNodeClass)) {
-      // disallow for scaledImageFitWidth (top half of small cover photo on user's pop-up) since
-      // we need it to show cover photo from Others (Indirect), not user's photo.
-      // But it also happens for some photos in timeline so not a safe check.
       
-      // _46-i is similar for facebook pages rather than users, but also triggers on
-      // photos in comments, which is a problem (eg on facebook.com/teslamotors).
-      
-      // we need this for profile hovercards, but it interferes with chat profile photos.
-      ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to class " + aNodeClass);
-      return null;
-    }
-    
     //if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
     if (/_6l-|photoWrap|uiPhotoThumb|external|_2qo3/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
@@ -272,10 +259,11 @@ ThumbnailZoomPlus.Pages.Facebook = {
       }
     }
 
-    if (aNodeName != "img" && aNodeName != "i" && ! aNode.querySelector("img")) {
+    if (aNodeName != "img" && aNodeName != "i" && ! aNode.querySelector("img") && !/coverBorder/.test(aNodeClass)) {
       // Don't use this rule for e.g. profile thumbs which link to
       // hovercard facebook pop-ups, or textual links.
       // 'i' tags are seen in e.g. a user's albums.
+      // coverBorder seen over cover photo on <div> not containing <img>
       ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to non-img node type " + aNodeName);
       return null;
     }
@@ -313,14 +301,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // In Apr 2013 we started seeing profile icons with
       // <a><span><img>, where hover is detected on the <a>.
       let imgNodes = aNode.getElementsByTagName("img");
-      if (imgNodes.length > 0) {
-        // take the first child.
-        aNode = imgNodes[0];
-      }
-    }
-    if (/coverBorder/.test(aNodeClass)) {
-      // For profile's cover photo, we need the <img> peer of the the detected <div>.
-      let imgNodes = aNode.parentNode.getElementsByTagName("img");
       if (imgNodes.length > 0) {
         // take the first child.
         aNode = imgNodes[0];
