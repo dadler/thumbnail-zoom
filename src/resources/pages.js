@@ -231,6 +231,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
                           + "//[^/?]+/[^/?]+$"
                           + "|.*[?&]fref=(photo|hovercard|pb|ts)"
                           + "|//graph\\.facebook\\.com.*/picture"
+                          + "|.*/ajax/hovercard/hovercard\\.php\\?id=[0-9]+&" // logged-out profile pic
                           + "|//[a-z0-9]+\\.facebook\\.com/photo\\.php\\?fbid="
                           + "|//[a-z0-9]+\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
                           + "|.*/safe_image.php\\?"
@@ -239,7 +240,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
     pageSpecificData.originalNode = aNode;
     pageSpecificData.originalImageURL = imageSource;
-      
+    
     //if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
     if (/_6l-|photoWrap|uiPhotoThumb|external|_2qo3/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
@@ -278,32 +279,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return null;
     }
     
-    ThumbnailZoomPlus.debugToConsole("facebook getImageNode: node " + aNode + " href=" + aNode.getAttribute("href"));
-    if ("?fref=hovercard" == aNode.getAttribute("href")) {
+    var href = aNode.getAttribute("href");
+    ThumbnailZoomPlus.debugToConsole("facebook getImageNode: node " + aNode +
+                                     " href=" + href);
+    if ("?fref=hovercard" == href) {
       // as seen on hovercard profile pic when logged-out (eg comments on a public page).
       ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to fref=hovercard w/o username");
       return null;
-    }
-    
-
-    return aNode;
-    
-    
-    ////////
-    // code below is disabled and largely obsolete.
-    ///////
-
-    if ("a" == aNodeName && "album_link" == aNodeClass) {
-       aNode = aNode.parentNode;
-    }
-    if ("a" == aNodeName && /_4q3|_4-eo/.test(aNodeClass)) {
-      // In Apr 2013 we started seeing profile icons with
-      // <a><span><img>, where hover is detected on the <a>.
-      let imgNodes = aNode.getElementsByTagName("img");
-      if (imgNodes.length > 0) {
-        // take the first child.
-        aNode = imgNodes[0];
-      }
     }
 
     return aNode;
@@ -361,6 +343,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/([^\/?]+)(?:\?fref=(?:photo|hovercard|pb|ts))?$/,
                                         "://graph.facebook.com/$1/picture?width=750&height=750");
         aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/messages\/([^\/?]+)$/,
+                                        "://graph.facebook.com/$1/picture?width=750&height=750");
+        aImageSrc = aImageSrc.replace(/:\/\/(?:[a-z0-9]+\.)?facebook\.com\/ajax\/hovercard\/hovercard\.php\?id=([0-9]+)&.*/,
                                         "://graph.facebook.com/$1/picture?width=750&height=750");
     } else {
         ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: not a profile pic; " + originalImageURL);

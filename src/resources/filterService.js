@@ -386,8 +386,10 @@ ThumbnailZoomPlus.FilterService = {
    * the first of these rules which gives a non-blank URL:
    * 1. the node's src attribute (eg for <img>)
    * 2. the node's background-image style
-   * 3. the nodes href attribute (eg for <a>)
-   * 4. return null
+   * 3. the node's href attribute (eg for <a>)
+   * 4. the node's data-hovercard attribute (for Facebook.com profile links
+   *    when logged out)
+   * 5. return null
    *
    * If preferLinkOverThumb, it takes background-image has lower priority
    * than href.
@@ -447,6 +449,9 @@ ThumbnailZoomPlus.FilterService = {
         break;
       }
     }
+    if (imageNode.hasAttribute("data-hovercard")) {
+      return imageNode.getAttribute("data-hovercard");
+    }
     
     return imageSource;
   },
@@ -499,6 +504,7 @@ ThumbnailZoomPlus.FilterService = {
           this._logger.debug("getImageSource: after getImageNode, name=" + nodeName + "; src=" +
                            imageNode.getAttribute("src") + "; href=" + imageNode.getAttribute("href") +
                            "; backgroundImage=" + imageNode.style.backgroundImage +
+                           "; data-hovercard=" + imageNode.getAttribute("data-hovercard") +
                            "; class=" + nodeClass);
           imageSource = this.getUrlFromNode(imageNode, preferLinkOverThumb);
         } else {
