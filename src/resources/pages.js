@@ -235,6 +235,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
                           + "|//www\\.facebook\\.com/[^/?]+/photos/" // eg https://www.facebook.com/SimiMissingPets/photos/...
                           + "|.*/safe_image.php\\?"
                           + ").*", "i"),
+    
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource, pageSpecificData) {
     pageSpecificData.originalNode = aNode;
@@ -279,10 +280,25 @@ ThumbnailZoomPlus.Pages.Facebook = {
       return null;
     }
     
+    if (/\/safe_image.php\?/.test(imageSource)) {
+      return aNode;
+    }
+    
     // We'll detect profile thumbs from the page they link to, which we get
     // from Others.getImageNode.
     aNode = ThumbnailZoomPlus.Pages.Others.getImageNode(aNode, aNodeName, aNodeClass, imageSource);
+    if (! aNode) {
+      return null;
+    }
     
+    ThumbnailZoomPlus.debugToConsole("facebook getImageNode: node " + aNode + " href=" + aNode.getAttribute("href"));
+    if ("?fref=hovercard" == aNode.getAttribute("href")) {
+      // as seen on hovercard profile pic when logged-out (eg comments on a public page).
+      ThumbnailZoomPlus.debugToConsole("facebook getImageNode: reject due to fref=hovercard w/o username");
+      return null;
+    }
+    
+
     return aNode;
     
     
