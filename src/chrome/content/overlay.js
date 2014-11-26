@@ -1129,8 +1129,11 @@ ThumbnailZoomPlusChrome.Overlay = {
       // Look for document text enclosed by aNode (or its descendents).
       let text = this._getInnerText(aNode);
       
-      // Remove trailing newlines and spaces:
-      text = text.replace(/\s+$/, "");
+      // Remove leading and trailing newlines and spaces.
+      // Note that without the 'm' modifier, text.replace is very slow
+      // on many-line text as seen on Pinterest; see issue #166.
+      text = text.trim();
+      text = text.replace(/^\s+|\s+$/mg,'');
 
       if (text != "") {
         // change (repeated) newlines to spaces to simplify the next test.
