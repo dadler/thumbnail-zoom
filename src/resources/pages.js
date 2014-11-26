@@ -307,8 +307,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     // m.facebook.com
     // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
-    // View Full Size</a>'
-    re = /<a(?: class="[^"]*")? href="([^"]+photo[^"]+\.(?:jpg|png)[^"]*)"/;
+    // View Full Size</a>'  Class and "View Full Size" text vary.
+    re = /<a(?: class="[^"]*")? href="([^"]+(?:-photo-|\/hphotos-)[^"]+\.(?:jpg|png)[^"]*)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
