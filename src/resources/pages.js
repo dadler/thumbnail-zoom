@@ -2655,9 +2655,6 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         flags.setVideoBorderColor(aImageSrc, "xh[a-z0-9]*ster.com.*");
     }
     
-    aImageSrc = aImageSrc.replace(new RegExp("/uploaded_pics/thumbs/(pha.[0-9]+\.)"), "/uploaded_pics/$1");
-    
-    
     aImageSrc = aImageSrc.replace(/(fantasti\..*\/+big\/.*)\/thumb[\/]/i, 
                                   "$1/");
     
