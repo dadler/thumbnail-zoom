@@ -1406,6 +1406,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://.*picsarus\\.com/[a-zA-Z0-9]+$"
     + "|^https?://webm\.land\/w\/"
     + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
+    + "|//giphy\\.com/gifs/[^/?]+"
     // end
     , "i"),
   
@@ -1710,6 +1711,13 @@ ThumbnailZoomPlus.Pages.Others = {
     // We can't display imgur's gifv's (which are mp4's and require Flash) but
     // imgur can usually serve a webm, which we can display.  So request that.
     aImageSrc = aImageSrc.replace(/(imgur\.com\/.*)\.gifv/, "$1.webm");
+    
+    // http://giphy.com/gifs/xXuQz6usY7gKk becomes
+    // http://media.giphy.com/media/xXuQz6usY7gKk/giphy.gif and
+    // http://giphy.com/gifs/star-wars-bloopers-wJqqUvFprCoTK becomes
+    // http://media.giphy.com/media/wJqqUvFprCoTK/giphy.gif not
+    // http://giphy.com/media/C7mPxCn8CAH1m/giphy.gif
+    aImageSrc = aImageSrc.replace(/\/\/giphy\.com\/gifs\/(?:.*-)?([^-\/?]+)/, "//media.giphy.com/media/$1/giphy.gif");
     
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
