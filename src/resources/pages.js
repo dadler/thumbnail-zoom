@@ -986,7 +986,11 @@ ThumbnailZoomPlus.Pages.Pinterest = {
          ("hoverMask" == aNodeClass || "thumbImageWrapper" == aNodeClass) &&
         aNode.nextSibling) {
       image = aNode.parentNode.querySelector("img");
+    } else if ( ("div" == aNodeName ) &&
+         ("dimOverlay" == aNodeClass || "dimGradient" == aNodeClass)) {
+      image = aNode.parentNode.parentNode.querySelector("img");
     }
+
     return image;
   },
 
