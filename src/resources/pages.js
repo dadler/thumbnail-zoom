@@ -1761,6 +1761,10 @@ let _getZoomImageViaPage = function(aPage, node, aImageSrc) {
   return aImageSrc;
 };
 
+  
+// ebay sites include ebay.com, .es, .fr, .com.au, com.uk, etc.
+var ebayDomainPattern = "ebay\\.[a-z\\.]{2,6}";
+
 /**
  * OthersIndirect: Determine if the target node is linked (like the Others)
  * rule) and if it is, load and scan the linked page for a full-size image.
@@ -1776,7 +1780,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // pop-up appear after hovering a different thumb).
   // Also accessed globally from pagesIndirect.js.
   invocationNumber : 0,
-  
+
   // Set imageRegExp to match pages which are likely to produce a thumbnail,
   // due to a flash video player or something else we can recognize.  We want
   // to exclude pages which won't produce anything since running getZoomImage
@@ -1785,10 +1789,12 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
   // Expression Tips:
   // Patterns in () must match starting from first slash (or earlier)
   // up to end of entire URL, so typically start with // and end with .* .
+  
   imageRegExp: new RegExp(  "imgur\\.com/(?:a|gallery)/"
                           + "|imgbox\.com/g/[^/]+$"
-                          + "|\\.ebay\\.com/(itm|viewitem|ebaymotors|ctg)|myworld\\.ebay\\.com/|deals\\.ebay\\.com"
-                          + "|\\.ebay\\.com/ws/eBayISAPI\\.dll\\?viewItem"
+                          + "|\\." + ebayDomainPattern + "/(itm|viewitem|ebaymotors|ctg|ws/eBayISAPI\\.dll\\?viewItem)"
+                          + "|(?:myworld|deals)\\." + ebayDomainPattern + "/"
+                          + "|deals\\." + ebayDomainPattern
                           + "|flickr\\.com/photos/.*/[0-9]{7,20}/"
                           + "|flickr\\.com/photos/[^@]*/sets/"
                           + "|liveleak\\.com/view"
