@@ -291,12 +291,22 @@ ThumbnailZoomPlus.SiteConfigService = {
     // Prompt for edited or new value.  Include trailing spaces to make
     // the input field wider.
     var win = this._chrome.defaultView;
-    var newValue = win.prompt(existingValue ? "Edit disabled site URL (?=any one character; *=any characters)" : 
-                                              "New disabled site URL (?=any one character; *=any characters)", 
+    var newValue = win.prompt(existingValue ? "Edit disabled site URL (?=any one character; *=any characters), eg www.bozo.com/*" :
+                                              "New disabled site URL (?=any one character; *=any characters), eg www.bozo.com/*",
                               existingValue);
     if (newValue == null) {
       return; // cancelled
     }    
+    if (newValue != "" && ! /\*/.test(newValue)) {
+        var proposed = newValue.replace(/([^?]+)/, "$1*");
+        if (proposed != newValue) {
+          var ok = win.confirm("Would you like to match all web pages under that page by using URL " + proposed + " ? ",
+                                 existingValue);
+          if (ok) {
+            newValue = proposed;
+          }
+        }
+    }
     
     // Update the widgets since _syncSitesListToPreference will pull from them.
     var list = this._chrome.getElementById("thumbnailzoomplus-options-disabled-sites-list");
