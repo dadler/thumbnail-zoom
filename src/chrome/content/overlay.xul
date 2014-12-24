@@ -67,7 +67,7 @@
   <!-- Panel -->
   <window id="main-window" xmlns:html="http://www.w3.org/1999/xhtml"> 
     <panel id="thumbnailzoomplus-panel" 
-           noautofocus="true" noautohide="true" >
+           noautofocus="true" noautohide="true" level="top">
       <vbox id="thumbnailzoomplus-border-box" >
         <vbox id="thumbnailzoomplus-panel-vbox" 
               align="center" pack="center" >

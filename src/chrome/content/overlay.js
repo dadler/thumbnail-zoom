@@ -3401,6 +3401,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // the popup.  Prevent that with a tiny bbox.
     this._movedSincePoppedUp = false;
 
+    //this._panel.openPopup(aImageNode, "begin_after", this._pad, this._pad, true, false);
+    //this._panel.moveTo(pos.x, pos.y);
     this._panel.openPopupAtScreen(pos.x, pos.y, false);
     this._focusThePopup(aImageNode);
     this._debugToConsole("ThumbnailZoomPlus: showed popup");
