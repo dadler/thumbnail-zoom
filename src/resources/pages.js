@@ -1261,6 +1261,38 @@ ThumbnailZoomPlus.Pages.Imgur = {
   host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
   
+  getImageNode : function(node, nodeName, nodeClass, imageSource) {
+    let generationsUp = -1;
+    let selector = "img"; // css selector for child node relative to generationsUp.
+    if (nodeName == "div" && /relative/.test(nodeClass)) {
+      generationsUp = 2; // bottom 1/3 of thumb on imgur.com
+    }
+    if (nodeName == "div" && /gradient-black-transparent/.test(nodeClass)) {
+      generationsUp = 2; // top 1/3 of thumb on imgur.com
+    }
+    if (generationsUp >= 0) {
+      ThumbnailZoomPlus.Pages._logger.debug("imgur getImageNode: detected site which needs ancestor node; going up "
+          + generationsUp + " levels and then finding " + selector);
+      let ancestor = node;
+      while (generationsUp > 0 && ancestor) {
+        ancestor = ancestor.parentNode;
+        generationsUp--;
+      }
+      if (ancestor) {
+        // Find child nodes matching selector
+        var ancestorClass = ancestor.className;
+        let imgNodes = ancestor.querySelectorAll(selector);
+        if (imgNodes.length > 0) {
+            node = imgNodes[imgNodes.length-1];
+        } else {
+            ThumbnailZoomPlus.Pages._logger.debug("imgur getImageNode: no matching nodes under " +
+                                                  ancestor + " class " + ancestorClass);
+        }
+      }
+    }
+    return node;
+  },
+
   getZoomImage : function(aImageSrc, node, flags) {
     let rex = new RegExp(/(imgur\.com\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
@@ -1952,7 +1984,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
 
     // imgur.com albums fallback (in case rule above doesn't work),
     // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
-    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+)["']/g;
+    // We ignore ending "?fb" in URL since on imgur.com ?fb causes the image to  be cropped.
+    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+?)(?:\?fb)?["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (! match) {
@@ -1964,6 +1997,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         re = re2;
       }
     }
+    
     if (match) {
       // Return this unless it's a yfrog video or ebay thumb,
       // for which we can get a larger image via getImgFromSelectors().
