@@ -1680,6 +1680,11 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://i.imgbox.com/dAwF3YOJ
     aImageSrc = aImageSrc.replace(/:\/\/imgbox\.com\/([^/]+)$/, "://i.imgbox.com/$1");
     
+    // dropbox:
+    // https://www.dropbox.com/s/3tpngbyy77q57e5/2011-03-07%2015.28.14.jpg?dl=0 becomes
+    // https://www.dropbox.com/s/3tpngbyy77q57e5/2011-03-07%2015.28.14.jpg?dl=1
+    aImageSrc = aImageSrc.replace(/(dropbox\.com\/.*[?&])dl=0/, "$1dl=1");
+    
     // We can't display imgur's gifv's (which are mp4's and require Flash) but
     // imgur can usually serve a webm, which we can display.  So request that.
     aImageSrc = aImageSrc.replace(/(imgur\.com\/.*)\.gifv/, "$1.webm");
