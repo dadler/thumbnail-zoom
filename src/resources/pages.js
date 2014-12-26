@@ -1280,8 +1280,6 @@ ThumbnailZoomPlus.Pages.Imgur = {
       // rule may end up activating only on imgur thumbs on other sites.
       return null;
     }
-    ThumbnailZoomPlus.debugToConsole("ThumbnailPreview: Imgur: allowing since enclosing link node is " +
-                                     linkNode + " url " + (linkNode ? linkNode.getAttribute("href") : "n/a"));
 
     let rex = new RegExp(/(imgur\.com\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
@@ -1952,10 +1950,20 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       }
     }
     
-    // imgur.com albums, supporting > 11 images.
+    // imgur.com /a/ albums, supporting > 11 images.
     // match e.g. <img alt="" src="//i.imgur.com/fXq9wP4s.jpg" gives
     // "http://i.imgur.com/fXq9wP4.jpg" (note removal of "s").
     re = /<img[^>]* data-src="(\/\/i\.imgur\.com\/[^"\.>]+?)s?\.(?:png|jpg|gif)/g;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+      return _allMatchesOf(re, match, aHTMLString, "https://$1.png");
+    }
+    
+    // imgur.com /gallery/ albums.
+    // <div class="image textbox"> <a href="//i.imgur.com/3MZSQUp.jpg" class="zoom"> <img src="//i.imgur.com/3MZSQUp.jpg" alt="" />
+    // <a> is optional, and is present for high-rez images.
+    re = /<div class="image [^>]*>\s*(?:<a[^>]*>\s*)?<img[^>]* src="(\/\/i\.imgur\.com\/[^"\.>]+?)\.(?:png|jpg|gif)/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
@@ -1973,8 +1981,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
 
     // imgur.com albums fallback (in case rule above doesn't work),
     // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
-    // We ignore ending "?fb" in URL since on imgur.com ?fb causes the image to  be cropped.
-    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"']([^\"']+?)(?:\?fb)?["']/g;
+    // We disallow ending "?fb" in URL since on imgur.com ?fb seems to be a cropped
+    // redundant thumbnail.
+    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"'](?!.*\\?fb)([^\"']+?)["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (! match) {
