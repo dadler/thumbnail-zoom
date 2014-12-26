@@ -350,29 +350,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
         ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: not a profile pic; " + originalImageURL);
     }
     
-/*
-    if (aNodeClass == "spotlight") {
-      // Disable for lightbox view since popup covers tags in lightbox
-      // image and comments, and lightbox image is already pretty large.
-      return null;
-    }
-    if (aNodeClass && aNodeClass.indexOf("UFIActorImage") >= 0) {
-      // Don't show popup for small Facebook thumb of the person who's
-      // entering a comment since the comment field loses focus and the 
-      // thumbnails disappears, which is confusing.
-      return null;
-    }
-*/
-/*
-    // In April 2013 we started seeing img src="https://fbstatic-a.akamaihd.net/rsrc.php/v2/y4/r/-PAXP-deijE.gif"
-    // with the actual image in the background-image style.  Handle those.
-    if (/fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/.test(aImageSrc)) {
-      let backgroundImage = ThumbnailZoomPlus.FilterService.getBackgroundImageURL(node);
-      if (backgroundImage) {
-        aImageSrc = backgroundImage;
-      }
-    }
-*/
     let ajaxify = node.getAttribute("ajaxify");
     if (false && ajaxify) { // disabled until we can verify it still always works.
       let match = /\&src=([^\&]+)/.exec(ajaxify);
@@ -412,34 +389,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // profile name above the image.
       flags.allowAbove = false;
     }
-
-/*
-    aImageSrc = aImageSrc.replace(/_[qstan]\./, "_n.");
-    aImageSrc = aImageSrc.replace(/([0-9]\/)[qsta]([0-9])/, "$1n$2");
-
-    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/c0.0.133.133/p133x133/560586_10150817981981045_883718611_n.jpg becomes
-    // https://fbcdn-sphotos-a.akamaihd.net/hphotos-ak-ash3/560586_10150817981981045_883718611_n.jpg
-    // (handle the c0.0.133.133 part)
-    aImageSrc = aImageSrc.replace(/\/c[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/)/i, "/");
-*/
-
-/*
-    if (aNodeClass && aNodeClass.indexOf("_ksh") >= 0) {
-        // image in Facebook chat is already full-rez; don't try to change it.
-    } else {
-        // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/p417x417/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2 becomes
-        // https://scontent-a-lax.xx.fbcdn.net/hphotos-xpf1/10308128_10152206651014543_8290695526404594226_n.jpg?oh=b98bfd89d4ac6db88189fe1579fb0848&oe=547C6EE2
-        // It may also have v/l/ instead of just v/.
-        // (handle /v/t1.0-9 part).
-        // But for images in facebook chat don't change this:
-        aImageSrc = aImageSrc.replace(/\/v(?:\/l)?\/t[0-9]+\.[0-9]+-[0-9]+\//i, "/");
-    }
-*/
-
-/*
-    let rex3 = new RegExp(/\/[spn][0-9]+x[0-9]+\//);
-    aImageSrc = aImageSrc.replace(rex3, "/");
-*/
 
     // http://graph.facebook.com/1368249070/picture?type=square becomes
     // http://graph.facebook.com/1368249070/picture?type=large

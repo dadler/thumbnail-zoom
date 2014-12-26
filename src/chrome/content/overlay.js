@@ -1456,7 +1456,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // This is one of the "thumbnails" pages, this "thumbnails" page is disabled, and
       // the "others" page is enabled.  Allow processing this under the "thumbnails"
       // page, but only if the actual raw image has higher resolution than the
-      // thumbnal.  That allows the user to have Others on, Thumbnail off, and
+      // thumbnail.  That allows the user to have Others on, Thumbnail off, and
       // still see popups for large images which are embedded as smaller
       // thumbs or images, as happens on tumblr for example.
       allow = true;
