@@ -1261,39 +1261,28 @@ ThumbnailZoomPlus.Pages.Imgur = {
   host: /^(.*\.)?imgur\.com$/,
   imageRegExp: /(i\.)?imgur\.com\//,
   
-  getImageNode : function(node, nodeName, nodeClass, imageSource) {
-    let generationsUp = -1;
-    let selector = "img"; // css selector for child node relative to generationsUp.
-    if (nodeName == "div" && /relative/.test(nodeClass)) {
-      generationsUp = 2; // bottom 1/3 of thumb on imgur.com
+  isLinkedToImgurGallery : function(aImageSrc, node) {
+    var linkNode = ThumbnailZoomPlus.Pages.Others.getImageNode(node, node.localName, node.className, aImageSrc);
+    if (linkNode && /\/gallery\//.test(linkNode.getAttribute("href"))) {
+      ThumbnailZoomPlus.debugToConsole("ThumbnailPreview: Imgur.isLinkedToImgurGallery: is enclosed in link to " +
+                         linkNode.getAttribute("href"));
+      return true;
     }
-    if (nodeName == "div" && /gradient-black-transparent/.test(nodeClass)) {
-      generationsUp = 2; // top 1/3 of thumb on imgur.com
-    }
-    if (generationsUp >= 0) {
-      ThumbnailZoomPlus.Pages._logger.debug("imgur getImageNode: detected site which needs ancestor node; going up "
-          + generationsUp + " levels and then finding " + selector);
-      let ancestor = node;
-      while (generationsUp > 0 && ancestor) {
-        ancestor = ancestor.parentNode;
-        generationsUp--;
-      }
-      if (ancestor) {
-        // Find child nodes matching selector
-        var ancestorClass = ancestor.className;
-        let imgNodes = ancestor.querySelectorAll(selector);
-        if (imgNodes.length > 0) {
-            node = imgNodes[imgNodes.length-1];
-        } else {
-            ThumbnailZoomPlus.Pages._logger.debug("imgur getImageNode: no matching nodes under " +
-                                                  ancestor + " class " + ancestorClass);
-        }
-      }
-    }
-    return node;
+    return false;
   },
-
+  
   getZoomImage : function(aImageSrc, node, flags) {
+    if (this.isLinkedToImgurGallery(aImageSrc, node)) {
+      // Don't show a pop-up based on the thumb's image if we're inside an imgur
+      // galley link.  Instead let Others (Indirect) handle it, since it may be
+      // a multi-image gallery which the imgur rule can't handle.
+      // On imgur.com itself all thumbs seem to be in such links, so the imgur
+      // rule may end up activating only on imgur thumbs on other sites.
+      return null;
+    }
+    ThumbnailZoomPlus.debugToConsole("ThumbnailPreview: Imgur: allowing since enclosing link node is " +
+                                     linkNode + " url " + (linkNode ? linkNode.getAttribute("href") : "n/a"));
+
     let rex = new RegExp(/(imgur\.com\/[a-z0-9]{5,7})[bsm](\.[a-z]+)(\?.*)?/i);
     let image = (rex.test(aImageSrc) ? aImageSrc.replace(rex, "$1$2") : null);
     return image;
@@ -2412,9 +2401,19 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       return null;
     }
 
+    // imgur.com
+    before = aImageSrc;
     aImageSrc = aImageSrc.replace(/(i\.imgur\.com\/[0-9a-zA-Z]{7,7})[bsm](\.jpg)$/,
                                   "$1$2");
-                                  
+    if (before != aImageSrc && ThumbnailZoomPlus.Pages.Imgur.isLinkedToImgurGallery(aImageSrc, node)) {
+      // Don't show a pop-up based on the thumb's image if we're inside an imgur
+      // galley link.  Instead let Others (Indirect) handle it, since it may be
+      // a multi-image gallery which the imgur rule can't handle.
+      // On imgur.com itself all thumbs seem to be in such links, so the imgur
+      // rule may end up activating only on imgur thumbs on other sites.
+      aImageSrc = before;
+    }
+
     // For tiny tumblr profile thumbs change 
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_16.png to
     // http://30.media.tumblr.com/avatar_a1aefbaa780f_128.png ; also as
