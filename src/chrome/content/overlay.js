@@ -3341,7 +3341,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       return;
     }
     
-    let doc = this._currentWindow.document;
+    let doc = aImageNode.ownerDocument;
     let focused = doc.activeElement;
 
     if (focused && focused.tagName != "BODY") {
