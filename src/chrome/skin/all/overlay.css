@@ -38,7 +38,8 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 }
 #thumbnailzoomplus-toolbar-button[tzpenabled=false] {
   list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
-  /* top, right, bottom, left */
+  /* top, right, bottom, left.  The disabled icon is in the same png as the enabled
+     icon, below it. */
   -moz-image-region: rect(16px, 15px, 31px, 0px);
 }
 
