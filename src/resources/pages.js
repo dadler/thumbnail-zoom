@@ -1803,6 +1803,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
                           + "|deviantart\.com/art/"
                           + "|www.furaffinity.net/view/"
                           + "|gyazo.com/[a-z0-9]{32}"
+                          + "|p.rnhub\.com/photo/"
                         , "i"),
   
   // For "OthersIndirect"
@@ -1954,16 +1955,22 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       // Return this unless it's a yfrog video or ebay thumb,
       // for which we can get a larger image via getImgFromSelectors().
       // gyazo.com images skipped because og:image links to thumbnails, twitter:image regex below will handle it
-      if (! /yfrog\.com\/.*\.mp4/.test(match[1]) &&
-          ! /ebaystatic\.com\/./.test(match[1]) &&
-          ! /gyazo\.com/.test(match[1])) {
+      if (! /yfrog\.com\/.*\.mp4|phncdn\.com|ebaystatic\.com\/.|gyazo\.com/.test(match[1])) {
         return _allMatchesOf(re, match, aHTMLString, "$1");
       }
     }
     
-    // gyazo.com
+    // gyazo.com, etc.
     // <meta content="http://i.gyazo.com/5a72871c5d808492e41c732a71dca8e8.png" name="twitter:image" />
     re = /<meta +content=\"([^\"]+)"\s+name="twitter:image"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    match = re.exec(aHTMLString);
+    if (match) {
+        return match[1];
+    }
+    
+    // p.rnhub.com photos
+    re = /<meta +name="twitter:image:src"\s+content=\"([^\"]+)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
@@ -2173,6 +2180,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       generationsUp = 4;
       selector = "div.has_imageurl";
     }
+    
     if ((/psprite/.test(nodeClass) && nodeName == "div") || // for dailymotion.com
         (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
         (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
