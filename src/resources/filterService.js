@@ -417,6 +417,12 @@ ThumbnailZoomPlus.FilterService = {
       this._logger.debug("getUrlFromNode: got image source from src attr of " + imageNode);
       return imageSource;
     }      
+    if ("image" == imageNode.localName.toLowerCase() && imageNode.hasAttribute("href")) {
+      // svg "image" node
+      imageSource = imageNode.getAttribute("href");
+      this._logger.debug("getUrlFromNode: got image source from src attr of " + imageNode);
+      return imageSource;
+    }      
     for (let caseNum = 0; caseNum <= 1; caseNum++) {
       switch (preferLinkOverThumb ? 1-caseNum : caseNum) {
       case 0:

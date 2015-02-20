@@ -2162,6 +2162,11 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
       generationsUp = 3;
     }
+    if (nodeName == "svg") {
+      // Search for "image" tag nested inside the "svg" tag (eg on google docs document).
+      generationsUp = 0;
+      selector = "image";
+    }
     if (/gii_folder_link/.test(nodeClass) ||
         (nodeName == "div" && /^inner$/.test(nodeClass)) ||
          nodeName == "span" && /preview-overlay-container/.test(nodeClass) || //  google play apps
@@ -2225,7 +2230,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               /photo one/.test(ancestorClass) || // 500px.com
               /cover/.test(ancestorClass) || // google play apps
               ("center" == ancestor.localName.toLowerCase() && /media\.tumblr\.com/.test(imageSource)) ||
-              (/thumbnailLink/.test(ancestorClass))
+              (/thumbnailLink/.test(ancestorClass) ||
+              (selector == "image"))
               ) {
             // take the last child.
             node = imgNodes[imgNodes.length-1];
@@ -2279,7 +2285,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let nodeClass = node.getAttribute("class");
 
     if (! node.hasAttribute("src") && node.hasAttribute("href") &&
-        node.style.backgroundImage.indexOf("url") == -1) {
+        node.style.backgroundImage.indexOf("url") == -1 && node.localName.toLowerCase() != "image") {
       // We don't want to use node if it's just an href since we need
       // it to be an actual image.  (The Others rule already handles hrefs.)
       ThumbnailZoomPlus.Pages._logger.debug(
