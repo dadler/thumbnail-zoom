@@ -3568,12 +3568,17 @@ ThumbnailZoomPlusChrome.Overlay = {
     
     } else {
       // assume this.PREF_VALUE_POPUP_SIZE_WEB_PAGE
-      // fit within the web page's screen area.
+      // fit within the web page's screen area
       var pageX = content.window.mozInnerScreenX * pageZoom;
       var pageY = content.window.mozInnerScreenY * pageZoom;
       var pageWidth = content.window.innerWidth * pageZoom;
       var pageHeight = content.window.innerHeight * pageZoom;
     }
+    // don't allow the pop-up to extend beyond the right/bottom edge of the
+    // screen, which would look bad and could trigger TZP bug #178 / Mozilla Firefox bug 1089297:
+    // right-most allowed position is window.screen.availLeft + window.screen.availWidth - 1.
+    pageWidth = Math.min(pageWidth, window.screen.availLeft + window.screen.availWidth - pageX);
+    pageHeight = Math.min(pageHeight, window.screen.availTop + window.screen.availHeight - pageY);
     
     this._logger.debug("_getAvailableSizeOutsideThumb: window at (" +
                        pageX + "," + pageY +
