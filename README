@@ -47,8 +47,7 @@ If you're using the Restartless Restart add-on, also turn on Disable Fastload
 in its preferences.
 
 In my developer profile in Firefox, I create a pointer file as follows
-(this should work on OSX or Linux but your directory may vary; on Windows see
-the mozilla link above).
+on OSX:
 
   cd "$HOME/Library/Application Support/Firefox/Profiles/"*"/extensions/"
   rm -f thumbnailZoom@dadler.github.com.xpi
@@ -56,6 +55,10 @@ the mozilla link above).
 
 where $HOME/doc_no_sync/projects/thumbnail-zoom/thumbnail-zoom is the location of
 my git repository. 
+
+On Windows the file is in e.g.
+%APPDATA%\Roaming\Mozilla\Firefox\Profiles\xb77d54w.default\extensions\ and might contain
+for example "\\VBOXSVR\src" (without the quotes)
 
 With this pointer in place, to test a change I simply save my source file and restart Firefox
 (running my developer profile regular than my regular user profile).
