@@ -141,7 +141,19 @@ ThumbnailZoomPlus.DownloadService = {
      */
      
     // save image to the file
-    persist.saveURI(source, null, null, null, null, aFile, privacyContext);
+    // short-term version compatibility: Firefox 36 added another argument
+    // to saveURI.  Try old format first, but if we get an exception try the new
+    // one.
+    // Better fix would be to use Downloads.createDownload) instead
+    // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/Downloads.jsm#createDownload%28%29
+    // but that's not available in firefox older than 26.
+    // See #198: https://github.com/dadler/thumbnail-zoom/issues/198
+    try {
+      // ff older than 36.
+      persist.saveURI(source, null, null, null, null, aFile, privacyContext);
+    } catch (exc) {
+      persist.saveURI(source, null, null, null, null, 0, aFile, privacyContext);
+    }
   }
   
 };
