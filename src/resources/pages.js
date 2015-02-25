@@ -956,7 +956,7 @@ ThumbnailZoomPlus.Pages.Pinterest = {
     // http://media-cache-lt0.pinterest.com/192x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg becomes
     // http://media-cache-lt0.pinterest.com/550x/d4/12/36/d412365e2e3fb977ceaa0fbcfb0285f1.jpg
     // also from http://media-cache-is0.pinimg.com/45x45/f4/18/de/f418de34daf273ceffddb07f641a5f55.jpg becomes
-    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com|\\.pinimg\\.com)/[0-9]+x[0-9]*(/.*" + EXTS + ")"),
+    aImageSrc = aImageSrc.replace(new RegExp("(\\.pinterest\\.com|\\.pinimg\\.com)/[0-9]+x(?:[0-9]*)(/.*" + EXTS + ")"),
                                   "$1/550x$2");
     
     // for avatars:
