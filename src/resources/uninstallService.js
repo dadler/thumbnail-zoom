@@ -39,7 +39,13 @@ const Cu = Components.utils;
 Cu.import("resource://thumbnailzoomplus/common.js");
 
 // The extension manager action requested observer topic
+// for Firefox 3.x; obsolete in Firefox 4.x and newer.
+// When uploading to the mozilla add-ons site this
+// gives a warning "Obsolete Extension Manager API",
+// but we keep it since some users are still using
+// the add-on on Firefox 3.x.
 const TOPIC_ACTION_REQUESTED = "em-action-requested";
+
 // The quit application observer topic
 const TOPIC_QUIT_APPLICATION = "quit-application";
 
@@ -65,9 +71,9 @@ ThumbnailZoomPlus.UninstallService = {
     ThumbnailZoomPlus.ObserverService.addObserver(this, TOPIC_QUIT_APPLICATION, false);
     ThumbnailZoomPlus.ObserverService.addObserver(this, TOPIC_ACTION_REQUESTED, false);
 
-    // Firefox 4 requires an special listener to catch add-on related activity
+    // Firefox 4 and newer requires an special listener to catch add-on related activity
     // (uninstall event mostly). If we try importing the module and there's an
-    // exception, then we are not on Firefox 4.
+    // exception, then we are on Firefox 3.x.
     try {
       Cu.import("resource://gre/modules/AddonManager.jsm");
       AddonManager.addAddonListener(this);
