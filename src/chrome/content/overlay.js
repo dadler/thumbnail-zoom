@@ -4408,13 +4408,14 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
 
-      var target = aEvent.explicitOriginalTarget || aEvent.target;
-      if (target.localName.toLowerCase() == "textarea") {
-        // Don't prevent context menu in textareas since that would prevent spell check suggestions (#172).
-        this._logger.debug("_handleContextMenu: skipping due to target element target=" + target.localName.toLowerCase());
-        return;
-      }
-      
+      if (this._postponeContextMenuEvent) {
+        var target = aEvent.explicitOriginalTarget || aEvent.target;
+        if (target.localName.toLowerCase() == "textarea") {
+          // Don't prevent context menu in textareas since that would prevent spell check suggestions (#172).
+          this._logger.debug("_handleContextMenu: skipping due to target element target=" + target.localName.toLowerCase());
+          return;
+        }
+
         /*
          * All contextmenu events originated from RMB should be postponed until
          * the RMB is released. In the meantime we decide if we want to prevent
