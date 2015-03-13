@@ -261,10 +261,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    * If set to true, the _handleContextMenu will cause the next contextmenu event
    * originated form RMB mouse event to be postponed. When false, the
    * context menu is allowed to be handled normally.
-   *
-   * This is normally true, but temporarily set to false when we send the
-   * synthetic event which we want to actually cause a context menu to appear;
-   * that false prevents our own handler from intercepting our synthetic event.
    */
   _postponeContextMenuEvent : true,
 
@@ -4402,16 +4398,6 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _handleContextMenu : function(aDocument, aEvent, aPage) {
     this._logger.trace("_handleContextMenu on " + aEvent.target);
-    var origPostponeContextMenuEvent = this._postponeContextMenuEvent;
-    this._postponeContextMenuEvent = true;
-    if (! origPostponeContextMenuEvent) {
-        /*
-         * We are skipping this contextmenu event and it will continue to propagate.
-         * However the contextmenu could still be prevented from
-         * appearing by us (see _preventNextContextMenuEvent) or something else.
-         */
-         return;
-    }
 
     if (
       (aEvent.buttons & 2) > 0 ||
@@ -4422,13 +4408,14 @@ ThumbnailZoomPlusChrome.Overlay = {
         return;
       }
 
-      var target = aEvent.explicitOriginalTarget || aEvent.target;
-      if (target.localName.toLowerCase() == "textarea") {
-        // Don't prevent context menu in textareas since that would prevent spell check suggestions (#172).
-        this._logger.debug("_handleContextMenu: skipping due to target element target=" + target.localName.toLowerCase());
-        return;
-      }
-      
+      if (this._postponeContextMenuEvent) {
+        var target = aEvent.explicitOriginalTarget || aEvent.target;
+        if (target.localName.toLowerCase() == "textarea") {
+          // Don't prevent context menu in textareas since that would prevent spell check suggestions (#172).
+          this._logger.debug("_handleContextMenu: skipping due to target element target=" + target.localName.toLowerCase());
+          return;
+        }
+
         /*
          * All contextmenu events originated from RMB should be postponed until
          * the RMB is released. In the meantime we decide if we want to prevent
@@ -4443,6 +4430,19 @@ ThumbnailZoomPlusChrome.Overlay = {
         aEvent.stopPropagation();
         aEvent.preventDefault();
         this._postponedContextMenuEvent = aEvent;
+      } else {
+        /*
+         * We are skipping this contextmenu event and it will continue to propagate.
+         * Because we want to postpone all context menu events (triggered by mouse)
+         * including the next one we need to reset _postponeContextMenuEvent to default
+         * value (true);
+         * Note: just because we are skipping postpone operation on context menu
+         * event it doesn't mean we want to skip prevent operation on context menu event
+         * (see _preventNextContextMenuEvent).
+         */
+        this._logger.debug("_handleContextMenu: enabling _postponeContextMenuEvent.");
+        this._postponeContextMenuEvent = true;
+      }
     }
   },
 
@@ -4465,6 +4465,9 @@ ThumbnailZoomPlusChrome.Overlay = {
        * RMB was released. We can let all contextmenu events after this point to
        * propagate. If we have "paused" a contextmenu event before, resume it now.
        */
+      this._logger.debug("_handleMouseUp: disabling _postponeContextMenuEvent.");
+      this._postponeContextMenuEvent = false;
+
       if (this._postponedContextMenuEvent != null) {
         // the default action of the event has been prevented, lets make clone
         // of the event and dispatch it again
@@ -4479,13 +4482,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   _redispatchMouseEvent : function(aMouseEvent) {
     this._logger.trace("_redispatchMouseEvent");
 
-    this._logger.debug("_handleMouseUp: disabling _postponeContextMenuEvent.");
-    this._postponeContextMenuEvent = false;
-
-    // a side-effect of redispatching the event seems to be preventing
-    // spell-check suggestions.  The problem happens even if we create the
-    // event differently or dispatch on a different target; see #172.
-    if (true) {
     var freshMouseEvent = document.createEvent("MouseEvents");
     freshMouseEvent.initMouseEvent(
       aMouseEvent.type,
@@ -4504,31 +4500,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       aMouseEvent.button,
       aMouseEvent.relatedTarget
     );
-    } else {
-      var freshMouseEvent = new MouseEvent(aMouseEvent.type, {
-      'bubbles': aMouseEvent.bubbles,
-      'cancelable': aMouseEvent.cancelable,
-      'view': aMouseEvent.view,
-      'detail': aMouseEvent.detail,
-      'screenX': aMouseEvent.screenX,
-      'screenY': aMouseEvent.screenY,
-      'clientX': aMouseEvent.clientX,
-      'clientY': aMouseEvent.clientY,
-      'ctrlKey': aMouseEvent.ctrlKey,
-      'altKey': aMouseEvent.altKey,
-      'shiftKey': aMouseEvent.shiftKey,
-      'metaKey': aMouseEvent.metaKey,
-      'button': aMouseEvent.button,
-      'relatedTarget': aMouseEvent.relatedTarget,
-      'target': aMouseEvent.target,
-      'originalTarget': aMouseEvent.originalTarget,
-      'explicitOriginalTarget': aMouseEvent.explicitOriginalTarget
-  });
-  }
-  
-    //var target = aMouseEvent.originalTarget;
-    //var target = aMouseEvent.target;
-    //var target = aMouseEvent.explicitOriginalTarget;
     var target = aMouseEvent.explicitOriginalTarget;
     this._logger.debug("_redispatchMouseEvent: redispatching event " + aMouseEvent.type + " on " + target);
     target.dispatchEvent(freshMouseEvent);
