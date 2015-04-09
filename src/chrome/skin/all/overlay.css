@@ -31,16 +31,26 @@
 toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
   -moz-box-orient: horizontal;
 }
-#thumbnailzoomplus-toolbar-button {
+toolbar[iconsize="small"] #thumbnailzoomplus-toolbar-button {
   list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
   /* top, right, bottom, left */
   -moz-image-region: rect(0px, 15px, 15px, 0px);
 }
-#thumbnailzoomplus-toolbar-button[tzpenabled=false] {
+toolbar[iconsize="small"] #thumbnailzoomplus-toolbar-button[tzpenabled=false] {
   list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(16px, 15px, 31px, 0px);
+}
+#thumbnailzoomplus-toolbar-button {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon32.png");
+  /* top, right, bottom, left */
+  -moz-image-region: rect(0px, 31px, 31px, 0px);
+}
+#thumbnailzoomplus-toolbar-button[tzpenabled=false] {
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon32.png");
   /* top, right, bottom, left.  The disabled icon is in the same png as the enabled
      icon, below it. */
-  -moz-image-region: rect(16px, 15px, 31px, 0px);
+  -moz-image-region: rect(32px, 31px, 63px, 0px);
 }
 
 #thumbnailzoomplus-panel {
@@ -123,12 +133,12 @@ toolbar[mode="icons"] #thumbnailzoomplus-toolbar-button {
 }
 
 #thumbnailzoomplus-context-download {
-  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/new-icon.png");
   /* top, right, bottom, left */
   -moz-image-region: rect(0px, 15px, 15px, 0px);
 }
 #thumbnailzoomplus-context-download [disabled=true] {
-  list-style-image: url("chrome://thumbnailzoomplus/skin/images/icon16.png");
+  list-style-image: url("chrome://thumbnailzoomplus/skin/images/new-icon.png");
   /* top, right, bottom, left */
   -moz-image-region: rect(16px, 15px, 31px, 0px);
 }
