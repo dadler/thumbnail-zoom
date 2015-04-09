@@ -48,7 +48,8 @@
       label="&thumbnailzoomplus.toolbar.label;"
       tooltiptext="&thumbnailzoomplus.toolbar.tooltip;"
       class="toolbarbutton-1 chromeclass-toolbar-additional "
-      oncommand="ThumbnailZoomPlusChrome.Overlay.toggleEnable(event.target)">
+      oncommand="ThumbnailZoomPlusChrome.Overlay.toggleEnable(event.target)"
+      onload="ThumbnailZoomPlusChrome.Overlay.updateMenuButtonState();">
       
       <menupopup id="thumbnailzoomplus-toolbar-menu"
         onpopupshowing="ThumbnailZoomPlusChrome.Overlay.addMenuItems();">

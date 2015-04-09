@@ -316,7 +316,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     this._installToolbarButton();
-    this._updateMenuButtonState();
+    this.updateMenuButtonState();
     this._showPanelBorder();
 
     // setup the preferences change observe.  We define a local function which
@@ -4230,13 +4230,13 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("toggleActive: enable=" + enable);
   },
   
-  _updateMenuButtonState : function() {
-    this._logger.trace("_updateMenuButtonState");
+  updateMenuButtonState : function() {
+    this._logger.trace("updateMenuButtonState");
     let enable = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true);
     
     // Set tool button state
     let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
-    this._logger.debug("_updateMenuButtonState: menuButton=" + menuButton);
+    this._logger.debug("updateMenuButtonState: menuButton=" + menuButton);
     if (menuButton) {
       // Set the tzpenabled attribute, which triggers our CSS to show
       // the icon as enabled or disabled.
@@ -4282,7 +4282,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           this._showPanelBorder();
           break;
         case this.PREF_PANEL_ENABLE:
-          this._updateMenuButtonState();
+          this.updateMenuButtonState();
           break;
         case this.PREF_PANEL_CONTEXT_MENU: 
           this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
