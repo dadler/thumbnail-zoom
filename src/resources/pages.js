@@ -2158,6 +2158,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     let parentClass = node.parentNode.className;
     // ThumbnailZoomPlus.debugToConsole("Thumbnail: nodeName=" + nodeName + " nodeClass=" + nodeClass + " parentClass=" + parentClass);
     let generationsUp = -1;
+    let wantLastChild = 1;
     let selector = "img"; // css selector for child node relative to generationsUp.
     if (nodeName == "div" && /^(date|notes)$/.test(nodeClass)) {
       generationsUp = 3;
@@ -2202,6 +2203,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       // for yahoo.co.jp
       generationsUp = 1;
     }
+    if ((nodeName == "a" && "biz-shim" == nodeClass) // yelp photos
+        ) {
+      generationsUp = 1;
+      wantLastChild = 0;
+    }
+    
     // 500px.com/flow has the image in the background-image of a <div>
     // parent of the <a> link.
     if (nodeName == "a" && "link" == nodeClass) {
@@ -2233,8 +2240,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
               (/thumbnailLink/.test(ancestorClass) ||
               (selector == "image"))
               ) {
-            // take the last child.
-            node = imgNodes[imgNodes.length-1];
+            // take the first or last child.
+            node = imgNodes[wantLastChild * (imgNodes.length-1)];
           } else {
             ThumbnailZoomPlus.Pages._logger.debug("thumbnail getImageNode: unconfirmed, class " + ancestorClass);
           }
@@ -3051,11 +3058,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     }
     
     // Yelp.com
+    // http://s3-media1.fl.yelpassets.com/bphoto/DGiSmoeSo6zcodTzmtlirw/ls.jpg becomes
+    // http://s3-media1.fl.yelpassets.com/bphoto/DGiSmoeSo6zcodTzmtlirw/o.jpg
     // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/xs.jpg becomes
     // http://s3-media3.ak.yelpcdn.com/photo/QlW1MqiLb7wRp_7NRJxt_w/l.jpg
-    let yelpRe = new RegExp("(\\.yelpcdn\\.com/.*)/[0-9]*(?:xss|xs|ss|s|m|ms)(" + 
+    // Sometimes we see numbers before the file size code, eg 258s.
+    let yelpRe = new RegExp("(\\.(?:yelpcdn|yelpassets)\\.com/.*)/[0-9]*(?:xss|xs|ss|s|m|ms|l|ls)(" +
                             EXTS + ")", "i");
-    aImageSrc = aImageSrc.replace(yelpRe, "$1/l$2");
+    aImageSrc = aImageSrc.replace(yelpRe, "$1/o$2");
     ThumbnailZoomPlus.Pages._logger.debug("yelp expr: " + yelpRe);
 
     // Tripadvisor.com
