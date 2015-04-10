@@ -1947,6 +1947,11 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       logger.debug("_getImgFromHtmlText: trying " + re2);
       match = re2.exec(aHTMLString);
       if (match) {
+        // Use this unless it's the "ADULT CONTENT" image, in which case
+        // we'll skip it in factor of a rule in _getImageFromHtml().
+        if (/500px\.com\/graphics\/nude/.test(match[1])) {
+          return null;
+        }
         re = re2;
       }
     }
@@ -2059,6 +2064,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         'div#img center img#image', // image.aven.net
         'div.wrap div#left table a img', // image.aven.net gallery
         'div#show-photo img#mainphoto', // 500px.com photo page
+        'img.the_photo', // 500px.com photo page
         'div#the-image a img', // yfrog.com pic
         'div.the-image img#main_image', // yfrog.com video
         'img#gmi-ResViewSizer_fullimg', // deviantart photo (old?)
