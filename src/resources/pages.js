@@ -854,6 +854,11 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   // http://th06.deviantart.net/fs70/300W/f/2011/279/a/e/aaa.jpg
   // and
   // http://th04.deviantart.net/fs70/200H/f/2012/075/3/a/bake_a_cake_by_krisada-d4sz00q.jpg
+  // also
+  // http://t12.deviantart.net/sRf0b0MK6MEuQJQYxgTN6OgTsU8=/300x200/filters:fixed_height[...]origin()/pre00/3ebc/th/pre/i/2015/087/d/7/o_portrait_by_mshonak-d8ney6s.jpg becomes
+  // http://pre00.deviantart.net/3ebc/th/pre/i/2015/087/d/7/o_portrait_by_mshonak-d8ney6s.jpg
+  // also
+  // http://t05.deviantart.net/b0YAlKidVoTAsW8LeLLjVMIB9lM=/300x200/filters:fixed_height%28100,100%29:origin%28%29/pre05/7ae2/th/pre/i/2015/087/a/5/wine_by_mshonak-d8ney7y.jpg
   // Note: doesn't currently work for gifs since multiple parts of their URLS change and
   // I don't know how to predict that, e.g.
   //   http://fc06.deviantart.net/fs70/i/2011/331/1/4/charmander_the_stray_by_brittanytucker-d4hijn7.gif to
@@ -862,7 +867,7 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   key: "deviantart",
   name: "deviantART",
   host: /^(.*\.)?deviantart\.com$/,
-  imageRegExp: /(th[0-9]+|[as])\.deviantart\.(net|com)\/.*\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/,
+  imageRegExp: /(th?[0-9]+|[as])\.deviantart\.(net|com)\/.*\/\d+[A-Za-z]?(\/[a-z])/,
 
   getImageNode : function(aNode, aNodeName, aNodeClass, imageSource) {
     let image = aNode;
@@ -873,10 +878,13 @@ ThumbnailZoomPlus.Pages.DeviantART = {
   },
 
   getZoomImage : function(aImageSrc, node, flags) {
-    let picRex = new RegExp(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/);
-    let image = (picRex.test(aImageSrc) ? aImageSrc.replace(picRex, "$1") : 
-                 null);
-    return image;
+    let original = aImageSrc;
+    aImageSrc = aImageSrc.replace(/:\/\/.*\.deviantart\.net\/.*\/.*\(\)\/pre([0-9]+)\//, "://pre$1.deviantart.net/");
+    if (aImageSrc != original) {
+      return aImageSrc;
+    }
+    aImageSrc = aImageSrc.replace(/\/\d+[A-Za-z]?(\/[fiop]\/[0-9])/, "$1");
+    return aImageSrc;
   }
 };
 
