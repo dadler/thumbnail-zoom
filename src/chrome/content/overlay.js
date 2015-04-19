@@ -511,6 +511,10 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     }
   },
+  
+  _getPageZoom : function() {
+    return gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+  },
 
   _popupTakesFocus : function() {
     if (this._firefoxVersion < 4) {
@@ -889,7 +893,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     var scrollLeft = viewportElement.scrollX;
     var scrollTop  = viewportElement.scrollY;
 
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
 
     var adj = {xMin:0, xMax:0, yMin:0, yMax:0};
     // Adjust the bounding box to account for scrolling.  Note that the box's
@@ -1706,8 +1710,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // when we need to run asynchronously; such a yield will be followed
     // sometime later by an asynchronous send() call.
     let completionGenerator = yield undefined;
-    
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+
+    let pageZoom = this._getPageZoom();
     let clientToScreenX = aEvent.screenX - aEvent.clientX * pageZoom;
     let clientToScreenY = aEvent.screenY - aEvent.clientY * pageZoom;
     this._thumbBBox = this._calcThumbBBox(node, 
@@ -2911,7 +2915,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getThumbSize : function(aImageNode)
   {
     // Seen in ff15: Error: TypeError: can't access dead object
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
     let thumbSize = {width:99999, height:9999};
     for (var depth = 1; depth <=6 && aImageNode; ++depth) {
       let thisWidth = aImageNode.clientWidth * pageZoom;
@@ -3254,7 +3258,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     this._imageObjectBeingLoaded = image;
     
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
 
     // TODO: it'd be better to save the image object in the ThumbnailZoomPlus
     // object so we can delete it if we load different image (so it doesn't
@@ -3431,7 +3435,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_calcThumbBBox");
     let result = {};
     
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
     
     // ff 15 warning: Error: TypeError: can't access dead object
     // when cliking the "Older" link in Engadget Mobile or when opening Tools > Addons.
@@ -3468,7 +3472,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _applyPopupAvoider : function(available, flags) {    
     // Horizontal popup avoider:
     if (flags.popupAvoiderWidth > 0) {    
-      let zoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      let zoom = this._getPageZoom();
       let availableForSitePopup = available.right +
                   (this._thumbBBox.xMax - this._thumbBBox.xMin + 1) * (1.0 - flags.popupAvoiderLREdge);
       if (availableForSitePopup > flags.popupAvoiderWidth * zoom) {
@@ -3542,7 +3546,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    */
   _getAvailableSizeOutsideThumb : function(aImageNode, flags) {
     this._logger.trace("_getAvailableSizeOutsideThumb");
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
 
     let maxSizePref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_SIZE, 
                                                 this.PREF_VALUE_POPUP_SIZE_WEB_PAGE);
@@ -3676,7 +3680,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     let scaleRatio = (imageWidth / imageHeight);
     
     let scaleUpBy = this._currentMaxScaleBy;
-    let pageZoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+    let pageZoom = this._getPageZoom();
     if (pageZoom > 1.0 &&
         pageZoom > scaleUpBy &&
         ! changedScaleTemporarily) {
