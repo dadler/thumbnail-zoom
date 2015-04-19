@@ -934,7 +934,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     var innerText = "";
     if (element.hasChildNodes()) {
       
-      var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+      var displayType = "display"; // disabled due to e10s: window.getComputedStyle(element,null).getPropertyValue("display");
       if (displayType != null && displayType!="none") {
         for (var i = 0; i < element.childNodes.length; i++) {
           if (element.tagName=="P") {
@@ -952,7 +952,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         innerText = innerText + element.nodeValue;
       } else if (element.nodeType == 1) { 
         // object
-        var displayType = window.getComputedStyle(element,null).getPropertyValue("display");
+        var displayType = "display"; // disabled due to e10s: window.getComputedStyle(element,null).getPropertyValue("display");
         if (displayType == null || displayType=="none") {
         } else if (displayType=="inline") {
           innerText = innerText + element.textContent;
