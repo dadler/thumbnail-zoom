@@ -168,7 +168,7 @@ ThumbnailZoomPlus.FilterService = {
     };
   },
   
-  _allowProtocol : function(protocol, host, strict) {
+  _allowProtocol : function(protocol, strict) {
     if ("http:" == protocol || "https:" == protocol) {
       return true;
     }
@@ -179,7 +179,19 @@ ThumbnailZoomPlus.FilterService = {
     }
     
     return false;
-},
+  },
+  
+  allowProtocolOfURL : function(URLstring, strict) {
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                            .getService(Components.interfaces.nsIIOService);
+    var protocol = ioService.extractScheme(URLstring) + ":";
+    if (this._allowProtocol(protocol, strict)) {
+      return true;
+    }
+    this._logger.debug("    allowProtocolOfURL: Reject by protocol (strict=" + strict + ") for " +
+                       URLstring + " protocol " + protocol);
+    return false;
+  },
   
   /**
    * Gets the host of the specified document (if it has one and the
@@ -250,7 +262,7 @@ ThumbnailZoomPlus.FilterService = {
       return null;
     }
 
-    if (this._allowProtocol(protocol, host, strict)) {
+    if (this._allowProtocol(protocol, strict)) {
       return host;
     }
     this._logger.debug("    getHostOfDoc: Reject by protocol (strict=" + strict + ") for " + 

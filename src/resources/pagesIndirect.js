@@ -224,6 +224,9 @@ ThumbnailZoomPlus.PagesIndirect = {
                                     getImageFromHtmlFunc)
   {
     ThumbnailZoomPlus.debugToConsole("getImageFromLinkedPage from page " + pageUrl);
+    if (! ThumbnailZoomPlus.FilterService.allowProtocolOfURL(pageUrl, true)) {
+      return null;
+    }
     try {
       let generator = this._getImageFromLinkedPageGen(doc, pageUrl, flags, invocationNumber, 
                                                 pageCompletionFunc, 
