@@ -172,7 +172,7 @@ ThumbnailZoomPlus.FilterService = {
     if ("http:" == protocol || "https:" == protocol) {
       return true;
     }
-    if (!strict && ("chrome:" == protocol || "data:" == protocol)) {
+    if (!strict && ("chrome:" == protocol || "data:" == protocol || "file:" == protocol)) {
       // allow the hosting page to be in chrome://, e.g. for
       // extensions like PrevNextArrows and showmemore.
       return true;
