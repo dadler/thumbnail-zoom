@@ -172,19 +172,31 @@ ThumbnailZoomPlus.SiteConfigService = {
     }
     var host = this._getCurrentTabHost();
     var url = this._getCurrentTabUrl();
+    var pattern;
+    if (host) {
+      var label = host;
+      pattern = host + "/";
+    } else {
+      var label = url;
+      var maxChars = 30;
+      if (label.length > maxChars) {
+        label = label.substring(0, maxChars-3) + "...";
+      }
+      pattern = url;
+    }
     ThumbnailZoomPlus.debugToConsole("updateSiteInPrefsDialog for host " + host);
 
-    if (host) {
+    if (pattern) {
       var ruleExists = ! ThumbnailZoomPlus.SiteConfigService.isURLEnabled(url, true);
       var operation = ruleExists ? this._removeLabelText : this._addLabelText;
-      var label = operation + " " + host;
+      label = operation + " " + label;
       this._addThisSiteButton.removeAttribute("disabled");
     } else {
-      var label = this._addOrRemoveLabelText;
+      label = this._addOrRemoveLabelText;
       this._addThisSiteButton.setAttribute("disabled", "true");
     }
     this._addThisSiteButton.setAttribute("label", label);
-    this._addThisSiteButton.setAttribute("value", host + "/");
+    this._addThisSiteButton.setAttribute("value", pattern);
   },
   
   /// Clears the specified list widget.
@@ -354,7 +366,10 @@ ThumbnailZoomPlus.SiteConfigService = {
     if (ruleExists) {
       this._removeMatchingSites(url);
     } else {
-      var pattern = this._addThisSiteButton.getAttribute("value")+"*";
+      var pattern = this._addThisSiteButton.getAttribute("value");
+      if (pattern.endsWith("/")) {
+        pattern += "*";
+      }
       this._updateSite(pattern, null);
     }
   },
