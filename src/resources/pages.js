@@ -2478,6 +2478,12 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       flags.noErrorIndicator = true;
     }
     
+    // for nextdoor.com change
+    // https://d3dqvga78raec5.cloudfront.net/post_photos/25/6a/256a5c1b0e8b775adad497e1f6fd8063.JPG.115x115.JPG to
+    // https://d3dqvga78raec5.cloudfront.net/post_photos/25/6a/256a5c1b0e8b775adad497e1f6fd8063.JPG.max900.JPG
+    aImageSrc = aImageSrc.replace(/(\/d3dqvga78raec5\.cloudfront\.net\/.*\/[0-9a-f]+\/[0-9a-f]+\/[0-9a-f]+(?:\.JPG)?)\..*\.JPG/i,
+                                  "$1");
+                                  
     // For blogger aka Blogspot, change
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s500/DSC_0043.JPG to
     // http://3.bp.blogspot.com/-3LhFo9B3BFM/T0bAyeF5pFI/AAAAAAAAKMs/pNLJqyZogfw/s1600/DSC_0043.JPG; change
