@@ -1503,10 +1503,11 @@ ThumbnailZoomPlus.Pages.Others = {
     
     var before;
     
-    if (/^https?:\/\/[^\/]*\.wikipedia.org\/wiki\/File:/i.test(aImageSrc)) {
+    if (/^https?:\/\/[^\/]*\.wiki(?:media|pedia)\.org\/wiki\//i.test(aImageSrc)) {
       // wikipedia page URLs look like image URLs but they aren't.  We don't
       // support showing images for wiki page links, but the Wikipedia rule does
       // support wikipedia *thumbnails*.
+      // example: http://commons.wikimedia.org/wiki/File:Prinsengracht.jpg
       return null;
     }
     
