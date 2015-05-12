@@ -2479,6 +2479,14 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
       flags.noErrorIndicator = true;
     }
     
+    // familyhandyman.com
+    // http://hostedmedia.reimanpub.com/TFH/Step-By-Step/display/FH07APR_SPRFIX_04.JPG becomes
+    // http://hostedmedia.reimanpub.com/TFH/Step-By-Step/FH07APR_SPRFIX_04.JPG
+    // http://hostedmedia.reimanpub.com/TFH/Projects/Thumbnail108x108/FH00MAR_YARDRA_01.JPG becomes
+    // http://hostedmedia.reimanpub.com/TFH/Projects/FH00MAR_YARDRA_01.JPG
+    aImageSrc = aImageSrc.replace(/(\/\/hostedmedia\.reimanpub\.com\/.*\/)(?:display|Thumbnail\d+x\d+)\//, "$1");
+    
+    
     // for nextdoor.com change
     // https://d3dqvga78raec5.cloudfront.net/post_photos/25/6a/256a5c1b0e8b775adad497e1f6fd8063.JPG.115x115.JPG to
     // https://d3dqvga78raec5.cloudfront.net/post_photos/25/6a/256a5c1b0e8b775adad497e1f6fd8063.JPG.max900.JPG
