@@ -1990,7 +1990,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelCaption.ThumbnailZoomPlusOriginalTitle = aImageNode.title;
 
     // suppress the tooltip from the thumb.
-    aImageNode.title = " ";
+    aImageNode.title = "";
   },
   
   /**
