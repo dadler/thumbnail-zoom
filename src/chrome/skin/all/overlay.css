@@ -87,6 +87,8 @@ toolbar[iconsize="small"] #thumbnailzoomplus-toolbar-button[tzpenabled=false] {
   
   background-position: top left !important;
   /* image-rendering: optimizeQuality; */
+
+  image-orientation: from-image;
 }
 #thumbnailzoomplus-panel-image-vbox {
   /*
