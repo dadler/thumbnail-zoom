@@ -78,6 +78,24 @@ TESTING:
 
 See src/test/TestCases.html.
 
+FIREFOX REGRESSIONS:
+
+When testing to see what version of Firefox broke TZP, use mozregression.
+
+For regressions on nightly release dates:
+
+  mozregression -g 2015-01-02 -b 2015-05-15 -p "/Users/dadler/Library/Application Support/Firefox/Profiles/p0976zws.default"
+
+For regressions on release numbers:
+  mozregression --good-release 37 -b 2015-03-01 -p "/Users/dadler/Library/Application Support/Firefox/Profiles/p0976zws.default"
+
+To test with an add-on and remembered tabs, use -p to specify a profile.  The script seems to reset
+the profile after each run, so BEFORE RUNNING DUPLICATE THE PROFILE TO A BACKUP COPY.  When mozregression
+tries to start the next run, let it fail (due to the previous firefox still running).  Quit
+the previous firefox, remove the profile, copy the backup profile to the real profile name.
+Then manually start firefox from the path output by mozregression.  If it starts with I10N on,
+turn it off.
+
 
 MAKING AN INSTALLABLE XPI FILE:
 
