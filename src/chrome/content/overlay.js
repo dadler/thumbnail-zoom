@@ -2623,11 +2623,6 @@ ThumbnailZoomPlusChrome.Overlay = {
                             aEvent);
       }
 
-    } else if (aEvent.keyCode == aEvent.DOM_VK_D) {
-      // Set default scale based on current scale.
-      this._logger.debug("_doHandleKeyDown: set default zoom pref");
-      this._setDefaultScalePref(this._currentMaxScaleBy);
-      
     } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
       this._logger.debug("_doHandleKeyDown: toggle allow-covering-thumb pref");
       this._currentAllowCoverThumb = ! this._getAllowCoverThumbPref();
