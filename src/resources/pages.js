@@ -2423,8 +2423,9 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
     aImageSrc = aImageSrc.replace(tumblrRegExp, "$1_128.");
     
     // other sites embedding tumblr images, eg tumview.com
-    aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_75sq\.(png|jpg)/, "$1_500.$2");
+    aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_(?:75sq|[1234]\d\d)\.(png|jpg)/, "$1_1280.$2");
     aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_75sq\.gif/, "$1_400.gif");
+    aImageSrc = aImageSrc.replace(/(\.tumblr\.com\/.*)_[1234]\d\d\.gif/, "$1_400.gif");
 
     if (! /-tour-/.test(aImageSrc)) {
       aImageSrc = aImageSrc.replace(/(\/galleries\/.*\/x-.*-)ltn\.jpg/,
