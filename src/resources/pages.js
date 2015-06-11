@@ -1387,6 +1387,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|^https?://webm\.land\/w\/"
     + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     + "|//giphy\\.com/gifs/[^/?]+"
+    + "|\.wallhaven\.cc/wallpaper/[0-9]+"
     // end
     , "i"),
   
@@ -1555,6 +1556,10 @@ ThumbnailZoomPlus.Pages.Others = {
     aImageSrc = aImageSrc.replace(/\/\/(someimage\.com\/[^\/?]+)$/,
                                   "//i1.$1.jpg");
 
+    // wallhaven.cc
+    aImageSrc = aImageSrc.replace(/[a-zA-Z0-9]+\.wallhaven\.cc\/wallpaper\/([0-9]+)/,
+                                  "wallpapers.wallhaven.cc/wallpapers/full/wallhaven-$1.jpg");
+  
     // For ixquick.com image search:
     // https://s3-us4.ixquick-proxy.com/do/show_picture.pl?l=english&cat=pics&c=pf&q=cat&h=1080&w=1920&th=90&tw=160&
     //     fn=1562-cute-little-cat.jpg&fs=452.3%20k&el=boss_pics_2&
@@ -2165,6 +2170,7 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
                           + "|//.*twimg.*/img/front_page/" // Twitter background image on login page.
                           + "|//.*/images/tiny_mce" // toolbar of html editor in jive cms and elsewhere
                           + "|.*\\.4sqi\\.net/.*sprite" // foursquare map sprites
+                          + "|//static\.wallhaven\.cc"
                           + ").*", "i"),
 
   // For "Thumbnail"
