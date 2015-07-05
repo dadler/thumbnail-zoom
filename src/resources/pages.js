@@ -202,16 +202,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
   host: /^(.*\.)?facebook\.com$/,
   /*
      The Facebook operates in a few ways:
-     1. for user profiles, whe can get an image directly from graph.facebook.com if
-     we know the user's ID or username, which we can generally get from the link
-     in effect where a profile image appears.
-     
-     2. for photos, we operate like Others (Indiret), but within the Facebook rule.
+   
+     1. for photos and user profiles, we operate like Others (Indirect), but within the Facebook rule.
      The URL we retrieve is the mobile version of the photo's page since that one
      contains a direct HTML link to the full-size image, without needing to
      run javascript from the facebook page.
      
-     3. for some externally-linked pages, we can parse the external photo's
+     2. for some externally-linked pages, we can parse the external photo's
      image URL from the Facebook image URL.
 
      Thumb URLs seem different when logged into Facebook vs when logged out
@@ -308,7 +305,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // m.facebook.com
     // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
     // View Full Size</a>'  Class and "View Full Size" text vary.
-    re = /<a(?: class="[^"]*")? href="([^"]+(?:-photo-|\/hphotos-)[^"]+\.(?:jpg|png)[^"]*)"/;
+    re = /<(?:a|img)[^>]* (?:src|href)="([^"]+(?:-photo-|\/hphotos-|\/hprofile-)[^"]+\.(?:jpg|png)[^"]*)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     let match = re.exec(aHTMLString);
     if (match) {
@@ -334,7 +331,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     // handle profile links.
     // https://www.facebook.com/profile.php?id=1553390408&fref=hovercard
-    if (/profile-/.test(originalImageURL)) {
+    if (false && /profile-/.test(originalImageURL)) {
         // only show a profile pop-up if the image the link surrounds is a profile image.
         // This excludes it for the top part of cover photo in hovercard pop-up.
         ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: trying as profile pic");
