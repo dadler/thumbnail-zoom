@@ -208,6 +208,13 @@ ThumbnailZoomPlus.Pages.Facebook = {
      contains a direct HTML link to the full-size image, without needing to
      run javascript from the facebook page.
      
+     2. for profile photos, we do TWO levels of indirect.  The first retrieves the user's
+     main profile page.  The second retrieves their profile photo's page, from which
+     we finally get the URL of the full-size profile pic.
+     
+     Note that for profile photos, the linked-to mobile page is different
+     when logged in vs logged out.
+   
      2. for some externally-linked pages, we can parse the external photo's
      image URL from the Facebook image URL.
 
@@ -223,7 +230,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
      yes: https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10801477_10103893622580956_2905797505770087574_n.jpg?oh=f7dba9f6a60b911ee8e28e428430af7d&oe=54EDEA9F&__gda__=1424364075_fd53e5ce389c4a1be8223de4655df1e3
      no:           https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-xaf1/10801477_10103893622580956_2905797505770087574_n.jpg?oh=c6ed5728455547333f5855fc2bfe547a&oe=54D78CE3&__gda__=1424072726_dc5cd404f5ea19141fdf7c39b10f1b38
    */
-  // old: imageRegExp: /\/messages\/|\/app_full_proxy\.php|graph\.facebook\.com.*\/picture|\.(fbcdn|akamaihd)\.net\/.*safe_image|fbstatic-.\.akamaihd\.net\/rsrc\.php\/.*gif/,
   imageRegExp : new RegExp("^[^/]*("
                           + "//[^/?]+/[^/?]+$"
                           + "|.*[?&]fref=(photo|hovercard|pb|ts)"
@@ -238,7 +244,6 @@ ThumbnailZoomPlus.Pages.Facebook = {
     pageSpecificData.originalNode = aNode;
     pageSpecificData.originalImageURL = imageSource;
     
-    //if (/_6l-|__c_|_1xx|_1xy|_5dec|_2a2r|_117p|photoWrap|uiPhotoThumb|uiScaledImageContainer|external/.test(aNodeClass)) {
     if (/_6l-|photoWrap|uiPhotoThumb|external|_2qo3/.test(aNodeClass)) {
       // The hover detects a <div> and we need to find its child <img>.
       // _117p = fb Page cover photo; _6l- = external image
@@ -303,11 +308,25 @@ ThumbnailZoomPlus.Pages.Facebook = {
     var re;
 
     // m.facebook.com
+
+    if (! /photo\.php/.test(pageUrl)) {
+      // Check for profile page's link to user's photo.  Note that a profile pic
+      // page may also match this if it has Previous and Next links; we count on
+      // that matching the check above first.
+      re = /<div[^>]* class="[^"]*bj.*? href="(\/photo\.php\?[^"]*)"/;
+      logger.debug("_getImgFromHtmlText: trying " + re);
+      var match = re.exec(aHTMLString);
+      if (match) {
+      logger.debug("_getImgFromHtmlText: detected profile page, with photo page URL " + match[1]);
+        return match[1].replace(/&amp;/gi, "&");
+      }
+    }
+
     // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
     // View Full Size</a>'  Class and "View Full Size" text vary.
     re = /<(?:a|img)[^>]* (?:src|href)="([^"]+(?:-photo-|\/hphotos-|\/hprofile-)[^"]+\.(?:jpg|png)[^"]*)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
-    let match = re.exec(aHTMLString);
+    var match = re.exec(aHTMLString);
     if (match) {
       return match[1].replace(/&amp;/gi, "&");
     }
@@ -315,7 +334,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     logger.debug("_getImageFromFBHtml: didn't match");
     return null;  
   },
-
+  
   getZoomImage : function(aImageSrc, node, flags, pageSpecificData, pageCompletionFunc) {
     var original = aImageSrc;
     var originalNode = pageSpecificData.originalNode;
@@ -329,7 +348,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
                                           originalNode.className + "; originalImageURL=" +
                                           pageSpecificData.originalImageURL);
 
-    // handle profile links.
+    // disabled: handle profile links.
     // https://www.facebook.com/profile.php?id=1553390408&fref=hovercard
     if (false && /profile-/.test(originalImageURL)) {
         // only show a profile pop-up if the image the link surrounds is a profile image.
@@ -401,11 +420,32 @@ ThumbnailZoomPlus.Pages.Facebook = {
         aImageSrc = aImageSrc.replace(/:\/\/[a-z0-9]+\.facebook\.com\//, "://m.facebook.com/")
 
         ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber++;
+ 
+        // The completion func we pass to getImageFromLinkedPage is an "intermediate" one,
+        // so that if we're over a profile thumb, we can invoke getImageFromLinkedPage again
+        // to get the photo's URL.
+        let intermediateCompletionFunc = function(result) {
+          if (/photo\.php\?/.test(result)) {
+            // profile photo page link.
+            result = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, result);
+            // Convert www.facebook.com to m.facebook.com so we can parse it for an image URL
+            // without running the page's javascript.
+            result = result.replace(/:\/\/[a-z0-9]+\.facebook\.com\//, "://m.facebook.com/")
+            ThumbnailZoomPlus.debugToConsole("facebook getZoomImage: need second level of indirect for profile pic, from " + result);
+            aImageSrc = ThumbnailZoomPlus.PagesIndirect.
+                getImageFromLinkedPage(node.ownerDocument, result, flags,
+                                       ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber,
+                                       pageCompletionFunc,
+                                       this._getImageFromFBHtml.bind(this));
+          } else {
+            pageCompletionFunc(result);
+          }
+        }
 
         aImageSrc = ThumbnailZoomPlus.PagesIndirect.
                     getImageFromLinkedPage(node.ownerDocument, aImageSrc, flags,
                                            ThumbnailZoomPlus.Pages.OthersIndirect.invocationNumber,
-                                           pageCompletionFunc,
+                                           intermediateCompletionFunc.bind(this),
                                            this._getImageFromFBHtml.bind(this));
     }
 
