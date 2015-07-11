@@ -309,7 +309,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     // m.facebook.com
 
-    if (! /photo\.php/.test(pageUrl)) {
+    if (! /photo\.php|\/photos\//.test(pageUrl)) {
       // Check for profile page's link to user's photo.  Note that a profile pic
       // page may also match this if it has Previous and Next links; we count on
       // that matching the check above first.
@@ -317,7 +317,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
       logger.debug("_getImgFromHtmlText: trying " + re);
       var match = re.exec(aHTMLString);
       if (match) {
-      logger.debug("_getImgFromHtmlText: detected profile page, with photo page URL " + match[1]);
+        logger.debug("_getImgFromHtmlText: detected profile page, with photo page URL " + match[1]);
         return match[1].replace(/&amp;/gi, "&");
       }
     }
