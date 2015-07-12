@@ -309,11 +309,11 @@ ThumbnailZoomPlus.Pages.Facebook = {
 
     // m.facebook.com
 
-    if (! /photo\.php|\/photos\//.test(pageUrl)) {
+    if (! /(?:photo\.php|\/photos|profile\/picture\/view\/)/.test(pageUrl)) {
       // Check for profile page's link to user's photo.  Note that a profile pic
       // page may also match this if it has Previous and Next links; we count on
       // that matching the check above first.
-      re = /<div[^>]* class="[^"]*bj.*? href="(\/photo\.php\?[^"]*)"/;
+      re = /<div[^>]* class="[^"]*bj.*? href="((?:\/photo\.php\?|\/profile\/picture\/view\/)[^"]*)"/;
       logger.debug("_getImgFromHtmlText: trying " + re);
       var match = re.exec(aHTMLString);
       if (match) {
@@ -325,6 +325,16 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
     // View Full Size</a>'  Class and "View Full Size" text vary.
     re = /<a(?: class="[^"]*")? href="([^"]+(?:-photo-|\/hphotos-)[^"]+\.(?:jpg|png)[^"]*)"/;
+    logger.debug("_getImgFromHtmlText: trying " + re);
+    var match = re.exec(aHTMLString);
+    if (match) {
+      return match[1].replace(/&amp;/gi, "&");
+    }
+    
+    // Some profile pics don't link to a higher-rez photo page (eg in /profile/picture/view).  For those, use the embedded img itself.
+    // eg src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xta1/v/t1.0-1/p480x480/11257792_124211117909920_2817615260170635389_n.jpg?efg=eyJpIjoiYiJ9&oh=be711ffb4ad98c014f0c2bc9c46823fa&oe=5616983E&__gda__=1443843600_28e4d49f7011cb116c2a79d8fe944925"
+    // eg user tazz
+    re = /<img src="([^"]+\/hprofile-[^"]+\.(?:jpg|png)[^"]*)"/;
     logger.debug("_getImgFromHtmlText: trying " + re);
     var match = re.exec(aHTMLString);
     if (match) {
@@ -425,7 +435,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
         // so that if we're over a profile thumb, we can invoke getImageFromLinkedPage again
         // to get the photo's URL.
         let intermediateCompletionFunc = function(result) {
-          if (/photo\.php\?/.test(result)) {
+          if (/photo\.php\?|\/profile\/picture\/view/.test(result)) {
             // profile photo page link.
             result = ThumbnailZoomPlus.FilterService.applyBaseURI(node.ownerDocument, result);
             // Convert www.facebook.com to m.facebook.com so we can parse it for an image URL
