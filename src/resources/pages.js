@@ -2259,7 +2259,8 @@ ThumbnailZoomPlus.Pages.Thumbnail = {
         (nodeName == "div" && /^overlay$/.test(nodeClass)) ||
         (nodeName == "div" && /enlarge-overlay/.test(nodeClass)) || // for allmusic.com
         (nodeName == "img" && "photo" == nodeClass && /media\.tumblr\.com/.test(imageSource)) || // tumblr archive
-        (nodeName == "div" && "thumbnailOverlay" == nodeClass) // photobucket
+        (nodeName == "div" && "thumbnailOverlay" == nodeClass) || // photobucket
+        (nodeName == "a" && /biz-shim/.test(nodeClass)) // yelp photo in gallery
         ) {
       // minus.com single-user gallery or
       // tumblr archive with text overlays like http://funnywildlife.tumblr.com/archive
