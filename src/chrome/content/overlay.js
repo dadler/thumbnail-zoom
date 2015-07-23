@@ -513,7 +513,14 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _getPageZoom : function() {
-    return gBrowser.selectedBrowser.docShell.contentViewer.fullZoom;
+    var zoom = gBrowser.selectedBrowser.docShell.contentViewer.fullZoom;
+    if (! zoom) {
+      zoom = gBrowser.selectedBrowser.markupDocumentViewer.fullZoom;
+      if (! zoom) {
+        zoom = 1.0;
+      }
+    }
+    return zoom;
   },
 
   _popupTakesFocus : function() {
