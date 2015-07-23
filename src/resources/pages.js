@@ -1704,7 +1704,7 @@ ThumbnailZoomPlus.Pages.Others = {
     
     // If imgur link, remove part after "&" or "#", e.g. for https://imgur.com/nugJJ&yQU0G
     // Take just the first image if multiple as https://imgur.com/nugJJ&yQU0G,308472a,va204a1
-    let imgurRex = new RegExp(/(imgur\.com\/)([^\/&#,]+)([&#][^,]*)?.*/);
+    let imgurRex = new RegExp(/([\/.]imgur\.com\/)([^\/&#,]+)([&#][^,]*)?.*/);
     aImageSrc = aImageSrc.replace(imgurRex, "$1$2");
 
     let quickmemeEx = new RegExp(/(?:www\.quickmeme\.com\/meme|(?:i\.)?qkme\.me)\/([^\/\?]+).*/);
@@ -1900,7 +1900,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // we'd like to also convert /gallery/ to /a/ since /gallery/ may not support /all,
     // and so wouldn't give access to images beyond ~11.  But some gallery links
     // don't exist as /a/ (possibly single-pic ones) so this isn't reliable.  issue #171.
-    aImageSrc = aImageSrc.replace(/imgur\.com\/a\/([^#?/]+).*/, "imgur.com/a/$1/all");
+    aImageSrc = aImageSrc.replace(/([\/.]imgur\.com\/a\/[^#?/]+).*/, "$1/all");
     
     // Note: .bind() doesn't seem to be available in Firefox 3.6.
     aImageSrc = ThumbnailZoomPlus.PagesIndirect.
