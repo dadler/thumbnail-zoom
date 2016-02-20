@@ -36,7 +36,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://thumbnailzoomplus/log4moz.js");
+Cu.import("resource://gre/modules/Log.jsm");
 
 try {
   Cu.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
@@ -61,9 +61,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     /* Logger for this object (common.js itself). */
     _logger : null,
 
-    // log file path as a string if logging enabled; else null.
-    logPath : null,
-    
     // Prefs caches preferences for faster retrieval.
     _prefs : {},
     
@@ -93,9 +90,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
             
       // The basic formatter will output lines like:
       // DATE/TIME  LoggerName LEVEL  (log message)
-      let formatter = new Log4Moz.AdvancedFormatter();
-      formatter.dateFormat = "%Y-%m-%d %H:%M:%S%%L";
-      let root = Log4Moz.repository.rootLogger;
+      let formatter = new Log.BasicFormatter();
+      let root = Log.repository.rootLogger;
       let logFile = this.getExtensionDirectory();
       let app;
 
@@ -103,42 +99,32 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
 
       // Loggers are hierarchical, lowering this log level will affect all
       // output.
-      root.level = Log4Moz.Level["All"];
+      root.level = Log.Level["All"];
 
       // A console appender outputs to the JS Error Console.
-      // app = new Log4Moz.ConsoleAppender(formatter);
-      // app.level = Log4Moz.Level["Warn"];
+      // app = new Log.ConsoleAppender(formatter);
+      // app.level = Log.Level["Warn"];
       // root.addAppender(app);
 
       // A dump appender outputs to standard out.
-      //app = new Log4Moz.DumpAppender(formatter);
-      //app.level = Log4Moz.Level["Warn"];
+      //app = new Log.DumpAppender(formatter);
+      //app.level = Log.Level["Warn"];
       //root.addAppender(app);
 
       // This appender will log to the file system.
-      app = new Log4Moz.RotatingFileAppender(logFile, formatter);
-      // Some Windows ports of GNU tail work best without rotating logs:
-      //app = new Log4Moz.FileAppender(logFile, formatter);
+      app = new Log.ConsoleAppender(formatter);
       
       if (enableTrace) {
-        app.level = Log4Moz.Level["Trace"];
+        app.level = Log.Level["Trace"];
       } else if (enableDebug) {
-        app.level = Log4Moz.Level["Debug"];
+        app.level = Log.Level["Debug"];
       } else {
-        app.level = Log4Moz.Level["Warn"];
-      }
-      
-      if (enableDebug || enableTrace) {
-        this.logPath = logFile.path;
-      } else {
-        this.logPath = null;
+        app.level = Log.Level["Warn"];
       }
       
       root.addAppender(app);
 
       this._logger = ThumbnailZoomPlus.getLogger("ThumbnailZoomPlus.common");
-
-      this._logger.debug("ThumbnailZoomPlus.logPath = " + ThumbnailZoomPlus.logPath);
 
       // get the observer service.
       this._observerService =
@@ -149,13 +135,13 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     },
 
     /**
-     * Gets a logger repository from Log4Moz.
+     * Gets a logger repository from Log.
      * @param aName the name of the logger to create.
      * @param aLevel (optional) the logger level.
      * @return the generated logger.
      */
     getLogger : function(aName, aLevel) {
-      let logger = Log4Moz.repository.getLogger(aName);
+      let logger = Log.repository.getLogger(aName);
 
       if (! aLevel) {
         // Set each to Warn (disable) or Trace (enable).
@@ -169,7 +155,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
           aLevel = "Trace";
         }
       }
-      logger.level = Log4Moz.Level[(aLevel ? aLevel : "All")];
+      logger.level = Log.Level[(aLevel ? aLevel : "All")];
 
       return logger;
     },

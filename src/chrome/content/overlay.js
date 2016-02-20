@@ -393,10 +393,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   addMenuItems : function() {
     this._logger.trace("addMenuItems");
 
-    if (ThumbnailZoomPlus.logPath) {
-      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
-    }
-
     let menuPopup = document.getElementById("thumbnailzoomplus-toolbar-menu");
     if (menuPopup) {
       let menuSeparator =
@@ -704,10 +700,6 @@ ThumbnailZoomPlusChrome.Overlay = {
   _handlePageLoaded : function(aEvent) {
     this._logger.trace("_handlePageLoaded");
 
-    if (ThumbnailZoomPlus.logPath) {
-      ThumbnailZoomPlus._logToConsole("thumbnailZoomPlus: logging to " + ThumbnailZoomPlus.logPath);
-    }
-    
     let doc = aEvent.originalTarget;
     this._addEventListenersToDoc(doc);
 
