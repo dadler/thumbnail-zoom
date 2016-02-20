@@ -1835,7 +1835,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_isKeyActive");
 
     let active = false;
-    let keyPref = ThumbnailZoomPlus.getPref(prefName, 2);
+    let keyPref = ThumbnailZoomPlus.getPref(prefName, 0);
     switch (keyPref) {
       case 1:
         active = (useState && aEvent.ctrlKey) || 

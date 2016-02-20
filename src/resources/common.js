@@ -50,8 +50,7 @@ try {
  */
 if ("undefined" == typeof(ThumbnailZoomPlus)) {
   var ThumbnailZoomPlus = {
-    /* The FUEL/SMILE Application object. */
-    _application : null,
+    _preferencesService : null,
     
     /* Reference to the observer service. */
     _observerService : null,
@@ -132,6 +131,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         
       this._consoleService = Cc["@mozilla.org/consoleservice;1"].
                                    getService(Ci.nsIConsoleService);
+    
+      this._preferencesService =
+        Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
+
     },
 
     /**
@@ -245,11 +248,19 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      * speed optimization.
      */
     getPref : function(key, defaultValue) {
+      // TODO: change API; needs getIntPref, getCharPref, getBoolPref, etc.
+      // https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Preferences
       if (key in this._prefs) {
         var value = this._prefs[key];
         this._logger.debug("getPref: cache hit: prefs['" + key + "'] = " + value);
       } else {
-        var pref = ThumbnailZoomPlus.Application.prefs.get(key);
+        this._logger.debug("getPref: service: " + this._preferencesService);
+        this._logger.debug("getPref: cache miss: prefs['" + key + "']");
+
+        return defaultValue;
+
+        // TODO: getting error when pref is actually a bool.
+        var pref = this._preferencesService.getCharPref(key);
         if (pref) {
           var value = pref.value;
         } else {
@@ -286,6 +297,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // Set cache before setting app pref since setting app pref may trigger
       // an event which could call getPref, and use the cache.
       this.setPrefCache(key, value);
+      return;
       this.Application.prefs.setValue(key, value);
     },
     
@@ -305,7 +317,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       this._logger.debug("isNamedPageEnabled " + key);
 
       let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";      
-      return ThumbnailZoomPlus.getPref(pagePrefKey, false);
+      return ThumbnailZoomPlus.getPref(pagePrefKey, true);
     },
 
     _logToConsole : function(msg) {
