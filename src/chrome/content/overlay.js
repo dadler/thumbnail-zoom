@@ -640,6 +640,9 @@ ThumbnailZoomPlusChrome.Overlay = {
     }
     receivers.forEach(function(keyReceiver) {
         that._logger.debug("_removeListenersWhenPopupHidden: removing from " + keyReceiver);
+        if (! keyReceiver) {
+          return;
+        }
         keyReceiver.removeEventListener("keydown", that._handleKeyDown, false);
         keyReceiver.removeEventListener("keyup", that._handleKeyUp, false);
         keyReceiver.removeEventListener("keypress", that._handleKeyPress, false);
