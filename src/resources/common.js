@@ -235,8 +235,9 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     get PrefBranch() { return "extensions.thumbnailzoomplus."; },
 
     /**
-     * getPref returns the value of the named key, or defaultValue if
-     * the key doesn't exist in the preferences system.  This defult is a
+     * getGenericPref returns the value of the named key, or defaultValue if
+     * the key doesn't exist in the preferences system, using the
+     * specified getPrefFunc accessor unction of the preferences service.  This defult is a
      * fallback of last resort; the preference should already be registered
      * (see thumbnailzoomplus.js) and that registration provides the normal
      * default.
@@ -247,22 +248,21 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
      * This function caches preferences in this._prefs, which is an important
      * speed optimization.
      */
-    getPref : function(key, defaultValue) {
+    getGenericPref : function(getPrefFunc, key, defaultValue) {
       // TODO: change API; needs getIntPref, getCharPref, getBoolPref, etc.
       // https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Preferences
       if (key in this._prefs) {
         var value = this._prefs[key];
         this._logger.debug("getPref: cache hit: prefs['" + key + "'] = " + value);
       } else {
-        this._logger.debug("getPref: service: " + this._preferencesService);
+        this._logger.debug("getPref: service: " + this._preferencesService + " root " + this._preferencesService.root);
+        this._logger.debug("getPref: func: " + getPrefFunc);
         this._logger.debug("getPref: cache miss: prefs['" + key + "']");
 
-        return defaultValue;
-
-        // TODO: getting error when pref is actually a bool.
-        var pref = this._preferencesService.getCharPref(key);
-        if (pref) {
-          var value = pref.value;
+        var pref = getPrefFunc(key);
+        this._logger.debug("getPref: raw pref = " + pref);
+        if (undefined != pref) {
+          var value = pref;
         } else {
           // pref doesn't exist so use hard-coded default.  This shouldn't
           // normally happen, but would if you specified a preference not defined
@@ -275,6 +275,25 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         this._logger.debug("getPref: cache miss: prefs['" + key + "'] = " + value);
       }
       return value;
+    },
+    
+    getCharPref: function(key, defaultValue) {
+        var getPrefFunc = this._preferencesService.getCharPref.bind(this._preferencesService);
+        return this.getGenericPref(getPrefFunc, key, defaultValue);
+    },
+    
+    getIntPref: function(key, defaultValue) {
+        var getPrefFunc = this._preferencesService.getIntPref.bind(this._preferencesService);
+        return this.getGenericPref(getPrefFunc, key, defaultValue);
+    },
+    
+    getBoolPref: function(key, defaultValue) {
+        var getPrefFunc = this._preferencesService.getBoolPref.bind(this._preferencesService);
+        return this.getGenericPref(getPrefFunc, key, defaultValue);
+    },
+    
+    getFloatPref: function(key, defaultValue) {
+        return 0.0 + this.getCharPref(key, "" + defaultValue);
     },
     
     /// clear the cache of the specified pref key; called when TZP
@@ -302,7 +321,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     },
     
     togglePref : function(key) {
-      let value = ! this.getPref(key, "false");
+      let value = ! this.getBoolPref(key, "false");
       this.setPref(key, value);
       
       return value;
@@ -317,7 +336,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       this._logger.debug("isNamedPageEnabled " + key);
 
       let pagePrefKey = ThumbnailZoomPlus.PrefBranch + key + ".enable";      
-      return ThumbnailZoomPlus.getPref(pagePrefKey, true);
+      return ThumbnailZoomPlus.getBoolPref(pagePrefKey, true);
     },
 
     _logToConsole : function(msg) {
@@ -342,7 +361,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       
     debugToConsole : function(msg) {
       this._logger.debug("### CONSOLE: " + msg);
-      if (this.getPref(this.PrefBranch + "panel.debug", false)) {
+      if (this.getBoolPref(this.PrefBranch + "panel.debug", false)) {
         this._logToConsole(msg);
       }
     },

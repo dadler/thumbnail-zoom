@@ -137,7 +137,7 @@ ThumbnailZoomPlus.SiteConfigService = {
   isURLEnabled : function(url, ignoreProtocol) {
     ThumbnailZoomPlus.debugToConsole("isURLEnabled " + url + " ...");
     var urlWithoutProtocol = url.replace(this._protocolRegex, "");
-    var disabledRE = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
+    var disabledRE = ThumbnailZoomPlus.getCharPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     var values = disabledRE.split(" ")
     for (var i in values) {
       var entry = values[i];
@@ -253,7 +253,7 @@ ThumbnailZoomPlus.SiteConfigService = {
     this._clearList(list);
     var that = this;
     
-    var prefValue = ThumbnailZoomPlus.getPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
+    var prefValue = ThumbnailZoomPlus.getCharPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", "");
     ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: pref value is " +
                                     prefValue);
     var prefValues = prefValue.split(" ");

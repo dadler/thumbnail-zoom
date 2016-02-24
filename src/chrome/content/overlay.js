@@ -311,7 +311,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._panelInfo = document.getElementById("thumbnailzoomplus-panel-info");
     this._contextMenu = document.getElementById("thumbnailzoomplus-context-download");
     
-    this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
+    this._contextMenu.hidden = ! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_CONTEXT_MENU, true);
 
     this._filePicker =
       Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
@@ -359,7 +359,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_installToolbarButton");
 
     let buttonInstalled =
-      ThumbnailZoomPlus.getPref(this.PREF_TOOLBAR_INSTALLED, false);
+      ThumbnailZoomPlus.getBoolPref(this.PREF_TOOLBAR_INSTALLED, false);
 
     if (!buttonInstalled) {
       let toolbarId =
@@ -525,7 +525,7 @@ ThumbnailZoomPlusChrome.Overlay = {
       // allow keyboard shortcuts to work).
       return false;
     }
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
+    if (! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_FOCUS_POPUP, true)) {
       return false;
     }
     return true;
@@ -581,7 +581,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _addListenersWhenPopupShown : function(aImageNode) {
     this._logger.trace("_addListenersWhenPopupShown");
     
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_HOTKEYS, true)) {
+    if (! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_HOTKEYS, true)) {
       return;
     }
     
@@ -1350,7 +1350,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.debug("___________________________");
     this._logger.debug("_handleMouseOver");
     
-    if (! ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true) &&
+    if (! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_ENABLE, true) &&
         ! this._isKeyActive(this.PREF_PANEL_MAX_KEY, false, true, aEvent)) {
       // we're disabled and the maximize key isn't down so refuse to pop-up.
       // we test for this early in the routine to minimize work done when
@@ -1383,7 +1383,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // so a future mouse move can re-enter it and re-popup.
     this._clearIgnoreBBox();
 
-    let keyActivates = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
+    let keyActivates = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_ACTIVATE_KEY_ACTIVATES,
                                                  true);
     let keyActive = this._isKeyActive(this.PREF_PANEL_ACTIVATE_KEY, 
                                       !keyActivates, true, aEvent);
@@ -1403,7 +1403,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._closePanel(false);
 
     if (this._scrolledSinceMoved &&
-        ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_ON_SCROLL, false)) {
+        ! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_POPUP_ON_SCROLL, false)) {
       this._logger.debug("_handleMouseOver: _scrolledSinceMoved==true; ignoring");
       return;
     }
@@ -1838,7 +1838,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_isKeyActive");
 
     let active = false;
-    let keyPref = ThumbnailZoomPlus.getPref(prefName, 0);
+    let keyPref = ThumbnailZoomPlus.getIntPref(prefName, 0);
     switch (keyPref) {
       case 1:
         active = (useState && aEvent.ctrlKey) || 
@@ -1886,7 +1886,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getHoverTime");
 
     let hoverTime = 100;
-    let delayPref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_WAIT, 0.1);
+    let delayPref = ThumbnailZoomPlus.getFloatPref(this.PREF_PANEL_WAIT, 0.1);
 
     if (!isNaN(delayPref)) {
       hoverTime = 1000 * delayPref;
@@ -1903,7 +1903,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getPartialLoadTime");
     
     let time = 1000;
-    let delayPref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_PARTIAL_LOAD_WAIT, 1.0);
+    let delayPref = ThumbnailZoomPlus.getFloatPref(this.PREF_PANEL_PARTIAL_LOAD_WAIT, 1.0);
 
     if (!isNaN(delayPref)) {
       time = 1000 * delayPref;
@@ -1918,7 +1918,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getDefaultScalePref");
 
     let result = 0.0;
-    let value = ThumbnailZoomPlus.getPref(this.PREF_PANEL_MAX_ZOOM, 2.0);
+    let value = ThumbnailZoomPlus.getIntPref(this.PREF_PANEL_MAX_ZOOM, 144);
 
     if (!isNaN(value)) {
       result = 0.01 * value;
@@ -1938,7 +1938,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
 
   _getAllowCoverThumbPref : function() {
-      return ThumbnailZoomPlus.getPref(this.PREF_PANEL_LARGE_IMAGE, false);
+      return ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_LARGE_IMAGE, false);
   },
 
   /**
@@ -1946,7 +1946,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * If so, we use special logic to prevent the context menu from appearing on a drag.
    */
   _isRMBConfigured : function() {
-    return (ThumbnailZoomPlus.getPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4);
+    return (ThumbnailZoomPlus.getIntPref(this.PREF_PANEL_ACTIVATE_KEY, null) == 4);
   },
   
   /**
@@ -1977,7 +1977,7 @@ ThumbnailZoomPlusChrome.Overlay = {
    * before this gets called, so it isn't suppressed.
    */
   _setupCaption : function(aImageNode, captionPrefix) {
-    let allowCaption = ThumbnailZoomPlus.getPref(this.PREF_PANEL_CAPTION, true);
+    let allowCaption = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_CAPTION, true);
     this._logger.debug("_setupCaption: caption enabled = " + allowCaption);
     this._hideCaption();
     
@@ -2659,7 +2659,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    let enable = ThumbnailZoomPlus.getPref(that.PREF_PANEL_ENABLE, true);
+    let enable = ThumbnailZoomPlus.getBoolPref(that.PREF_PANEL_ENABLE, true);
     if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
         (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
       that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or x key");
@@ -3103,8 +3103,8 @@ ThumbnailZoomPlusChrome.Overlay = {
     // increase the requested scale beyond what we're able to fit.
     this._currentMaxScaleBy = actualScale;
     
-    let showPercent = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SHOW_PERCENT, true);
-    let showDimensions = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SHOW_DIMENSIONS, true);
+    let showPercent = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_SHOW_PERCENT, true);
+    let showDimensions = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_SHOW_DIMENSIONS, true);
     if ((showPercent || showDimensions) && displayedImageWidth > 90) {
       // Display the actual size % unless it would cover too much of the image.
       // this._panelInfo.value = " " + percent + "% ";
@@ -3545,7 +3545,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_getAvailableSizeOutsideThumb");
     let pageZoom = this._getPageZoom();
 
-    let maxSizePref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_POPUP_SIZE, 
+    let maxSizePref = ThumbnailZoomPlus.getCharPref(this.PREF_PANEL_POPUP_SIZE,
                                                 this.PREF_VALUE_POPUP_SIZE_WEB_PAGE);
 
     if (maxSizePref == this.PREF_VALUE_POPUP_SIZE_SCREEN) {
@@ -4069,7 +4069,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _getDefaultFilename : function(basename, extension) {
     var caption = this._caption || "";
     var shortCaption = this._friendlyTruncate(caption, 22, 22 - 6);
-    var pref = ThumbnailZoomPlus.getPref(this.PREF_PANEL_SAVE_FILENAME, "caption");
+    var pref = ThumbnailZoomPlus.getCharPref(this.PREF_PANEL_SAVE_FILENAME, "caption");
 
     var separator = "";
     if (shortCaption && basename) {
@@ -4233,7 +4233,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   
   updateMenuButtonState : function() {
     this._logger.trace("updateMenuButtonState");
-    let enable = ThumbnailZoomPlus.getPref(this.PREF_PANEL_ENABLE, true);
+    let enable = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_ENABLE, true);
     
     // Set tool button state
     let menuButton = document.getElementById("thumbnailzoomplus-toolbar-button");
@@ -4251,7 +4251,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _showPanelBorder : function() {
     this._logger.trace("_showPanelBorder");
 
-    let panelBorder = ThumbnailZoomPlus.getPref(this.PREF_PANEL_BORDER, true);
+    let panelBorder = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_BORDER, true);
 
     if (panelBorder) {
       this._borderBox.removeAttribute("panelnoborder");
@@ -4286,7 +4286,7 @@ ThumbnailZoomPlusChrome.Overlay = {
           this.updateMenuButtonState();
           break;
         case this.PREF_PANEL_CONTEXT_MENU: 
-          this._contextMenu.hidden = ! ThumbnailZoomPlus.getPref(this.PREF_PANEL_CONTEXT_MENU, true);
+          this._contextMenu.hidden = ! ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_CONTEXT_MENU, true);
       }
     }
   },
@@ -4324,7 +4324,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   },
   
   _addItemsToHistory : function(url, imageSourceNode) {
-    let allowRecordingHistory = ThumbnailZoomPlus.getPref(this.PREF_PANEL_HISTORY, false);
+    let allowRecordingHistory = ThumbnailZoomPlus.getBoolPref(this.PREF_PANEL_HISTORY, false);
     if (! allowRecordingHistory) {
       this._logger.debug("_addItemsToHistory: history pref is off.");  
       return;
