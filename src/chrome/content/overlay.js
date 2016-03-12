@@ -84,7 +84,7 @@ ThumbnailZoomPlusChrome.Overlay = {
   _logger : null,
   
   /* Preferences service. */
-  _preferencesService : null, // TODO: same as ThumbnailZoomPlus.Application.prefs?
+  _preferencesService : null,
   
   // console logging service (Web Developer > Error Console, not debug file)
   _consoleService : null,

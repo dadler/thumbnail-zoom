@@ -74,14 +74,8 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // See also the per-module enables farther below in
       // getLogger()
       //
-      // Log messages will be written to ThumbnailZoomPlus/log.txt under
-      // your profile dir.
-      // On Mac OSX it might be
-      //   tail -200 -F "/Users/$USER/Library/Application Support/Firefox/Profiles/"*"/ThumbnailZoomPlus/log.txt"
-      // On Windows it might be
-      //   tail --follow=name --retry "%AppData%\Mozilla\Firefox\Profiles\7sep894p.developer\ThumbnailZoomPlus\log.txt"
-      // (Recommended Windows ports of GNU tail: MSYS, PortableGit, http://unxutils.sourceforge.net)
-      // To debug, set enableDebug above to true and monitor the log file
+      // Log messages will be written to the Console.
+      // To debug, set enableDebug above to true and monitor the console.
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       // 
       let enableDebug = false;
@@ -164,33 +158,6 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     },
 
     /**
-     * Gets the FUEL Application object.
-     * @return the FUEL Application object.
-     */
-    get Application() {
-      // use lazy initialization because the FUEL object is only available for
-      // Firefox and won't work on XUL Runner builds.
-
-      if (null == this._application) {
-        try {
-          // Firefox
-          this._application =
-            Cc["@mozilla.org/fuel/application;1"].getService(Ci.fuelIApplication);
-        } catch (e) {
-          try {
-            // Seamonkey
-            this._application =
-              Cc["@mozilla.org/smile/application;1"].getService(Ci.smileIApplication);
-          } catch (e) {
-            throw "The FUEL/SMILE application object is not available.";
-          }
-        }
-      }
-
-      return this._application;
-    },
-
-    /**
      * Gets the id of this extension.
      * @return the id of this extension.
      */
@@ -255,12 +222,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
         var value = this._prefs[key];
         this._logger.debug("getPref: cache hit: prefs['" + key + "'] = " + value);
       } else {
-        this._logger.debug("getPref: service: " + this._preferencesService + " root " + this._preferencesService.root);
-        this._logger.debug("getPref: func: " + getPrefFunc);
-        this._logger.debug("getPref: cache miss: prefs['" + key + "']");
-
         var pref = getPrefFunc(key);
-        this._logger.debug("getPref: raw pref = " + pref);
         if (undefined != pref) {
           var value = pref;
         } else {
