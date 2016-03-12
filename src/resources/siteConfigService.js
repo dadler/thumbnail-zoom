@@ -283,7 +283,7 @@ ThumbnailZoomPlus.SiteConfigService = {
     }
     ThumbnailZoomPlus.debugToConsole("ThumbnailZoomPlus: new pref value is " +
                                     prefValue);
-    ThumbnailZoomPlus.setPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
+    ThumbnailZoomPlus.setCharPref(ThumbnailZoomPlus.PrefBranch + "disabledSitesRE", prefValue);
 
     return prefValue;
   },

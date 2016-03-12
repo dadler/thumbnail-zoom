@@ -312,17 +312,30 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
     
     /// Sets the specified preference to the specified value and updates the
     /// cache accordingly.
-    setPref : function(key, value) {
+    setBoolPref : function(key, value) {
       // Set cache before setting app pref since setting app pref may trigger
       // an event which could call getPref, and use the cache.
       this.setPrefCache(key, value);
-      return;
-      this.Application.prefs.setValue(key, value);
+      this._preferencesService.setBoolPref(key, value);
+    },
+
+    setIntPref : function(key, value) {
+      // Set cache before setting app pref since setting app pref may trigger
+      // an event which could call getPref, and use the cache.
+      this.setPrefCache(key, value);
+      this._preferencesService.setIntPref(key, value);
+    },
+
+    setCharPref : function(key, value) {
+      // Set cache before setting app pref since setting app pref may trigger
+      // an event which could call getPref, and use the cache.
+      this.setPrefCache(key, value);
+      this._preferencesService.setCharPref(key, value);
     },
     
     togglePref : function(key) {
       let value = ! this.getBoolPref(key, "false");
-      this.setPref(key, value);
+      this.setBoolPref(key, value);
       
       return value;
     },

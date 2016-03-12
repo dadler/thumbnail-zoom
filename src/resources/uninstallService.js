@@ -92,7 +92,7 @@ ThumbnailZoomPlus.UninstallService = {
       // When we later re-enable the add-on, it'll re-add the toolbutton
       // if button.installed is false. 
       let pref = ThumbnailZoomPlus.PrefBranch + "button.installed";
-      ThumbnailZoomPlus.setPref(pref, false);
+      ThumbnailZoomPlus.setBoolPref(pref, false);
       this._logger.trace("_clearInstalledPref: done");
   },
   

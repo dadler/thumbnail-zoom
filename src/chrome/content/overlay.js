@@ -374,7 +374,7 @@ ThumbnailZoomPlusChrome.Overlay = {
         BrowserToolboxCustomizeDone(true);
       } catch (e) { }
 
-      ThumbnailZoomPlus.setPref(this.PREF_TOOLBAR_INSTALLED, true);
+      ThumbnailZoomPlus.setBoolPref(this.PREF_TOOLBAR_INSTALLED, true);
     }
   },
 
@@ -1933,7 +1933,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     this._logger.trace("_setDefaultScalePref(" + value + ")");
     let percent = Math.round(value * 100);
     this._logger.trace("_setDefaultScalePref: setting pref to '" + percent + "'");
-    ThumbnailZoomPlus.setPref(this.PREF_PANEL_MAX_ZOOM, percent);
+    ThumbnailZoomPlus.setIntPref(this.PREF_PANEL_MAX_ZOOM, percent);
     return value;
   },
 
@@ -2628,7 +2628,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     } else if (aEvent.keyCode == aEvent.DOM_VK_A) {
       this._logger.debug("_doHandleKeyDown: toggle allow-covering-thumb pref");
       this._currentAllowCoverThumb = ! this._getAllowCoverThumbPref();
-      ThumbnailZoomPlus.setPref(this.PREF_PANEL_LARGE_IMAGE,
+      ThumbnailZoomPlus.setBoolPref(this.PREF_PANEL_LARGE_IMAGE,
                                 this._currentAllowCoverThumb);
       if (this._currentAllowCoverThumb) {
         // Size may have been limited by disallowing covering, but if it's off
@@ -4200,7 +4200,7 @@ ThumbnailZoomPlusChrome.Overlay = {
 
     let pagePrefKey = ThumbnailZoomPlus.PrefBranch + pageName + ".enable";
     this._logger.debug("set pref " + pagePrefKey + " to " + checked);
-    ThumbnailZoomPlus.setPref(pagePrefKey, checked);
+    ThumbnailZoomPlus.setBoolPref(pagePrefKey, checked);
   },
 
 
