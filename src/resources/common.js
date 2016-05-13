@@ -74,7 +74,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       // See also the per-module enables farther below in
       // getLogger()
       //
-      // Log messages will be written to the Console.
+      // Log messages will be written to the Firefox Browser Console.
       // To debug, set enableDebug above to true and monitor the console.
       // Enabling these increases CPU usage when moving the mouse in Firefox.
       // 
