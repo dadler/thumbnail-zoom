@@ -294,9 +294,8 @@ ThumbnailZoomPlus.Pages.Facebook = {
   },
   
   /**
-   * tries to get an image URL from the aHTMLString, either via
-   * _getImgFromHtmltext (raw text parsing) or via getImgFromSelectors
-   * (html-based CSS selectors to find the appropriate node).
+   * tries to get an image URL from the aHTMLString specifically
+   * for pages on facebook.com.
    *
    * Returns a URL string, and array of them, or null.
    */
@@ -314,18 +313,18 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // page may also match this if it has Previous and Next links; we count on
       // that matching the check above first.
       re = /<div[^>]* class="[^"]*bj.*? href="((?:\/photo\.php\?|\/profile\/picture\/view\/)[^"]*)"/;
-      logger.debug("_getImgFromHtmlText: trying " + re);
+      logger.debug("_getImageFromFBHtml: trying " + re);
       var match = re.exec(aHTMLString);
       if (match) {
-        logger.debug("_getImgFromHtmlText: detected profile page, with photo page URL " + match[1]);
+        logger.debug("_getImageFromFBHtml: detected profile page, with photo page URL " + match[1]);
         return match[1].replace(/&amp;/gi, "&");
       }
     }
 
     // matching e.g. '<a class="bs" href="https://fbcdn-sphotos-b-a.akamaihd.net/hphotos-ak-xfp1/t31.0-8/1051...7_o.jpg">
     // View Full Size</a>'  Class and "View Full Size" text vary.
-    re = /<a(?: class="[^"]*")? href="([^"]+(?:-photo-|\/hphotos-)[^"]+\.(?:jpg|png)[^"]*)"/;
-    logger.debug("_getImgFromHtmlText: trying " + re);
+    re = /<a(?: class="[^"]*")? href="([^"]+(?:-photo-|\/hphotos-|\/(?:v|fr)\/)[^"]+\.(?:jpg|png)[^"]*)"/;
+    logger.debug("_getImageFromFBHtml: trying " + re);
     var match = re.exec(aHTMLString);
     if (match) {
       return match[1].replace(/&amp;/gi, "&");
@@ -335,7 +334,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
     // eg src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xta1/v/t1.0-1/p480x480/11257792_124211117909920_2817615260170635389_n.jpg?efg=eyJpIjoiYiJ9&oh=be711ffb4ad98c014f0c2bc9c46823fa&oe=5616983E&__gda__=1443843600_28e4d49f7011cb116c2a79d8fe944925"
     // eg user tazz
     re = /<img src="([^"]+\/hprofile-[^"]+\.(?:jpg|png)[^"]*)"/;
-    logger.debug("_getImgFromHtmlText: trying " + re);
+    logger.debug("_getImageFromFBHtml: trying " + re);
     var match = re.exec(aHTMLString);
     if (match) {
       return match[1].replace(/&amp;/gi, "&");
@@ -2009,7 +2008,15 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       match = re2.exec(aHTMLString);
       if (match) {
         // Use this unless it's the "ADULT CONTENT" image, in which case
-        // we'll skip it in factor of a rule in _getImageFromHtml().
+        // we'll skip it in favor of a rule in _getImageFromHtml().
+        //
+        // TOOD: in Apr 2016 I found that the "the_photo_ rule in _getImageFromHtml()
+        // no longer seems to work since 500px.com doesn't put the image URL directly
+        // in the img anymore; now it's in a javascript json dict.
+        // To fix this we'd need to parse html for setting javascript
+        // "window.PxPreloadedData", parse its value as json, and use
+        // e.g. the last element of PxPreloadedData.images[<last-element].https_url,
+        // removing backslashes and url-decoding it.
         if (/500px\.com\/graphics\/nude/.test(match[1])) {
           return null;
         }
@@ -2017,6 +2024,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
       }
     }
     
+
     if (match) {
       // Return this unless it's a yfrog video or ebay thumb,
       // for which we can get a larger image via getImgFromSelectors().
@@ -2100,8 +2108,9 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
    * Returns a URL string, and array of them, or null.
    */
   _getImageFromHtml : function(doc, pageUrl, flags, aHTMLString)
-  {    
+  {
     let logger = ThumbnailZoomPlus.Pages._logger;
+    logger.debug("_getImageFromHtml: calling _getImgFromHtmlText");
     let result = this._getImgFromHtmlText(aHTMLString, flags);
     logger.debug("_getImageFromHtml: from _getImgFromHtmlText got " + result);
 
@@ -2125,7 +2134,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
         'div#img center img#image', // image.aven.net
         'div.wrap div#left table a img', // image.aven.net gallery
         'div#show-photo img#mainphoto', // 500px.com photo page
-        'img.the_photo', // 500px.com photo page
+        'img.the_photo', // 500px.com photo page (possibly obsolete)
         'div#the-image a img', // yfrog.com pic
         'div.the-image img#main_image', // yfrog.com video
         'img#gmi-ResViewSizer_fullimg', // deviantart photo (old?)
