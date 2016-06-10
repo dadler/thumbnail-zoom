@@ -102,7 +102,7 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       pattern or else it'll be rejected.  Helps prevent error icon from appearing
       due to generating an image URL which isn't really an image.
       Note that this is applied to the initial URL we have after getImageNode, 
-      but before getZoom Image (which is kind of odd; maybe we should change it).
+      but before getZoomImage (which is kind of odd; maybe we should change it).
       eg /profile|\/app_full_proxy\.php|\.(fbcdn|akamaihd)\.net\/.*(safe_image|_[qstan]\.|([0-9]\/)[qsta]([0-9]))/
       See also imageDisallowRegExp.
       
@@ -1434,6 +1434,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     + "|//giphy\\.com/gifs/[^/?]+"
     + "|\.wallhaven\.cc/wallpaper/[0-9]+"
+    + "|//i\.reddituploads\.com/"
     // end
     , "i"),
   
@@ -1764,6 +1765,7 @@ ThumbnailZoomPlus.Pages.Others = {
                          + "|(" + EXTS + "([?&].*)?$)"
                          + "|^https?://(instagr\\.am|instagram\\.com)/p/.*/media/"
                          + "|^https?://yfrog\\.com/.*:(tw.*|iphone)"
+                         + "|//i\.reddituploads\.com/"
                          , "i");
     let isImage = rex.test(aImageSrc);
     if (! isImage) {
