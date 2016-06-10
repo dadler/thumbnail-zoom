@@ -1434,6 +1434,7 @@ ThumbnailZoomPlus.Pages.Others = {
     + "|(?:i\.)?gyazo.com/[a-z0-9]{32}\.gif"
     + "|//giphy\\.com/gifs/[^/?]+"
     + "|\.wallhaven\.cc/wallpaper/[0-9]+"
+    + "|reddit\.com/r/[^/]+/comments/"
     + "|//i\.reddituploads\.com/"
     // end
     , "i"),
@@ -1757,6 +1758,25 @@ ThumbnailZoomPlus.Pages.Others = {
     // http://giphy.com/media/C7mPxCn8CAH1m/giphy.gif
     aImageSrc = aImageSrc.replace(/\/\/giphy\.com\/gifs\/(?:.*-)?([^-\/?]+)/, "//media.giphy.com/media/$1/giphy.gif");
     
+    // For reddit.com and in particular how they link to images on https://i.redd.it/.
+    // To find those images we must search for the collapsed embedded image when the
+    // user hovers the thumb or link (whose URL is the reddit.com comment page).
+    if (/reddit\.com\/r\/[^\/]+\/comments\/./.test(aImageSrc)) {
+        this._logger.debug("Detected reddit for : " + aImageSrc);
+        node = node.parentNode;
+        if (node.localName.toLowerCase() == "p") {
+          node = node.parentNode.parentNode;
+        }
+        // ThumbnailZoomPlus._logToConsole("  Parent : " + node + " class " + node.className + " localName " + node.localName);
+        node = node.querySelector("div[data-cachedhtml]");
+        if (node) {
+          var cachedhtml = node.getAttribute("data-cachedhtml");
+          aImageSrc = cachedhtml.replace(/.*<a href="([^"]+).*/, "$1");
+        } else {
+          aImageSrc = null;
+        }
+    }
+
     // For most sites, if there is no image suffix, add .jpg.  The rex below
     // matches exceptions (where an image may not contain an image suffix).
     let rex = new RegExp(  "tumblr\\.com/.*"
