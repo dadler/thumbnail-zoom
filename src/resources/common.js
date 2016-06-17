@@ -36,7 +36,12 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://gre/modules/Log.jsm");
+try {
+    Cu.import("resource://gre/modules/Log.jsm");
+} catch (e) {
+    Cu.import("resource://thumbnailzoomplus/log4moz.js");
+    var Log = Log4Moz;
+}
 
 try {
   Cu.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
