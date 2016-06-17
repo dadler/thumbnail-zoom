@@ -2556,11 +2556,6 @@ ThumbnailZoomPlusChrome.Overlay = {
       this._logger.debug("_doHandleKeyDown: save image");
       this.downloadImage();
       
-    } else if (aEvent.keyCode == aEvent.DOM_VK_X) {
-      this._logger.debug("_doHandleKeyDown: toggle TZP 'enable'");
-      ThumbnailZoomPlus.togglePref(this.PREF_PANEL_ENABLE);
-      // code in _handleKeyUp() closes the popup.
-      
     } else if (aEvent.keyCode == aEvent.DOM_VK_EQUALS ||
                aEvent.keyCode == aEvent.DOM_VK_ADD || // for Windows XP
                aEvent.keyCode == aEvent.DOM_VK_SUBTRACT ||
@@ -2655,13 +2650,11 @@ ThumbnailZoomPlusChrome.Overlay = {
     let that = ThumbnailZoomPlusChrome.Overlay;
     that._debugToConsole("_handleKeyUp for " + that._keyName(aEvent));    
 
-    // Handle Escape or x to cancel popup in key-up.  We couldn't do it in
+    // Handle Escape to cancel popup in key-up.  We couldn't do it in
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    let enable = ThumbnailZoomPlus.getBoolPref(that.PREF_PANEL_ENABLE, true);
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE ||
-        (aEvent.keyCode == aEvent.DOM_VK_X && !enable) ) {
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
       that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or x key");
       that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
