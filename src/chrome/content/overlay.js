@@ -2654,8 +2654,12 @@ ThumbnailZoomPlusChrome.Overlay = {
     // key-down because key-down would then unregister key listeners,
     // and escape key-up would go through to the web page, which we
     // don't want.
-    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
-      that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or x key");
+    let isMaximizeKey = that._isKeyActive(that.PREF_PANEL_MAX_KEY, false, false, aEvent);
+    let keyActivates = ThumbnailZoomPlus.getBoolPref(that.PREF_PANEL_ACTIVATE_KEY_ACTIVATES, true);
+    let cancelPopupDueToKeyToNotDisplay = (!keyActivates) && (!isMaximizeKey) &&
+            !that._isKeyActive(that.PREF_PANEL_ACTIVATE_KEY, true, false, aEvent);
+    if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE || cancelPopupDueToKeyToNotDisplay) {
+      that._debugToConsole("_handleKeyUp: _closePanel(false) since pressed Esc or 'key to not display'");
       that._setIgnoreBBoxPageRelative();
       that._closePanel(false);
     }
