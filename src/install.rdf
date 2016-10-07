@@ -47,7 +47,8 @@
     <em:iconURL>chrome://thumbnailzoomplus/skin/images/icon64.png</em:iconURL>
     <em:optionsURL>chrome://thumbnailzoomplus/content/options.xul</em:optionsURL>
     <em:type>2</em:type>
-	
+	  <em:multiprocessCompatible>false</em:multiprocessCompatible>
+  
     <em:localized>
       <Description>
         <em:locale>sv-SE</em:locale>
