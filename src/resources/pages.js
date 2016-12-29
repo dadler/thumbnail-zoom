@@ -1747,9 +1747,11 @@ ThumbnailZoomPlus.Pages.Others = {
     // https://www.dropbox.com/s/3tpngbyy77q57e5/2011-03-07%2015.28.14.jpg?dl=1
     aImageSrc = aImageSrc.replace(/(dropbox\.com\/.*[?&])dl=0/, "$1dl=1");
     
-    // We can't display imgur's gifv's (which are mp4's and require Flash) but
-    // imgur can usually serve a webm, which we can display.  So request that.
-    aImageSrc = aImageSrc.replace(/(imgur\.com\/.*)\.gifv/, "$1.webm");
+    // We can't display imgur's gifv's since they are flash video in
+    // an mp4 wrapper and Firefox won't display flash video from an add-on's
+    // pop-up.  We could show the lower-quality and larger gif like this, or
+    // just not show a pop-up (by commenting this out).
+    // aImageSrc = aImageSrc.replace(/(imgur\.com\/.*)\.gifv/, "$1.gif");
     
     // http://giphy.com/gifs/xXuQz6usY7gKk becomes
     // http://media.giphy.com/media/xXuQz6usY7gKk/giphy.gif and
@@ -1791,7 +1793,11 @@ ThumbnailZoomPlus.Pages.Others = {
     if (! isImage) {
       // add .jpg, e.g. for imgur links, if it doesn't appear anywhere 
       // (including stuff.jpg?more=...)
-      aImageSrc += ".jpg";
+      if (aImageSrc.endsWith(".gifv")) {
+        aImageSrc = null;
+      } else {
+        aImageSrc += ".jpg";
+      }
     }
     this._logger.debug("Others getZoomImage: using zoom image " + aImageSrc);
 
