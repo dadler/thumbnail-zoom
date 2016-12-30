@@ -1996,7 +1996,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // imgur.com /a/ albums, supporting > 11 images.
     // match e.g. <img alt="" src="//i.imgur.com/fXq9wP4s.jpg" gives
     // "http://i.imgur.com/fXq9wP4.jpg" (note removal of "s").
-    re = /<img[^>]* data-src="(\/\/i\.imgur\.com\/[^"\.>]+?)s?\.(?:png|jpg|gif)/g;
+    re = /<img[^>]* src="(\/\/i\.imgur\.com\/[^"\.>]+?)s?\.(?:png|jpg|gif)/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (match) {
