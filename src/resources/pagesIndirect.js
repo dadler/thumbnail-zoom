@@ -71,6 +71,8 @@ ThumbnailZoomPlus.PagesIndirect = {
     // we default security 'principal' and base URI.
     // TODO: is this the URL we retrieved aHTMLString from or the
     // URL containing the thumbnail/link?
+    // TODO: Starting with Firefox 50, due to Firefox Bug 1237080, this warns:
+    // Creating DOMParser without a principal is deprecated.
     parser.init(null, doc.documentURIObject, null);
     var tempdoc = parser.parseFromString(aHTMLString, "text/html");
     var body = tempdoc.body;
