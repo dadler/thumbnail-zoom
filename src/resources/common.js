@@ -351,6 +351,10 @@ if ("undefined" == typeof(ThumbnailZoomPlus)) {
       
       if (win && "undefined" != typeof(PrivateBrowsingUtils) &&
           PrivateBrowsingUtils.privacyContextFromWindow) {
+        // TODO: This fails in Multi-process Firefox, as does PrivateBrowsingUtils.isBrowserPrivate().
+        // The error in console is: : unsafe CPOW usage forbidden
+        // reported by pbu_privacyContextFromWindow().
+        // This causes images not to be added to history.
         var privacyContext = PrivateBrowsingUtils.privacyContextFromWindow(win);
         var isPrivate = privacyContext.usePrivateBrowsing;
       } else {
