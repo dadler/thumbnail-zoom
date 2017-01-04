@@ -312,7 +312,7 @@ ThumbnailZoomPlus.Pages.Facebook = {
       // Check for profile page's link to user's photo.  Note that a profile pic
       // page may also match this if it has Previous and Next links; we count on
       // that matching the check above first.
-      re = /<div[^>]* class="[^"]*bj.*? href="((?:\/photo\.php\?|\/profile\/picture\/view\/)[^"]*)"/;
+      re = /<div[^>]* class="[^"]*timeline.*? href="((?:\/photo\.php\?|\/profile\/picture\/view\/)[^"]*)"/;
       logger.debug("_getImageFromFBHtml: trying " + re);
       var match = re.exec(aHTMLString);
       if (match) {
