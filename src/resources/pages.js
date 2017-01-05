@@ -85,13 +85,12 @@ if ("undefined" == typeof(ThumbnailZoomPlus.Pages)) {
       menu if 'enable' flags.
 
     * host: regular expression which the hostname of the page containing the
-      thumbnail or link must match for the rule to apply.  THIS APPLIES
-      TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
+      thumbnail or link must match for the rule to apply, or of the thumbnail
+      or link itself.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
     * hostDisallow: optional regular expression which the hostname of the page containing
-      the thumbnail or link must NOT match for the rule to apply.  THIS APPLIES
-      TO THE PAGE WHICH HOSTS THE LINK OR THUMB, NOT THE IMAGE ITSELF.
+      the thumbnail or link -- or the thumb or link itself -- must NOT match for the rule to apply.
       Remember to backslash-quote literal dots.  eg /^(.*\.)?facebook\.com$/
 
     * preferLinkOverThumb: optional boolean indicates that when the hovered
@@ -643,6 +642,8 @@ ThumbnailZoomPlus.Pages.Amazon = {
   key: "amazon",
   name: "Amazon",
   // Work on amazon.com, amazon.cn, https://amazon.co.uk, etc.
+  // Also incidentally enables imdb.com since that site hosts images
+  // on amazon aws.
   // examples:
   // https://images-eu.ssl-images-amazon.com/images/I/51aYWCfdQkL._SL135_.jpg
   host: /^(.*\.)?((ssl-)?images-)?amazon\.(co\.)?[a-z]+$/,
@@ -1242,8 +1243,15 @@ ThumbnailZoomPlus.Pages.IMDb = {
   key: "imdb",
   name: "IMDb",
   host: /^(.*\.)?imdb\.[a-z]+$/,
-  imageRegExp: /ia\.media\-imdb\.com\/images\//,
+    
+  // combines older imdb rule with amazon rule.
+  imageRegExp: /ia\.media\-imdb\.com\/images\/|^((?!.*g-ecx\.).*\.)(ssl-)?images\-amazon\.com\/images\/(?!.*(buttons|gui|ontv)\/).*/,
+  
   getZoomImage : function(aImageSrc, node, flags) {
+    if (/\/nopicture\/./.test(aImageSrc)) {
+      return null;
+    }
+
     // http://ia.media-imdb.com/images/M/MV5BMTk4MTMwMDgzN15BMl5BanBnXkFtZTcwOTI1MTc0OA@@._V1._SX32_CR0,0,32,44_.jpg becomes
     // http://ia.media-imdb.com/images/M/MV5BMTk4MTMwMDgzN15BMl5BanBnXkFtZTcwOTI1MTc0OA@@._V1._SY800.jpg
     // Note that removing ._V1._SX500.jpg would give even bigger images, but
@@ -1251,6 +1259,10 @@ ThumbnailZoomPlus.Pages.IMDb = {
     // 500-across images.
     aImageSrc = aImageSrc.replace(/\._.+_(\.[a-z]+)/i,
                                   "._V1._SY800$1");
+                          
+    // Like the 'amazon' rule, since imdb hosts images on amazon aws.
+    aImageSrc = aImageSrc.replace(/\._[a-z0-9].+_\./i, ".");
+        
     return aImageSrc;
   }
 };
