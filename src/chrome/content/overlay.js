@@ -4105,7 +4105,7 @@ ThumbnailZoomPlusChrome.Overlay = {
     name = name.replace(/^[\._ -]+/, '');
     
     // Limit length.
-    let maxChars = 32;
+    let maxChars = 64;
     // Truncate after the last word break before position maxChars.
     name = this._friendlyTruncate(name, maxChars, maxChars - 12);
     if (extension && 
