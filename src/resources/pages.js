@@ -2194,8 +2194,8 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     
     if ("[object Array]" != Object.prototype.toString.call(result)) {
       // We have a single result (not a gallery).  Process it.  We assume galleries don't need this.
-      result = ThumbnailZoomPlus.FilterService.applyBaseURI(docInfo.doc, result);
-        
+      result = ThumbnailZoomPlus.FilterService._applyThisBaseURI(docInfo.body.ownerDocument, pageUrl, result);
+
       if (/dailymotion\.com\/|liveleak\.com\/|blip\.tv\//.test(aHTMLString)) {
         flags.setVideoBorderColor(result, "dailymotion or liveleak.com or blip.tv");
       }
