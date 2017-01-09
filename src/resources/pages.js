@@ -2038,7 +2038,7 @@ ThumbnailZoomPlus.Pages.OthersIndirect = {
     // flickr.com sets, dailymotion.com, yfrog, wired.com, etc.
     // We disallow ending "?fb" in URL since on imgur.com ?fb seems to be a cropped
     // redundant thumbnail.
-    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"'](?!.*\\?fb)([^\"']+?)["']/g;
+    re = /<meta +(?:property|name)=["']og:image[0-9]*["'] +content=[\"'](?!.*\?fb)([^\"']+?)["']/g;
     logger.debug("_getImgFromHtmlText: trying " + re);
     match = re.exec(aHTMLString);
     if (! match) {
