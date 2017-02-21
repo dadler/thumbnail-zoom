@@ -1786,6 +1786,7 @@ ThumbnailZoomPlus.Pages.Others = {
         if (node) {
           var cachedhtml = node.getAttribute("data-cachedhtml");
           aImageSrc = cachedhtml.replace(/.*<a href="([^"]+).*/, "$1");
+          aImageSrc = aImageSrc.replace(/&amp;/gi, "&");
         } else {
           aImageSrc = null;
         }
